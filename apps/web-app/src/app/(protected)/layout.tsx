@@ -19,6 +19,12 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
           <h1 style={{ margin: 0 }}>AI Muhasebi</h1>
         </Link>
         <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+          <Link href="/risk/dashboard" style={{ textDecoration: "none", color: "#0066cc" }}>
+            Risk Panosu
+          </Link>
+          <Link href="/risk/alerts" style={{ textDecoration: "none", color: "#0066cc" }}>
+            Risk Uyarıları
+          </Link>
           <TenantSwitcher />
           <Link href="/settings/users" style={{ textDecoration: "none", color: "#0066cc" }}>
             Kullanıcı Yönetimi

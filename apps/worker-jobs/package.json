@@ -12,7 +12,7 @@
     "db:generate": "prisma generate"
   },
   "dependencies": {
-    "@prisma/client": "^7.1.0",
+    "@prisma/client": "^5.22.0",
     "@repo/core-domain": "workspace:*",
     "@repo/shared-utils": "workspace:*",
     "@repo/config": "workspace:*"
@@ -20,6 +20,7 @@
   "devDependencies": {
     "@types/node": "^20.11.0",
     "eslint": "^8.56.0",
+    "prisma": "^5.22.0",
     "tsx": "^4.7.1",
     "typescript": "^5.3.3"
   }

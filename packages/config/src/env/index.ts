@@ -9,7 +9,7 @@ const envSchema = z.object({
   JWT_REFRESH_TOKEN_EXPIRY: z.string().default("7d"),
   API_URL: z.string().url().optional(),
   FRONTEND_URL: z.string().url().optional(),
-  PORT: z.string().default("3001"),
+  PORT: z.string().default("3800"),
   // Email configuration (stubbed for now)
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.string().optional(),
@@ -38,7 +38,7 @@ export function getConfig(): EnvConfig {
   const result = envSchema.safeParse(process.env);
 
   if (!result.success) {
-    const errors = result.error.errors.map((e) => `${e.path.join(".")}: ${e.message}`).join("\n");
+    const errors = result.error.issues.map((e) => `${e.path.join(".")}: ${e.message}`).join("\n");
     throw new Error(`Invalid environment configuration:\n${errors}`);
   }
 

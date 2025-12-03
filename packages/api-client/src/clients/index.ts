@@ -6,3 +6,4 @@ export * from "./invoice-client";
 export * from "./transaction-client";
 export * from "./ledger-account-client";
 export * from "./document-client";
+export * from "./risk-client";

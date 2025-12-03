@@ -28,6 +28,7 @@ export type Permission =
   | "settings:read"
   | "settings:update"
   | "settings:billing"
+  | "integrations:read"
   | "integrations:manage";
 
 export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
@@ -59,6 +60,7 @@ export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
     "settings:read",
     "settings:update",
     "settings:billing",
+    "integrations:read",
     "integrations:manage",
   ],
   Accountant: [
@@ -82,6 +84,8 @@ export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
     "reports:view",
     "reports:create",
     "reports:export",
+    "integrations:read",
+    "integrations:manage",
   ],
   Staff: [
     "documents:create",
@@ -97,6 +101,7 @@ export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
     "clients:read",
     "risk:view",
     "reports:view",
+    "integrations:read",
   ],
 };
 

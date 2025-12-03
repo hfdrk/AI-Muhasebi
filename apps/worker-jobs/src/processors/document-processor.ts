@@ -76,6 +76,15 @@ export class DocumentProcessor {
           },
         }
       );
+
+      // Step 5: Calculate document risk score and create alerts if needed
+      try {
+        const { riskCalculationProcessor } = await import("./risk-calculation-processor");
+        await riskCalculationProcessor.processDocumentRiskCalculation(tenantId, documentId);
+      } catch (riskError: any) {
+        // Log but don't fail the document processing if risk calculation fails
+        console.error(`[Document Processor] Error calculating risk for document ${documentId}:`, riskError);
+      }
     } catch (error: any) {
       // Error will be handled by the worker loop
       throw error;

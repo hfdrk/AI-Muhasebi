@@ -18,3 +18,7 @@ export * from "./risk-rule";
 export * from "./document-risk-score";
 export * from "./client-company-risk-score";
 export * from "./risk-alert";
+export * from "./integration-provider";
+export * from "./tenant-integration";
+export * from "./integration-sync-job";
+export * from "./integration-sync-log";

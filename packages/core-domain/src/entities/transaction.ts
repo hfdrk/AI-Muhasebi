@@ -4,6 +4,7 @@ export interface Transaction {
   id: string;
   tenantId: string;
   clientCompanyId: string | null;
+  externalId: string | null;
   date: Date;
   referenceNo: string | null;
   description: string | null;
@@ -14,6 +15,7 @@ export interface Transaction {
 
 export interface CreateTransactionInput {
   clientCompanyId?: string | null;
+  externalId?: string | null;
   date: Date;
   referenceNo?: string | null;
   description?: string | null;

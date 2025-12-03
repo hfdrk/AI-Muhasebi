@@ -8,12 +8,13 @@ import Link from "next/link";
 import { BankAccountModal } from "../../../../components/bank-account-modal";
 import { DocumentList } from "../../../../components/document-list";
 import { DocumentUploadModal } from "../../../../components/document-upload-modal";
+import { useClientCompanyRiskScore } from "@/hooks/use-risk";
 
 export default function ClientDetailPage() {
   const params = useParams();
   const router = useRouter();
   const clientId = params.id as string;
-  const [activeTab, setActiveTab] = useState<"general" | "banks" | "invoices" | "transactions" | "documents">("general");
+  const [activeTab, setActiveTab] = useState<"general" | "banks" | "invoices" | "transactions" | "documents" | "risk">("general");
   const [bankModalOpen, setBankModalOpen] = useState(false);
   const [documentModalOpen, setDocumentModalOpen] = useState(false);
   const [editingBankAccount, setEditingBankAccount] = useState<string | null>(null);
@@ -37,6 +38,8 @@ export default function ClientDetailPage() {
       queryClient.invalidateQueries({ queryKey: ["bankAccounts", clientId] });
     },
   });
+
+  const { data: riskScoreData, isLoading: riskLoading } = useClientCompanyRiskScore(clientId);
 
   if (clientLoading) {
     return (
@@ -155,6 +158,19 @@ export default function ClientDetailPage() {
             }}
           >
             Belgeler
+          </button>
+          <button
+            onClick={() => setActiveTab("risk")}
+            style={{
+              padding: "8px 16px",
+              border: "none",
+              borderBottom: activeTab === "risk" ? "2px solid #0066cc" : "2px solid transparent",
+              backgroundColor: "transparent",
+              cursor: "pointer",
+              color: activeTab === "risk" ? "#0066cc" : "inherit",
+            }}
+          >
+            Risk Analizi
           </button>
         </div>
       </div>
@@ -351,6 +367,142 @@ export default function ClientDetailPage() {
             isOpen={documentModalOpen}
             onClose={() => setDocumentModalOpen(false)}
           />
+        </div>
+      )}
+
+      {activeTab === "risk" && (
+        <div>
+          <h2 style={{ marginBottom: "20px" }}>Müşteri Risk Analizi</h2>
+          {riskLoading && (
+            <div style={{ padding: "16px" }}>
+              <p>Risk skoru yükleniyor...</p>
+            </div>
+          )}
+
+          {!riskLoading && riskScoreData?.data && (
+            <div style={{ padding: "20px", backgroundColor: "#f5f5f5", borderRadius: "8px", marginBottom: "20px" }}>
+              {riskScoreData.data.riskScore ? (
+                <>
+                  <div style={{ marginBottom: "20px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "12px" }}>
+                      <div>
+                        <strong>Genel Risk Skoru:</strong>{" "}
+                        <span
+                          style={{
+                            fontSize: "24px",
+                            fontWeight: "bold",
+                            color:
+                              riskScoreData.data.riskScore.severity === "high"
+                                ? "#dc2626"
+                                : riskScoreData.data.riskScore.severity === "medium"
+                                ? "#f59e0b"
+                                : "#10b981",
+                          }}
+                        >
+                          {riskScoreData.data.riskScore.score}
+                        </span>
+                        /100
+                      </div>
+                      <div>
+                        <strong>Şiddet:</strong>{" "}
+                        <span
+                          style={{
+                            padding: "4px 8px",
+                            borderRadius: "4px",
+                            fontSize: "14px",
+                            fontWeight: "500",
+                            backgroundColor:
+                              riskScoreData.data.riskScore.severity === "high"
+                                ? "#dc262620"
+                                : riskScoreData.data.riskScore.severity === "medium"
+                                ? "#f59e0b20"
+                                : "#10b98120",
+                            color:
+                              riskScoreData.data.riskScore.severity === "high"
+                                ? "#dc2626"
+                                : riskScoreData.data.riskScore.severity === "medium"
+                                ? "#f59e0b"
+                                : "#10b981",
+                          }}
+                        >
+                          {riskScoreData.data.riskScore.severity === "high"
+                            ? "Yüksek"
+                            : riskScoreData.data.riskScore.severity === "medium"
+                            ? "Orta"
+                            : "Düşük"}
+                        </span>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: "14px", color: "#666" }}>
+                      Hesaplanma Tarihi: {new Date(riskScoreData.data.riskScore.generatedAt).toLocaleString("tr-TR")}
+                    </div>
+                  </div>
+
+                  <div style={{ marginBottom: "20px" }}>
+                    <h3 style={{ marginBottom: "12px" }}>Belge Dağılımı</h3>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+                      <div style={{ padding: "12px", backgroundColor: "#fff", borderRadius: "4px", textAlign: "center" }}>
+                        <div style={{ fontSize: "24px", fontWeight: "bold", color: "#10b981" }}>
+                          {riskScoreData.data.breakdown.low}
+                        </div>
+                        <div style={{ fontSize: "14px", color: "#666" }}>Düşük Risk</div>
+                      </div>
+                      <div style={{ padding: "12px", backgroundColor: "#fff", borderRadius: "4px", textAlign: "center" }}>
+                        <div style={{ fontSize: "24px", fontWeight: "bold", color: "#f59e0b" }}>
+                          {riskScoreData.data.breakdown.medium}
+                        </div>
+                        <div style={{ fontSize: "14px", color: "#666" }}>Orta Risk</div>
+                      </div>
+                      <div style={{ padding: "12px", backgroundColor: "#fff", borderRadius: "4px", textAlign: "center" }}>
+                        <div style={{ fontSize: "24px", fontWeight: "bold", color: "#dc2626" }}>
+                          {riskScoreData.data.breakdown.high}
+                        </div>
+                        <div style={{ fontSize: "14px", color: "#666" }}>Yüksek Risk</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {riskScoreData.data.topTriggeredRules.length > 0 && (
+                    <div>
+                      <h3 style={{ marginBottom: "12px" }}>En Çok Tetiklenen Kurallar</h3>
+                      <div style={{ display: "grid", gap: "8px" }}>
+                        {riskScoreData.data.topTriggeredRules.map((rule, index) => (
+                          <div
+                            key={index}
+                            style={{
+                              padding: "12px",
+                              backgroundColor: "#fff",
+                              borderRadius: "4px",
+                              border: "1px solid #e0e0e0",
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                            }}
+                          >
+                            <div>
+                              <strong>{rule.code}</strong>
+                              <div style={{ fontSize: "14px", color: "#666", marginTop: "4px" }}>{rule.description}</div>
+                            </div>
+                            <div style={{ fontSize: "14px", color: "#666" }}>{rule.count} kez tetiklendi</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div style={{ padding: "16px", textAlign: "center", color: "#666" }}>
+                  Bu müşteri için henüz risk skoru hesaplanmamış.
+                </div>
+              )}
+            </div>
+          )}
+
+          {!riskLoading && !riskScoreData?.data && (
+            <div style={{ padding: "16px", backgroundColor: "#e2e3e5", borderRadius: "4px" }}>
+              <p>Bu müşteri için henüz risk skoru hesaplanmamış.</p>
+            </div>
+          )}
         </div>
       )}
     </div>

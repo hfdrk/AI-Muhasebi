@@ -25,6 +25,7 @@ model User {
   auditLogs   AuditLog[]
   uploadedDocuments Document[]
   resolvedRiskAlerts RiskAlert[]
+  passwordResetTokens PasswordResetToken[]
 
   @@index([email])
   @@map("users")
@@ -60,6 +61,9 @@ model Tenant {
   documentRiskScores DocumentRiskScore[]
   clientCompanyRiskScores ClientCompanyRiskScore[]
   riskAlerts RiskAlert[]
+  tenantIntegrations TenantIntegration[]
+  integrationSyncJobs IntegrationSyncJob[]
+  integrationSyncLogs IntegrationSyncLog[]
 
   @@index([slug])
   @@map("tenants")
@@ -139,6 +143,7 @@ model ClientCompany {
   documents     Document[]
   riskScores    ClientCompanyRiskScore[]
   riskAlerts    RiskAlert[]
+  tenantIntegrations TenantIntegration[]
 
   @@unique([tenantId, taxNumber])
   @@index([tenantId])
@@ -242,6 +247,7 @@ model Transaction {
   id            String    @id @default(cuid())
   tenantId      String    @map("tenant_id")
   clientCompanyId String? @map("client_company_id")
+  externalId    String?   @map("external_id") @db.VarChar(255)
   date          DateTime  @db.Timestamptz(6)
   referenceNo   String?   @map("reference_no") @db.VarChar(100)
   description   String?   @db.Text
@@ -257,6 +263,7 @@ model Transaction {
   @@index([tenantId])
   @@index([clientCompanyId])
   @@index([tenantId, date])
+  @@index([tenantId, externalId])
   @@map("transactions")
 }
 
@@ -493,5 +500,93 @@ model RiskAlert {
   @@index([tenantId, severity])
   @@index([createdAt])
   @@map("risk_alerts")
+}
+
+model IntegrationProvider {
+  id            String    @id @default(cuid())
+  type          String    @db.VarChar(50) // accounting, bank
+  code          String    @unique @db.VarChar(100)
+  name          String    @db.VarChar(255)
+  description   String?   @db.Text
+  isActive      Boolean   @default(true) @map("is_active")
+  configSchema  Json?     @map("config_schema")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenantIntegrations TenantIntegration[]
+
+  @@index([type])
+  @@index([isActive])
+  @@map("integration_providers")
+}
+
+model TenantIntegration {
+  id              String    @id @default(cuid())
+  tenantId        String    @map("tenant_id")
+  clientCompanyId String?   @map("client_company_id")
+  providerId      String    @map("provider_id")
+  status          String    @default("disconnected") @db.VarChar(50) // disconnected, connected, error
+  displayName     String    @map("display_name") @db.VarChar(255)
+  config          Json      @default("{}")
+  lastSyncAt      DateTime? @map("last_sync_at") @db.Timestamptz(6)
+  lastSyncStatus  String?   @map("last_sync_status") @db.VarChar(50) // success, error, in_progress
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientCompany ClientCompany?      @relation(fields: [clientCompanyId], references: [id], onDelete: SetNull)
+  provider      IntegrationProvider  @relation(fields: [providerId], references: [id], onDelete: Restrict)
+  syncJobs      IntegrationSyncJob[]
+  syncLogs      IntegrationSyncLog[]
+
+  @@index([tenantId])
+  @@index([clientCompanyId])
+  @@index([providerId])
+  @@index([tenantId, status])
+  @@map("tenant_integrations")
+}
+
+model IntegrationSyncJob {
+  id                  String    @id @default(cuid())
+  tenantId            String    @map("tenant_id")
+  clientCompanyId     String?   @map("client_company_id")
+  tenantIntegrationId String    @map("tenant_integration_id")
+  jobType             String    @map("job_type") @db.VarChar(50) // pull_invoices, pull_bank_transactions
+  status              String    @default("pending") @db.VarChar(50) // pending, in_progress, success, failed
+  startedAt           DateTime? @map("started_at") @db.Timestamptz(6)
+  finishedAt          DateTime? @map("finished_at") @db.Timestamptz(6)
+  errorMessage        String?   @map("error_message") @db.Text
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant            Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientCompany     ClientCompany?    @relation(fields: [clientCompanyId], references: [id], onDelete: SetNull)
+  tenantIntegration TenantIntegration @relation(fields: [tenantIntegrationId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantIntegrationId])
+  @@index([tenantId, status])
+  @@index([status])
+  @@map("integration_sync_jobs")
+}
+
+model IntegrationSyncLog {
+  id                  String    @id @default(cuid())
+  tenantId            String    @map("tenant_id")
+  tenantIntegrationId String    @map("tenant_integration_id")
+  level               String    @db.VarChar(50) // info, warning, error
+  message             String    @db.Text
+  context             Json?     @default("{}")
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant            Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenantIntegration TenantIntegration @relation(fields: [tenantIntegrationId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantIntegrationId])
+  @@index([tenantId, tenantIntegrationId])
+  @@index([level])
+  @@index([createdAt])
+  @@map("integration_sync_logs")
 }
 

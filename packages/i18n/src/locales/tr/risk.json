@@ -1,18 +1,92 @@
 {
-  "title": "Risk Analizi",
+  "title": "Risk Yönetimi",
   "dashboard": {
-    "title": "Risk Dashboard",
-    "overallScore": "Genel Risk Skoru"
+    "title": "Risk Panosu",
+    "highRiskClients": "Yüksek Riskli Müşteriler",
+    "criticalAlerts": "Kritik Uyarılar",
+    "totalDocuments": "Toplam Belge",
+    "highRiskDocuments": "Yüksek Riskli Belgeler",
+    "clientRiskDistribution": "Müşteri Risk Dağılımı",
+    "low": "Düşük",
+    "medium": "Orta",
+    "high": "Yüksek"
+  },
+  "documentRisk": {
+    "title": "Belge Risk Skoru",
+    "score": "Risk Skoru",
+    "severity": "Şiddet",
+    "triggeredRules": "Tetiklenen Kurallar",
+    "noRiskScore": "Bu belge için henüz risk skoru hesaplanmamış.",
+    "low": "Düşük",
+    "medium": "Orta",
+    "high": "Yüksek"
+  },
+  "companyRisk": {
+    "title": "Müşteri Risk Analizi",
+    "overallScore": "Genel Risk Skoru",
+    "documentBreakdown": "Belge Dağılımı",
+    "topTriggeredRules": "En Çok Tetiklenen Kurallar",
+    "noRiskScore": "Bu müşteri için henüz risk skoru hesaplanmamış.",
+    "low": "Düşük",
+    "medium": "Orta",
+    "high": "Yüksek"
   },
   "alerts": {
     "title": "Risk Uyarıları",
-    "severity": "Önem Derecesi",
-    "status": "Durum"
+    "list": {
+      "title": "Uyarı Listesi",
+      "noAlerts": "Henüz uyarı yok.",
+      "filterByCompany": "Müşteriye Göre Filtrele",
+      "filterBySeverity": "Şiddete Göre Filtrele",
+      "filterByStatus": "Duruma Göre Filtrele",
+      "allCompanies": "Tüm Müşteriler",
+      "allSeverities": "Tüm Şiddetler",
+      "allStatuses": "Tüm Durumlar"
+    },
+    "status": {
+      "open": "Açık",
+      "in_progress": "İşlemde",
+      "closed": "Kapatıldı",
+      "ignored": "Yok Sayıldı"
+    },
+    "severity": {
+      "low": "Düşük",
+      "medium": "Orta",
+      "high": "Yüksek",
+      "critical": "Kritik"
+    },
+    "type": {
+      "RISK_THRESHOLD_EXCEEDED": "Risk Eşiği Aşıldı",
+      "ANOMALY_DETECTED": "Anomali Tespit Edildi"
+    },
+    "actions": {
+      "markInProgress": "İşleme Al",
+      "markClosed": "Kapat",
+      "markIgnored": "Yok Say",
+      "reopen": "Yeniden Aç"
+    },
+    "details": {
+      "title": "Uyarı Detayları",
+      "company": "Müşteri",
+      "document": "Belge",
+      "type": "Tip",
+      "severity": "Şiddet",
+      "status": "Durum",
+      "message": "Mesaj",
+      "createdAt": "Oluşturulma Tarihi",
+      "resolvedAt": "Çözülme Tarihi",
+      "resolvedBy": "Çözen Kullanıcı"
+    }
   },
-  "scores": {
-    "title": "Risk Skorları",
-    "client": "Müşteri",
-    "score": "Skor"
+  "rules": {
+    "title": "Risk Kuralları",
+    "documentRules": "Belge Kuralları",
+    "companyRules": "Şirket Kuralları",
+    "code": "Kod",
+    "description": "Açıklama",
+    "weight": "Ağırlık",
+    "severity": "Şiddet",
+    "isActive": "Aktif",
+    "inactive": "Pasif"
   }
 }
-

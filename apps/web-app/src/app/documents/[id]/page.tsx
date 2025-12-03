@@ -5,6 +5,7 @@ import { getDocument, deleteDocument, downloadDocument, getDocumentAIAnalysis } 
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
+import { useDocumentRiskScore } from "@/hooks/use-risk";
 
 const TYPE_LABELS: Record<string, string> = {
   INVOICE: "Fatura",
@@ -25,7 +26,7 @@ export default function DocumentDetailPage() {
   const router = useRouter();
   const documentId = params.id as string;
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"details" | "ai">("details");
+  const [activeTab, setActiveTab] = useState<"details" | "ai" | "risk">("details");
 
   const { data: document, isLoading } = useQuery({
     queryKey: ["document", documentId],
@@ -38,6 +39,8 @@ export default function DocumentDetailPage() {
     queryFn: () => getDocumentAIAnalysis(documentId),
     enabled: !!documentId && document?.data?.status === "PROCESSED",
   });
+
+  const { data: riskScoreData, isLoading: riskLoading } = useDocumentRiskScore(documentId);
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteDocument(id),
@@ -236,6 +239,19 @@ export default function DocumentDetailPage() {
             }}
           >
             AI Analiz
+          </button>
+          <button
+            onClick={() => setActiveTab("risk")}
+            style={{
+              padding: "8px 16px",
+              border: "none",
+              borderBottom: activeTab === "risk" ? "2px solid #0066cc" : "2px solid transparent",
+              backgroundColor: "transparent",
+              cursor: "pointer",
+              color: activeTab === "risk" ? "#0066cc" : "inherit",
+            }}
+          >
+            Risk Analizi
           </button>
         </div>
       </div>
@@ -458,6 +474,136 @@ export default function DocumentDetailPage() {
           {!aiLoading && !aiAnalysis?.data && documentData.status === "PROCESSED" && (
             <div style={{ padding: "16px", backgroundColor: "#e2e3e5", borderRadius: "4px" }}>
               <p>Bu belge henüz AI tarafından analiz edilmemiş.</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === "risk" && (
+        <div>
+          {riskLoading && (
+            <div style={{ padding: "16px" }}>
+              <p>Risk skoru yükleniyor...</p>
+            </div>
+          )}
+
+          {!riskLoading && riskScoreData?.data && (
+            <div style={{ padding: "16px", backgroundColor: "#f5f5f5", borderRadius: "4px" }}>
+              <h2 style={{ marginBottom: "16px" }}>Belge Risk Skoru</h2>
+              <div style={{ marginBottom: "20px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "12px" }}>
+                  <div>
+                    <strong>Risk Skoru:</strong>{" "}
+                    <span
+                      style={{
+                        fontSize: "24px",
+                        fontWeight: "bold",
+                        color:
+                          riskScoreData.data.riskScore.severity === "high"
+                            ? "#dc2626"
+                            : riskScoreData.data.riskScore.severity === "medium"
+                            ? "#f59e0b"
+                            : "#10b981",
+                      }}
+                    >
+                      {riskScoreData.data.riskScore.score}
+                    </span>
+                    /100
+                  </div>
+                  <div>
+                    <strong>Şiddet:</strong>{" "}
+                    <span
+                      style={{
+                        padding: "4px 8px",
+                        borderRadius: "4px",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        backgroundColor:
+                          riskScoreData.data.riskScore.severity === "high"
+                            ? "#dc262620"
+                            : riskScoreData.data.riskScore.severity === "medium"
+                            ? "#f59e0b20"
+                            : "#10b98120",
+                        color:
+                          riskScoreData.data.riskScore.severity === "high"
+                            ? "#dc2626"
+                            : riskScoreData.data.riskScore.severity === "medium"
+                            ? "#f59e0b"
+                            : "#10b981",
+                      }}
+                    >
+                      {riskScoreData.data.riskScore.severity === "high"
+                        ? "Yüksek"
+                        : riskScoreData.data.riskScore.severity === "medium"
+                        ? "Orta"
+                        : "Düşük"}
+                    </span>
+                  </div>
+                </div>
+                <div style={{ fontSize: "14px", color: "#666" }}>
+                  Hesaplanma Tarihi: {new Date(riskScoreData.data.riskScore.generatedAt).toLocaleString("tr-TR")}
+                </div>
+              </div>
+
+              {riskScoreData.data.triggeredRules.length > 0 && (
+                <div>
+                  <h3 style={{ marginBottom: "12px" }}>Tetiklenen Kurallar</h3>
+                  <div style={{ display: "grid", gap: "8px" }}>
+                    {riskScoreData.data.triggeredRules.map((rule, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          padding: "12px",
+                          backgroundColor: "#fff",
+                          borderRadius: "4px",
+                          border: "1px solid #e0e0e0",
+                        }}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                          <strong>{rule.code}</strong>
+                          <span
+                            style={{
+                              padding: "2px 6px",
+                              borderRadius: "4px",
+                              fontSize: "12px",
+                              backgroundColor:
+                                rule.severity === "high"
+                                  ? "#dc262620"
+                                  : rule.severity === "medium"
+                                  ? "#f59e0b20"
+                                  : "#10b98120",
+                              color:
+                                rule.severity === "high"
+                                  ? "#dc2626"
+                                  : rule.severity === "medium"
+                                  ? "#f59e0b"
+                                  : "#10b981",
+                            }}
+                          >
+                            {rule.severity === "high" ? "Yüksek" : rule.severity === "medium" ? "Orta" : "Düşük"}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: "14px", color: "#666" }}>{rule.description}</div>
+                        <div style={{ fontSize: "12px", color: "#999", marginTop: "4px" }}>
+                          Ağırlık: {rule.weight}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {riskScoreData.data.triggeredRules.length === 0 && (
+                <div style={{ padding: "16px", textAlign: "center", color: "#666" }}>
+                  Bu belge için tetiklenen risk kuralı yok.
+                </div>
+              )}
+            </div>
+          )}
+
+          {!riskLoading && !riskScoreData?.data && (
+            <div style={{ padding: "16px", backgroundColor: "#e2e3e5", borderRadius: "4px" }}>
+              <p>Bu belge için henüz risk skoru hesaplanmamış.</p>
             </div>
           )}
         </div>
