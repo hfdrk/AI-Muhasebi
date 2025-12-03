@@ -1,0 +1,11 @@
+{
+  "title": "Dashboard",
+  "welcome": "Hoş Geldiniz",
+  "stats": {
+    "totalClients": "Toplam Müşteri",
+    "totalInvoices": "Toplam Fatura",
+    "totalRevenue": "Toplam Gelir",
+    "riskAlerts": "Risk Uyarıları"
+  }
+}
+

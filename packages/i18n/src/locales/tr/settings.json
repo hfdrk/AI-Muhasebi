@@ -1,0 +1,23 @@
+{
+  "title": "Ayarlar",
+  "tenant": {
+    "title": "Kiracı Ayarları",
+    "name": "Şirket Adı",
+    "slug": "URL Kısa Adı"
+  },
+  "users": {
+    "title": "Kullanıcı Yönetimi",
+    "invite": "Kullanıcı Davet Et"
+  },
+  "billing": {
+    "title": "Faturalama",
+    "plan": "Plan",
+    "usage": "Kullanım"
+  },
+  "profile": {
+    "title": "Profil",
+    "email": "E-posta",
+    "changePassword": "Şifre Değiştir"
+  }
+}
+

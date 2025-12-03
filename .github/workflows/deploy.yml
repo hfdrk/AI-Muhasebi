@@ -1,0 +1,55 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main, staging]
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy to"
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+jobs:
+  deploy-dev:
+    name: Deploy to Dev
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'dev')
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Dev
+        run: |
+          echo "Deploy to dev environment"
+          # Deployment steps will be added in future tasks
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/staging' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Staging
+        run: |
+          echo "Deploy to staging environment"
+          # Deployment steps will be added in future tasks
+
+  deploy-prod:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod')
+    environment:
+      name: production
+      url: https://app.ai-muhasebi.com
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Production
+        run: |
+          echo "Deploy to production environment"
+          # Deployment steps will be added in future tasks
+

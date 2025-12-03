@@ -1,0 +1,27 @@
+{
+  "name": "@repo/worker-jobs",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/worker.ts",
+    "build": "tsc && prisma generate",
+    "start": "node dist/worker.js",
+    "lint": "eslint src --ext .ts",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "db:generate": "prisma generate"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.1.0",
+    "@repo/core-domain": "workspace:*",
+    "@repo/shared-utils": "workspace:*",
+    "@repo/config": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "eslint": "^8.56.0",
+    "tsx": "^4.7.1",
+    "typescript": "^5.3.3"
+  }
+}
+

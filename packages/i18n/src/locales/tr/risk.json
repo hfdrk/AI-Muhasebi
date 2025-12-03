@@ -1,0 +1,18 @@
+{
+  "title": "Risk Analizi",
+  "dashboard": {
+    "title": "Risk Dashboard",
+    "overallScore": "Genel Risk Skoru"
+  },
+  "alerts": {
+    "title": "Risk Uyarıları",
+    "severity": "Önem Derecesi",
+    "status": "Durum"
+  },
+  "scores": {
+    "title": "Risk Skorları",
+    "client": "Müşteri",
+    "score": "Skor"
+  }
+}
+

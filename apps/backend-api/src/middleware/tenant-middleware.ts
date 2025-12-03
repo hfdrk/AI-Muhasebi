@@ -1,0 +1,67 @@
+import type { Request, Response, NextFunction } from "express";
+import { AuthenticationError, NotFoundError } from "@repo/shared-utils";
+import { prisma } from "../lib/prisma";
+import type { AuthenticatedRequest } from "../types/request-context";
+
+export async function tenantMiddleware(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    if (!req.context?.user) {
+      throw new AuthenticationError("Yetkilendirme gerekli.");
+    }
+
+    // Resolve tenant from URL parameter /t/:tenantId or from token
+    let tenantId: string | undefined;
+
+    // Check URL parameter first (e.g., /t/:tenantId/...)
+    if (req.params.tenantId) {
+      tenantId = req.params.tenantId;
+    } else if (req.query.tenantId && typeof req.query.tenantId === "string") {
+      tenantId = req.query.tenantId;
+    } else if (req.context.tenantId) {
+      // Fallback to tenant from token
+      tenantId = req.context.tenantId;
+    }
+
+    if (!tenantId) {
+      throw new NotFoundError("Kiracı bulunamadı.");
+    }
+
+    // Verify user is member of tenant
+    const membership = await prisma.userTenantMembership.findUnique({
+      where: {
+        userId_tenantId: {
+          userId: req.context.user.id,
+          tenantId,
+        },
+      },
+      include: {
+        tenant: true,
+      },
+    });
+
+    if (!membership || membership.status !== "active") {
+      throw new AuthenticationError("Bu kiracıya erişim yetkiniz yok.");
+    }
+
+    // Attach tenant and membership to context
+    req.context.tenantId = tenantId;
+    req.context.membership = {
+      id: membership.id,
+      userId: membership.userId,
+      tenantId: membership.tenantId,
+      role: membership.role as "TenantOwner" | "Accountant" | "Staff" | "ReadOnly",
+      status: membership.status as "active" | "invited" | "suspended",
+      createdAt: membership.createdAt,
+      updatedAt: membership.updatedAt,
+    };
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+}
+

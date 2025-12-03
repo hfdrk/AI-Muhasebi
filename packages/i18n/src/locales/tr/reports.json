@@ -1,0 +1,13 @@
+{
+  "title": "Raporlar",
+  "list": {
+    "title": "Rapor Listesi",
+    "generate": "Rapor Oluştur"
+  },
+  "types": {
+    "financial": "Mali Rapor",
+    "client": "Müşteri Raporu",
+    "risk": "Risk Raporu"
+  }
+}
+

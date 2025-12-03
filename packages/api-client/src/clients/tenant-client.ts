@@ -1,0 +1,117 @@
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+export interface Tenant {
+  id: string;
+  name: string;
+  slug: string;
+  taxNumber: string | null;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  settings: Record<string, unknown> | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface TenantUser {
+  id: string;
+  email: string;
+  fullName: string;
+  role: string;
+  status: string;
+  createdAt: Date;
+}
+
+export interface InviteUserInput {
+  email: string;
+  role: "TenantOwner" | "Accountant" | "Staff" | "ReadOnly";
+}
+
+export interface ChangeRoleInput {
+  role: "TenantOwner" | "Accountant" | "Staff" | "ReadOnly";
+}
+
+export interface UpdateStatusInput {
+  status: "active" | "suspended";
+}
+
+async function apiRequest<T>(
+  endpoint: string,
+  options?: RequestInit
+): Promise<T> {
+  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+      ...options?.headers,
+    },
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: { message: "Bir hata oluştu." } }));
+    throw new Error(error.error?.message || "Bir hata oluştu.");
+  }
+
+  return response.json();
+}
+
+export async function getTenant(tenantId: string): Promise<{ data: Tenant }> {
+  return apiRequest<{ data: Tenant }>(`/api/v1/tenants/${tenantId}`);
+}
+
+export async function updateTenant(
+  tenantId: string,
+  data: Partial<Tenant>
+): Promise<{ data: Tenant }> {
+  return apiRequest<{ data: Tenant }>(`/api/v1/tenants/${tenantId}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function listTenantUsers(tenantId: string): Promise<{ data: TenantUser[] }> {
+  return apiRequest<{ data: TenantUser[] }>(`/api/v1/tenants/${tenantId}/users`);
+}
+
+export async function inviteUser(
+  tenantId: string,
+  input: InviteUserInput
+): Promise<{ data: { message: string } }> {
+  return apiRequest<{ data: { message: string } }>(`/api/v1/tenants/${tenantId}/users/invite`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function changeUserRole(
+  tenantId: string,
+  userId: string,
+  input: ChangeRoleInput
+): Promise<{ data: { message: string } }> {
+  return apiRequest<{ data: { message: string } }>(
+    `/api/v1/tenants/${tenantId}/users/${userId}/role`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }
+  );
+}
+
+export async function updateUserStatus(
+  tenantId: string,
+  userId: string,
+  input: UpdateStatusInput
+): Promise<{ data: { message: string } }> {
+  return apiRequest<{ data: { message: string } }>(
+    `/api/v1/tenants/${tenantId}/users/${userId}/status`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }
+  );
+}
+

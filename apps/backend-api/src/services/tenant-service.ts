@@ -1,0 +1,250 @@
+import { prisma } from "../lib/prisma";
+import { NotFoundError, ValidationError } from "@repo/shared-utils";
+import { hashPassword } from "@repo/shared-utils";
+import { auditService } from "./audit-service";
+import { randomBytes } from "crypto";
+import type { Tenant, UpdateTenantInput } from "@repo/core-domain";
+import { TENANT_ROLES } from "@repo/core-domain";
+
+export class TenantService {
+  async getTenant(tenantId: string): Promise<Tenant> {
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: tenantId },
+    });
+
+    if (!tenant) {
+      throw new NotFoundError("Kiracı bulunamadı.");
+    }
+
+    return {
+      id: tenant.id,
+      name: tenant.name,
+      slug: tenant.slug,
+      taxNumber: tenant.taxNumber,
+      phone: tenant.phone,
+      email: tenant.email,
+      address: tenant.address,
+      settings: tenant.settings as Record<string, unknown> | null,
+      createdAt: tenant.createdAt,
+      updatedAt: tenant.updatedAt,
+    };
+  }
+
+  async updateTenant(tenantId: string, input: UpdateTenantInput, userId: string): Promise<Tenant> {
+    const tenant = await prisma.tenant.update({
+      where: { id: tenantId },
+      data: {
+        name: input.name,
+        taxNumber: input.taxNumber ?? undefined,
+        phone: input.phone ?? undefined,
+        email: input.email ?? undefined,
+        address: input.address ?? undefined,
+        settings: input.settings ?? undefined,
+      },
+    });
+
+    await auditService.logAuthAction("TENANT_UPDATED", userId, tenantId, {
+      updatedFields: Object.keys(input),
+    });
+
+    return {
+      id: tenant.id,
+      name: tenant.name,
+      slug: tenant.slug,
+      taxNumber: tenant.taxNumber,
+      phone: tenant.phone,
+      email: tenant.email,
+      address: tenant.address,
+      settings: tenant.settings as Record<string, unknown> | null,
+      createdAt: tenant.createdAt,
+      updatedAt: tenant.updatedAt,
+    };
+  }
+
+  async listTenantUsers(tenantId: string) {
+    const users = await prisma.userTenantMembership.findMany({
+      where: { tenantId },
+      include: {
+        user: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return users.map((m) => ({
+      id: m.user.id,
+      email: m.user.email,
+      fullName: m.user.fullName,
+      role: m.role,
+      status: m.status,
+      createdAt: m.createdAt,
+    }));
+  }
+
+  async inviteUser(
+    tenantId: string,
+    email: string,
+    role: string,
+    inviterUserId: string
+  ): Promise<void> {
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Check if user exists
+    let user = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
+
+    // If user doesn't exist, create them (they'll need to set password via invitation)
+    if (!user) {
+      // Generate a temporary password that user must change
+      const tempPassword = randomBytes(32).toString("hex");
+      const hashedPassword = await hashPassword(tempPassword);
+
+      user = await prisma.user.create({
+        data: {
+          email: normalizedEmail,
+          hashedPassword,
+          fullName: normalizedEmail.split("@")[0], // Temporary name
+          locale: "tr-TR",
+          isActive: true,
+        },
+      });
+    }
+
+    // Check if membership already exists
+    const existingMembership = await prisma.userTenantMembership.findUnique({
+      where: {
+        userId_tenantId: {
+          userId: user.id,
+          tenantId,
+        },
+      },
+    });
+
+    if (existingMembership) {
+      throw new ValidationError("Bu kullanıcı zaten bu kiracıya üye.");
+    }
+
+    // Create or update membership with "invited" status
+    await prisma.userTenantMembership.create({
+      data: {
+        userId: user.id,
+        tenantId,
+        role: role as "TenantOwner" | "Accountant" | "Staff" | "ReadOnly",
+        status: "invited",
+      },
+    });
+
+    await auditService.logAuthAction("USER_INVITED", inviterUserId, tenantId, {
+      invitedUserId: user.id,
+      invitedEmail: normalizedEmail,
+      role,
+    });
+
+    // TODO: Send invitation email with link to accept invitation
+    console.log(`Invitation sent to ${normalizedEmail} for tenant ${tenantId}`);
+  }
+
+  async acceptInvitation(
+    userId: string,
+    tenantId: string,
+    password: string
+  ): Promise<void> {
+    const membership = await prisma.userTenantMembership.findUnique({
+      where: {
+        userId_tenantId: {
+          userId,
+          tenantId,
+        },
+      },
+    });
+
+    if (!membership || membership.status !== "invited") {
+      throw new NotFoundError("Davet bulunamadı veya zaten kabul edilmiş.");
+    }
+
+    // Update password if provided
+    if (password) {
+      const hashedPassword = await hashPassword(password);
+      await prisma.user.update({
+        where: { id: userId },
+        data: { hashedPassword },
+      });
+    }
+
+    // Update membership status to active
+    await prisma.userTenantMembership.update({
+      where: { id: membership.id },
+      data: { status: "active" },
+    });
+
+    await auditService.logAuthAction("USER_ACTIVATED", userId, tenantId);
+  }
+
+  async changeUserRole(
+    tenantId: string,
+    userId: string,
+    newRole: string,
+    changerUserId: string
+  ): Promise<void> {
+    const membership = await prisma.userTenantMembership.findUnique({
+      where: {
+        userId_tenantId: {
+          userId,
+          tenantId,
+        },
+      },
+    });
+
+    if (!membership) {
+      throw new NotFoundError("Kullanıcı üyeliği bulunamadı.");
+    }
+
+    await prisma.userTenantMembership.update({
+      where: { id: membership.id },
+      data: { role: newRole as "TenantOwner" | "Accountant" | "Staff" | "ReadOnly" },
+    });
+
+    await auditService.logAuthAction("ROLE_CHANGED", changerUserId, tenantId, {
+      targetUserId: userId,
+      oldRole: membership.role,
+      newRole,
+    });
+  }
+
+  async updateUserStatus(
+    tenantId: string,
+    userId: string,
+    status: "active" | "suspended",
+    changerUserId: string
+  ): Promise<void> {
+    const membership = await prisma.userTenantMembership.findUnique({
+      where: {
+        userId_tenantId: {
+          userId,
+          tenantId,
+        },
+      },
+    });
+
+    if (!membership) {
+      throw new NotFoundError("Kullanıcı üyeliği bulunamadı.");
+    }
+
+    await prisma.userTenantMembership.update({
+      where: { id: membership.id },
+      data: { status },
+    });
+
+    await auditService.logAuthAction(
+      status === "active" ? "USER_ACTIVATED" : "USER_DEACTIVATED",
+      changerUserId,
+      tenantId,
+      {
+        targetUserId: userId,
+      }
+    );
+  }
+}
+
+export const tenantService = new TenantService();
+

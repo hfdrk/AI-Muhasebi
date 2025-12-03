@@ -1,0 +1,172 @@
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+export interface ClientCompany {
+  id: string;
+  tenantId: string;
+  name: string;
+  legalType: string;
+  taxNumber: string;
+  tradeRegistryNumber: string | null;
+  sector: string | null;
+  contactPersonName: string | null;
+  contactPhone: string | null;
+  contactEmail: string | null;
+  address: string | null;
+  startDate: Date | null;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface BankAccount {
+  id: string;
+  tenantId: string;
+  clientCompanyId: string;
+  bankName: string;
+  iban: string;
+  accountNumber: string | null;
+  currency: string;
+  isPrimary: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ListClientCompaniesParams {
+  isActive?: boolean;
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: {
+    data: T[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+  };
+}
+
+async function apiRequest<T>(
+  endpoint: string,
+  options?: RequestInit
+): Promise<T> {
+  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+      ...options?.headers,
+    },
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: { message: "Bir hata oluştu." } }));
+    throw new Error(error.error?.message || "Bir hata oluştu.");
+  }
+
+  return response.json();
+}
+
+export async function listClientCompanies(
+  params?: ListClientCompaniesParams
+): Promise<PaginatedResponse<ClientCompany>> {
+  const queryParams = new URLSearchParams();
+  if (params?.isActive !== undefined) {
+    queryParams.append("isActive", params.isActive.toString());
+  }
+  if (params?.search) {
+    queryParams.append("search", params.search);
+  }
+  if (params?.page) {
+    queryParams.append("page", params.page.toString());
+  }
+  if (params?.pageSize) {
+    queryParams.append("pageSize", params.pageSize.toString());
+  }
+
+  return apiRequest<PaginatedResponse<ClientCompany>>(
+    `/api/v1/client-companies?${queryParams.toString()}`
+  );
+}
+
+export async function getClientCompany(id: string): Promise<{ data: ClientCompany & { stats?: { invoiceCount: number; transactionCount: number } } }> {
+  return apiRequest<{ data: ClientCompany & { stats?: { invoiceCount: number; transactionCount: number } } }>(
+    `/api/v1/client-companies/${id}`
+  );
+}
+
+export async function createClientCompany(
+  data: Omit<ClientCompany, "id" | "tenantId" | "createdAt" | "updatedAt">
+): Promise<{ data: ClientCompany }> {
+  return apiRequest<{ data: ClientCompany }>("/api/v1/client-companies", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateClientCompany(
+  id: string,
+  data: Partial<Omit<ClientCompany, "id" | "tenantId" | "createdAt" | "updatedAt" | "taxNumber">>
+): Promise<{ data: ClientCompany }> {
+  return apiRequest<{ data: ClientCompany }>(`/api/v1/client-companies/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteClientCompany(id: string): Promise<{ data: { message: string } }> {
+  return apiRequest<{ data: { message: string } }>(`/api/v1/client-companies/${id}`, {
+    method: "DELETE",
+  });
+}
+
+export async function listBankAccounts(clientCompanyId: string): Promise<{ data: BankAccount[] }> {
+  return apiRequest<{ data: BankAccount[] }>(
+    `/api/v1/client-companies/${clientCompanyId}/bank-accounts`
+  );
+}
+
+export async function createBankAccount(
+  clientCompanyId: string,
+  data: Omit<BankAccount, "id" | "tenantId" | "clientCompanyId" | "createdAt" | "updatedAt">
+): Promise<{ data: BankAccount }> {
+  return apiRequest<{ data: BankAccount }>(
+    `/api/v1/client-companies/${clientCompanyId}/bank-accounts`,
+    {
+      method: "POST",
+      body: JSON.stringify(data),
+    }
+  );
+}
+
+export async function updateBankAccount(
+  clientCompanyId: string,
+  accountId: string,
+  data: Partial<Omit<BankAccount, "id" | "tenantId" | "clientCompanyId" | "createdAt" | "updatedAt">>
+): Promise<{ data: BankAccount }> {
+  return apiRequest<{ data: BankAccount }>(
+    `/api/v1/client-companies/${clientCompanyId}/bank-accounts/${accountId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }
+  );
+}
+
+export async function deleteBankAccount(
+  clientCompanyId: string,
+  accountId: string
+): Promise<{ data: { message: string } }> {
+  return apiRequest<{ data: { message: string } }>(
+    `/api/v1/client-companies/${clientCompanyId}/bank-accounts/${accountId}`,
+    {
+      method: "DELETE",
+    }
+  );
+}
+

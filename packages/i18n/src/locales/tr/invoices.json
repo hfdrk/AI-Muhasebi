@@ -1,0 +1,130 @@
+{
+  "title": "Faturalar",
+  "list": {
+    "title": "Faturalar",
+    "addNew": "Yeni Fatura Ekle",
+    "emptyState": "Henüz fatura bulunmamaktadır.",
+    "emptyStateAction": "İlk Faturayı Ekle",
+    "filters": {
+      "dateFrom": "Başlangıç Tarihi",
+      "dateTo": "Bitiş Tarihi",
+      "type": "Tür",
+      "typeAll": "Tümü",
+      "typeSales": "Satış",
+      "typePurchase": "Alış",
+      "status": "Durum",
+      "statusAll": "Tümü",
+      "statusDraft": "Taslak",
+      "statusIssued": "Kesildi",
+      "statusCancelled": "İptal",
+      "statusPosted": "Muhasebeleştirilmiş"
+    },
+    "columns": {
+      "invoiceNo": "Fatura No",
+      "type": "Tür",
+      "issueDate": "Düzenleme Tarihi",
+      "dueDate": "Vade Tarihi",
+      "totalAmount": "Toplam Tutar",
+      "currency": "Para Birimi",
+      "status": "Durum",
+      "actions": "İşlemler"
+    },
+    "types": {
+      "SATIŞ": "Satış",
+      "ALIŞ": "Alış"
+    },
+    "statuses": {
+      "taslak": "Taslak",
+      "kesildi": "Kesildi",
+      "iptal": "İptal",
+      "muhasebeleştirilmiş": "Muhasebeleştirilmiş"
+    }
+  },
+  "form": {
+    "title": "Fatura",
+    "newTitle": "Yeni Fatura",
+    "editTitle": "Fatura Düzenle",
+    "clientCompany": "Müşteri Şirketi",
+    "clientCompanyRequired": "Müşteri şirketi gerekli.",
+    "invoiceNumber": "Fatura No",
+    "type": "Tür",
+    "typeSales": "Satış",
+    "typePurchase": "Alış",
+    "issueDate": "Düzenleme Tarihi",
+    "issueDateRequired": "Düzenleme tarihi gerekli.",
+    "dueDate": "Vade Tarihi",
+    "currency": "Para Birimi",
+    "counterpartyName": "Alıcı / Satıcı Adı",
+    "counterpartyTaxNumber": "Alıcı / Satıcı Vergi Numarası",
+    "status": "Durum",
+    "lines": {
+      "title": "Fatura Satırları",
+      "addLine": "Satır Ekle",
+      "columns": {
+        "description": "Açıklama",
+        "quantity": "Miktar",
+        "unitPrice": "Birim Fiyat",
+        "lineTotal": "Satır Toplamı",
+        "vatRate": "KDV Oranı",
+        "vatAmount": "KDV Tutarı",
+        "actions": "İşlem"
+      },
+      "descriptionRequired": "Açıklama gerekli.",
+      "quantityPositive": "Miktar pozitif olmalıdır.",
+      "unitPriceNonNegative": "Birim fiyat negatif olamaz.",
+      "minLines": "En az bir fatura satırı gerekli."
+    },
+    "totals": {
+      "totalAmount": "Toplam Tutar",
+      "taxAmount": "KDV Tutarı",
+      "netAmount": "Net Tutar"
+    },
+    "save": "Kaydet",
+    "saveAndContinue": "Kaydet ve Devam Et",
+    "cancel": "İptal",
+    "saving": "Kaydediliyor...",
+    "createError": "Fatura oluşturulurken bir hata oluştu.",
+    "updateError": "Fatura güncellenirken bir hata oluştu.",
+    "notEditable": "Bu fatura düzenlenemez. Sadece taslak durumundaki faturalar düzenlenebilir.",
+    "notFound": "Fatura bulunamadı.",
+    "backToList": "Fatura listesine dön"
+  },
+  "detail": {
+    "title": "Fatura Detayı",
+    "fields": {
+      "invoiceNo": "Fatura No",
+      "type": "Tür",
+      "status": "Durum",
+      "issueDate": "Düzenleme Tarihi",
+      "dueDate": "Vade Tarihi",
+      "currency": "Para Birimi",
+      "counterparty": "Alıcı / Satıcı",
+      "counterpartyTaxNumber": "Alıcı / Satıcı Vergi No",
+      "source": "Kaynak",
+      "sourceManual": "Manuel"
+    },
+    "lines": {
+      "title": "Fatura Satırları",
+      "columns": {
+        "lineNumber": "Satır No",
+        "description": "Açıklama",
+        "quantity": "Miktar",
+        "unitPrice": "Birim Fiyat",
+        "lineTotal": "Satır Toplamı",
+        "vatRate": "KDV Oranı",
+        "vatAmount": "KDV Tutarı"
+      }
+    },
+    "totals": {
+      "netAmount": "Net Tutar",
+      "taxAmount": "KDV Tutarı",
+      "totalAmount": "Toplam Tutar"
+    },
+    "edit": "Düzenle",
+    "cancel": "İptal Et",
+    "cancelConfirm": "Bu faturayı iptal etmek istediğinize emin misiniz?",
+    "cancelling": "İptal ediliyor...",
+    "back": "Geri"
+  }
+}
+

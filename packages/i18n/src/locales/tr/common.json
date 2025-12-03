@@ -1,0 +1,21 @@
+{
+  "buttons": {
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "create": "Oluştur",
+    "search": "Ara"
+  },
+  "labels": {
+    "email": "E-posta",
+    "password": "Şifre",
+    "name": "Ad",
+    "loading": "Yükleniyor..."
+  },
+  "errors": {
+    "required": "Bu alan zorunludur",
+    "invalid": "Geçersiz değer"
+  }
+}
+

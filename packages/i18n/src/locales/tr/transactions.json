@@ -1,0 +1,97 @@
+{
+  "title": "Mali Hareketler",
+  "list": {
+    "title": "Mali Hareketler",
+    "addNew": "Yeni Hareket Ekle",
+    "emptyState": "Henüz mali hareket bulunmamaktadır.",
+    "emptyStateAction": "İlk Mali Hareketi Ekle",
+    "filters": {
+      "dateFrom": "Başlangıç Tarihi",
+      "dateTo": "Bitiş Tarihi",
+      "referenceNo": "Referans No",
+      "referenceNoPlaceholder": "Referans no ile ara...",
+      "clientCompany": "Müşteri Şirketi",
+      "clientCompanyAll": "Tümü"
+    },
+    "columns": {
+      "date": "Tarih",
+      "referenceNo": "Referans No",
+      "description": "Açıklama",
+      "totalDebit": "Toplam Borç",
+      "totalCredit": "Toplam Alacak",
+      "actions": "İşlemler"
+    }
+  },
+  "form": {
+    "title": "Mali Hareket",
+    "newTitle": "Yeni Mali Hareket",
+    "editTitle": "Mali Hareket Düzenle",
+    "clientCompany": "Müşteri Şirketi",
+    "date": "Tarih",
+    "dateRequired": "Tarih gerekli.",
+    "referenceNo": "Referans No",
+    "referenceNoRequired": "Referans no gerekli.",
+    "description": "Açıklama",
+    "lines": {
+      "title": "Hareket Satırları",
+      "addLine": "Satır Ekle",
+      "columns": {
+        "accountCode": "Hesap Kodu",
+        "accountName": "Hesap Adı",
+        "debit": "Borç",
+        "credit": "Alacak",
+        "description": "Açıklama",
+        "actions": "İşlem"
+      },
+      "accountRequired": "Hesap seçilmelidir.",
+      "debitNonNegative": "Borç tutarı negatif olamaz.",
+      "creditNonNegative": "Alacak tutarı negatif olamaz.",
+      "minLines": "En az iki satır gerekli.",
+      "balanceError": "Toplam borç ve toplam alacak eşit olmalıdır."
+    },
+    "totals": {
+      "totalDebit": "Toplam Borç",
+      "totalCredit": "Toplam Alacak",
+      "difference": "Fark"
+    },
+    "balance": {
+      "balanced": "✓ Dengeli",
+      "unbalanced": "✗ Dengesiz"
+    },
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "saving": "Kaydediliyor...",
+    "createError": "Mali hareket oluşturulurken bir hata oluştu.",
+    "updateError": "Mali hareket güncellenirken bir hata oluştu.",
+    "notFound": "Mali hareket bulunamadı.",
+    "backToList": "Mali hareket listesine dön"
+  },
+  "detail": {
+    "title": "Mali Hareket Detayı",
+    "fields": {
+      "date": "Tarih",
+      "referenceNo": "Referans No",
+      "description": "Açıklama",
+      "source": "Kaynak",
+      "sourceManual": "Manuel",
+      "createdDate": "Oluşturulma Tarihi"
+    },
+    "lines": {
+      "title": "Hareket Satırları",
+      "columns": {
+        "accountCode": "Hesap Kodu",
+        "accountName": "Hesap Adı",
+        "debit": "Borç",
+        "credit": "Alacak",
+        "description": "Açıklama"
+      },
+      "total": "Toplam:"
+    },
+    "edit": "Düzenle",
+    "delete": "Sil",
+    "deleteConfirm": "Bu mali hareketi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
+    "deleting": "Siliniyor...",
+    "back": "Geri"
+  }
+}
+

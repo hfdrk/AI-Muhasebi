@@ -1,0 +1,120 @@
+{
+  "title": "Müşteri Şirketler",
+  "list": {
+    "title": "Müşteri Şirketler",
+    "addNew": "Yeni Şirket Ekle",
+    "searchPlaceholder": "Şirket adı veya vergi numarası ile ara…",
+    "filterAll": "Tümü",
+    "filterActive": "Aktif",
+    "filterInactive": "Pasif",
+    "emptyState": "Henüz müşteri şirketi bulunmamaktadır.",
+    "emptyStateAction": "İlk Müşteri Şirketini Ekle",
+    "columns": {
+      "name": "Şirket Adı",
+      "taxNumber": "Vergi Numarası",
+      "sector": "Sektör",
+      "status": "Durum",
+      "createdDate": "Oluşturulma Tarihi",
+      "actions": "İşlemler"
+    },
+    "status": {
+      "active": "Aktif",
+      "inactive": "Pasif"
+    }
+  },
+  "form": {
+    "title": "Müşteri Şirketi",
+    "newTitle": "Yeni Müşteri Şirketi",
+    "editTitle": "Müşteri Şirketi Düzenle",
+    "name": "Şirket Adı",
+    "nameRequired": "Şirket adı gerekli.",
+    "legalType": "Şirket Türü",
+    "legalTypes": {
+      "Şahıs": "Şahıs",
+      "Limited": "Limited",
+      "Anonim": "Anonim",
+      "Kollektif": "Kollektif",
+      "Komandit": "Komandit"
+    },
+    "taxNumber": "Vergi Numarası (VKN/TCKN)",
+    "taxNumberRequired": "Vergi numarası gerekli.",
+    "taxNumberReadonly": "Vergi Numarası: {taxNumber} (değiştirilemez)",
+    "tradeRegistryNumber": "Ticaret Sicil No",
+    "sector": "Sektör",
+    "contactPersonName": "İlgili Kişi Ad Soyad",
+    "contactPhone": "İlgili Kişi Telefon",
+    "contactEmail": "İlgili Kişi E-posta",
+    "contactEmailInvalid": "Geçerli bir e-posta adresi giriniz.",
+    "address": "Adres",
+    "startDate": "Başlangıç Tarihi",
+    "isActive": "Aktif",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "saving": "Kaydediliyor...",
+    "createError": "Şirket oluşturulurken bir hata oluştu.",
+    "updateError": "Şirket güncellenirken bir hata oluştu.",
+    "notFound": "Müşteri şirketi bulunamadı.",
+    "backToList": "Müşteri listesine dön"
+  },
+  "detail": {
+    "title": "Müşteri Şirketi Detayı",
+    "tabs": {
+      "general": "Genel Bilgiler",
+      "banks": "Banka Hesapları",
+      "invoices": "Faturalar",
+      "transactions": "Mali Hareketler"
+    },
+    "fields": {
+      "name": "Şirket Adı",
+      "legalType": "Şirket Türü",
+      "taxNumber": "Vergi Numarası",
+      "tradeRegistryNumber": "Ticaret Sicil No",
+      "sector": "Sektör",
+      "status": "Durum",
+      "contactPerson": "İlgili Kişi",
+      "phone": "Telefon",
+      "email": "E-posta",
+      "address": "Adres",
+      "startDate": "Başlangıç Tarihi",
+      "invoiceCount": "Fatura Sayısı",
+      "transactionCount": "Mali Hareket Sayısı"
+    },
+    "edit": "Düzenle",
+    "back": "Geri"
+  },
+  "bankAccounts": {
+    "title": "Banka Hesapları",
+    "addNew": "Yeni Banka Hesabı Ekle",
+    "emptyState": "Henüz banka hesabı bulunmamaktadır.",
+    "columns": {
+      "bankName": "Banka Adı",
+      "iban": "IBAN",
+      "currency": "Para Birimi",
+      "isPrimary": "Birincil Hesap",
+      "createdDate": "Oluşturulma Tarihi",
+      "actions": "İşlemler"
+    },
+    "primary": "✓",
+    "notPrimary": "-",
+    "edit": "Düzenle",
+    "delete": "Sil",
+    "deleteConfirm": "Bu banka hesabını silmek istediğinize emin misiniz?",
+    "form": {
+      "bankName": "Banka Adı",
+      "bankNameRequired": "Banka adı gerekli.",
+      "iban": "IBAN",
+      "ibanRequired": "IBAN gerekli.",
+      "ibanInvalid": "Geçerli bir IBAN giriniz.",
+      "accountNumber": "Hesap Numarası",
+      "currency": "Para Birimi",
+      "currencyRequired": "Para birimi gerekli.",
+      "isPrimary": "Birincil Hesap",
+      "save": "Kaydet",
+      "cancel": "İptal",
+      "saving": "Kaydediliyor...",
+      "createError": "Banka hesabı oluşturulurken bir hata oluştu.",
+      "updateError": "Banka hesabı güncellenirken bir hata oluştu."
+    }
+  }
+}
+

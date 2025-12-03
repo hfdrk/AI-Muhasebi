@@ -1,0 +1,168 @@
+{
+  "title": "Belgeler",
+  "list": {
+    "title": "Belgeler",
+    "upload": "Belge Yükle",
+    "emptyState": "Bu şirkete ait henüz yüklenmiş bir belge yok.",
+    "emptyStateAction": "Belge Yükle",
+    "loading": "Yükleniyor...",
+    "filters": {
+      "type": "Belge Türü",
+      "typeAll": "Tümü",
+      "typeInvoice": "Fatura",
+      "typeBankStatement": "Banka Ekstresi",
+      "typeReceipt": "Dekont",
+      "typeOther": "Diğer",
+      "status": "Durum",
+      "statusAll": "Tümü",
+      "statusUploaded": "Yüklendi",
+      "statusProcessing": "İşleniyor",
+      "statusProcessed": "İşlendi",
+      "statusFailed": "Hata",
+      "dateFrom": "Başlangıç Tarihi",
+      "dateTo": "Bitiş Tarihi"
+    },
+    "columns": {
+      "fileName": "Dosya Adı",
+      "type": "Belge Türü",
+      "status": "Durum",
+      "uploadUser": "Yükleyen Kullanıcı",
+      "uploadDate": "Yükleme Tarihi",
+      "processedDate": "İşlenme Tarihi",
+      "actions": "İşlemler"
+    },
+    "actions": {
+      "view": "Görüntüle / Detay",
+      "download": "İndir",
+      "delete": "Sil",
+      "deleteConfirm": "Bu belgeyi silmek istediğinize emin misiniz?"
+    }
+  },
+  "upload": {
+    "title": "Belge Yükle",
+    "fields": {
+      "type": "Belge Türü",
+      "typeRequired": "Belge türü seçilmelidir.",
+      "relatedInvoice": "İlgili Fatura",
+      "relatedInvoicePlaceholder": "Fatura numarası ile ara...",
+      "relatedTransaction": "İlgili Mali Hareket",
+      "relatedTransactionPlaceholder": "Fiş no ile ara...",
+      "file": "Dosya Seç",
+      "fileRequired": "Lütfen bir dosya seçin.",
+      "fileTypeNotAllowed": "Bu dosya türüne izin verilmiyor.",
+      "fileSizeTooLarge": "Dosya boyutu çok büyük."
+    },
+    "buttons": {
+      "upload": "Yükle",
+      "uploading": "Yükleniyor...",
+      "cancel": "İptal"
+    },
+    "success": "Belge başarıyla yüklendi.",
+    "error": "Belge yüklenirken bir hata oluştu."
+  },
+  "detail": {
+    "title": "Belge Detayı",
+    "fields": {
+      "originalFileName": "Orijinal Dosya Adı",
+      "type": "Belge Türü",
+      "status": "Durum",
+      "clientCompany": "İlgili Şirket",
+      "relatedInvoice": "İlgili Fatura",
+      "relatedTransaction": "İlgili Mali Hareket",
+      "uploadUser": "Yükleyen Kullanıcı",
+      "uploadDate": "Yükleme Tarihi",
+      "processedDate": "İşlenme Tarihi",
+      "processingError": "İşleme Hatası"
+    },
+    "actions": {
+      "download": "İndir",
+      "delete": "Sil",
+      "deleteConfirm": "Bu belgeyi silmek istediğinize emin misiniz?",
+      "back": "Geri"
+    },
+    "notFound": "Belge bulunamadı.",
+    "loading": "Yükleniyor..."
+  },
+  "types": {
+    "INVOICE": "Fatura",
+    "BANK_STATEMENT": "Banka Ekstresi",
+    "RECEIPT": "Dekont",
+    "OTHER": "Diğer"
+  },
+  "statuses": {
+    "UPLOADED": "Yüklendi",
+    "PROCESSING": "İşleniyor",
+    "PROCESSED": "İşlendi",
+    "FAILED": "Hata"
+  },
+  "errors": {
+    "uploadFailed": "Belge yüklenirken bir hata oluştu.",
+    "downloadFailed": "Belge indirilirken bir hata oluştu.",
+    "deleteFailed": "Belge silinirken bir hata oluştu.",
+    "notFound": "Belge bulunamadı.",
+    "accessDenied": "Bu belgeye erişim yetkiniz yok."
+  },
+  "aiAnalysis": {
+    "title": "AI Analiz",
+    "processing": "AI analizi hazırlanıyor...",
+    "notAnalyzed": "Bu belge henüz AI tarafından analiz edilmemiş.",
+    "extractedFields": {
+      "title": "Çıkarılan Alanlar",
+      "invoice": {
+        "invoiceNumber": "Fatura Numarası",
+        "issueDate": "Fatura Tarihi",
+        "dueDate": "Vade Tarihi",
+        "totalAmount": "Toplam Tutar",
+        "netAmount": "Net Tutar",
+        "taxAmount": "KDV Tutarı",
+        "currency": "Para Birimi",
+        "counterpartyName": "Karşı Taraf Adı",
+        "counterpartyTaxNumber": "Karşı Taraf Vergi No",
+        "lineItems": "Fatura Satırları"
+      },
+      "bankStatement": {
+        "accountNumber": "Hesap Numarası",
+        "currency": "Para Birimi",
+        "startDate": "Başlangıç Tarihi",
+        "endDate": "Bitiş Tarihi",
+        "startingBalance": "Başlangıç Bakiyesi",
+        "endingBalance": "Bitiş Bakiyesi",
+        "transactions": "İşlemler"
+      }
+    },
+    "riskFeatures": {
+      "title": "Risk Göstergeleri",
+      "riskScore": "Risk Skoru",
+      "noRisk": "Risk Yok",
+      "table": {
+        "code": "Risk Kodu",
+        "description": "Açıklama",
+        "status": "Durum",
+        "severity": "Önem Derecesi"
+      },
+      "severity": {
+        "low": "Düşük",
+        "medium": "Orta",
+        "high": "Yüksek"
+      },
+      "flags": {
+        "INVOICE_NUMBER_MISSING": "Fatura numarası bulunamadı",
+        "ISSUE_DATE_MISSING": "Fatura tarihi bulunamadı",
+        "DATE_INCONSISTENCY": "Vade tarihi, fatura tarihinden önce",
+        "NEGATIVE_AMOUNT": "Fatura tutarı negatif",
+        "AMOUNT_MISMATCH": "Fatura toplamı ile satır toplamları eşleşmiyor",
+        "DUPLICATE_INVOICE_NUMBER": "Bu fatura numarası daha önce kullanılmış",
+        "HIGH_AMOUNT": "Fatura tutarı anormal derecede yüksek",
+        "MISSING_COUNTERPARTY_INFO": "Karşı taraf bilgileri eksik",
+        "MISSING_BALANCE_INFO": "Bakiye bilgileri eksik",
+        "NEGATIVE_BALANCE": "Bitiş bakiyesi negatif"
+      }
+    },
+    "riskIndicator": {
+      "noRisk": "Risk Yok",
+      "hasRisk": "{{count}} Risk",
+      "tooltip": "Bu belge AI tarafından analiz edilmiş ve {{count}} adet risk göstergesi tespit edilmiştir."
+    }
+  }
+}
+
