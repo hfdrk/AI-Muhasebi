@@ -7,6 +7,7 @@ import { useMutation } from "@tanstack/react-query";
 import { login } from "@repo/api-client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Link from "next/link";
 
 const loginSchema = z.object({
   email: z.string().email("Geçerli bir e-posta adresi giriniz."),
@@ -114,12 +115,32 @@ export default function LoginPage() {
             {isSubmitting ? "Giriş yapılıyor..." : "Giriş Yap"}
           </button>
 
-          <a
-            href="/auth/forgot-password"
-            style={{ textAlign: "center", color: "#0066cc", textDecoration: "none" }}
-          >
-            Şifremi Unuttum?
-          </a>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", alignItems: "center" }}>
+            <Link
+              href="/auth/forgot-password"
+              style={{ color: "#0066cc", textDecoration: "none", fontSize: "14px" }}
+            >
+              Şifremi Unuttum?
+            </Link>
+            <div style={{ marginTop: "8px", paddingTop: "16px", borderTop: "1px solid #eee", width: "100%" }}>
+              <p style={{ textAlign: "center", fontSize: "14px", color: "#666", marginBottom: "8px" }}>
+                Hesabınız yok mu?
+              </p>
+              <Link
+                href="/auth/register"
+                style={{
+                  display: "block",
+                  textAlign: "center",
+                  color: "#0066cc",
+                  textDecoration: "none",
+                  fontWeight: "500",
+                  fontSize: "14px",
+                }}
+              >
+                Yeni Ofis Kaydı Oluştur
+              </Link>
+            </div>
+          </div>
         </form>
       </div>
     </div>

@@ -21,3 +21,5 @@ export interface CreateDocumentRiskScoreInput {
   generatedAt?: Date;
 }
 
+
+

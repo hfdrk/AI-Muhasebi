@@ -23,6 +23,9 @@ vi.mock("../../lib/prisma", () => ({
       count: vi.fn(),
       update: vi.fn(),
     },
+    documentProcessingJob: {
+      create: vi.fn(),
+    },
   },
 }));
 
@@ -81,6 +84,15 @@ describe("DocumentService", () => {
         isDeleted: false,
         relatedInvoiceId: null,
         relatedTransactionId: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as any);
+
+      vi.mocked(prisma.documentProcessingJob.create).mockResolvedValue({
+        id: "job-1",
+        tenantId: mockTenantId,
+        documentId: "doc-1",
+        status: "PENDING",
         createdAt: new Date(),
         updatedAt: new Date(),
       } as any);
@@ -204,11 +216,6 @@ describe("DocumentService", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         // Note: extractedData removed, using new AI analysis structure
-        // extractedData: {
-          id: "extracted-1",
-          detectedType: "invoice",
-          metadata: { example: "data" },
-        },
         uploadUser: {
           id: mockUserId,
           fullName: "Test User",

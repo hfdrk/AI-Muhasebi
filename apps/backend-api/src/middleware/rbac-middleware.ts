@@ -26,13 +26,25 @@ export function requirePermission(...permissions: Permission[]) {
       throw new AuthorizationError("Bu işlem için kiracı üyeliği gerekli.");
     }
 
-    const hasRequiredPermission = hasAllPermissions(req.context.membership.role, permissions);
-
-    if (!hasRequiredPermission) {
-      throw new AuthorizationError("Bu işlemi yapmak için yetkiniz yok.");
+    if (!req.context.membership.role) {
+      throw new AuthorizationError("Kullanıcı rolü bulunamadı.");
     }
 
-    next();
+    try {
+      const hasRequiredPermission = hasAllPermissions(req.context.membership.role, permissions);
+
+      if (!hasRequiredPermission) {
+        throw new AuthorizationError("Bu işlemi yapmak için yetkiniz yok.");
+      }
+
+      next();
+    } catch (error: any) {
+      if (error instanceof AuthorizationError) {
+        throw error;
+      }
+      console.error("Error checking permissions:", error);
+      throw new AuthorizationError("Yetki kontrolü sırasında hata oluştu.");
+    }
   };
 }
 
@@ -42,13 +54,25 @@ export function requireAnyPermission(...permissions: Permission[]) {
       throw new AuthorizationError("Bu işlem için kiracı üyeliği gerekli.");
     }
 
-    const hasRequiredPermission = hasAnyPermission(req.context.membership.role, permissions);
-
-    if (!hasRequiredPermission) {
-      throw new AuthorizationError("Bu işlemi yapmak için yetkiniz yok.");
+    if (!req.context.membership.role) {
+      throw new AuthorizationError("Kullanıcı rolü bulunamadı.");
     }
 
-    next();
+    try {
+      const hasRequiredPermission = hasAnyPermission(req.context.membership.role, permissions);
+
+      if (!hasRequiredPermission) {
+        throw new AuthorizationError("Bu işlemi yapmak için yetkiniz yok.");
+      }
+
+      next();
+    } catch (error: any) {
+      if (error instanceof AuthorizationError) {
+        throw error;
+      }
+      console.error("Error checking permissions:", error);
+      throw new AuthorizationError("Yetki kontrolü sırasında hata oluştu.");
+    }
   };
 }
 

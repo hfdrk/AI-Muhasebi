@@ -5,9 +5,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { uploadDocument, listInvoices, listTransactions } from "@repo/api-client";
+import { uploadDocument, listInvoices, listTransactions, listClientCompanies } from "@repo/api-client";
 
 const uploadSchema = z.object({
+  clientCompanyId: z.string().min(1, "Müşteri seçimi zorunludur."),
   type: z.enum(["INVOICE", "BANK_STATEMENT", "RECEIPT", "OTHER"]),
   relatedInvoiceId: z.string().optional().nullable(),
   relatedTransactionId: z.string().optional().nullable(),
@@ -17,26 +18,23 @@ const uploadSchema = z.object({
 type UploadForm = z.infer<typeof uploadSchema>;
 
 interface DocumentUploadModalProps {
-  clientCompanyId: string;
+  clientCompanyId?: string;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function DocumentUploadModal({ clientCompanyId, isOpen, onClose }: DocumentUploadModalProps) {
+export function DocumentUploadModal({ clientCompanyId: propClientCompanyId, isOpen, onClose }: DocumentUploadModalProps) {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
 
-  const { data: invoicesData } = useQuery({
-    queryKey: ["invoices", clientCompanyId],
-    queryFn: () => listInvoices({ clientCompanyId, pageSize: 100 }),
-    enabled: isOpen,
+  // Fetch companies if no clientCompanyId provided
+  const { data: companiesData } = useQuery({
+    queryKey: ["clientCompanies"],
+    queryFn: () => listClientCompanies({ pageSize: 100, isActive: true }),
+    enabled: isOpen && !propClientCompanyId,
   });
 
-  const { data: transactionsData } = useQuery({
-    queryKey: ["transactions", clientCompanyId],
-    queryFn: () => listTransactions({ clientCompanyId, pageSize: 100 }),
-    enabled: isOpen,
-  });
+  const companies = companiesData?.data.data || [];
 
   const {
     register,
@@ -48,23 +46,38 @@ export function DocumentUploadModal({ clientCompanyId, isOpen, onClose }: Docume
   } = useForm<UploadForm>({
     resolver: zodResolver(uploadSchema),
     defaultValues: {
+      clientCompanyId: propClientCompanyId || "",
       type: "OTHER",
       relatedInvoiceId: null,
       relatedTransactionId: null,
     },
   });
 
+  const selectedClientId = watch("clientCompanyId") || propClientCompanyId;
+
+  const { data: invoicesData } = useQuery({
+    queryKey: ["invoices", selectedClientId],
+    queryFn: () => listInvoices({ clientCompanyId: selectedClientId!, pageSize: 100 }),
+    enabled: isOpen && !!selectedClientId,
+  });
+
+  const { data: transactionsData } = useQuery({
+    queryKey: ["transactions", selectedClientId],
+    queryFn: () => listTransactions({ clientCompanyId: selectedClientId, pageSize: 100 }),
+    enabled: isOpen && !!selectedClientId,
+  });
+
   const mutation = useMutation({
     mutationFn: async (data: UploadForm) => {
       return uploadDocument(data.file, {
-        clientCompanyId,
+        clientCompanyId: data.clientCompanyId,
         type: data.type,
         relatedInvoiceId: data.relatedInvoiceId || null,
         relatedTransactionId: data.relatedTransactionId || null,
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["documents", clientCompanyId] });
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["documents"] });
       reset();
       onClose();
     },
@@ -114,6 +127,35 @@ export function DocumentUploadModal({ clientCompanyId, isOpen, onClose }: Docume
           {error && (
             <div style={{ padding: "12px", backgroundColor: "#fee", color: "#c33", borderRadius: "4px" }}>
               {error}
+            </div>
+          )}
+
+          {!propClientCompanyId && (
+            <div>
+              <label htmlFor="clientCompanyId" style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>
+                Müşteri Şirketi *
+              </label>
+              <select
+                id="clientCompanyId"
+                {...register("clientCompanyId")}
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  border: errors.clientCompanyId ? "1px solid #c33" : "1px solid #ddd",
+                  borderRadius: "4px",
+                  fontSize: "16px",
+                }}
+              >
+                <option value="">Seçiniz...</option>
+                {companies.map((company) => (
+                  <option key={company.id} value={company.id}>
+                    {company.name}
+                  </option>
+                ))}
+              </select>
+              {errors.clientCompanyId && (
+                <p style={{ color: "#c33", fontSize: "14px", marginTop: "4px" }}>{errors.clientCompanyId.message}</p>
+              )}
             </div>
           )}
 

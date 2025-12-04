@@ -144,6 +144,7 @@ model ClientCompany {
   riskScores    ClientCompanyRiskScore[]
   riskAlerts    RiskAlert[]
   tenantIntegrations TenantIntegration[]
+  integrationSyncJobs IntegrationSyncJob[]
 
   @@unique([tenantId, taxNumber])
   @@index([tenantId])

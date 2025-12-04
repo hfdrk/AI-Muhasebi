@@ -19,7 +19,10 @@ router.get(
       const result = await riskService.getDocumentRiskScore(req.context!.tenantId!, req.params.id);
       res.json({ data: result });
     } catch (error: any) {
-      res.status(error.statusCode || 500).json({ error: { message: error.message } });
+      console.error("Error getting document risk score:", error);
+      const statusCode = error.statusCode || 500;
+      const message = error.message || "Belge risk skoru alınırken bir hata oluştu.";
+      res.status(statusCode).json({ error: { message } });
     }
   }
 );
@@ -27,7 +30,7 @@ router.get(
 // GET /api/v1/risk/companies/:id
 router.get(
   "/companies/:id",
-  requirePermission("clientCompanies:read"),
+  requirePermission("clients:read"),
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       const result = await riskService.getClientCompanyRiskScore(req.context!.tenantId!, req.params.id);

@@ -65,6 +65,15 @@ async function apiRequest<T>(
   });
 
   if (!response.ok) {
+    // Handle 401 Unauthorized - clear token and redirect to login
+    if (response.status === 401) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("accessToken");
+        if (!window.location.pathname.startsWith("/auth/")) {
+          window.location.href = "/auth/login";
+        }
+      }
+    }
     const error = await response.json().catch(() => ({ error: { message: "Bir hata oluştu." } }));
     throw new Error(error.error?.message || "Bir hata oluştu.");
   }

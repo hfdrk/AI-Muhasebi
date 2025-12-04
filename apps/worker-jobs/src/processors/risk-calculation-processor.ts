@@ -1,10 +1,25 @@
 import { prisma } from "../lib/prisma";
 import type { RiskCalculationJobPayload } from "../jobs/risk-calculation-job";
-// Import services - using relative path to backend-api services
-// In production, these should be in a shared package
-import { riskRuleEngine } from "../../backend-api/src/services/risk-rule-engine";
-import { anomalyDetectorService } from "../../backend-api/src/services/anomaly-detector-service";
-import { riskAlertService } from "../../backend-api/src/services/risk-alert-service";
+
+// Use dynamic imports to load services from backend-api at runtime
+// This avoids module resolution issues in the monorepo
+// @ts-ignore - Dynamic import path resolved at runtime
+async function getRiskRuleEngine() {
+  const module = await import("../../backend-api/src/services/risk-rule-engine");
+  return module.riskRuleEngine;
+}
+
+// @ts-ignore - Dynamic import path resolved at runtime
+async function getAnomalyDetectorService() {
+  const module = await import("../../backend-api/src/services/anomaly-detector-service");
+  return module.anomalyDetectorService;
+}
+
+// @ts-ignore - Dynamic import path resolved at runtime
+async function getRiskAlertService() {
+  const module = await import("../../backend-api/src/services/risk-alert-service");
+  return module.riskAlertService;
+}
 
 export class RiskCalculationProcessor {
   /**
@@ -13,6 +28,11 @@ export class RiskCalculationProcessor {
   async processCompanyRiskCalculation(tenantId: string, clientCompanyId: string): Promise<void> {
     try {
       console.log(`[Risk Calculation] Processing company ${clientCompanyId} for tenant ${tenantId}`);
+
+      // Load services dynamically
+      const riskRuleEngine = await getRiskRuleEngine();
+      const anomalyDetectorService = await getAnomalyDetectorService();
+      const riskAlertService = await getRiskAlertService();
 
       // Calculate company risk score
       const companyRiskScore = await riskRuleEngine.evaluateClientCompany(tenantId, clientCompanyId);
@@ -59,6 +79,10 @@ export class RiskCalculationProcessor {
   async processDocumentRiskCalculation(tenantId: string, documentId: string): Promise<void> {
     try {
       console.log(`[Risk Calculation] Processing document ${documentId} for tenant ${tenantId}`);
+
+      // Load services dynamically
+      const riskRuleEngine = await getRiskRuleEngine();
+      const riskAlertService = await getRiskAlertService();
 
       // Calculate document risk score
       const documentRiskScore = await riskRuleEngine.evaluateDocument(tenantId, documentId);

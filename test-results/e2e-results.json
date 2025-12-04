@@ -1,0 +1,2140 @@
+{
+  "config": {
+    "configFile": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/playwright.config.ts",
+    "rootDir": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 8
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "../../test-results/e2e-results.json"
+        }
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "actualWorkers": 8
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.57.0",
+    "workers": 8,
+    "webServer": {
+      "command": "pnpm dev",
+      "url": "http://localhost:3000",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "auth.spec.ts",
+      "file": "auth.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Signup & Login Flow",
+          "file": "auth.spec.ts",
+          "line": 12,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should show login form on login page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1773,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-04T21:53:26.481Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-0f2978df6d139dc0c774",
+              "file": "auth.spec.ts",
+              "line": 13,
+              "column": 7
+            },
+            {
+              "title": "should navigate to registration page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2148,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-04T21:53:26.495Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-13020f17c9037ae29ff3",
+              "file": "auth.spec.ts",
+              "line": 22,
+              "column": 7
+            },
+            {
+              "title": "should register new office and redirect to dashboard",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "failed",
+                      "duration": 17073,
+                      "error": {
+                        "message": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                        "stack": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/auth.spec.ts:56:16",
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/auth.spec.ts",
+                          "column": 16,
+                          "line": 56
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 54 |\u001b[39m\n \u001b[90m 55 |\u001b[39m     \u001b[90m// Wait for redirect to dashboard\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 56 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForURL(\u001b[35m/\\/dashboard/\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[35m15000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 57 |\u001b[39m\n \u001b[90m 58 |\u001b[39m     \u001b[90m// Assert we're on dashboard (not login/register)\u001b[39m\n \u001b[90m 59 |\u001b[39m     expect(page\u001b[33m.\u001b[39murl())\u001b[33m.\u001b[39mtoContain(\u001b[32m\"/dashboard\"\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/auth.spec.ts",
+                            "column": 16,
+                            "line": 56
+                          },
+                          "message": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n\u001b[0m \u001b[90m 54 |\u001b[39m\n \u001b[90m 55 |\u001b[39m     \u001b[90m// Wait for redirect to dashboard\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 56 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForURL(\u001b[35m/\\/dashboard/\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[35m15000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 57 |\u001b[39m\n \u001b[90m 58 |\u001b[39m     \u001b[90m// Assert we're on dashboard (not login/register)\u001b[39m\n \u001b[90m 59 |\u001b[39m     expect(page\u001b[33m.\u001b[39murl())\u001b[33m.\u001b[39mtoContain(\u001b[32m\"/dashboard\"\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/auth.spec.ts:56:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-04T21:53:26.482Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results/auth-Signup-Login-Flow-sho-ecc38-e-and-redirect-to-dashboard-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results/auth-Signup-Login-Flow-sho-ecc38-e-and-redirect-to-dashboard-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/auth.spec.ts",
+                        "column": 16,
+                        "line": 56
+                      }
+                    },
+                    {
+                      "workerIndex": 33,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 16360,
+                      "error": {
+                        "message": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                        "stack": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/auth.spec.ts:56:16",
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/auth.spec.ts",
+                          "column": 16,
+                          "line": 56
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 54 |\u001b[39m\n \u001b[90m 55 |\u001b[39m     \u001b[90m// Wait for redirect to dashboard\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 56 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForURL(\u001b[35m/\\/dashboard/\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[35m15000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 57 |\u001b[39m\n \u001b[90m 58 |\u001b[39m     \u001b[90m// Assert we're on dashboard (not login/register)\u001b[39m\n \u001b[90m 59 |\u001b[39m     expect(page\u001b[33m.\u001b[39murl())\u001b[33m.\u001b[39mtoContain(\u001b[32m\"/dashboard\"\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/auth.spec.ts",
+                            "column": 16,
+                            "line": 56
+                          },
+                          "message": "TimeoutError: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n\u001b[0m \u001b[90m 54 |\u001b[39m\n \u001b[90m 55 |\u001b[39m     \u001b[90m// Wait for redirect to dashboard\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 56 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForURL(\u001b[35m/\\/dashboard/\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[35m15000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 57 |\u001b[39m\n \u001b[90m 58 |\u001b[39m     \u001b[90m// Assert we're on dashboard (not login/register)\u001b[39m\n \u001b[90m 59 |\u001b[39m     expect(page\u001b[33m.\u001b[39murl())\u001b[33m.\u001b[39mtoContain(\u001b[32m\"/dashboard\"\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/auth.spec.ts:56:16\u001b[22m"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-12-04T21:53:44.929Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results/auth-Signup-Login-Flow-sho-ecc38-e-and-redirect-to-dashboard-chromium-retry1/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results/auth-Signup-Login-Flow-sho-ecc38-e-and-redirect-to-dashboard-chromium-retry1/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results/auth-Signup-Login-Flow-sho-ecc38-e-and-redirect-to-dashboard-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/auth.spec.ts",
+                        "column": 16,
+                        "line": 56
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-4adf3b3bb10448b6f13b",
+              "file": "auth.spec.ts",
+              "line": 34,
+              "column": 7
+            },
+            {
+              "title": "should login with correct credentials and show user info",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "failed",
+                      "duration": 680,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/auth.spec.ts:66:22",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/auth.spec.ts:66:22\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-04T21:53:26.480Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results/auth-Signup-Login-Flow-sho-5c6f3-dentials-and-show-user-info-chromium/test-failed-1.png"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    },
+                    {
+                      "workerIndex": 12,
+                      "parallelIndex": 3,
+                      "status": "failed",
+                      "duration": 390,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/auth.spec.ts:66:22",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/auth.spec.ts:66:22\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-12-04T21:53:29.473Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results/auth-Signup-Login-Flow-sho-5c6f3-dentials-and-show-user-info-chromium-retry1/test-failed-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results/auth-Signup-Login-Flow-sho-5c6f3-dentials-and-show-user-info-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-f50389f75e160365820f",
+              "file": "auth.spec.ts",
+              "line": 64,
+              "column": 7
+            },
+            {
+              "title": "should fail login with wrong password",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "failed",
+                      "duration": 682,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/auth.spec.ts:85:22",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/auth.spec.ts:85:22\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-04T21:53:26.491Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results/auth-Signup-Login-Flow-should-fail-login-with-wrong-password-chromium/test-failed-1.png"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    },
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 4,
+                      "status": "failed",
+                      "duration": 415,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/auth.spec.ts:85:22",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/auth.spec.ts:85:22\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-12-04T21:53:29.468Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results/auth-Signup-Login-Flow-should-fail-login-with-wrong-password-chromium-retry1/test-failed-1.png"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results/auth-Signup-Login-Flow-should-fail-login-with-wrong-password-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-a1d8e2dcd81910adcf1d",
+              "file": "auth.spec.ts",
+              "line": 83,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "client-companies.spec.ts",
+      "file": "client-companies.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Client Company Flow",
+          "file": "client-companies.spec.ts",
+          "line": 14,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should navigate to client companies page",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "failed",
+                      "duration": 116,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/client-companies.spec.ts:20:16",
+                        "cause": {
+                          "message": "SocketError: other side closed",
+                          "stack": "SocketError: other side closed"
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/client-companies.spec.ts:20:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mSocketError: other side closed"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-04T21:53:26.480Z",
+                      "annotations": [],
+                      "attachments": [],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    },
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 5,
+                      "status": "failed",
+                      "duration": 85,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/client-companies.spec.ts:20:16",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/client-companies.spec.ts:20:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-12-04T21:53:28.166Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results/client-companies-Client-Co-ca376-te-to-client-companies-page-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "056428408441592a9088-d6d4442794bc005804e7",
+              "file": "client-companies.spec.ts",
+              "line": 30,
+              "column": 7
+            },
+            {
+              "title": "should create new client company and see it in list",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 6,
+                      "status": "failed",
+                      "duration": 107,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/client-companies.spec.ts:20:16",
+                        "cause": {
+                          "message": "SocketError: other side closed",
+                          "stack": "SocketError: other side closed"
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/client-companies.spec.ts:20:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mSocketError: other side closed"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-04T21:53:26.482Z",
+                      "annotations": [],
+                      "attachments": [],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    },
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 6,
+                      "status": "failed",
+                      "duration": 82,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/client-companies.spec.ts:20:16",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/client-companies.spec.ts:20:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-12-04T21:53:28.170Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results/client-companies-Client-Co-cf10e--company-and-see-it-in-list-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "056428408441592a9088-ecfc4ad15ff4d62a12a3",
+              "file": "client-companies.spec.ts",
+              "line": 48,
+              "column": 7
+            },
+            {
+              "title": "should open client company detail view and see tabs",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 7,
+                      "status": "failed",
+                      "duration": 106,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/client-companies.spec.ts:20:16",
+                        "cause": {
+                          "message": "Error: read ECONNRESET",
+                          "stack": "Error: read ECONNRESET"
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/client-companies.spec.ts:20:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mError: read ECONNRESET"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-04T21:53:26.485Z",
+                      "annotations": [],
+                      "attachments": [],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    },
+                    {
+                      "workerIndex": 9,
+                      "parallelIndex": 7,
+                      "status": "failed",
+                      "duration": 82,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/client-companies.spec.ts:20:16",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/client-companies.spec.ts:20:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-12-04T21:53:28.151Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results/client-companies-Client-Co-a13af-ny-detail-view-and-see-tabs-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "056428408441592a9088-fb3a02964b12e218c04f",
+              "file": "client-companies.spec.ts",
+              "line": 85,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "documents.spec.ts",
+      "file": "documents.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Document & AI Analysis Flow",
+          "file": "documents.spec.ts",
+          "line": 12,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should upload document and see it in documents list",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 13,
+                      "parallelIndex": 7,
+                      "status": "failed",
+                      "duration": 93,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/documents.spec.ts:18:16",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/documents.spec.ts:18:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-04T21:53:29.803Z",
+                      "annotations": [],
+                      "attachments": [],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    },
+                    {
+                      "workerIndex": 18,
+                      "parallelIndex": 7,
+                      "status": "failed",
+                      "duration": 50,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/documents.spec.ts:18:16",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/documents.spec.ts:18:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-12-04T21:53:31.249Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results/documents-Document-AI-Anal-3f265-nd-see-it-in-documents-list-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "9111b41e0f82b685c9ea-c3d89654a5b3a2a30cdd",
+              "file": "documents.spec.ts",
+              "line": 35,
+              "column": 7
+            },
+            {
+              "title": "should view document details and AI analysis",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 6,
+                      "status": "failed",
+                      "duration": 77,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/documents.spec.ts:18:16",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/documents.spec.ts:18:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-04T21:53:29.817Z",
+                      "annotations": [],
+                      "attachments": [],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    },
+                    {
+                      "workerIndex": 19,
+                      "parallelIndex": 6,
+                      "status": "failed",
+                      "duration": 48,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/documents.spec.ts:18:16",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/documents.spec.ts:18:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-12-04T21:53:31.248Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results/documents-Document-AI-Anal-bacf5-ent-details-and-AI-analysis-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "9111b41e0f82b685c9ea-c216cbfc7a5d89ccb0a1",
+              "file": "documents.spec.ts",
+              "line": 107,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "integrations.spec.ts",
+      "file": "integrations.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Integrations Flow",
+          "file": "integrations.spec.ts",
+          "line": 13,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should navigate to integrations page",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 5,
+                      "status": "failed",
+                      "duration": 94,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/integrations.spec.ts:19:16",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/integrations.spec.ts:19:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-04T21:53:29.799Z",
+                      "annotations": [],
+                      "attachments": [],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    },
+                    {
+                      "workerIndex": 20,
+                      "parallelIndex": 5,
+                      "status": "failed",
+                      "duration": 49,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/integrations.spec.ts:19:16",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/integrations.spec.ts:19:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-12-04T21:53:31.248Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results/integrations-Integrations--65bd3-vigate-to-integrations-page-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "b1ad4c9b5349975121f2-dc27c85ed55c1c055e34",
+              "file": "integrations.spec.ts",
+              "line": 36,
+              "column": 7
+            },
+            {
+              "title": "should add new integration with mock provider and test connection",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 55,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/integrations.spec.ts:19:16",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/integrations.spec.ts:19:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-04T21:53:28.958Z",
+                      "annotations": [],
+                      "attachments": [],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    },
+                    {
+                      "workerIndex": 16,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 67,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/integrations.spec.ts:19:16",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/integrations.spec.ts:19:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-12-04T21:53:30.546Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results/integrations-Integrations--65b97-rovider-and-test-connection-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "b1ad4c9b5349975121f2-10624c69a7163bff3cd8",
+              "file": "integrations.spec.ts",
+              "line": 54,
+              "column": 7
+            },
+            {
+              "title": "should trigger manual sync",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 50,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/integrations.spec.ts:19:16",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/integrations.spec.ts:19:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-04T21:53:29.323Z",
+                      "annotations": [],
+                      "attachments": [],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    },
+                    {
+                      "workerIndex": 17,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 62,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/integrations.spec.ts:19:16",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/integrations.spec.ts:19:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-12-04T21:53:30.850Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results/integrations-Integrations-Flow-should-trigger-manual-sync-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "b1ad4c9b5349975121f2-df65898b5dbd79d30f91",
+              "file": "integrations.spec.ts",
+              "line": 103,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "invoices.spec.ts",
+      "file": "invoices.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Invoice Flow",
+          "file": "invoices.spec.ts",
+          "line": 10,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should navigate to invoices tab in company detail",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 21,
+                      "parallelIndex": 3,
+                      "status": "failed",
+                      "duration": 46,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/invoices.spec.ts:16:16",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/invoices.spec.ts:16:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-04T21:53:31.495Z",
+                      "annotations": [],
+                      "attachments": [],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    },
+                    {
+                      "workerIndex": 28,
+                      "parallelIndex": 3,
+                      "status": "failed",
+                      "duration": 45,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/invoices.spec.ts:16:16",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/invoices.spec.ts:16:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-12-04T21:53:32.455Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results/invoices-Invoice-Flow-shou-d48f4-oices-tab-in-company-detail-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "bf10ff72eb560ee5dde5-c78e18ae28ca0b210ff8",
+              "file": "invoices.spec.ts",
+              "line": 34,
+              "column": 7
+            },
+            {
+              "title": "should create new invoice and see it in list",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 22,
+                      "parallelIndex": 4,
+                      "status": "failed",
+                      "duration": 46,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/invoices.spec.ts:16:16",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/invoices.spec.ts:16:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-04T21:53:31.474Z",
+                      "annotations": [],
+                      "attachments": [],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    },
+                    {
+                      "workerIndex": 27,
+                      "parallelIndex": 4,
+                      "status": "failed",
+                      "duration": 43,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/invoices.spec.ts:16:16",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/invoices.spec.ts:16:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-12-04T21:53:32.444Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results/invoices-Invoice-Flow-shou-624ac--invoice-and-see-it-in-list-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "bf10ff72eb560ee5dde5-5f906c36687b5fa67ea8",
+              "file": "invoices.spec.ts",
+              "line": 60,
+              "column": 7
+            },
+            {
+              "title": "should view invoice detail page",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 23,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 41,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/invoices.spec.ts:16:16",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/invoices.spec.ts:16:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-04T21:53:31.787Z",
+                      "annotations": [],
+                      "attachments": [],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    },
+                    {
+                      "workerIndex": 29,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 40,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/invoices.spec.ts:16:16",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/invoices.spec.ts:16:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-12-04T21:53:32.841Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results/invoices-Invoice-Flow-should-view-invoice-detail-page-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "bf10ff72eb560ee5dde5-c8d68464a99842c0bfb8",
+              "file": "invoices.spec.ts",
+              "line": 95,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "risk.spec.ts",
+      "file": "risk.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Risk & Alerts Flow",
+          "file": "risk.spec.ts",
+          "line": 9,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should view risk dashboard with stats",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 24,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 42,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/risk.spec.ts:15:16",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/risk.spec.ts:15:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-04T21:53:31.949Z",
+                      "annotations": [],
+                      "attachments": [],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    },
+                    {
+                      "workerIndex": 30,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 37,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/risk.spec.ts:15:16",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/risk.spec.ts:15:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-12-04T21:53:32.997Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results/risk-Risk-Alerts-Flow-should-view-risk-dashboard-with-stats-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "9bb9156c88243709cb4d-1b0ef86951fdbce07770",
+              "file": "risk.spec.ts",
+              "line": 32,
+              "column": 7
+            },
+            {
+              "title": "should view client company risk tab with risk score",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 25,
+                      "parallelIndex": 6,
+                      "status": "failed",
+                      "duration": 43,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/risk.spec.ts:15:16",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/risk.spec.ts:15:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-04T21:53:32.271Z",
+                      "annotations": [],
+                      "attachments": [],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    },
+                    {
+                      "workerIndex": 31,
+                      "parallelIndex": 6,
+                      "status": "failed",
+                      "duration": 39,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/risk.spec.ts:15:16",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/risk.spec.ts:15:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-12-04T21:53:33.280Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results/risk-Risk-Alerts-Flow-shou-fb9e2-ny-risk-tab-with-risk-score-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "9bb9156c88243709cb4d-bd89ce8f25c14d90deaa",
+              "file": "risk.spec.ts",
+              "line": 53,
+              "column": 7
+            },
+            {
+              "title": "should view global alerts page with alerts table",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 26,
+                      "parallelIndex": 5,
+                      "status": "failed",
+                      "duration": 44,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/risk.spec.ts:15:16",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/risk.spec.ts:15:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-04T21:53:32.271Z",
+                      "annotations": [],
+                      "attachments": [],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    },
+                    {
+                      "workerIndex": 32,
+                      "parallelIndex": 5,
+                      "status": "failed",
+                      "duration": 37,
+                      "error": {
+                        "message": "TypeError: fetch failed",
+                        "stack": "TypeError: fetch failed\n    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\n    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/risk.spec.ts:15:16",
+                        "cause": {
+                          "message": "AggregateError: ",
+                          "stack": "AggregateError: "
+                        },
+                        "location": {
+                          "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                          "column": 20,
+                          "line": 145
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                            "column": 20,
+                            "line": 145
+                          },
+                          "message": "TypeError: fetch failed\n\n\u001b[90m   at \u001b[39mtest-utils.ts:145\n\n\u001b[0m \u001b[90m 143 |\u001b[39m   \u001b[36mconst\u001b[39m fetchFn \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m getFetch()\u001b[33m;\u001b[39m\n \u001b[90m 144 |\u001b[39m   \n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 145 |\u001b[39m   \u001b[36mconst\u001b[39m response \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m fetchFn(\u001b[32m`${API_BASE_URL}/api/v1/auth/register`\u001b[39m\u001b[33m,\u001b[39m {\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 146 |\u001b[39m     method\u001b[33m:\u001b[39m \u001b[32m\"POST\"\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 147 |\u001b[39m     headers\u001b[33m:\u001b[39m {\n \u001b[90m 148 |\u001b[39m       \u001b[32m\"Content-Type\"\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\"application/json\"\u001b[39m\u001b[33m,\u001b[39m\u001b[0m\n\u001b[2m    at createTestUserViaAPI (/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts:145:20)\u001b[22m\n\u001b[2m    at /Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/risk.spec.ts:15:16\u001b[22m\n\u001b[2m[cause]: \u001b[22mAggregateError: "
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-12-04T21:53:33.279Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/test-results/risk-Risk-Alerts-Flow-shou-c41de-erts-page-with-alerts-table-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/md/Desktop/MyProjects-2025/AI Muhasebi/AI-Muhasebi/apps/web-app/e2e/test-utils.ts",
+                        "column": 20,
+                        "line": 145
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "9bb9156c88243709cb4d-eedf1bc6c12d4096238d",
+              "file": "risk.spec.ts",
+              "line": 79,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-12-04T21:53:25.147Z",
+    "duration": 36483.926,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 17,
+    "flaky": 0
+  }
+}

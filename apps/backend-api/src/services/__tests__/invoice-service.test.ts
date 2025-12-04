@@ -56,7 +56,7 @@ describe("InvoiceService", () => {
             description: "Test item",
             quantity: 1,
             unitPrice: 1000,
-            lineTotal: 1000,
+            lineTotal: 1180,
             vatRate: 0.18,
             vatAmount: 180,
           },
@@ -88,13 +88,20 @@ describe("InvoiceService", () => {
         updatedAt: new Date(),
       } as any);
 
-      vi.mocked(prisma.invoiceLine.createMany).mockResolvedValue({ count: 1 } as any);
-
       const result = await service.createInvoice(mockTenantId, input);
 
       expect(result.id).toBe("invoice-1");
       expect(prisma.invoice.create).toHaveBeenCalled();
-      expect(prisma.invoiceLine.createMany).toHaveBeenCalled();
+      // Invoice service uses nested create, not createMany
+      expect(prisma.invoice.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            lines: expect.objectContaining({
+              create: expect.any(Array),
+            }),
+          }),
+        })
+      );
     });
 
     it("should throw ValidationError when client company doesn't belong to tenant", async () => {
@@ -114,7 +121,7 @@ describe("InvoiceService", () => {
             description: "Test item",
             quantity: 1,
             unitPrice: 1000,
-            lineTotal: 1000,
+            lineTotal: 1180,
             vatRate: 0.18,
             vatAmount: 180,
           },
@@ -123,7 +130,7 @@ describe("InvoiceService", () => {
 
       vi.mocked(prisma.clientCompany.findFirst).mockResolvedValue(null);
 
-      await expect(service.createInvoice(mockTenantId, input)).rejects.toThrow(ValidationError);
+      await expect(service.createInvoice(mockTenantId, input)).rejects.toThrow("Müşteri şirketi bulunamadı");
       expect(prisma.invoice.create).not.toHaveBeenCalled();
     });
   });

@@ -1,7 +1,9 @@
 import { Router } from "express";
 import multer from "multer";
 import { z } from "zod";
+import { prisma } from "../lib/prisma";
 import { documentService } from "../services/document-service";
+import { documentJobService } from "../services/document-job-service";
 import { auditService } from "../services/audit-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
@@ -149,36 +151,110 @@ router.get(
   "/:id/download",
   requirePermission("documents:read"),
   async (req: AuthenticatedRequest, res: Response) => {
-    const document = await documentService.getDocumentById(
-      req.context!.tenantId!,
-      req.params.id
-    );
+    try {
+      const document = await documentService.getDocumentById(
+        req.context!.tenantId!,
+        req.params.id
+      );
 
-    const stream = await documentService.getDocumentStream(
-      req.context!.tenantId!,
-      req.params.id
-    );
+      const stream = await documentService.getDocumentStream(
+        req.context!.tenantId!,
+        req.params.id
+      );
 
-    // Set headers
-    res.setHeader("Content-Type", document.mimeType);
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename="${encodeURIComponent(document.originalFileName)}"`
-    );
+      // Set headers
+      res.setHeader("Content-Type", document.mimeType);
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${encodeURIComponent(document.originalFileName)}"`
+      );
 
-    // Stream file
-    stream.pipe(res);
+      // Handle stream errors
+      stream.on("error", (error) => {
+        console.error("Stream error:", error);
+        if (!res.headersSent) {
+          res.status(500).json({ error: { message: "Dosya okunurken bir hata oluştu." } });
+        }
+      });
 
-    // Audit log
-    await auditService.log({
-      action: "DOCUMENT_DOWNLOADED",
-      tenantId: req.context!.tenantId!,
-      userId: req.context!.user.id,
-      metadata: {
-        documentId: document.id,
-        fileName: document.originalFileName,
-      },
-    });
+      // Stream file
+      stream.pipe(res);
+
+      // Audit log (don't await to avoid blocking the stream)
+      auditService
+        .log({
+          action: "DOCUMENT_DOWNLOADED",
+          tenantId: req.context!.tenantId!,
+          userId: req.context!.user.id,
+          metadata: {
+            documentId: document.id,
+            fileName: document.originalFileName,
+          },
+        })
+        .catch((error) => {
+          console.error("Error logging document download:", error);
+        });
+    } catch (error: any) {
+      console.error("Error downloading document:", error);
+      if (!res.headersSent) {
+        res.status(error.statusCode || 500).json({
+          error: {
+            message: error.message || "Dosya indirilemedi.",
+          },
+        });
+      }
+    }
+  }
+);
+
+// POST /api/v1/documents/:id/retry
+router.post(
+  "/:id/retry",
+  requirePermission("documents:create"),
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const document = await documentService.getDocumentById(
+        req.context!.tenantId!,
+        req.params.id
+      );
+
+      if (document.status !== "FAILED") {
+        return res.status(400).json({
+          error: {
+            message: "Sadece başarısız belgeler yeniden işlenebilir.",
+          },
+        });
+      }
+
+      // Create a new processing job
+      await documentJobService.createProcessingJob(req.context!.tenantId!, req.params.id);
+
+      // Update document status back to UPLOADED
+      await prisma.document.update({
+        where: { id: req.params.id },
+        data: {
+          status: "UPLOADED",
+          processingErrorMessage: null,
+        },
+      });
+
+      // Audit log
+      await auditService.log({
+        action: "DOCUMENT_RETRY",
+        tenantId: req.context!.tenantId!,
+        userId: req.context!.user.id,
+        metadata: {
+          documentId: req.params.id,
+        },
+      });
+
+      res.json({ data: { message: "Belge yeniden işleme için kuyruğa eklendi." } });
+    } catch (error: any) {
+      if (error.statusCode) {
+        return res.status(error.statusCode).json({ error: { message: error.message } });
+      }
+      throw error;
+    }
   }
 );
 

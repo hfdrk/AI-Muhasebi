@@ -22,16 +22,30 @@ async function apiRequest<T>(
 
   const { params, ...fetchOptions } = options || {};
 
+  // Get authentication token from localStorage
+  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+
   const response = await fetch(url, {
     ...fetchOptions,
     headers: {
       "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
       ...fetchOptions?.headers,
     },
     credentials: "include",
   });
 
   if (!response.ok) {
+    // Handle 401 Unauthorized - clear token and redirect to login
+    if (response.status === 401) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("accessToken");
+        // Only redirect if we're not already on an auth page
+        if (!window.location.pathname.startsWith("/auth/")) {
+          window.location.href = "/auth/login";
+        }
+      }
+    }
     const error = await response.json().catch(() => ({ error: { message: "Bir hata oluştu." } }));
     throw new Error(error.error?.message || "Bir hata oluştu.");
   }

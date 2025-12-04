@@ -21,3 +21,5 @@ export interface CreateClientCompanyRiskScoreInput {
   generatedAt?: Date;
 }
 
+
+

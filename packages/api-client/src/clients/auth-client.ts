@@ -124,8 +124,17 @@ export async function resetPassword(input: ResetPasswordInput): Promise<{ data: 
 }
 
 export async function logout(): Promise<void> {
-  await apiRequest("/api/v1/auth/logout", {
-    method: "POST",
-  });
+  try {
+    await apiRequest("/api/v1/auth/logout", {
+      method: "POST",
+    });
+  } catch (error) {
+    // Ignore errors on logout
+  } finally {
+    // Always clear the token
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("accessToken");
+    }
+  }
 }
 

@@ -7,7 +7,7 @@ import type {
 } from "@repo/core-domain";
 
 export interface DocumentRiskScoreWithRules {
-  riskScore: DocumentRiskScore;
+  riskScore: DocumentRiskScore | null;
   triggeredRules: Array<{
     code: string;
     description: string;

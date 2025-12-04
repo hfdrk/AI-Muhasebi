@@ -106,14 +106,23 @@ export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
 };
 
 export function hasPermission(role: TenantRole, permission: Permission): boolean {
+  if (!role || !ROLE_PERMISSIONS[role]) {
+    return false;
+  }
   return ROLE_PERMISSIONS[role].includes(permission);
 }
 
 export function hasAnyPermission(role: TenantRole, permissions: Permission[]): boolean {
+  if (!role || !permissions || permissions.length === 0) {
+    return false;
+  }
   return permissions.some((permission) => hasPermission(role, permission));
 }
 
 export function hasAllPermissions(role: TenantRole, permissions: Permission[]): boolean {
+  if (!role || !permissions || permissions.length === 0) {
+    return false;
+  }
   return permissions.every((permission) => hasPermission(role, permission));
 }
 

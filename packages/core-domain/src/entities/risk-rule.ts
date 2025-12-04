@@ -35,3 +35,5 @@ export interface UpdateRiskRuleInput {
   config?: Record<string, unknown> | null;
 }
 
+
+

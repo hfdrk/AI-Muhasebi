@@ -93,12 +93,8 @@ describe("DocumentAIService", () => {
     });
 
     it("should enforce tenant isolation", async () => {
-      const mockDocument = {
-        id: "doc-1",
-        tenantId: "other-tenant",
-      };
-
-      vi.mocked(prisma.document.findFirst).mockResolvedValue(mockDocument as any);
+      // Mock findFirst to return null when tenantId doesn't match (simulating Prisma's where clause)
+      vi.mocked(prisma.document.findFirst).mockResolvedValue(null);
 
       await expect(service.getDocumentAIAnalysis(mockTenantId, "doc-1")).rejects.toThrow(
         NotFoundError

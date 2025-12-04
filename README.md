@@ -53,6 +53,21 @@ For detailed architecture documentation, see `docs/architecture/`.
 
 - `pnpm dev`: Start all apps in development mode
 - Individual apps can be run with `pnpm --filter <app-name> dev`
+- `pnpm dev:worker`: Start the background worker service (document processing, risk calculations, integration sync)
+
+**Typical development setup:**
+```bash
+# Terminal 1: Backend API
+pnpm --filter backend-api dev
+
+# Terminal 2: Frontend
+pnpm --filter web-app dev
+
+# Terminal 3: Worker (for background processing)
+pnpm dev:worker
+```
+
+See [Worker Jobs Documentation](docs/WORKER_JOBS.md) for details on what the worker does and how to configure it.
 
 ### Running Tests
 

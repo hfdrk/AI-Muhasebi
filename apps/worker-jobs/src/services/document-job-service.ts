@@ -3,8 +3,6 @@ import { NotFoundError } from "@repo/shared-utils";
 import type {
   DocumentProcessingJob,
   DocumentProcessingJobStatus,
-  CreateDocumentOCRResultInput,
-  CreateDocumentParsedDataInput,
   CreateDocumentRiskFeaturesInput,
 } from "@repo/core-domain";
 

@@ -47,3 +47,5 @@ export class ConnectorRegistry {
 // Singleton instance
 export const connectorRegistry = new ConnectorRegistry();
 
+
+

@@ -27,3 +27,5 @@ export interface UpdateTenantIntegrationInput {
   config?: Record<string, unknown>;
 }
 
+
+

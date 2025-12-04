@@ -19,6 +19,12 @@ vi.mock("../../lib/prisma", () => ({
       findMany: vi.fn(),
       deleteMany: vi.fn(),
     },
+    clientCompany: {
+      findFirst: vi.fn(),
+    },
+    ledgerAccount: {
+      findMany: vi.fn(),
+    },
   },
 }));
 
@@ -55,6 +61,16 @@ describe("TransactionService", () => {
         ],
       };
 
+      vi.mocked(prisma.clientCompany.findFirst).mockResolvedValue({
+        id: "client-1",
+        tenantId: mockTenantId,
+      } as any);
+
+      vi.mocked(prisma.ledgerAccount.findMany).mockResolvedValue([
+        { id: "account-1", tenantId: mockTenantId },
+        { id: "account-2", tenantId: mockTenantId },
+      ] as any);
+
       vi.mocked(prisma.transaction.create).mockResolvedValue({
         id: "transaction-1",
         tenantId: mockTenantId,
@@ -65,30 +81,59 @@ describe("TransactionService", () => {
         source: "manual",
         createdAt: new Date(),
         updatedAt: new Date(),
+        lines: [
+          {
+            id: "line-1",
+            transactionId: "transaction-1",
+            tenantId: mockTenantId,
+            ledgerAccountId: "account-1",
+            debitAmount: 1000,
+            creditAmount: 0,
+            description: "Debit line",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+          {
+            id: "line-2",
+            transactionId: "transaction-1",
+            tenantId: mockTenantId,
+            ledgerAccountId: "account-2",
+            debitAmount: 0,
+            creditAmount: 1000,
+            description: "Credit line",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
       } as any);
-
-      vi.mocked(prisma.transactionLine.createMany).mockResolvedValue({ count: 2 } as any);
 
       const result = await service.createTransaction(mockTenantId, input);
 
       expect(result.id).toBe("transaction-1");
       expect(prisma.transaction.create).toHaveBeenCalled();
-      expect(prisma.transactionLine.createMany).toHaveBeenCalledWith({
-        data: expect.arrayContaining([
-          expect.objectContaining({
-            tenantId: mockTenantId,
-            ledgerAccountId: "account-1",
-            debitAmount: 1000,
-            creditAmount: 0,
+      // Transaction service uses nested create, not createMany
+      expect(prisma.transaction.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            lines: expect.objectContaining({
+              create: expect.arrayContaining([
+                expect.objectContaining({
+                  tenantId: mockTenantId,
+                  ledgerAccountId: "account-1",
+                  debitAmount: 1000,
+                  creditAmount: 0,
+                }),
+                expect.objectContaining({
+                  tenantId: mockTenantId,
+                  ledgerAccountId: "account-2",
+                  debitAmount: 0,
+                  creditAmount: 1000,
+                }),
+              ]),
+            }),
           }),
-          expect.objectContaining({
-            tenantId: mockTenantId,
-            ledgerAccountId: "account-2",
-            debitAmount: 0,
-            creditAmount: 1000,
-          }),
-        ]),
-      });
+        })
+      );
     });
 
     it("should throw ValidationError when debit and credit totals don't match", async () => {
@@ -114,6 +159,16 @@ describe("TransactionService", () => {
         ],
       };
 
+      vi.mocked(prisma.clientCompany.findFirst).mockResolvedValue({
+        id: "client-1",
+        tenantId: mockTenantId,
+      } as any);
+
+      vi.mocked(prisma.ledgerAccount.findMany).mockResolvedValue([
+        { id: "account-1", tenantId: mockTenantId },
+        { id: "account-2", tenantId: mockTenantId },
+      ] as any);
+
       await expect(service.createTransaction(mockTenantId, input)).rejects.toThrow(ValidationError);
       expect(prisma.transaction.create).not.toHaveBeenCalled();
     });
@@ -135,6 +190,16 @@ describe("TransactionService", () => {
         ],
       };
 
+      vi.mocked(prisma.clientCompany.findFirst).mockResolvedValue({
+        id: "client-1",
+        tenantId: mockTenantId,
+      } as any);
+
+      vi.mocked(prisma.ledgerAccount.findMany).mockResolvedValue([
+        { id: "account-1", tenantId: mockTenantId },
+        { id: "account-2", tenantId: mockTenantId },
+      ] as any);
+
       await expect(service.createTransaction(mockTenantId, input)).rejects.toThrow(ValidationError);
       expect(prisma.transaction.create).not.toHaveBeenCalled();
     });
@@ -153,6 +218,30 @@ describe("TransactionService", () => {
           source: "manual",
           createdAt: new Date(),
           updatedAt: new Date(),
+          lines: [
+            {
+              id: "line-1",
+              transactionId: "transaction-1",
+              tenantId: mockTenantId,
+              ledgerAccountId: "account-1",
+              debitAmount: 1000,
+              creditAmount: 0,
+              description: "Test line",
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+            {
+              id: "line-2",
+              transactionId: "transaction-1",
+              tenantId: mockTenantId,
+              ledgerAccountId: "account-2",
+              debitAmount: 0,
+              creditAmount: 1000,
+              description: "Test line",
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+          ],
         },
       ];
 

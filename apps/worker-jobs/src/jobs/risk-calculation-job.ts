@@ -5,3 +5,5 @@ export interface RiskCalculationJobPayload {
   clientCompanyId?: string; // Optional: if provided, only calculate for this company
 }
 
+
+

@@ -271,7 +271,34 @@ export class DocumentService {
       throw new NotFoundError("Belge bulunamadı.");
     }
 
-    return this.storage.getObjectStream(tenantId, document.storagePath);
+    // Normalize storage path - handle old seed data format
+    let storageKey = document.storagePath;
+    
+    // If path starts with /storage/, remove it (old seed data format)
+    if (storageKey.startsWith("/storage/")) {
+      storageKey = storageKey.replace("/storage/", "");
+    }
+    
+    // If path starts with /, remove it (absolute path issue)
+    if (storageKey.startsWith("/")) {
+      storageKey = storageKey.substring(1);
+    }
+
+    // If path doesn't have documentId in it (old format), try to construct it
+    // Old format: documents/document_005.pdf
+    // New format: documents/doc_xxx/document_005.pdf
+    if (!storageKey.includes(documentId) && storageKey.startsWith("documents/")) {
+      // Try to find the file with the old format first
+      try {
+        return await this.storage.getObjectStream(tenantId, storageKey);
+      } catch (error) {
+        // If old format fails, try constructing new format
+        const fileName = storageKey.split("/").pop() || document.originalFileName;
+        storageKey = `documents/${documentId}/${fileName}`;
+      }
+    }
+
+    return this.storage.getObjectStream(tenantId, storageKey);
   }
 
   async deleteDocument(tenantId: string, documentId: string, userId: string): Promise<void> {

@@ -25,7 +25,7 @@ export class RiskService {
    * Get document risk score with triggered rules
    */
   async getDocumentRiskScore(tenantId: string, documentId: string): Promise<{
-    riskScore: DocumentRiskScore;
+    riskScore: DocumentRiskScore | null;
     triggeredRules: Array<{
       code: string;
       description: string;
@@ -51,8 +51,12 @@ export class RiskService {
       where: { documentId },
     });
 
+    // If no risk score exists (document not processed yet or processing failed), return null
     if (!riskScoreData || riskScoreData.tenantId !== tenantId) {
-      throw new NotFoundError("Belge risk skoru bulunamadı.");
+      return {
+        riskScore: null,
+        triggeredRules: [],
+      };
     }
 
     const riskScore: DocumentRiskScore = {
@@ -70,16 +74,26 @@ export class RiskService {
     // Get rule descriptions
     const { riskRuleService } = await import("./risk-rule-service");
     const triggeredRules = [];
-    for (const code of riskScore.triggeredRuleCodes) {
-      const rule = await riskRuleService.getRuleByCode(tenantId, code);
-      if (rule) {
-        triggeredRules.push({
-          code: rule.code,
-          description: rule.description,
-          severity: rule.defaultSeverity,
-          weight: rule.weight,
-        });
+    try {
+      for (const code of riskScore.triggeredRuleCodes) {
+        try {
+          const rule = await riskRuleService.getRuleByCode(tenantId, code);
+          if (rule) {
+            triggeredRules.push({
+              code: rule.code,
+              description: rule.description,
+              severity: rule.defaultSeverity,
+              weight: rule.weight,
+            });
+          }
+        } catch (ruleError: any) {
+          // Log but don't fail if a single rule lookup fails
+          console.warn(`Failed to get rule by code ${code}:`, ruleError.message);
+        }
       }
+    } catch (error: any) {
+      // If rule service import fails, return empty triggered rules
+      console.error("Error loading risk rule service:", error);
     }
 
     return {
@@ -250,4 +264,5 @@ export class RiskService {
 }
 
 export const riskService = new RiskService();
+
 

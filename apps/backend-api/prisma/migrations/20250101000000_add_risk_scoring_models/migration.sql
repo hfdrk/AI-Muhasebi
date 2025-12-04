@@ -160,3 +160,5 @@ ALTER TABLE "risk_alerts" ADD CONSTRAINT "risk_alerts_document_id_fkey" FOREIGN 
 -- AddForeignKey
 ALTER TABLE "risk_alerts" ADD CONSTRAINT "risk_alerts_resolved_by_user_id_fkey" FOREIGN KEY ("resolved_by_user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
+
+

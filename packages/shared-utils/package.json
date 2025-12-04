@@ -9,6 +9,11 @@
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist"
   },
+  "dependencies": {
+    "@repo/config": "workspace:*",
+    "bcrypt": "^5.1.1",
+    "jsonwebtoken": "^9.0.2"
+  },
   "devDependencies": {
     "@types/node": "^20.11.0",
     "eslint": "^8.56.0",

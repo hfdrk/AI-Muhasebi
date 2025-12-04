@@ -7,3 +7,4 @@ export * from "./transaction-client";
 export * from "./ledger-account-client";
 export * from "./document-client";
 export * from "./risk-client";
+export * from "./integration-client";

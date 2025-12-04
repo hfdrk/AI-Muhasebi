@@ -16,6 +16,7 @@ import documentRoutes from "./routes/document-routes";
 import documentAIRoutes from "./routes/document-ai-routes";
 import riskRoutes from "./routes/risk-routes";
 import riskAlertRoutes from "./routes/risk-alert-routes";
+import integrationRoutes from "./routes/integration-routes";
 
 // Validate environment variables at startup
 validateEnv();
@@ -54,6 +55,7 @@ app.use("/api/v1/documents", documentRoutes);
 app.use("/api/v1/documents", documentAIRoutes);
 app.use("/api/v1/risk", riskRoutes);
 app.use("/api/v1/risk/alerts", riskAlertRoutes);
+app.use("/api/v1/integrations", integrationRoutes);
 
 // Error handler (must be last)
 app.use(errorHandler);

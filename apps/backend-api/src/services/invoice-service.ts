@@ -61,7 +61,15 @@ export class InvoiceService {
         where,
         skip,
         take: pageSize,
-        orderBy: { issueDate: "desc" },
+        include: {
+          clientCompany: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+        orderBy: { clientCompany: { name: "asc" } },
       }),
       prisma.invoice.count({ where }),
     ]);
@@ -71,6 +79,7 @@ export class InvoiceService {
         id: item.id,
         tenantId: item.tenantId,
         clientCompanyId: item.clientCompanyId,
+        clientCompanyName: item.clientCompany?.name || null,
         externalId: item.externalId,
         type: item.type as any,
         issueDate: item.issueDate,

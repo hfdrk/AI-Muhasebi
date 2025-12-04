@@ -14,6 +14,8 @@ export function useDocumentRiskScore(documentId: string) {
     queryKey: ["document-risk-score", documentId],
     queryFn: () => riskClient.getDocumentRiskScore(documentId),
     enabled: !!documentId,
+    retry: false, // Don't retry on errors - if risk score doesn't exist, it's not an error
+    refetchOnWindowFocus: false, // Don't refetch when window regains focus
   });
 }
 
@@ -51,4 +53,5 @@ export function useUpdateAlertStatus() {
     },
   });
 }
+
 

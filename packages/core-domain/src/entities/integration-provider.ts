@@ -30,3 +30,5 @@ export interface UpdateIntegrationProviderInput {
   configSchema?: Record<string, unknown> | null;
 }
 
+
+
