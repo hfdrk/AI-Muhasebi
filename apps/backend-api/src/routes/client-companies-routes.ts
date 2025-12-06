@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
+import type { NextFunction } from "express";
+import { ValidationError } from "@repo/shared-utils";
 import { clientCompanyService } from "../services/client-company-service";
 import { bankAccountService } from "../services/bank-account-service";
 import { authMiddleware } from "../middleware/auth-middleware";
@@ -42,7 +44,7 @@ const updateBankAccountSchema = createBankAccountSchema.partial();
 router.get(
   "/",
   requirePermission("clients:read"),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const filters = {
         isActive: req.query.isActive === "true" ? true : req.query.isActive === "false" ? false : undefined,
@@ -58,7 +60,7 @@ router.get(
 
       res.json({ data: result });
     } catch (error) {
-      throw error;
+      next(error);
     }
   }
 );
@@ -66,20 +68,24 @@ router.get(
 router.get(
   "/:id",
   requirePermission("clients:read"),
-  async (req: AuthenticatedRequest, res: Response) => {
-    const client = await clientCompanyService.getClientCompanyById(
-      req.context!.tenantId!,
-      req.params.id
-    );
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const client = await clientCompanyService.getClientCompanyById(
+        req.context!.tenantId!,
+        req.params.id
+      );
 
-    res.json({ data: client });
+      res.json({ data: client });
+    } catch (error) {
+      next(error);
+    }
   }
 );
 
 router.post(
   "/",
   requirePermission("clients:create"),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const body = createClientCompanySchema.parse(req.body);
       const client = await clientCompanyService.createClientCompany(
@@ -93,9 +99,9 @@ router.post(
       res.status(201).json({ data: client });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new Error(error.errors[0]?.message || "Geçersiz bilgiler.");
+        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
       }
-      throw error;
+      next(error);
     }
   }
 );
@@ -103,7 +109,7 @@ router.post(
 router.patch(
   "/:id",
   requirePermission("clients:update"),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const body = updateClientCompanySchema.parse(req.body);
       const client = await clientCompanyService.updateClientCompany(
@@ -118,9 +124,9 @@ router.patch(
       res.json({ data: client });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new Error(error.errors[0]?.message || "Geçersiz bilgiler.");
+        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
       }
-      throw error;
+      next(error);
     }
   }
 );
@@ -155,7 +161,7 @@ router.get(
 router.post(
   "/:id/bank-accounts",
   requirePermission("clients:update"),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const body = createBankAccountSchema.parse(req.body);
       const account = await bankAccountService.createBankAccount(
@@ -167,9 +173,9 @@ router.post(
       res.status(201).json({ data: account });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new Error(error.errors[0]?.message || "Geçersiz bilgiler.");
+        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
       }
-      throw error;
+      next(error);
     }
   }
 );
@@ -177,7 +183,7 @@ router.post(
 router.patch(
   "/:id/bank-accounts/:accountId",
   requirePermission("clients:update"),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const body = updateBankAccountSchema.parse(req.body);
       const account = await bankAccountService.updateBankAccount(
@@ -190,9 +196,9 @@ router.patch(
       res.json({ data: account });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new Error(error.errors[0]?.message || "Geçersiz bilgiler.");
+        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
       }
-      throw error;
+      next(error);
     }
   }
 );

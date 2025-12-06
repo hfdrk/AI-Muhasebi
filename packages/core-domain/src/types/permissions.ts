@@ -84,6 +84,8 @@ export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
     "reports:view",
     "reports:create",
     "reports:export",
+    "users:invite",
+    "users:read",
     "integrations:read",
     "integrations:manage",
   ],
@@ -93,6 +95,7 @@ export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
     "invoices:create",
     "invoices:read",
     "clients:read",
+    "users:read",
     "reports:view",
   ],
   ReadOnly: [
@@ -101,6 +104,7 @@ export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
     "clients:read",
     "risk:view",
     "reports:view",
+    "users:read",
     "integrations:read",
   ],
 };

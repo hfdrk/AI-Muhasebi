@@ -21,6 +21,14 @@ export class InvoiceImporter {
       errors: [],
     };
 
+    // Get integration to check if it has a preferred clientCompanyId
+    const integration = await prisma.tenantIntegration.findUnique({
+      where: { id: tenantIntegrationId },
+      select: { clientCompanyId: true },
+    });
+
+    const preferredClientCompanyId = integration?.clientCompanyId;
+
     for (const normalizedInvoice of normalizedInvoices) {
       try {
         // Resolve or create ClientCompany
@@ -32,16 +40,32 @@ export class InvoiceImporter {
         );
 
         if (!clientCompany) {
-          // Create new client company if not found
-          clientCompany = await prisma.clientCompany.create({
-            data: {
-              tenantId,
-              name: normalizedInvoice.clientCompanyName || "Bilinmeyen Müşteri",
-              legalType: "Limited", // Default, can be updated later
-              taxNumber: normalizedInvoice.clientCompanyTaxNumber || `TEMP-${Date.now()}`,
-              isActive: true,
-            },
-          });
+          // If integration has a preferred clientCompanyId, use it as fallback
+          if (preferredClientCompanyId) {
+            const preferredCompany = await prisma.clientCompany.findFirst({
+              where: {
+                id: preferredClientCompanyId,
+                tenantId,
+              },
+              select: { id: true },
+            });
+            if (preferredCompany) {
+              clientCompany = preferredCompany;
+            }
+          }
+
+          // If still no client company, create a new one
+          if (!clientCompany) {
+            clientCompany = await prisma.clientCompany.create({
+              data: {
+                tenantId,
+                name: normalizedInvoice.clientCompanyName || "Bilinmeyen Müşteri",
+                legalType: "Limited", // Default, can be updated later
+                taxNumber: normalizedInvoice.clientCompanyTaxNumber || `TEMP-${Date.now()}`,
+                isActive: true,
+              },
+            });
+          }
         }
 
         // Check if invoice already exists by externalId

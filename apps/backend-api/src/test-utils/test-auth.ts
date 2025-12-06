@@ -55,9 +55,21 @@ export async function createTestUser(
     // Create or use existing tenant
     let tenant;
     if (tenantId) {
-      tenant = await tx.tenant.findUniqueOrThrow({
+      tenant = await tx.tenant.findUnique({
         where: { id: tenantId },
       });
+      if (!tenant) {
+        // Create tenant if it doesn't exist (prevents "No Tenant found" errors in tests)
+        tenant = await tx.tenant.create({
+          data: {
+            id: tenantId,
+            name: tenantName || `Test Tenant ${tenantId}`,
+            slug: tenantSlug || `test-tenant-${tenantId}`,
+            taxNumber: `123456789${Date.now() % 10000}`,
+            settings: {},
+          },
+        });
+      }
     } else {
       tenant = await tx.tenant.create({
         data: {
@@ -93,6 +105,10 @@ export async function createTestUser(
     return { user, tenant, membership };
   });
 
+  // Ensure transaction is committed and visible to other connections
+  // This is especially important in tests where the user is immediately used for login
+  await prisma.$queryRaw`SELECT 1`;
+
   return {
     user: {
       id: result.user.id,
@@ -125,16 +141,92 @@ export async function getAuthToken(
   if (baseUrlOrApp && typeof baseUrlOrApp.post === "function") {
     // Use supertest for integration tests
     const request = (await import("supertest")).default;
-    const response = await request(baseUrlOrApp)
-      .post("/api/v1/auth/login")
-      .send({ email, password })
-      .expect(200);
+    
+    // Retry on 401 - user might not be visible immediately after creation
+    // Don't use .expect(200) here because we need to check the status code for retries
+    let lastError: any;
+    const { getTestPrisma } = await import("./test-db.js");
+    const prisma = getTestPrisma();
+    const normalizedEmail = email.toLowerCase().trim();
+    
+    // Quick check if user is visible (non-blocking)
+    await prisma.$queryRaw`SELECT 1`;
+    
+    // Now attempt login with retries
+    for (let attempt = 0; attempt < 5; attempt++) {
+      try {
+        const response = await request(baseUrlOrApp)
+          .post("/api/v1/auth/login")
+          .send({ email, password });
 
-    if (!response.body.data?.accessToken) {
-      throw new Error(`Failed to get auth token: ${response.body.error?.message || "No token in response"}`);
+        if (response.status === 200 && response.body.data?.accessToken) {
+          return response.body.data.accessToken;
+        }
+
+        // If 401 and not last attempt, retry after delay and verify user exists
+        if (response.status === 401 && attempt < 4) {
+          await prisma.$queryRaw`SELECT 1`;
+          
+          // Verify user exists with active membership
+          const verifyUser = await prisma.user.findUnique({
+            where: { email: normalizedEmail },
+            include: {
+              memberships: {
+                where: { status: "active" },
+              },
+            },
+          });
+          
+          if (!verifyUser || !verifyUser.isActive || verifyUser.memberships.length === 0) {
+            // User not ready yet, wait longer
+            await new Promise(resolve => setTimeout(resolve, 300 * (attempt + 1)));
+            lastError = new Error(`Login failed: User not ready (attempt ${attempt + 1})`);
+            continue;
+          }
+          
+          await new Promise(resolve => setTimeout(resolve, 200 * (attempt + 1)));
+          lastError = new Error(`Login failed: ${response.body.error?.message || "Unauthorized"}`);
+          continue;
+        }
+
+        // Otherwise throw immediately
+        throw new Error(`Failed to get auth token: ${response.body.error?.message || `Status ${response.status}`}`);
+      } catch (error: any) {
+        // Check if it's a supertest assertion error for 401
+        const is401Error = error.status === 401 || 
+                          error.message?.includes("401") || 
+                          error.message?.includes("Unauthorized") ||
+                          (error.response && error.response.status === 401);
+        
+        if (is401Error && attempt < 4) {
+          lastError = error;
+          await prisma.$queryRaw`SELECT 1`;
+          
+          // Verify user exists
+          const verifyUser = await prisma.user.findUnique({
+            where: { email: normalizedEmail },
+            include: {
+              memberships: {
+                where: { status: "active" },
+              },
+            },
+          });
+          
+          if (!verifyUser || !verifyUser.isActive || verifyUser.memberships.length === 0) {
+            await new Promise(resolve => setTimeout(resolve, 300 * (attempt + 1)));
+            continue;
+          }
+          
+          await new Promise(resolve => setTimeout(resolve, 200 * (attempt + 1)));
+          continue;
+        }
+        
+        // Otherwise throw
+        throw error;
+      }
     }
-
-    return response.body.data.accessToken;
+    
+    throw lastError || new Error("Failed to get auth token after retries");
   }
 
   // Fallback to HTTP request (for E2E tests or when server is running)

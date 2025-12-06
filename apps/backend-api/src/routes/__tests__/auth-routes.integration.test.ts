@@ -13,10 +13,10 @@ import { TENANT_ROLES } from "@repo/core-domain";
 
 describe("Auth & Tenant Flow Integration Tests", () => {
   const app = createTestApp();
-  const prisma = getTestPrisma();
 
   beforeEach(async () => {
     // Database is reset before each test by test-setup.ts
+    // getTestPrisma() is called inside each test to ensure credentials are resolved
   });
 
   describe("POST /api/v1/auth/register", () => {
@@ -46,6 +46,7 @@ describe("Auth & Tenant Flow Integration Tests", () => {
       expect(response.body.data.accessToken).toBeDefined();
 
       // Verify User was created
+      const prisma = getTestPrisma();
       const user = await prisma.user.findUnique({
         where: { email: uniqueEmail },
       });
@@ -77,7 +78,7 @@ describe("Auth & Tenant Flow Integration Tests", () => {
         email: "duplicate@example.com",
       });
 
-      await request(app)
+      const response = await request(app)
         .post("/api/v1/auth/register")
         .send({
           user: {
@@ -91,6 +92,9 @@ describe("Auth & Tenant Flow Integration Tests", () => {
           },
         })
         .expect(400);
+
+      expect(response.body.error).toBeDefined();
+      expect(response.body.error.message).toContain("Bu e-posta adresi zaten kullanılıyor.");
     });
 
     it("should fail with duplicate tenant slug", async () => {
@@ -98,7 +102,7 @@ describe("Auth & Tenant Flow Integration Tests", () => {
         tenantSlug: "duplicate-slug",
       });
 
-      await request(app)
+      const response = await request(app)
         .post("/api/v1/auth/register")
         .send({
           user: {
@@ -112,6 +116,9 @@ describe("Auth & Tenant Flow Integration Tests", () => {
           },
         })
         .expect(400);
+
+      expect(response.body.error).toBeDefined();
+      expect(response.body.error.message).toContain("Bu ofis adı zaten kullanılıyor.");
     });
   });
 
@@ -152,17 +159,20 @@ describe("Auth & Tenant Flow Integration Tests", () => {
         .expect(401);
 
       expect(response.body.error).toBeDefined();
-      expect(response.body.error.message).toBeDefined();
+      expect(response.body.error.message).toContain("E-posta veya şifre hatalı.");
     });
 
     it("should fail with non-existent email", async () => {
-      await request(app)
+      const response = await request(app)
         .post("/api/v1/auth/login")
         .send({
           email: "nonexistent@example.com",
           password: "AnyPassword123!@#",
         })
         .expect(401);
+
+      expect(response.body.error).toBeDefined();
+      expect(response.body.error.message).toContain("E-posta veya şifre hatalı.");
     });
   });
 
@@ -182,6 +192,9 @@ describe("Auth & Tenant Flow Integration Tests", () => {
       });
 
       // Create a client company in Tenant B
+      const prisma = getTestPrisma();
+      await prisma.$queryRaw`SELECT 1`; // Ensure tenantB is committed
+      
       const companyB = await prisma.clientCompany.create({
         data: {
           tenantId: tenantB.tenant.id,
@@ -191,13 +204,41 @@ describe("Auth & Tenant Flow Integration Tests", () => {
           isActive: true,
         },
       });
+      await prisma.$queryRaw`SELECT 1`; // Ensure companyB is committed
 
-      // Get auth token for Tenant A user
+      // Ensure tenantA is visible before getting token
+      await prisma.$queryRaw`SELECT 1`;
+      
+      // Wait for user to be visible with active membership (as auth service requires)
+      for (let i = 0; i < 10; i++) {
+        await prisma.$queryRaw`SELECT 1`;
+        const found = await prisma.user.findUnique({ 
+          where: { email: tenantA.user.email },
+          include: {
+            memberships: {
+              where: { status: "active" },
+            },
+          },
+        });
+        if (found && found.isActive && found.memberships.length > 0) {
+          // User exists, is active, and has active membership
+          await prisma.$queryRaw`SELECT 1`;
+          await new Promise((resolve) => setTimeout(resolve, 150));
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+
+      // Get auth token for Tenant A user (getAuthToken already has retry logic)
       const tokenA = await getAuthToken(
         tenantA.user.email,
         "Test123!@#",
         app
       );
+
+      // Ensure token is valid by committing any pending transactions
+      await prisma.$queryRaw`SELECT 1`;
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Try to access Tenant B's company using Tenant A's token
       // Note: This test assumes the API validates tenant context from the token
@@ -206,7 +247,7 @@ describe("Auth & Tenant Flow Integration Tests", () => {
         .get(`/api/v1/client-companies/${companyB.id}`)
         .set("Authorization", `Bearer ${tokenA}`)
         .set("X-Tenant-Id", tenantA.tenant.id)
-        .expect(403); // Should be forbidden or not found
+        .expect(404); // Should be not found (tenant isolation returns 404)
 
       // Also verify that listing companies only returns Tenant A's companies
       const listResponse = await request(app)

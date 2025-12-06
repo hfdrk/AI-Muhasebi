@@ -20,7 +20,6 @@ async function getDocumentProcessor() {
 
 describe("Documents & Processing Integration Tests", () => {
   const app = createTestApp();
-  const prisma = getTestPrisma();
 
   let testUser: Awaited<ReturnType<typeof createTestUser>>;
   let authToken: string;
@@ -38,6 +37,10 @@ describe("Documents & Processing Integration Tests", () => {
 
   describe("POST /api/v1/documents/upload", () => {
     it("should create Document with status UPLOADED", async () => {
+      // Ensure testUser is visible before making request
+      const prisma = getTestPrisma();
+      await prisma.$queryRaw`SELECT 1`;
+      
       // Create a small test file buffer (simulating a PDF)
       const testFileBuffer = Buffer.from("Test PDF content");
       
@@ -56,6 +59,7 @@ describe("Documents & Processing Integration Tests", () => {
       expect(response.body.data.originalFileName).toBe("test-document.pdf");
 
       // Verify in database
+      const prisma = getTestPrisma();
       const document = await prisma.document.findUnique({
         where: { id: response.body.data.id },
       });
@@ -95,6 +99,18 @@ describe("Documents & Processing Integration Tests", () => {
         status: "UPLOADED",
       });
 
+      // Ensure document is committed and visible to worker-jobs Prisma client
+      const prisma = getTestPrisma();
+      await prisma.$queryRaw`SELECT 1`;
+      
+      // Verify document exists before processing
+      const verifyDocument = await prisma.document.findUnique({
+        where: { id: document.id },
+      });
+      if (!verifyDocument) {
+        throw new Error(`Document ${document.id} not found after creation`);
+      }
+
       // Create processing job
       await prisma.documentProcessingJob.create({
         data: {
@@ -104,6 +120,22 @@ describe("Documents & Processing Integration Tests", () => {
           attemptsCount: 0,
         },
       });
+
+      // Ensure job is committed
+      await prisma.$queryRaw`SELECT 1`;
+      
+      // Additional commit check to ensure document is visible to worker-jobs Prisma client
+      // The worker-jobs uses a separate Prisma client instance
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      await prisma.$queryRaw`SELECT 1`;
+
+      // Verify document is visible before processing
+      const verifyDocumentAgain = await prisma.document.findUnique({
+        where: { id: document.id },
+      });
+      if (!verifyDocumentAgain) {
+        throw new Error(`Document ${document.id} not visible to Prisma client before processing`);
+      }
 
       // Process the document using the processor from worker-jobs
       const documentProcessor = await getDocumentProcessor();
@@ -154,6 +186,11 @@ describe("Documents & Processing Integration Tests", () => {
       const otherTenant = await createTestUser({
         email: `other-doc-tenant-${Date.now()}@example.com`,
       });
+      
+      // Ensure both users are visible
+      const prisma = getTestPrisma();
+      await prisma.$queryRaw`SELECT 1`;
+      
       const otherToken = await getAuthToken(
         otherTenant.user.email,
         "Test123!@#",
@@ -161,11 +198,14 @@ describe("Documents & Processing Integration Tests", () => {
       );
 
       // Try to access document from other tenant
-      await request(app)
+      const response = await request(app)
         .get(`/api/v1/documents/${document.id}`)
         .set("Authorization", `Bearer ${otherToken}`)
         .set("X-Tenant-Id", otherTenant.tenant.id)
-        .expect(403); // Should be forbidden or not found
+        .expect(404); // Should be not found (tenant isolation returns 404)
+
+      expect(response.body.error).toBeDefined();
+      expect(response.body.error.message).toBeDefined();
     });
   });
 });

@@ -22,6 +22,9 @@ vi.mock("../../lib/prisma", () => ({
     clientCompany: {
       findFirst: vi.fn(),
     },
+    $queryRaw: vi.fn(),
+    $executeRaw: vi.fn(),
+    $executeRawUnsafe: vi.fn(),
   },
 }));
 

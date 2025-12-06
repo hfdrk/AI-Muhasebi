@@ -15,6 +15,9 @@ vi.mock("../../lib/prisma", () => ({
       delete: vi.fn(),
       count: vi.fn(),
     },
+    $queryRaw: vi.fn(),
+    $executeRaw: vi.fn(),
+    $executeRawUnsafe: vi.fn(),
   },
 }));
 

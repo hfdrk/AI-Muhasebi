@@ -16,7 +16,6 @@ import {
 
 describe("Core Domain Integration Tests", () => {
   const app = createTestApp();
-  const prisma = getTestPrisma();
 
   let testUser: Awaited<ReturnType<typeof createTestUser>>;
   let authToken: string;
@@ -25,11 +24,31 @@ describe("Core Domain Integration Tests", () => {
     testUser = await createTestUser({
       email: `core-domain-${Date.now()}@example.com`,
     });
+    
+    // Ensure user is visible to auth middleware before getting token
+    const prisma = getTestPrisma();
+    await prisma.$queryRaw`SELECT 1`;
+    
+    // Wait for user to be visible - retry up to 3 times
+    for (let i = 0; i < 3; i++) {
+      const user = await prisma.user.findUnique({
+        where: { id: testUser.user.id },
+      });
+      if (user) {
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    
     authToken = await getAuthToken(testUser.user.email, "Test123!@#", app);
   });
 
   describe("Client Companies", () => {
     it("should create client company successfully", async () => {
+      // Ensure user is visible before API call
+      const prisma = getTestPrisma();
+      await prisma.$queryRaw`SELECT 1`;
+      
       const uniqueTaxNumber = `${Date.now()}`;
       const response = await request(app)
         .post("/api/v1/client-companies")
@@ -48,6 +67,7 @@ describe("Core Domain Integration Tests", () => {
       expect(response.body.data.taxNumber).toBe(uniqueTaxNumber);
 
       // Verify in database
+      const prisma = getTestPrisma();
       const company = await prisma.clientCompany.findUnique({
         where: {
           tenantId_taxNumber: {
@@ -68,9 +88,13 @@ describe("Core Domain Integration Tests", () => {
         tenantId: testUser.tenant.id,
         taxNumber,
       });
+      
+      // Ensure user is visible before API call
+      const prisma = getTestPrisma();
+      await prisma.$queryRaw`SELECT 1`;
 
       // Try to create duplicate
-      await request(app)
+      const response = await request(app)
         .post("/api/v1/client-companies")
         .set("Authorization", `Bearer ${authToken}`)
         .set("X-Tenant-Id", testUser.tenant.id)
@@ -81,6 +105,9 @@ describe("Core Domain Integration Tests", () => {
           isActive: true,
         })
         .expect(400);
+
+      expect(response.body.error).toBeDefined();
+      expect(response.body.error.message).toBeDefined();
     });
 
     it("should filter companies by tenant_id", async () => {
@@ -94,10 +121,20 @@ describe("Core Domain Integration Tests", () => {
       const otherTenant = await createTestUser({
         email: `other-tenant-${Date.now()}@example.com`,
       });
+      const prisma = getTestPrisma();
+      await prisma.$queryRaw`SELECT 1`; // Ensure otherTenant is committed
+      
       const company2 = await createTestClientCompany({
         tenantId: otherTenant.tenant.id,
         name: "Tenant B Company",
       });
+      await prisma.$queryRaw`SELECT 1`; // Ensure company2 is committed
+
+      // Ensure testUser is still visible (commit any pending transactions)
+      await prisma.$queryRaw`SELECT 1`;
+      
+      // Small delay to ensure user is visible to auth middleware
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // List companies for test user's tenant
       const response = await request(app)
@@ -129,7 +166,7 @@ describe("Core Domain Integration Tests", () => {
         issueDate: new Date(),
         dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         totalAmount: 1180, // 1000 + 180 VAT
-        vatAmount: 180,
+        taxAmount: 180,
         netAmount: 1000,
       };
 
@@ -145,6 +182,13 @@ describe("Core Domain Integration Tests", () => {
         lineTotal: 1000,
       });
 
+      // Ensure testUser is still visible (commit any pending transactions)
+      const prisma = getTestPrisma();
+      await prisma.$queryRaw`SELECT 1`;
+      
+      // Small delay to ensure user is visible to auth middleware
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       // Verify invoice via API
       const response = await request(app)
         .get(`/api/v1/invoices/${invoice.id}`)
@@ -155,7 +199,7 @@ describe("Core Domain Integration Tests", () => {
       expect(response.body.data).toBeDefined();
       expect(response.body.data.id).toBe(invoice.id);
       expect(parseFloat(response.body.data.totalAmount)).toBe(1180);
-      expect(parseFloat(response.body.data.vatAmount)).toBe(180);
+      expect(parseFloat(response.body.data.taxAmount)).toBe(180);
       expect(parseFloat(response.body.data.netAmount)).toBe(1000);
     });
 
@@ -169,6 +213,9 @@ describe("Core Domain Integration Tests", () => {
       const otherTenant = await createTestUser({
         email: `other-invoice-${Date.now()}@example.com`,
       });
+      const prisma = getTestPrisma();
+      await prisma.$queryRaw`SELECT 1`; // Ensure otherTenant is committed
+      
       const otherCompany = await createTestClientCompany({
         tenantId: otherTenant.tenant.id,
       });
@@ -176,6 +223,13 @@ describe("Core Domain Integration Tests", () => {
         tenantId: otherTenant.tenant.id,
         clientCompanyId: otherCompany.id,
       });
+      await prisma.$queryRaw`SELECT 1`; // Ensure invoice2 is committed
+
+      // Ensure testUser is still visible (commit any pending transactions)
+      await prisma.$queryRaw`SELECT 1`;
+      
+      // Small delay to ensure user is visible to auth middleware
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const response = await request(app)
         .get("/api/v1/invoices")
@@ -204,6 +258,13 @@ describe("Core Domain Integration Tests", () => {
         clientCompanyId: clientCompany.id,
       });
 
+      // Ensure testUser is still visible (commit any pending transactions)
+      const prisma = getTestPrisma();
+      await prisma.$queryRaw`SELECT 1`;
+      
+      // Small delay to ensure user is visible to auth middleware
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       // Note: debitTotal and creditTotal are calculated from TransactionLines
       // The API response may include these calculated fields
       // Verify via API
@@ -225,9 +286,28 @@ describe("Core Domain Integration Tests", () => {
     });
 
     it("should fail if debit_total ≠ credit_total", async () => {
-      // Note: This depends on whether the API validates this
-      // Transactions use TransactionLines, so validation happens at the line level
-      // If the API validates balance at creation, this test will pass
+      // Ensure testUser is still visible (commit any pending transactions)
+      const prisma = getTestPrisma();
+      await prisma.$queryRaw`SELECT 1`;
+
+      let ledgerAccount = await prisma.ledgerAccount.findFirst({
+        where: { tenantId: testUser.tenant.id },
+      });
+
+      if (!ledgerAccount) {
+        // Create a default ledger account if none exists
+        ledgerAccount = await prisma.ledgerAccount.create({
+          data: {
+            tenantId: testUser.tenant.id,
+            code: "100.01",
+            name: "Test Account",
+            type: "asset",
+            isActive: true,
+          },
+        });
+      }
+
+      // Send request with unbalanced lines - should trigger validation error
       const response = await request(app)
         .post("/api/v1/transactions")
         .set("Authorization", `Bearer ${authToken}`)
@@ -236,15 +316,24 @@ describe("Core Domain Integration Tests", () => {
           clientCompanyId: clientCompany.id,
           date: new Date().toISOString(),
           description: "Unbalanced Transaction",
-          // Note: debitTotal/creditTotal are calculated from lines
-          // This test may need to create lines with unbalanced amounts
+          lines: [
+            {
+              ledgerAccountId: ledgerAccount.id,
+              debitAmount: 1000,
+              creditAmount: 0,
+            },
+            {
+              ledgerAccountId: ledgerAccount.id,
+              debitAmount: 0,
+              creditAmount: 500, // Unbalanced! Total debit=1000, total credit=500
+            },
+          ],
         });
 
-      // Should either be 400 (validation error) or 201 (if validation doesn't exist)
-      // If validation exists, expect 400
-      if (response.status === 400) {
-        expect(response.body.error).toBeDefined();
-      }
+      // Should return 400 with validation error
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBeDefined();
+      expect(response.body.error.message).toBeDefined();
     });
 
     it("should filter transactions by tenant", async () => {
@@ -252,11 +341,17 @@ describe("Core Domain Integration Tests", () => {
         tenantId: testUser.tenant.id,
         clientCompanyId: clientCompany.id,
       });
+      
+      // Ensure transaction1 is committed
+      const prisma = getTestPrisma();
+      await prisma.$queryRaw`SELECT 1`;
 
       // Create transaction in another tenant
       const otherTenant = await createTestUser({
         email: `other-transaction-${Date.now()}@example.com`,
       });
+      await prisma.$queryRaw`SELECT 1`; // Ensure otherTenant is committed
+      
       const otherCompany = await createTestClientCompany({
         tenantId: otherTenant.tenant.id,
       });
@@ -264,6 +359,13 @@ describe("Core Domain Integration Tests", () => {
         tenantId: otherTenant.tenant.id,
         clientCompanyId: otherCompany.id,
       });
+      await prisma.$queryRaw`SELECT 1`; // Ensure transaction2 is committed
+
+      // Ensure testUser is still visible (commit any pending transactions)
+      await prisma.$queryRaw`SELECT 1`;
+      
+      // Small delay to ensure user is visible to auth middleware
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const response = await request(app)
         .get("/api/v1/transactions")

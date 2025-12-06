@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
+import type { NextFunction } from "express";
+import { ValidationError } from "@repo/shared-utils";
 import { userService } from "../services/user-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { generateAccessToken } from "@repo/shared-utils";
@@ -14,25 +16,29 @@ const switchTenantSchema = z.object({
   tenantId: z.string().min(1, "Kiracı ID gerekli."),
 });
 
-router.get("/me", async (req: AuthenticatedRequest, res: Response) => {
-  const result = await userService.getCurrentUserWithTenants(req.context!.user.id);
+router.get("/me", async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const result = await userService.getCurrentUserWithTenants(req.context!.user.id);
 
-  res.json({
-    data: {
-      user: {
-        id: result.user.id,
-        email: result.user.email,
-        fullName: result.user.fullName,
-        locale: result.user.locale,
-        isActive: result.user.isActive,
-        lastLoginAt: result.user.lastLoginAt,
+    res.json({
+      data: {
+        user: {
+          id: result.user.id,
+          email: result.user.email,
+          fullName: result.user.fullName,
+          locale: result.user.locale,
+          isActive: result.user.isActive,
+          lastLoginAt: result.user.lastLoginAt,
+        },
+        tenants: result.tenants,
       },
-      tenants: result.tenants,
-    },
-  });
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
-router.post("/switch-tenant", async (req: AuthenticatedRequest, res: Response) => {
+router.post("/switch-tenant", async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const body = switchTenantSchema.parse(req.body);
 
@@ -48,7 +54,7 @@ router.post("/switch-tenant", async (req: AuthenticatedRequest, res: Response) =
     });
 
     if (!membership || membership.status !== "active") {
-      throw new Error("Bu kiracıya erişim yetkiniz yok.");
+      return next(new ValidationError("Bu kiracıya erişim yetkiniz yok."));
     }
 
     // Generate new access token with new tenant
@@ -67,9 +73,9 @@ router.post("/switch-tenant", async (req: AuthenticatedRequest, res: Response) =
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      throw new Error(error.errors[0]?.message || "Geçersiz bilgiler.");
+      return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
     }
-    throw error;
+    next(error);
   }
 });
 

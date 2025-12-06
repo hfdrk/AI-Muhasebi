@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
+import { z } from "zod";
 import { AuthenticationError, AuthorizationError, ValidationError, NotFoundError } from "@repo/shared-utils";
 import { logger } from "@repo/shared-utils";
 
@@ -8,6 +9,11 @@ export function errorHandler(
   res: Response,
   next: NextFunction
 ): void {
+  // Don't send response if headers already sent
+  if (res.headersSent) {
+    return next(err);
+  }
+
   logger.error("Request error", {
     error: err.message,
     stack: err.stack,
@@ -41,6 +47,17 @@ export function errorHandler(
         code: "VALIDATION_ERROR",
         message: err.message,
         field: err.field,
+      },
+    });
+    return;
+  }
+
+  if (err instanceof z.ZodError) {
+    res.status(400).json({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: err.errors[0]?.message || "Geçersiz bilgiler.",
+        details: err.errors,
       },
     });
     return;

@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
+import type { NextFunction } from "express";
+import { ValidationError } from "@repo/shared-utils";
 import { tenantService } from "../services/tenant-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
@@ -22,18 +24,22 @@ const updateTenantSchema = z.object({
   settings: z.record(z.unknown()).optional().nullable(),
 });
 
-router.get("/:tenantId", async (req: AuthenticatedRequest, res: Response) => {
-  const tenant = await tenantService.getTenant(req.context!.tenantId!);
+router.get("/:tenantId", async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const tenant = await tenantService.getTenant(req.context!.tenantId!);
 
-  res.json({
-    data: tenant,
-  });
+    res.json({
+      data: tenant,
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 router.patch(
   "/:tenantId",
   requireRole(TENANT_ROLES.TENANT_OWNER),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const body = updateTenantSchema.parse(req.body);
       const tenant = await tenantService.updateTenant(
@@ -47,9 +53,9 @@ router.patch(
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new Error(error.errors[0]?.message || "Geçersiz bilgiler.");
+        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
       }
-      throw error;
+      next(error);
     }
   }
 );

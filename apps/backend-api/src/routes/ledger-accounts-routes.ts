@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
+import type { NextFunction } from "express";
+import { ValidationError } from "@repo/shared-utils";
 import { ledgerAccountService } from "../services/ledger-account-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
@@ -21,27 +23,35 @@ const createLedgerAccountSchema = z.object({
 
 const updateLedgerAccountSchema = createLedgerAccountSchema.partial();
 
-router.get("/", async (req: AuthenticatedRequest, res: Response) => {
-  const accounts = await ledgerAccountService.listLedgerAccounts(
-    req.context!.tenantId!
-  );
+router.get("/", async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const accounts = await ledgerAccountService.listLedgerAccounts(
+      req.context!.tenantId!
+    );
 
-  res.json({ data: accounts });
+    res.json({ data: accounts });
+  } catch (error) {
+    next(error);
+  }
 });
 
-router.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
-  const account = await ledgerAccountService.getLedgerAccountById(
-    req.context!.tenantId!,
-    req.params.id
-  );
+router.get("/:id", async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const account = await ledgerAccountService.getLedgerAccountById(
+      req.context!.tenantId!,
+      req.params.id
+    );
 
-  res.json({ data: account });
+    res.json({ data: account });
+  } catch (error) {
+    next(error);
+  }
 });
 
 router.post(
   "/",
   requireRole(TENANT_ROLES.TENANT_OWNER, TENANT_ROLES.ACCOUNTANT),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const body = createLedgerAccountSchema.parse(req.body);
       const account = await ledgerAccountService.createLedgerAccount(
@@ -52,9 +62,9 @@ router.post(
       res.status(201).json({ data: account });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new Error(error.errors[0]?.message || "Geçersiz bilgiler.");
+        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
       }
-      throw error;
+      next(error);
     }
   }
 );
@@ -62,7 +72,7 @@ router.post(
 router.patch(
   "/:id",
   requireRole(TENANT_ROLES.TENANT_OWNER, TENANT_ROLES.ACCOUNTANT),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const body = updateLedgerAccountSchema.parse(req.body);
       const account = await ledgerAccountService.updateLedgerAccount(
@@ -74,9 +84,9 @@ router.patch(
       res.json({ data: account });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new Error(error.errors[0]?.message || "Geçersiz bilgiler.");
+        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
       }
-      throw error;
+      next(error);
     }
   }
 );

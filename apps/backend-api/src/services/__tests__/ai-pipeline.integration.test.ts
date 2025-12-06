@@ -26,7 +26,6 @@ async function getRiskFeatureService() {
 }
 
 describe("AI Pipeline & Risk Features Integration Tests", () => {
-  const prisma = getTestPrisma();
 
   describe("OCR Service", () => {
     it("should return non-empty raw_text and engineName for PDF file", async () => {
@@ -120,9 +119,16 @@ describe("AI Pipeline & Risk Features Integration Tests", () => {
       const testUser = await createTestUser({
         email: `risk-features-${Date.now()}@example.com`,
       });
+      
+      // Ensure user is committed before creating document
+      const prisma = getTestPrisma();
+      await prisma.$queryRaw`SELECT 1`;
+      
       const clientCompany = await createTestClientCompany({
         tenantId: testUser.tenant.id,
       });
+      await prisma.$queryRaw`SELECT 1`;
+      
       const document = await createTestDocument({
         tenantId: testUser.tenant.id,
         clientCompanyId: clientCompany.id,
@@ -180,6 +186,7 @@ describe("AI Pipeline & Risk Features Integration Tests", () => {
       });
 
       // Create first invoice with number INV-001
+      const prisma = getTestPrisma();
       const invoice1 = await prisma.invoice.create({
         data: {
           tenantId: testUser.tenant.id,
@@ -189,7 +196,6 @@ describe("AI Pipeline & Risk Features Integration Tests", () => {
           issueDate: new Date("2024-01-01"),
           dueDate: new Date("2024-01-31"),
           totalAmount: 1000,
-          vatAmount: 180,
           taxAmount: 180, // Required field
           netAmount: 820,
           status: "taslak",

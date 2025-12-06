@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
+import type { NextFunction } from "express";
+import { ValidationError } from "@repo/shared-utils";
 import { tenantService } from "../services/tenant-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
@@ -45,9 +47,10 @@ router.get(
 router.post(
   "/:tenantId/users/invite",
   requirePermission("users:invite"),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const body = inviteUserSchema.parse(req.body);
+      const normalizedEmail = body.email.toLowerCase().trim();
       await tenantService.inviteUser(
         req.context!.tenantId!,
         body.email,
@@ -57,21 +60,23 @@ router.post(
 
       res.status(201).json({
         data: {
+          email: normalizedEmail,
+          role: body.role,
           message: "Kullanıcı davet edildi.",
         },
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new Error(error.errors[0]?.message || "Geçersiz bilgiler.");
+        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
       }
-      throw error;
+      next(error);
     }
   }
 );
 
 router.post(
   "/:tenantId/users/:userId/accept-invitation",
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const body = acceptInvitationSchema.parse(req.body);
       await tenantService.acceptInvitation(
@@ -87,9 +92,9 @@ router.post(
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new Error(error.errors[0]?.message || "Geçersiz bilgiler.");
+        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
       }
-      throw error;
+      next(error);
     }
   }
 );
@@ -97,7 +102,7 @@ router.post(
 router.patch(
   "/:tenantId/users/:userId/role",
   requirePermission("users:update"),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const body = changeRoleSchema.parse(req.body);
       await tenantService.changeUserRole(
@@ -114,9 +119,9 @@ router.patch(
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new Error(error.errors[0]?.message || "Geçersiz bilgiler.");
+        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
       }
-      throw error;
+      next(error);
     }
   }
 );
@@ -124,7 +129,7 @@ router.patch(
 router.patch(
   "/:tenantId/users/:userId/status",
   requirePermission("users:update"),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const body = updateStatusSchema.parse(req.body);
       await tenantService.updateUserStatus(
@@ -141,9 +146,9 @@ router.patch(
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new Error(error.errors[0]?.message || "Geçersiz bilgiler.");
+        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
       }
-      throw error;
+      next(error);
     }
   }
 );

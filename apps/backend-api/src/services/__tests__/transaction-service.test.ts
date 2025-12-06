@@ -25,6 +25,9 @@ vi.mock("../../lib/prisma", () => ({
     ledgerAccount: {
       findMany: vi.fn(),
     },
+    $queryRaw: vi.fn(),
+    $executeRaw: vi.fn(),
+    $executeRawUnsafe: vi.fn(),
   },
 }));
 

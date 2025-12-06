@@ -5,19 +5,42 @@ import type { RiskCalculationJobPayload } from "../jobs/risk-calculation-job";
 // This avoids module resolution issues in the monorepo
 // @ts-ignore - Dynamic import path resolved at runtime
 async function getRiskRuleEngine() {
-  const module = await import("../../backend-api/src/services/risk-rule-engine");
-  return module.riskRuleEngine;
+  try {
+    // Try with .js extension first
+    const module = await import("../../../backend-api/src/services/risk-rule-engine.js");
+    return module.riskRuleEngine;
+  } catch (error1) {
+    try {
+      // Fallback to without extension
+      const module = await import("../../../backend-api/src/services/risk-rule-engine");
+      return module.riskRuleEngine;
+    } catch (error2) {
+      // Last resort: try absolute path from workspace root
+      const path = await import("path");
+      const fs = await import("fs");
+      const workspaceRoot = path.resolve(__dirname, "../../../../");
+      const riskEnginePath = path.join(workspaceRoot, "apps/backend-api/src/services/risk-rule-engine");
+      
+      // Check if file exists
+      if (fs.existsSync(`${riskEnginePath}.ts`) || fs.existsSync(`${riskEnginePath}.js`)) {
+        const module = await import(riskEnginePath);
+        return module.riskRuleEngine;
+      }
+      
+      throw new Error(`Failed to load risk-rule-engine: ${error1.message}, ${error2.message}`);
+    }
+  }
 }
 
 // @ts-ignore - Dynamic import path resolved at runtime
 async function getAnomalyDetectorService() {
-  const module = await import("../../backend-api/src/services/anomaly-detector-service");
+  const module = await import("../../../backend-api/src/services/anomaly-detector-service");
   return module.anomalyDetectorService;
 }
 
 // @ts-ignore - Dynamic import path resolved at runtime
 async function getRiskAlertService() {
-  const module = await import("../../backend-api/src/services/risk-alert-service");
+  const module = await import("../../../backend-api/src/services/risk-alert-service");
   return module.riskAlertService;
 }
 

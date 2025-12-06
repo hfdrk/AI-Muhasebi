@@ -2,7 +2,8 @@
 import "./env-setup.js";
 
 import { beforeEach, afterEach } from "vitest";
-import { resetTestDatabase, getTestPrisma } from "./test-db.js";
+import { resetTestDatabase } from "./test-db.js";
+import { prisma } from "../lib/prisma.js";
 
 // Reset database before each test file
 beforeEach(async () => {
@@ -14,6 +15,6 @@ afterEach(async () => {
   // Optional: Add any per-test cleanup here
 });
 
-// Make test Prisma available globally for tests
-export const testPrisma = getTestPrisma();
+// Make Prisma available globally for tests (main instance)
+export const testPrisma = prisma;
 

@@ -21,6 +21,14 @@ export class InvoiceImporter {
       errors: [],
     };
 
+    // Get integration to check if it has a preferred clientCompanyId
+    const integration = await prisma.tenantIntegration.findUnique({
+      where: { id: tenantIntegrationId },
+      select: { clientCompanyId: true },
+    });
+
+    const preferredClientCompanyId = integration?.clientCompanyId;
+
     for (const normalizedInvoice of normalizedInvoices) {
       try {
         let clientCompany = await this.resolveClientCompany(
@@ -31,15 +39,32 @@ export class InvoiceImporter {
         );
 
         if (!clientCompany) {
-          clientCompany = await prisma.clientCompany.create({
-            data: {
-              tenantId,
-              name: normalizedInvoice.clientCompanyName || "Bilinmeyen Müşteri",
-              legalType: "Limited",
-              taxNumber: normalizedInvoice.clientCompanyTaxNumber || `TEMP-${Date.now()}`,
-              isActive: true,
-            },
-          });
+          // If integration has a preferred clientCompanyId, use it as fallback
+          if (preferredClientCompanyId) {
+            const preferredCompany = await prisma.clientCompany.findFirst({
+              where: {
+                id: preferredClientCompanyId,
+                tenantId,
+              },
+              select: { id: true },
+            });
+            if (preferredCompany) {
+              clientCompany = preferredCompany;
+            }
+          }
+
+          // If still no client company, create a new one
+          if (!clientCompany) {
+            clientCompany = await prisma.clientCompany.create({
+              data: {
+                tenantId,
+                name: normalizedInvoice.clientCompanyName || "Bilinmeyen Müşteri",
+                legalType: "Limited",
+                taxNumber: normalizedInvoice.clientCompanyTaxNumber || `TEMP-${Date.now()}`,
+                isActive: true,
+              },
+            });
+          }
         }
 
         const existingInvoice = await prisma.invoice.findFirst({

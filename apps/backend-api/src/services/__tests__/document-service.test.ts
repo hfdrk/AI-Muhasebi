@@ -26,6 +26,9 @@ vi.mock("../../lib/prisma", () => ({
     documentProcessingJob: {
       create: vi.fn(),
     },
+    $queryRaw: vi.fn(),
+    $executeRaw: vi.fn(),
+    $executeRawUnsafe: vi.fn(),
   },
 }));
 

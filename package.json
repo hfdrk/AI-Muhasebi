@@ -5,7 +5,6 @@
   "description": "Turkish Accounting SaaS Platform - Monorepo",
   "scripts": {
     "dev": "turbo run dev",
-    "dev:worker": "pnpm --filter worker-jobs dev",
     "build": "turbo run build",
     "test": "turbo run test",
     "lint": "turbo run lint",
@@ -15,16 +14,13 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "turbo run build && changeset publish",
-    "verify:tasks0-6": "tsx scripts/verify-tasks-0-6.ts",
-    "setup:db": "bash scripts/setup-database.sh"
+    "release": "turbo run build && changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
     "@types/node": "^20.11.0",
     "eslint": "^8.56.0",
     "prettier": "^3.2.5",
-    "tsx": "^4.7.1",
     "turbo": "^1.12.0",
     "typescript": "^5.3.3"
   },

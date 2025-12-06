@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { z } from "zod";
+import type { Request, Response, NextFunction } from "express";
 import { authService } from "../services/auth-service";
 import { AuthenticationError, ValidationError } from "@repo/shared-utils";
-import type { Request, Response } from "express";
 import type { AuthenticatedRequest } from "../types/request-context";
 
 const router = Router();
@@ -37,7 +37,7 @@ const resetPasswordSchema = z.object({
   password: z.string().min(1, "Şifre gerekli."),
 });
 
-router.post("/login", async (req: Request, res: Response) => {
+router.post("/login", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const body = loginSchema.parse(req.body);
     const ipAddress = req.ip || req.socket.remoteAddress || undefined;
@@ -66,13 +66,13 @@ router.post("/login", async (req: Request, res: Response) => {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      throw new ValidationError(error.errors[0]?.message || "Geçersiz giriş bilgileri.");
+      return next(new ValidationError(error.errors[0]?.message || "Geçersiz giriş bilgileri."));
     }
-    throw error;
+    next(error);
   }
 });
 
-router.post("/register", async (req: Request, res: Response) => {
+router.post("/register", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const body = registerSchema.parse(req.body);
     const ipAddress = req.ip || req.socket.remoteAddress || undefined;
@@ -105,13 +105,13 @@ router.post("/register", async (req: Request, res: Response) => {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      throw new ValidationError(error.errors[0]?.message || "Geçersiz kayıt bilgileri.");
+      return next(new ValidationError(error.errors[0]?.message || "Geçersiz kayıt bilgileri."));
     }
-    throw error;
+    next(error);
   }
 });
 
-router.post("/forgot-password", async (req: Request, res: Response) => {
+router.post("/forgot-password", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const body = forgotPasswordSchema.parse(req.body);
     const ipAddress = req.ip || req.socket.remoteAddress || undefined;
@@ -126,13 +126,13 @@ router.post("/forgot-password", async (req: Request, res: Response) => {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      throw new ValidationError(error.errors[0]?.message || "Geçersiz e-posta adresi.");
+      return next(new ValidationError(error.errors[0]?.message || "Geçersiz e-posta adresi."));
     }
-    throw error;
+    next(error);
   }
 });
 
-router.post("/reset-password", async (req: Request, res: Response) => {
+router.post("/reset-password", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const body = resetPasswordSchema.parse(req.body);
     const ipAddress = req.ip || req.socket.remoteAddress || undefined;
@@ -146,13 +146,13 @@ router.post("/reset-password", async (req: Request, res: Response) => {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      throw new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler.");
+      return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
     }
-    throw error;
+    next(error);
   }
 });
 
-router.post("/logout", async (req: AuthenticatedRequest, res: Response) => {
+router.post("/logout", async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     if (req.context?.user) {
       const ipAddress = req.ip || req.socket.remoteAddress || undefined;
@@ -168,7 +168,7 @@ router.post("/logout", async (req: AuthenticatedRequest, res: Response) => {
       },
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 });
 

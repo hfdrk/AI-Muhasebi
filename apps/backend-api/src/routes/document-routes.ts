@@ -1,6 +1,8 @@
 import { Router } from "express";
 import multer from "multer";
 import { z } from "zod";
+import type { NextFunction } from "express";
+import { ValidationError } from "@repo/shared-utils";
 import { prisma } from "../lib/prisma";
 import { documentService } from "../services/document-service";
 import { documentJobService } from "../services/document-job-service";
@@ -90,13 +92,9 @@ router.post(
       res.status(201).json({ data: document });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({
-          error: {
-            message: error.errors[0].message,
-          },
-        });
+        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
       }
-      throw error;
+      next(error);
     }
   }
 );
@@ -105,30 +103,37 @@ router.post(
 router.get(
   "/",
   requirePermission("documents:read"),
-  async (req: AuthenticatedRequest, res: Response) => {
-    const schema = z.object({
-      clientCompanyId: z.string().optional(),
-      type: z.enum(["INVOICE", "BANK_STATEMENT", "RECEIPT", "OTHER"]).optional(),
-      status: z.enum(["UPLOADED", "PROCESSING", "PROCESSED", "FAILED"]).optional(),
-      dateFrom: z.string().datetime().optional(),
-      dateTo: z.string().datetime().optional(),
-      page: z.string().optional().transform((val) => (val ? parseInt(val, 10) : undefined)),
-      pageSize: z.string().optional().transform((val) => (val ? parseInt(val, 10) : undefined)),
-    });
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const schema = z.object({
+        clientCompanyId: z.string().optional(),
+        type: z.enum(["INVOICE", "BANK_STATEMENT", "RECEIPT", "OTHER"]).optional(),
+        status: z.enum(["UPLOADED", "PROCESSING", "PROCESSED", "FAILED"]).optional(),
+        dateFrom: z.string().datetime().optional(),
+        dateTo: z.string().datetime().optional(),
+        page: z.string().optional().transform((val) => (val ? parseInt(val, 10) : undefined)),
+        pageSize: z.string().optional().transform((val) => (val ? parseInt(val, 10) : undefined)),
+      });
 
-    const filters = schema.parse(req.query);
+      const filters = schema.parse(req.query);
 
-    const result = await documentService.listDocuments(req.context!.tenantId!, {
-      clientCompanyId: filters.clientCompanyId,
-      type: filters.type,
-      status: filters.status,
-      dateFrom: filters.dateFrom ? new Date(filters.dateFrom) : undefined,
-      dateTo: filters.dateTo ? new Date(filters.dateTo) : undefined,
-      page: filters.page,
-      pageSize: filters.pageSize,
-    });
+      const result = await documentService.listDocuments(req.context!.tenantId!, {
+        clientCompanyId: filters.clientCompanyId,
+        type: filters.type,
+        status: filters.status,
+        dateFrom: filters.dateFrom ? new Date(filters.dateFrom) : undefined,
+        dateTo: filters.dateTo ? new Date(filters.dateTo) : undefined,
+        page: filters.page,
+        pageSize: filters.pageSize,
+      });
 
-    res.json({ data: result });
+      res.json({ data: result });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
+      }
+      next(error);
+    }
   }
 );
 
@@ -136,13 +141,17 @@ router.get(
 router.get(
   "/:id",
   requirePermission("documents:read"),
-  async (req: AuthenticatedRequest, res: Response) => {
-    const document = await documentService.getDocumentById(
-      req.context!.tenantId!,
-      req.params.id
-    );
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const document = await documentService.getDocumentById(
+        req.context!.tenantId!,
+        req.params.id
+      );
 
-    res.json({ data: document });
+      res.json({ data: document });
+    } catch (error) {
+      next(error);
+    }
   }
 );
 
@@ -150,7 +159,7 @@ router.get(
 router.get(
   "/:id/download",
   requirePermission("documents:read"),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const document = await documentService.getDocumentById(
         req.context!.tenantId!,
@@ -173,7 +182,7 @@ router.get(
       stream.on("error", (error) => {
         console.error("Stream error:", error);
         if (!res.headersSent) {
-          res.status(500).json({ error: { message: "Dosya okunurken bir hata oluştu." } });
+          next(error);
         }
       });
 
@@ -197,11 +206,7 @@ router.get(
     } catch (error: any) {
       console.error("Error downloading document:", error);
       if (!res.headersSent) {
-        res.status(error.statusCode || 500).json({
-          error: {
-            message: error.message || "Dosya indirilemedi.",
-          },
-        });
+        next(error);
       }
     }
   }
@@ -211,7 +216,7 @@ router.get(
 router.post(
   "/:id/retry",
   requirePermission("documents:create"),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const document = await documentService.getDocumentById(
         req.context!.tenantId!,
@@ -253,7 +258,7 @@ router.post(
       if (error.statusCode) {
         return res.status(error.statusCode).json({ error: { message: error.message } });
       }
-      throw error;
+      next(error);
     }
   }
 );

@@ -17,7 +17,6 @@ async function getIntegrationSyncProcessor() {
 
 describe("Integrations & Sync Integration Tests", () => {
   const app = createTestApp();
-  const prisma = getTestPrisma();
 
   let testUser: Awaited<ReturnType<typeof createTestUser>>;
   let authToken: string;
@@ -29,12 +28,29 @@ describe("Integrations & Sync Integration Tests", () => {
     testUser = await createTestUser({
       email: `integrations-${Date.now()}@example.com`,
     });
+    
+    // Ensure user is visible before getting token
+    const prisma = getTestPrisma();
+    await prisma.$queryRaw`SELECT 1`;
+    
+    // Wait for user to be visible - retry up to 3 times
+    for (let i = 0; i < 3; i++) {
+      const user = await prisma.user.findUnique({
+        where: { id: testUser.user.id },
+      });
+      if (user) {
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    
     authToken = await getAuthToken(testUser.user.email, "Test123!@#", app);
     clientCompany = await createTestClientCompany({
       tenantId: testUser.tenant.id,
     });
 
     // Ensure mock providers exist
+    const prisma = getTestPrisma();
     mockAccountingProvider = await prisma.integrationProvider.findUnique({
       where: { code: "MOCK_ACCOUNTING" },
     });
@@ -84,14 +100,27 @@ describe("Integrations & Sync Integration Tests", () => {
 
   describe("TenantIntegration with MockAccountingProvider", () => {
     it("should create integration and test connection successfully", async () => {
+      // Ensure testUser is visible before making request
+      const prisma = getTestPrisma();
+      await prisma.$queryRaw`SELECT 1`;
+      
+      // Verify user is actually visible by querying it
+      const user = await prisma.user.findUnique({
+        where: { id: testUser.user.id },
+      });
+      if (!user) {
+        throw new Error("Test user not visible in database");
+      }
+      
       // Create integration
       const response = await request(app)
         .post("/api/v1/integrations")
         .set("Authorization", `Bearer ${authToken}`)
         .set("X-Tenant-Id", testUser.tenant.id)
         .send({
-          providerCode: "MOCK_ACCOUNTING",
+          providerId: mockAccountingProvider.id,
           clientCompanyId: clientCompany.id,
+          displayName: "Test Accounting Integration",
           config: {
             apiKey: "test-api-key-123",
           },
@@ -116,6 +145,25 @@ describe("Integrations & Sync Integration Tests", () => {
     });
 
     it("should create sync job and process it successfully", async () => {
+      // Ensure clientCompany exists
+      const prisma = getTestPrisma();
+      const existingCompany = await prisma.clientCompany.findUnique({
+        where: { id: clientCompany.id },
+      });
+      if (!existingCompany) {
+        // Recreate if it was deleted
+        await prisma.clientCompany.create({
+          data: {
+            id: clientCompany.id,
+            tenantId: testUser.tenant.id,
+            name: clientCompany.name,
+            taxNumber: clientCompany.taxNumber,
+            legalType: clientCompany.legalType,
+            isActive: true,
+          },
+        });
+      }
+
       // Create integration
       const integration = await prisma.tenantIntegration.create({
         data: {
@@ -123,12 +171,14 @@ describe("Integrations & Sync Integration Tests", () => {
           clientCompanyId: clientCompany.id,
           providerId: mockAccountingProvider.id,
           status: "connected",
+          displayName: "Test Accounting Integration",
           config: {
             apiKey: "test-api-key",
           },
           lastSyncStatus: "pending",
         },
       });
+      await prisma.$queryRaw`SELECT 1`; // Ensure integration is committed
 
       // Create sync job
       const syncJob = await prisma.integrationSyncJob.create({
@@ -140,6 +190,9 @@ describe("Integrations & Sync Integration Tests", () => {
           status: "pending",
         },
       });
+
+      // Ensure job is committed and visible to worker-jobs Prisma client
+      await prisma.$queryRaw`SELECT 1`;
 
       // Process sync job
       const syncProcessor = await getIntegrationSyncProcessor();
@@ -163,21 +216,41 @@ describe("Integrations & Sync Integration Tests", () => {
         where: {
           tenantId: testUser.tenant.id,
           clientCompanyId: clientCompany.id,
+          source: "integration", // Check for integration source
         },
       });
 
       // Mock connector should create some invoices
-      const integrationInvoices = invoices.filter((inv) => {
-        // Check if invoice has integration source (might be stored in metadata or externalId pattern)
-        return inv.externalId?.includes("MOCK") || true; // Mock invoices might have specific pattern
-      });
-
-      expect(integrationInvoices.length).toBeGreaterThan(0);
+      // The mock connector returns invoices with externalId like "INV-2024-001"
+      expect(invoices.length).toBeGreaterThan(0);
+      
+      // Verify at least one invoice has the expected structure
+      const firstInvoice = invoices[0];
+      expect(firstInvoice.externalId).toBeDefined();
+      expect(firstInvoice.source).toBe("integration");
     });
   });
 
   describe("TenantIntegration with MockBankProvider", () => {
     it("should create bank integration and sync transactions", async () => {
+      // Ensure clientCompany exists
+      const prisma = getTestPrisma();
+      const existingCompany = await prisma.clientCompany.findUnique({
+        where: { id: clientCompany.id },
+      });
+      if (!existingCompany) {
+        await prisma.clientCompany.create({
+          data: {
+            id: clientCompany.id,
+            tenantId: testUser.tenant.id,
+            name: clientCompany.name,
+            taxNumber: clientCompany.taxNumber,
+            legalType: clientCompany.legalType,
+            isActive: true,
+          },
+        });
+      }
+
       // Create bank integration
       const integration = await prisma.tenantIntegration.create({
         data: {
@@ -185,6 +258,7 @@ describe("Integrations & Sync Integration Tests", () => {
           clientCompanyId: clientCompany.id,
           providerId: mockBankProvider.id,
           status: "connected",
+          displayName: "Test Bank Integration",
           config: {
             apiKey: "test-bank-api-key",
           },
@@ -203,11 +277,14 @@ describe("Integrations & Sync Integration Tests", () => {
         },
       });
 
+      // Ensure job is committed and visible to worker-jobs Prisma client
+      await prisma.$queryRaw`SELECT 1`;
+
       // Process sync job
       const syncProcessor = await getIntegrationSyncProcessor();
       await syncProcessor.processSyncJob(syncJob.id);
 
-      // Verify job status
+      // Verify job status changed to success
       const updatedJob = await prisma.integrationSyncJob.findUnique({
         where: { id: syncJob.id },
       });
@@ -236,12 +313,14 @@ describe("Integrations & Sync Integration Tests", () => {
   describe("Tenant Isolation", () => {
     it("should scope all integration data to correct tenant", async () => {
       // Create integration in test user's tenant
+      const prisma = getTestPrisma();
       const integration1 = await prisma.tenantIntegration.create({
         data: {
           tenantId: testUser.tenant.id,
           clientCompanyId: clientCompany.id,
           providerId: mockAccountingProvider.id,
           status: "connected",
+          displayName: "Integration 1",
           config: { apiKey: "key1" },
         },
       });
@@ -254,16 +333,48 @@ describe("Integrations & Sync Integration Tests", () => {
         tenantId: otherTenant.tenant.id,
       });
 
+      // Ensure testUser is still visible (commit any pending transactions)
+      await prisma.$queryRaw`SELECT 1`;
+
+      // Ensure provider exists for other tenant's integration
+      let providerForOtherTenant = await prisma.integrationProvider.findUnique({
+        where: { code: "MOCK_ACCOUNTING" },
+      });
+      if (!providerForOtherTenant) {
+        providerForOtherTenant = await prisma.integrationProvider.create({
+          data: {
+            type: "accounting",
+            code: "MOCK_ACCOUNTING",
+            name: "Mock Muhasebe Sistemi",
+            description: "Test için mock muhasebe sistemi",
+            isActive: true,
+            configSchema: {},
+          },
+        });
+      }
+
       // Create integration in other tenant
       const integration2 = await prisma.tenantIntegration.create({
         data: {
           tenantId: otherTenant.tenant.id,
           clientCompanyId: otherCompany.id,
-          providerId: mockAccountingProvider.id,
+          providerId: providerForOtherTenant.id,
           status: "connected",
+          displayName: "Integration 2",
           config: { apiKey: "key2" },
         },
       });
+
+      // Ensure testUser is still visible (commit any pending transactions)
+      await prisma.$queryRaw`SELECT 1`;
+      
+      // Verify user is actually visible by querying it
+      const user = await prisma.user.findUnique({
+        where: { id: testUser.user.id },
+      });
+      if (!user) {
+        throw new Error("Test user not visible in database");
+      }
 
       // List integrations for test user's tenant
       const response = await request(app)

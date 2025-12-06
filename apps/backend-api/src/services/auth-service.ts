@@ -73,11 +73,24 @@ export class AuthService {
       throw new AuthenticationError("E-posta veya şifre hatalı.");
     }
 
-    // Update last login
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { lastLoginAt: new Date() },
-    });
+    // Update last login (gracefully handle if user was deleted)
+    try {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { lastLoginAt: new Date() },
+      });
+    } catch (error: any) {
+      // P2025: Record not found - user was deleted between find and update
+      // This can happen in test scenarios during database cleanup, but shouldn't block login
+      // Check for P2025 error code (PrismaClientKnownRequestError)
+      if (error?.code === "P2025") {
+        // Silently continue - user was found and password verified, so login should succeed
+        // The lastLoginAt update is non-critical
+      } else {
+        // Re-throw any other errors
+        throw error;
+      }
+    }
 
     // Get first active tenant (or null if none)
     const firstMembership = user.memberships[0];

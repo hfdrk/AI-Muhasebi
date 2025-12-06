@@ -1,10 +1,77 @@
 // Import env setup FIRST - this must run before any other imports
 import "./env-setup.js";
 
-import express from "express";
+import express, { type Request, type Response, type NextFunction } from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import { errorHandler } from "../middleware/error-handler";
+
+/**
+ * Patch Express Router and App to automatically catch async errors
+ * This mimics express-async-errors behavior for test environment
+ * Ensures errors thrown in async route handlers and middleware are passed to error middleware
+ */
+const Router = express.Router;
+const methods = ["get", "post", "put", "patch", "delete", "all", "use"] as const;
+
+// Helper to wrap async handlers
+function wrapAsyncHandler(handler: any): any {
+  if (typeof handler !== "function") {
+    return handler;
+  }
+  return (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = handler(req, res, next);
+      // If handler returns a promise, catch errors
+      if (result && typeof result.catch === "function") {
+        result.catch((error: Error) => {
+          // Only call next if response hasn't been sent
+          if (!res.headersSent) {
+            next(error);
+          } else {
+            // If headers already sent, log the error but don't call next
+            // This prevents unhandled rejections
+            console.error("Error after response sent:", error.message);
+          }
+        });
+      }
+      return result;
+    } catch (error) {
+      // Sync errors - only call next if response hasn't been sent
+      if (!res.headersSent) {
+        next(error as Error);
+      } else {
+        console.error("Sync error after response sent:", (error as Error).message);
+      }
+    }
+  };
+}
+
+// Patch Router prototype to wrap async handlers
+methods.forEach((method) => {
+  const original = Router.prototype[method];
+  Router.prototype[method] = function (path: any, ...handlers: any[]) {
+    const wrappedHandlers = handlers.map(wrapAsyncHandler);
+    return original.call(this, path, ...wrappedHandlers);
+  };
+});
+
+// Patch Express app methods as well
+const originalAppUse = express.application.use;
+express.application.use = function (path: any, ...handlers: any[]) {
+  const wrappedHandlers = handlers.map(wrapAsyncHandler);
+  return originalAppUse.call(this, path, ...wrappedHandlers);
+};
+
+methods.forEach((method) => {
+  if (method === "use") return; // Already handled above
+  const original = express.application[method];
+  express.application[method] = function (path: any, ...handlers: any[]) {
+    const wrappedHandlers = handlers.map(wrapAsyncHandler);
+    return original.call(this, path, ...wrappedHandlers);
+  };
+});
+
 import authRoutes from "../routes/auth-routes";
 import userRoutes from "../routes/user-routes";
 import tenantRoutes from "../routes/tenant-routes";

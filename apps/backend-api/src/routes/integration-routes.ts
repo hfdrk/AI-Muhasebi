@@ -110,10 +110,10 @@ router.post(
     } catch (error: any) {
       console.error("[Integration Route] Error creating integration:", error);
       console.error("[Integration Route] Error stack:", error.stack);
-      if (error instanceof z.ZodError) {
+      if (error instanceof z.ZodError && error.errors && error.errors.length > 0) {
         res.status(400).json({ 
           error: { 
-            message: error.errors[0]?.message || "Geçersiz bilgiler.",
+            message: error.errors[0].message || "Geçersiz bilgiler.",
             details: error.errors 
           } 
         });

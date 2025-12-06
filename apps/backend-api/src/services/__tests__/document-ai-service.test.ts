@@ -18,6 +18,9 @@ vi.mock("../../lib/prisma", () => ({
     documentRiskFeatures: {
       findUnique: vi.fn(),
     },
+    $queryRaw: vi.fn(),
+    $executeRaw: vi.fn(),
+    $executeRawUnsafe: vi.fn(),
   },
 }));
 

@@ -25,6 +25,22 @@ export async function createTestClientCompany(
     isActive = true,
   } = data;
 
+  // Ensure tenant exists (prevents foreign key constraint errors)
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: tenantId },
+  });
+  if (!tenant) {
+    await prisma.tenant.create({
+      data: {
+        id: tenantId,
+        name: `Test Tenant ${tenantId}`,
+        slug: `test-tenant-${tenantId}`,
+        taxNumber: `123456789${Date.now() % 10000}`,
+        settings: {},
+      },
+    });
+  }
+
   return await prisma.clientCompany.create({
     data: {
       tenantId,
@@ -73,7 +89,6 @@ export async function createTestInvoice(data: CreateInvoiceData) {
       issueDate,
       dueDate,
       totalAmount: totalAmount,
-      vatAmount: vatAmount,
       taxAmount: taxAmount,
       netAmount: netAmount,
       status: "taslak",
@@ -135,6 +150,22 @@ export async function createTestTransaction(data: CreateTransactionData) {
     description = "Test Transaction",
   } = data;
 
+  // Ensure tenant exists (prevents foreign key constraint errors)
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: tenantId },
+  });
+  if (!tenant) {
+    await prisma.tenant.create({
+      data: {
+        id: tenantId,
+        name: `Test Tenant ${tenantId}`,
+        slug: `test-tenant-${tenantId}`,
+        taxNumber: `123456789${Date.now() % 10000}`,
+        settings: {},
+      },
+    });
+  }
+
   return await prisma.transaction.create({
     data: {
       tenantId,
@@ -169,6 +200,51 @@ export async function createTestDocument(data: CreateDocumentData) {
     mimeType = "application/pdf",
     status = "UPLOADED",
   } = data;
+
+  // Ensure tenant exists
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: tenantId },
+  });
+  if (!tenant) {
+    await prisma.tenant.create({
+      data: {
+        id: tenantId,
+        name: `Test Tenant ${tenantId}`,
+        slug: `test-tenant-${tenantId}`,
+        taxNumber: `123456789${Date.now() % 10000}`,
+        settings: {},
+      },
+    });
+  }
+
+  // Ensure client company exists
+  if (clientCompanyId) {
+    const clientCompany = await prisma.clientCompany.findUnique({
+      where: { id: clientCompanyId },
+    });
+    if (!clientCompany) {
+      await prisma.clientCompany.create({
+        data: {
+          id: clientCompanyId,
+          tenantId,
+          name: `Test Client Company ${Date.now()}`,
+          taxNumber: `${Date.now()}`,
+          legalType: "Limited",
+          isActive: true,
+        },
+      });
+    }
+  }
+
+  // Ensure user exists
+  if (uploadUserId) {
+    const user = await prisma.user.findUnique({
+      where: { id: uploadUserId },
+    });
+    if (!user) {
+      throw new Error(`User ${uploadUserId} not found. Create user before creating document.`);
+    }
+  }
 
   return await prisma.document.create({
     data: {

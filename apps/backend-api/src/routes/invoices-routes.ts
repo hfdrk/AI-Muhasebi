@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
+import type { NextFunction } from "express";
+import { ValidationError } from "@repo/shared-utils";
 import { invoiceService } from "../services/invoice-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
@@ -46,40 +48,48 @@ const updateInvoiceSchema = createInvoiceSchema.partial().extend({
 router.get(
   "/",
   requirePermission("invoices:read"),
-  async (req: AuthenticatedRequest, res: Response) => {
-    const filters = {
-      clientCompanyId: req.query.clientCompanyId as string | undefined,
-      issueDateFrom: req.query.issueDateFrom ? new Date(req.query.issueDateFrom as string) : undefined,
-      issueDateTo: req.query.issueDateTo ? new Date(req.query.issueDateTo as string) : undefined,
-      type: req.query.type as string | undefined,
-      status: req.query.status as string | undefined,
-      page: req.query.page ? parseInt(req.query.page as string) : undefined,
-      pageSize: req.query.pageSize ? parseInt(req.query.pageSize as string) : undefined,
-    };
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const filters = {
+        clientCompanyId: req.query.clientCompanyId as string | undefined,
+        issueDateFrom: req.query.issueDateFrom ? new Date(req.query.issueDateFrom as string) : undefined,
+        issueDateTo: req.query.issueDateTo ? new Date(req.query.issueDateTo as string) : undefined,
+        type: req.query.type as string | undefined,
+        status: req.query.status as string | undefined,
+        page: req.query.page ? parseInt(req.query.page as string) : undefined,
+        pageSize: req.query.pageSize ? parseInt(req.query.pageSize as string) : undefined,
+      };
 
-    const result = await invoiceService.listInvoices(req.context!.tenantId!, filters);
+      const result = await invoiceService.listInvoices(req.context!.tenantId!, filters);
 
-    res.json({ data: result });
+      res.json({ data: result });
+    } catch (error) {
+      next(error);
+    }
   }
 );
 
 router.get(
   "/:id",
   requirePermission("invoices:read"),
-  async (req: AuthenticatedRequest, res: Response) => {
-    const invoice = await invoiceService.getInvoiceById(
-      req.context!.tenantId!,
-      req.params.id
-    );
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const invoice = await invoiceService.getInvoiceById(
+        req.context!.tenantId!,
+        req.params.id
+      );
 
-    res.json({ data: invoice });
+      res.json({ data: invoice });
+    } catch (error) {
+      next(error);
+    }
   }
 );
 
 router.post(
   "/",
   requirePermission("invoices:create"),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const body = createInvoiceSchema.parse(req.body);
       const invoice = await invoiceService.createInvoice(req.context!.tenantId!, {
@@ -91,9 +101,9 @@ router.post(
       res.status(201).json({ data: invoice });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new Error(error.errors[0]?.message || "Geçersiz bilgiler.");
+        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
       }
-      throw error;
+      next(error);
     }
   }
 );
@@ -101,7 +111,7 @@ router.post(
 router.patch(
   "/:id",
   requirePermission("invoices:update"),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const body = updateInvoiceSchema.parse(req.body);
       const invoice = await invoiceService.updateInvoice(
@@ -117,9 +127,9 @@ router.patch(
       res.json({ data: invoice });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new Error(error.errors[0]?.message || "Geçersiz bilgiler.");
+        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
       }
-      throw error;
+      next(error);
     }
   }
 );
@@ -127,7 +137,7 @@ router.patch(
 router.patch(
   "/:id/status",
   requireRole(TENANT_ROLES.TENANT_OWNER, TENANT_ROLES.ACCOUNTANT),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const body = z.object({
         status: z.enum(["taslak", "kesildi", "iptal", "muhasebeleştirilmiş"]),
@@ -142,9 +152,9 @@ router.patch(
       res.json({ data: invoice });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new Error(error.errors[0]?.message || "Geçersiz bilgiler.");
+        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
       }
-      throw error;
+      next(error);
     }
   }
 );

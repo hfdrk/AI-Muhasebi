@@ -13,12 +13,15 @@ export async function tenantMiddleware(
       throw new AuthenticationError("Yetkilendirme gerekli.");
     }
 
-    // Resolve tenant from URL parameter /t/:tenantId or from token
+    // Resolve tenant from URL parameter /t/:tenantId, header, query, or from token
     let tenantId: string | undefined;
 
     // Check URL parameter first (e.g., /t/:tenantId/...)
     if (req.params.tenantId) {
       tenantId = req.params.tenantId;
+    } else if (req.headers["x-tenant-id"] && typeof req.headers["x-tenant-id"] === "string") {
+      // Check X-Tenant-Id header (used in tests and API clients)
+      tenantId = req.headers["x-tenant-id"];
     } else if (req.query.tenantId && typeof req.query.tenantId === "string") {
       tenantId = req.query.tenantId;
     } else if (req.context.tenantId) {

@@ -19,6 +19,10 @@ export {
   getTestDatabaseUrl,
 } from "./test-db.js";
 
+// Export main prisma instance - tests should use this directly
+// getTestPrisma() also returns this same instance for backward compatibility
+export { prisma } from "../lib/prisma.js";
+
 // Authentication utilities
 export {
   createTestUser,

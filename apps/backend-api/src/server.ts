@@ -1,4 +1,15 @@
 import "dotenv/config";
+// Resolve database URL BEFORE any other imports that might use Prisma
+import { resolveDatabaseUrl, getDatabaseUrlSync } from "./lib/db-url-resolver";
+
+// Set DATABASE_URL synchronously first (will be refined async if needed)
+try {
+  getDatabaseUrlSync();
+} catch (error: any) {
+  console.warn("Warning: Could not resolve database URL synchronously:", error.message);
+  console.warn("Will attempt async resolution. Using DATABASE_URL from environment or defaults");
+}
+
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -18,8 +29,26 @@ import riskRoutes from "./routes/risk-routes";
 import riskAlertRoutes from "./routes/risk-alert-routes";
 import integrationRoutes from "./routes/integration-routes";
 
+// Resolve database URL asynchronously and update if needed
+resolveDatabaseUrl()
+  .then((url) => {
+    console.log("✅ Database URL resolved successfully");
+    // Update Prisma client if needed (it will use the new DATABASE_URL on next query)
+  })
+  .catch((error) => {
+    console.warn("Warning: Could not resolve database URL automatically:", error.message);
+    console.warn("Using DATABASE_URL from environment or defaults");
+    console.warn("Current DATABASE_URL:", process.env.DATABASE_URL?.replace(/:[^:@]+@/, ":****@"));
+  });
+
 // Validate environment variables at startup
-validateEnv();
+try {
+  validateEnv();
+} catch (error: any) {
+  console.error("❌ Environment validation failed:", error.message);
+  console.error("Please check your .env file and ensure all required variables are set.");
+  process.exit(1);
+}
 
 const app = express();
 const PORT = process.env.PORT || 3800;
@@ -60,7 +89,28 @@ app.use("/api/v1/integrations", integrationRoutes);
 // Error handler (must be last)
 app.use(errorHandler);
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Backend API server running on port ${PORT}`);
+});
+
+// Handle server errors
+server.on("error", (error: NodeJS.ErrnoException) => {
+  if (error.code === "EADDRINUSE") {
+    console.error(`Port ${PORT} is already in use. Please use a different port.`);
+  } else {
+    console.error("Server error:", error);
+  }
+  process.exit(1);
+});
+
+// Handle unhandled promise rejections
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+});
+
+// Handle uncaught exceptions
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
+  process.exit(1);
 });
 

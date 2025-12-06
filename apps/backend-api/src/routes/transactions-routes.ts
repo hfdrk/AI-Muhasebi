@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
+import type { NextFunction } from "express";
+import { ValidationError } from "@repo/shared-utils";
 import { transactionService } from "../services/transaction-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
@@ -35,42 +37,50 @@ const updateTransactionSchema = createTransactionSchema.partial().extend({
 router.get(
   "/",
   requirePermission("invoices:read"), // Using invoices:read for now, can add transactions:read later
-  async (req: AuthenticatedRequest, res: Response) => {
-    const filters = {
-      clientCompanyId: req.query.clientCompanyId as string | undefined,
-      dateFrom: req.query.dateFrom ? new Date(req.query.dateFrom as string) : undefined,
-      dateTo: req.query.dateTo ? new Date(req.query.dateTo as string) : undefined,
-      referenceNo: req.query.referenceNo as string | undefined,
-      page: req.query.page ? parseInt(req.query.page as string) : undefined,
-      pageSize: req.query.pageSize ? parseInt(req.query.pageSize as string) : undefined,
-    };
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const filters = {
+        clientCompanyId: req.query.clientCompanyId as string | undefined,
+        dateFrom: req.query.dateFrom ? new Date(req.query.dateFrom as string) : undefined,
+        dateTo: req.query.dateTo ? new Date(req.query.dateTo as string) : undefined,
+        referenceNo: req.query.referenceNo as string | undefined,
+        page: req.query.page ? parseInt(req.query.page as string) : undefined,
+        pageSize: req.query.pageSize ? parseInt(req.query.pageSize as string) : undefined,
+      };
 
-    const result = await transactionService.listTransactions(
-      req.context!.tenantId!,
-      filters
-    );
+      const result = await transactionService.listTransactions(
+        req.context!.tenantId!,
+        filters
+      );
 
-    res.json({ data: result });
+      res.json({ data: result });
+    } catch (error) {
+      next(error);
+    }
   }
 );
 
 router.get(
   "/:id",
   requirePermission("invoices:read"),
-  async (req: AuthenticatedRequest, res: Response) => {
-    const transaction = await transactionService.getTransactionById(
-      req.context!.tenantId!,
-      req.params.id
-    );
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const transaction = await transactionService.getTransactionById(
+        req.context!.tenantId!,
+        req.params.id
+      );
 
-    res.json({ data: transaction });
+      res.json({ data: transaction });
+    } catch (error) {
+      next(error);
+    }
   }
 );
 
 router.post(
   "/",
   requirePermission("invoices:create"),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const body = createTransactionSchema.parse(req.body);
       const transaction = await transactionService.createTransaction(
@@ -83,10 +93,10 @@ router.post(
 
       res.status(201).json({ data: transaction });
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        throw new Error(error.errors[0]?.message || "Geçersiz bilgiler.");
+      if (error instanceof z.ZodError && error.errors && error.errors.length > 0) {
+        return next(new ValidationError(error.errors[0].message || "Geçersiz bilgiler."));
       }
-      throw error;
+      next(error);
     }
   }
 );
@@ -94,7 +104,7 @@ router.post(
 router.patch(
   "/:id",
   requirePermission("invoices:update"),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const body = updateTransactionSchema.parse(req.body);
       const transaction = await transactionService.updateTransaction(
@@ -108,10 +118,10 @@ router.patch(
 
       res.json({ data: transaction });
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        throw new Error(error.errors[0]?.message || "Geçersiz bilgiler.");
+      if (error instanceof z.ZodError && error.errors && error.errors.length > 0) {
+        return next(new ValidationError(error.errors[0].message || "Geçersiz bilgiler."));
       }
-      throw error;
+      next(error);
     }
   }
 );
@@ -132,7 +142,7 @@ router.delete(
 router.get(
   "/trial-balance",
   requirePermission("reports:view"),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const query = z.object({
         clientCompanyId: z.string().optional().nullable(),
@@ -149,10 +159,10 @@ router.get(
 
       res.json({ data: result });
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        throw new Error(error.errors[0]?.message || "Geçersiz bilgiler.");
+      if (error instanceof z.ZodError && error.errors && error.errors.length > 0) {
+        return next(new ValidationError(error.errors[0].message || "Geçersiz bilgiler."));
       }
-      throw error;
+      next(error);
     }
   }
 );
