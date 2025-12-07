@@ -77,6 +77,7 @@ describe("RBAC Integration Tests", () => {
       }
       await new Promise((resolve) => setTimeout(resolve, 150));
     }
+    
     // getAuthToken already has retry logic, but let's ensure user is visible
     return await getAuthToken(user.email, "Test123!@#", app);
   }

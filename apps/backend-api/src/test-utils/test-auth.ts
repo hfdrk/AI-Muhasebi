@@ -51,49 +51,83 @@ export async function createTestUser(
 
   const hashedPassword = await hashPassword(password);
 
-  const result = await prisma.$transaction(async (tx) => {
-    // Create or use existing tenant
-    let tenant;
-    if (tenantId) {
-      tenant = await tx.tenant.findUnique({
-        where: { id: tenantId },
-      });
-      if (!tenant) {
-        // Create tenant if it doesn't exist (prevents "No Tenant found" errors in tests)
-        tenant = await tx.tenant.create({
-          data: {
-            id: tenantId,
-            name: tenantName || `Test Tenant ${tenantId}`,
-            slug: tenantSlug || `test-tenant-${tenantId}`,
-            taxNumber: `123456789${Date.now() % 10000}`,
-            settings: {},
-          },
-        });
-      }
-    } else {
-      tenant = await tx.tenant.create({
+  // Create entities sequentially (without transaction) to ensure immediate visibility
+  // This avoids transaction isolation issues where data isn't visible to other connections
+  // We add small delays between steps to ensure PostgreSQL commits are fully visible
+  
+  // Step 1: Create or find tenant
+  let tenant;
+  if (tenantId) {
+    tenant = await prisma.tenant.findUnique({
+      where: { id: tenantId },
+    });
+    if (!tenant) {
+      // Create tenant if it doesn't exist (prevents "No Tenant found" errors in tests)
+      tenant = await prisma.tenant.create({
         data: {
-          name: tenantName,
-          slug: tenantSlug,
+          id: tenantId,
+          name: tenantName || `Test Tenant ${tenantId}`,
+          slug: tenantSlug || `test-tenant-${tenantId}`,
           taxNumber: `123456789${Date.now() % 10000}`,
           settings: {},
         },
       });
+      // Ensure tenant is committed and visible
+      await prisma.$queryRaw`SELECT 1`;
+      await new Promise(resolve => setTimeout(resolve, 50));
     }
-
-    // Create user
-    const user = await tx.user.create({
+  } else {
+    tenant = await prisma.tenant.create({
       data: {
-        email,
-        hashedPassword,
-        fullName,
-        locale: "tr-TR",
-        isActive: true,
+        name: tenantName,
+        slug: tenantSlug,
+        taxNumber: `123456789${Date.now() % 10000}`,
+        settings: {},
       },
     });
+    // Ensure tenant is committed and visible
+    await prisma.$queryRaw`SELECT 1`;
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
 
-    // Create membership
-    const membership = await tx.userTenantMembership.create({
+  // Step 2: Create user
+  const user = await prisma.user.create({
+    data: {
+      email,
+      hashedPassword,
+      fullName,
+      locale: "tr-TR",
+      isActive: true,
+    },
+  });
+  // Ensure user is committed and visible
+  await prisma.$queryRaw`SELECT 1`;
+  await new Promise(resolve => setTimeout(resolve, 50));
+
+  // Step 3: Create or update membership (check if exists first, then create or update)
+  let membership = await prisma.userTenantMembership.findUnique({
+    where: {
+      userId_tenantId: {
+        userId: user.id,
+        tenantId: tenant.id,
+      },
+    },
+  });
+
+  if (membership) {
+    // Update existing membership
+    membership = await prisma.userTenantMembership.update({
+      where: {
+        id: membership.id,
+      },
+      data: {
+        role,
+        status: "active",
+      },
+    });
+  } else {
+    // Create new membership
+    membership = await prisma.userTenantMembership.create({
       data: {
         userId: user.id,
         tenantId: tenant.id,
@@ -101,28 +135,54 @@ export async function createTestUser(
         status: "active",
       },
     });
-
-    return { user, tenant, membership };
-  });
-
-  // Ensure transaction is committed and visible to other connections
-  // This is especially important in tests where the user is immediately used for login
+  }
+  // Ensure membership is committed and visible
   await prisma.$queryRaw`SELECT 1`;
+  await new Promise(resolve => setTimeout(resolve, 50));
+
+  // Final verification: ensure user is visible by both email and ID
+  // Retry a few times to ensure visibility across connections
+  const normalizedEmail = email.toLowerCase().trim();
+  for (let i = 0; i < 5; i++) {
+    await prisma.$queryRaw`SELECT 1`;
+    const verifyUser = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+      include: {
+        memberships: {
+          where: { status: "active" },
+        },
+      },
+    });
+    
+    if (verifyUser && verifyUser.isActive && verifyUser.memberships.length > 0 && verifyUser.hashedPassword) {
+      // Also verify by ID (auth middleware uses ID from token)
+      const verifyById = await prisma.user.findUnique({
+        where: { id: user.id },
+      });
+      if (verifyById && verifyById.isActive) {
+        // User is fully visible - ready for use
+        await prisma.$queryRaw`SELECT 1`;
+        await new Promise(resolve => setTimeout(resolve, 50));
+        break;
+      }
+    }
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
 
   return {
     user: {
-      id: result.user.id,
-      email: result.user.email,
-      fullName: result.user.fullName,
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName,
     },
     tenant: {
-      id: result.tenant.id,
-      name: result.tenant.name,
-      slug: result.tenant.slug,
+      id: tenant.id,
+      name: tenant.name,
+      slug: tenant.slug,
     },
     membership: {
-      id: result.membership.id,
-      role: result.membership.role,
+      id: membership.id,
+      role: membership.role,
     },
   };
 }
@@ -149,10 +209,7 @@ export async function getAuthToken(
     const prisma = getTestPrisma();
     const normalizedEmail = email.toLowerCase().trim();
     
-    // Quick check if user is visible (non-blocking)
-    await prisma.$queryRaw`SELECT 1`;
-    
-    // Now attempt login with retries
+    // createTestUser already ensures visibility, so attempt login with retries
     for (let attempt = 0; attempt < 5; attempt++) {
       try {
         const response = await request(baseUrlOrApp)
@@ -160,31 +217,41 @@ export async function getAuthToken(
           .send({ email, password });
 
         if (response.status === 200 && response.body.data?.accessToken) {
-          return response.body.data.accessToken;
-        }
-
-        // If 401 and not last attempt, retry after delay and verify user exists
-        if (response.status === 401 && attempt < 4) {
-          await prisma.$queryRaw`SELECT 1`;
+          const token = response.body.data.accessToken;
           
-          // Verify user exists with active membership
-          const verifyUser = await prisma.user.findUnique({
-            where: { email: normalizedEmail },
-            include: {
-              memberships: {
-                where: { status: "active" },
-              },
-            },
-          });
-          
-          if (!verifyUser || !verifyUser.isActive || verifyUser.memberships.length === 0) {
-            // User not ready yet, wait longer
-            await new Promise(resolve => setTimeout(resolve, 300 * (attempt + 1)));
-            lastError = new Error(`Login failed: User not ready (attempt ${attempt + 1})`);
-            continue;
+          // CRITICAL: After getting token, ensure user is visible by ID (auth middleware uses ID from token)
+          // Decode token to get userId and verify user is visible
+          try {
+            const { verifyToken } = await import("@repo/shared-utils");
+            const decoded = verifyToken(token);
+            if (decoded.userId) {
+              // Wait for user to be visible by ID (auth middleware looks up by ID)
+              for (let i = 0; i < 5; i++) {
+                await prisma.$queryRaw`SELECT 1`;
+                const userById = await prisma.user.findUnique({
+                  where: { id: decoded.userId },
+                });
+                if (userById && userById.isActive) {
+                  // User is visible - token will work
+                  await prisma.$queryRaw`SELECT 1`;
+                  await new Promise(resolve => setTimeout(resolve, 100));
+                  return token;
+                }
+                await new Promise(resolve => setTimeout(resolve, 100));
+              }
+              // If user still not visible, return token anyway (might work)
+            }
+          } catch (e) {
+            // Token decode failed, but we have a token so return it
           }
           
-          await new Promise(resolve => setTimeout(resolve, 200 * (attempt + 1)));
+          return token;
+        }
+
+        // If 401 and not last attempt, retry after delay
+        if (response.status === 401 && attempt < 4) {
+          await prisma.$queryRaw`SELECT 1`;
+          await new Promise(resolve => setTimeout(resolve, 300 * (attempt + 1)));
           lastError = new Error(`Login failed: ${response.body.error?.message || "Unauthorized"}`);
           continue;
         }
@@ -201,23 +268,7 @@ export async function getAuthToken(
         if (is401Error && attempt < 4) {
           lastError = error;
           await prisma.$queryRaw`SELECT 1`;
-          
-          // Verify user exists
-          const verifyUser = await prisma.user.findUnique({
-            where: { email: normalizedEmail },
-            include: {
-              memberships: {
-                where: { status: "active" },
-              },
-            },
-          });
-          
-          if (!verifyUser || !verifyUser.isActive || verifyUser.memberships.length === 0) {
-            await new Promise(resolve => setTimeout(resolve, 300 * (attempt + 1)));
-            continue;
-          }
-          
-          await new Promise(resolve => setTimeout(resolve, 200 * (attempt + 1)));
+          await new Promise(resolve => setTimeout(resolve, 300 * (attempt + 1)));
           continue;
         }
         

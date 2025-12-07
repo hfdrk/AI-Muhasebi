@@ -78,6 +78,18 @@ describe("Auth & Tenant Flow Integration Tests", () => {
         email: "duplicate@example.com",
       });
 
+      // Ensure user is visible before attempting duplicate registration
+      const prisma = getTestPrisma();
+      await prisma.$queryRaw`SELECT 1`;
+      const verifyUser = await prisma.user.findUnique({
+        where: { email: testUser.user.email },
+      });
+      if (!verifyUser) {
+        // Wait a bit for user to be visible
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        await prisma.$queryRaw`SELECT 1`;
+      }
+
       const response = await request(app)
         .post("/api/v1/auth/register")
         .send({
@@ -101,6 +113,24 @@ describe("Auth & Tenant Flow Integration Tests", () => {
       const testUser = await createTestUser({
         tenantSlug: "duplicate-slug",
       });
+
+      // Ensure tenant is visible before attempting duplicate registration
+      const prisma = getTestPrisma();
+      await prisma.$queryRaw`SELECT 1`;
+      
+      // Wait for tenant to be visible (retry up to 10 times)
+      for (let i = 0; i < 10; i++) {
+        await prisma.$queryRaw`SELECT 1`;
+        const tenant = await prisma.tenant.findUnique({
+          where: { slug: testUser.tenant.slug },
+        });
+        if (tenant) {
+          await prisma.$queryRaw`SELECT 1`;
+          await new Promise((resolve) => setTimeout(resolve, 150));
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
 
       const response = await request(app)
         .post("/api/v1/auth/register")
@@ -128,6 +158,34 @@ describe("Auth & Tenant Flow Integration Tests", () => {
         email: "login-test@example.com",
         password: "CorrectPassword123!@#",
       });
+
+      // Ensure user and membership are visible before login
+      // createTestUser already ensures this, but verify membership is visible
+      const prisma = getTestPrisma();
+      await prisma.$queryRaw`SELECT 1`;
+      
+      // Wait for membership to be visible (login service queries for active memberships)
+      for (let i = 0; i < 15; i++) {
+        await prisma.$queryRaw`SELECT 1`;
+        const user = await prisma.user.findUnique({
+          where: { email: testUser.user.email },
+          include: {
+            memberships: {
+              where: { status: "active" },
+            },
+          },
+        });
+        if (user && user.isActive && user.memberships.length > 0 && user.hashedPassword) {
+          // Verify membership tenant matches
+          const membership = user.memberships[0];
+          if (membership.tenantId === testUser.tenant.id) {
+            await prisma.$queryRaw`SELECT 1`;
+            await new Promise((resolve) => setTimeout(resolve, 200));
+            break;
+          }
+        }
+        await new Promise((resolve) => setTimeout(resolve, 150));
+      }
 
       const response = await request(app)
         .post("/api/v1/auth/login")
@@ -230,15 +288,24 @@ describe("Auth & Tenant Flow Integration Tests", () => {
       }
 
       // Get auth token for Tenant A user (getAuthToken already has retry logic)
+      // createTestUser already ensures user is visible, so token should work
       const tokenA = await getAuthToken(
         tenantA.user.email,
         "Test123!@#",
         app
       );
 
-      // Ensure token is valid by committing any pending transactions
+      // Ensure user is visible to auth middleware (it looks up by ID from token)
+      // createTestUser already did this, but verify one more time
       await prisma.$queryRaw`SELECT 1`;
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      const verifyUser = await prisma.user.findUnique({
+        where: { id: tenantA.user.id },
+      });
+      if (!verifyUser || !verifyUser.isActive) {
+        // Wait a bit more
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        await prisma.$queryRaw`SELECT 1`;
+      }
 
       // Try to access Tenant B's company using Tenant A's token
       // Note: This test assumes the API validates tenant context from the token

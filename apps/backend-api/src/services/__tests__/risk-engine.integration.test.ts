@@ -133,9 +133,21 @@ describe("Risk Engine & Alerts Integration Tests", () => {
         
         if (!existingFeatures) {
           // Ensure tenant exists (required for foreign key)
-          const tenant = await prisma.tenant.findUnique({
-            where: { id: testUser.tenant.id },
-          });
+          // createTestUser already ensures tenant is visible, but verify and wait if needed
+          await prisma.$queryRaw`SELECT 1`;
+          let tenant = null;
+          for (let i = 0; i < 15; i++) {
+            await prisma.$queryRaw`SELECT 1`;
+            tenant = await prisma.tenant.findUnique({
+              where: { id: testUser.tenant.id },
+            });
+            if (tenant) {
+              await prisma.$queryRaw`SELECT 1`;
+              await new Promise((resolve) => setTimeout(resolve, 100));
+              break;
+            }
+            await new Promise((resolve) => setTimeout(resolve, 150));
+          }
           if (!tenant) {
             throw new Error(`Tenant ${testUser.tenant.id} not found`);
           }

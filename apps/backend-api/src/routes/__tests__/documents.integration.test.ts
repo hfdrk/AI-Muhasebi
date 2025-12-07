@@ -59,7 +59,7 @@ describe("Documents & Processing Integration Tests", () => {
       expect(response.body.data.originalFileName).toBe("test-document.pdf");
 
       // Verify in database
-      const prisma = getTestPrisma();
+      // Reuse prisma from above (line 41)
       const document = await prisma.document.findUnique({
         where: { id: response.body.data.id },
       });
@@ -68,6 +68,7 @@ describe("Documents & Processing Integration Tests", () => {
       expect(document?.tenantId).toBe(testUser.tenant.id);
 
       // Verify processing job was created
+      // Reuse prisma from above (line 41)
       const job = await prisma.documentProcessingJob.findUnique({
         where: { documentId: document!.id },
       });

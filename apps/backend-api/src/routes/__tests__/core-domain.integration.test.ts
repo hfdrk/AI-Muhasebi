@@ -29,15 +29,23 @@ describe("Core Domain Integration Tests", () => {
     const prisma = getTestPrisma();
     await prisma.$queryRaw`SELECT 1`;
     
-    // Wait for user to be visible - retry up to 3 times
-    for (let i = 0; i < 3; i++) {
+    // Wait for user to be visible with active membership - retry up to 10 times
+    for (let i = 0; i < 10; i++) {
+      await prisma.$queryRaw`SELECT 1`;
       const user = await prisma.user.findUnique({
         where: { id: testUser.user.id },
+        include: {
+          memberships: {
+            where: { status: "active" },
+          },
+        },
       });
-      if (user) {
+      if (user && user.isActive && user.memberships.length > 0) {
+        await prisma.$queryRaw`SELECT 1`;
+        await new Promise((resolve) => setTimeout(resolve, 150));
         break;
       }
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
     
     authToken = await getAuthToken(testUser.user.email, "Test123!@#", app);
@@ -67,7 +75,7 @@ describe("Core Domain Integration Tests", () => {
       expect(response.body.data.taxNumber).toBe(uniqueTaxNumber);
 
       // Verify in database
-      const prisma = getTestPrisma();
+      // Reuse prisma from above
       const company = await prisma.clientCompany.findUnique({
         where: {
           tenantId_taxNumber: {
@@ -228,8 +236,24 @@ describe("Core Domain Integration Tests", () => {
       // Ensure testUser is still visible (commit any pending transactions)
       await prisma.$queryRaw`SELECT 1`;
       
-      // Small delay to ensure user is visible to auth middleware
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      // Wait for user to be visible to auth middleware
+      for (let i = 0; i < 5; i++) {
+        await prisma.$queryRaw`SELECT 1`;
+        const user = await prisma.user.findUnique({
+          where: { id: testUser.user.id },
+          include: {
+            memberships: {
+              where: { status: "active" },
+            },
+          },
+        });
+        if (user && user.isActive && user.memberships.length > 0) {
+          await prisma.$queryRaw`SELECT 1`;
+          await new Promise((resolve) => setTimeout(resolve, 150));
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
 
       const response = await request(app)
         .get("/api/v1/invoices")
@@ -262,8 +286,24 @@ describe("Core Domain Integration Tests", () => {
       const prisma = getTestPrisma();
       await prisma.$queryRaw`SELECT 1`;
       
-      // Small delay to ensure user is visible to auth middleware
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      // Wait for user to be visible to auth middleware
+      for (let i = 0; i < 5; i++) {
+        await prisma.$queryRaw`SELECT 1`;
+        const user = await prisma.user.findUnique({
+          where: { id: testUser.user.id },
+          include: {
+            memberships: {
+              where: { status: "active" },
+            },
+          },
+        });
+        if (user && user.isActive && user.memberships.length > 0) {
+          await prisma.$queryRaw`SELECT 1`;
+          await new Promise((resolve) => setTimeout(resolve, 150));
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
 
       // Note: debitTotal and creditTotal are calculated from TransactionLines
       // The API response may include these calculated fields
@@ -289,6 +329,25 @@ describe("Core Domain Integration Tests", () => {
       // Ensure testUser is still visible (commit any pending transactions)
       const prisma = getTestPrisma();
       await prisma.$queryRaw`SELECT 1`;
+      
+      // Wait for user to be visible to auth middleware
+      for (let i = 0; i < 5; i++) {
+        await prisma.$queryRaw`SELECT 1`;
+        const user = await prisma.user.findUnique({
+          where: { id: testUser.user.id },
+          include: {
+            memberships: {
+              where: { status: "active" },
+            },
+          },
+        });
+        if (user && user.isActive && user.memberships.length > 0) {
+          await prisma.$queryRaw`SELECT 1`;
+          await new Promise((resolve) => setTimeout(resolve, 150));
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
 
       let ledgerAccount = await prisma.ledgerAccount.findFirst({
         where: { tenantId: testUser.tenant.id },
@@ -364,8 +423,24 @@ describe("Core Domain Integration Tests", () => {
       // Ensure testUser is still visible (commit any pending transactions)
       await prisma.$queryRaw`SELECT 1`;
       
-      // Small delay to ensure user is visible to auth middleware
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      // Wait for user to be visible to auth middleware
+      for (let i = 0; i < 5; i++) {
+        await prisma.$queryRaw`SELECT 1`;
+        const user = await prisma.user.findUnique({
+          where: { id: testUser.user.id },
+          include: {
+            memberships: {
+              where: { status: "active" },
+            },
+          },
+        });
+        if (user && user.isActive && user.memberships.length > 0) {
+          await prisma.$queryRaw`SELECT 1`;
+          await new Promise((resolve) => setTimeout(resolve, 150));
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
 
       const response = await request(app)
         .get("/api/v1/transactions")
