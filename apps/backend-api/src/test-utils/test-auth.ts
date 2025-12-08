@@ -152,29 +152,65 @@ export async function createTestUser(
       isActive: true,
     },
   });
-  // Ensure user is committed and visible
-  await prisma.$queryRaw`SELECT 1`;
-  await new Promise(resolve => setTimeout(resolve, 50));
+  // Ensure user is committed and visible - retry until visible
+  for (let i = 0; i < 5; i++) {
+    await prisma.$queryRaw`SELECT 1`;
+    await new Promise(resolve => setTimeout(resolve, 100));
+    const verifyUser = await prisma.user.findUnique({
+      where: { id: user.id },
+    });
+    if (verifyUser) {
+      // Also verify by email (auth uses email lookup)
+      const verifyByEmail = await prisma.user.findUnique({
+        where: { email: user.email },
+      });
+      if (verifyByEmail) {
+        break;
+      }
+    }
+  }
 
   // Step 3: Create or update membership (check if exists first, then create or update)
   // Ensure both user and tenant are fully committed before creating membership
   await prisma.$queryRaw`SELECT 1`;
   await new Promise(resolve => setTimeout(resolve, 100));
   
-  // Verify tenant exists
-  const verifyTenantAgain = await prisma.tenant.findUnique({
+  // Verify tenant exists - retry if not found immediately
+  let verifyTenantAgain = await prisma.tenant.findUnique({
     where: { id: tenant.id },
   });
   if (!verifyTenantAgain) {
-    throw new Error(`Tenant ${tenant.id} not found when creating membership`);
+    // Retry a few times - tenant might not be visible yet
+    for (let i = 0; i < 5; i++) {
+      await prisma.$queryRaw`SELECT 1`;
+      await new Promise(resolve => setTimeout(resolve, 100));
+      verifyTenantAgain = await prisma.tenant.findUnique({
+        where: { id: tenant.id },
+      });
+      if (verifyTenantAgain) break;
+    }
+    if (!verifyTenantAgain) {
+      throw new Error(`Tenant ${tenant.id} not found when creating membership after retries`);
+    }
   }
   
-  // Verify user exists
-  const verifyUserAgain = await prisma.user.findUnique({
+  // Verify user exists - retry if not found immediately
+  let verifyUserAgain = await prisma.user.findUnique({
     where: { id: user.id },
   });
   if (!verifyUserAgain) {
-    throw new Error(`User ${user.id} not found when creating membership`);
+    // Retry a few times - user might not be visible yet
+    for (let i = 0; i < 5; i++) {
+      await prisma.$queryRaw`SELECT 1`;
+      await new Promise(resolve => setTimeout(resolve, 100));
+      verifyUserAgain = await prisma.user.findUnique({
+        where: { id: user.id },
+      });
+      if (verifyUserAgain) break;
+    }
+    if (!verifyUserAgain) {
+      throw new Error(`User ${user.id} not found when creating membership after retries`);
+    }
   }
   
   let membership = await prisma.userTenantMembership.findUnique({
@@ -199,7 +235,30 @@ export async function createTestUser(
     });
   } else {
     // Create new membership - retry if foreign key error
-    let retries = 3;
+    // First, ensure both tenant and user are definitely visible
+    let tenantVisible = false;
+    let userVisible = false;
+    for (let i = 0; i < 10; i++) {
+      const checkTenant = await prisma.tenant.findUnique({ where: { id: tenant.id } });
+      const checkUser = await prisma.user.findUnique({ where: { id: user.id } });
+      if (checkTenant && checkUser) {
+        tenantVisible = true;
+        userVisible = true;
+        break;
+      }
+      await prisma.$queryRaw`SELECT 1`;
+      // Exponential backoff with jitter
+      const delay = Math.min(100 * Math.pow(2, i), 2000) + Math.random() * 100;
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+    
+    if (!tenantVisible || !userVisible) {
+      throw new Error(`Cannot create membership: tenant=${tenantVisible}, user=${userVisible}`);
+    }
+    
+    // Now try to create membership with retries and exponential backoff
+    let retries = 5;
+    let attempt = 0;
     while (retries > 0) {
       try {
         membership = await prisma.userTenantMembership.create({
@@ -212,11 +271,19 @@ export async function createTestUser(
         });
         break;
       } catch (error: any) {
-        if (error?.code === "P2003" && retries > 1) {
-          // Foreign key constraint - wait and retry
+        if ((error?.code === "P2003" || error?.code === "40P01") && retries > 1) {
+          // Foreign key constraint or deadlock - wait with exponential backoff
           await prisma.$queryRaw`SELECT 1`;
-          await new Promise(resolve => setTimeout(resolve, 200));
+          const delay = Math.min(200 * Math.pow(2, attempt), 2000) + Math.random() * 100;
+          await new Promise(resolve => setTimeout(resolve, delay));
+          // Re-verify tenant and user exist
+          const checkTenant = await prisma.tenant.findUnique({ where: { id: tenant.id } });
+          const checkUser = await prisma.user.findUnique({ where: { id: user.id } });
+          if (!checkTenant || !checkUser) {
+            throw new Error(`Tenant or user disappeared: tenant=${!!checkTenant}, user=${!!checkUser}`);
+          }
           retries--;
+          attempt++;
           continue;
         }
         throw error;
@@ -297,6 +364,21 @@ export async function getAuthToken(
     let lastError: any;
     const { getTestPrisma } = await import("./test-db.js");
     const prisma = getTestPrisma();
+    
+    // Ensure user is visible before attempting login
+    const normalizedEmail = email.toLowerCase().trim();
+    for (let i = 0; i < 5; i++) {
+      const userCheck = await prisma.user.findUnique({
+        where: { email: normalizedEmail },
+      });
+      if (userCheck && userCheck.isActive) {
+        await prisma.$queryRaw`SELECT 1`;
+        await new Promise(resolve => setTimeout(resolve, 150));
+        break;
+      }
+      await prisma.$queryRaw`SELECT 1`;
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
     
     // createTestUser already ensures visibility, so attempt login with retries
     for (let attempt = 0; attempt < 5; attempt++) {

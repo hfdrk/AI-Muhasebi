@@ -6,6 +6,22 @@
     "totalInvoices": "Toplam Fatura",
     "totalRevenue": "Toplam Gelir",
     "riskAlerts": "Risk Uyarıları"
+  },
+  "onboarding": {
+    "title": "AI Muhasebe'ye Hoş Geldiniz",
+    "description": "Başlamak için aşağıdaki adımları takip edebilirsiniz:",
+    "checklist": {
+      "step1": "1. İlk müşteri şirketinizi ekleyin",
+      "step2": "2. İlk belgenizi yükleyin",
+      "step3": "3. İlk raporunuzu oluşturun"
+    },
+    "buttons": {
+      "createClient": "Müşteri oluştur",
+      "uploadDocument": "Belge yükle",
+      "goToReports": "Raporlara git",
+      "close": "Kapat",
+      "dontShowAgain": "Bir daha gösterme"
+    }
   }
 }
 

@@ -73,6 +73,8 @@ model Tenant {
   reportExecutionLogs     ReportExecutionLog[]
   notifications           Notification[]
   notificationPreferences NotificationPreference[]
+  subscription            TenantSubscription?
+  usages                  TenantUsage[]
 
   @@index([slug])
   @@map("tenants")
@@ -741,4 +743,41 @@ model NotificationPreference {
   @@index([tenantId])
   @@index([userId])
   @@map("notification_preferences")
+}
+
+model TenantSubscription {
+  id         String    @id @default(cuid())
+  tenantId   String    @unique @map("tenant_id")
+  plan       String    @db.VarChar(50) // FREE, PRO, ENTERPRISE
+  status     String    @default("ACTIVE") @db.VarChar(50) // ACTIVE, PAST_DUE, CANCELLED
+  validUntil DateTime? @map("valid_until") @db.Timestamptz(6)
+  trialUntil DateTime? @map("trial_until") @db.Timestamptz(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([plan])
+  @@index([status])
+  @@map("tenant_subscriptions")
+}
+
+model TenantUsage {
+  id          String   @id @default(cuid())
+  tenantId    String   @map("tenant_id")
+  metric      String   @db.VarChar(50) // CLIENT_COMPANIES, DOCUMENTS, AI_ANALYSES, USERS, SCHEDULED_REPORTS
+  periodStart DateTime @map("period_start") @db.Timestamptz(6)
+  periodEnd   DateTime @map("period_end") @db.Timestamptz(6)
+  value       Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, metric, periodStart])
+  @@index([tenantId])
+  @@index([tenantId, metric])
+  @@index([periodStart, periodEnd])
+  @@map("tenant_usages")
 }

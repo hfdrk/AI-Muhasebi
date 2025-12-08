@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { listDocuments, listClientCompanies } from "@repo/api-client";
+import { documents as documentsI18n, common as commonI18n } from "@repo/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -162,15 +163,15 @@ export default function DocumentsPage() {
       {/* Documents Table */}
       <Card>
         {isLoading ? (
-          <p style={{ color: colors.text.secondary }}>Yükleniyor...</p>
+          <p style={{ color: colors.text.secondary }}>{commonI18n.labels.loading}</p>
         ) : documents.length === 0 ? (
           <div style={{ textAlign: "center", padding: spacing.xl }}>
             <p style={{ color: colors.text.secondary, marginBottom: spacing.md }}>
-              Henüz belge bulunmuyor.
+              {documentsI18n.list.emptyState}
             </p>
             {selectedClientId !== "all" && (
               <Button onClick={() => setDocumentModalOpen(true)} variant="primary">
-                İlk Belgeyi Yükle
+                {documentsI18n.list.emptyStateAction}
               </Button>
             )}
           </div>

@@ -35,3 +35,4 @@ export interface UpdateTenantSettingsInput {
   defaultReportPeriod?: DefaultReportPeriod;
 }
 
+

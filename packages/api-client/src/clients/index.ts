@@ -12,3 +12,5 @@ export * from "./report-client";
 export * from "./notification-client";
 export * from "./settings-client";
 export * from "./audit-logs-client";
+export * from "./billing-client";
+export * from "./onboarding-client";

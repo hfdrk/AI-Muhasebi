@@ -39,7 +39,7 @@ export class SettingsService {
       locale: settings.locale,
       timezone: settings.timezone,
       emailFromName: settings.emailFromName,
-      riskThresholds: settings.riskThresholds as RiskThresholds,
+      riskThresholds: (settings.riskThresholds as unknown) as RiskThresholds,
       defaultReportPeriod: settings.defaultReportPeriod as TenantSettings["defaultReportPeriod"],
       createdAt: settings.createdAt,
       updatedAt: settings.updatedAt,
@@ -97,7 +97,7 @@ export class SettingsService {
         locale: input.locale ?? "tr-TR",
         timezone: input.timezone ?? "Europe/Istanbul",
         emailFromName: input.emailFromName ?? null,
-        riskThresholds: input.riskThresholds ?? { high: 70, critical: 90 },
+        riskThresholds: (input.riskThresholds ?? { high: 70, critical: 90 }) as any,
         defaultReportPeriod: input.defaultReportPeriod ?? "LAST_30_DAYS",
       },
       update: {
@@ -106,7 +106,7 @@ export class SettingsService {
         ...(input.locale !== undefined && { locale: input.locale }),
         ...(input.timezone !== undefined && { timezone: input.timezone }),
         ...(input.emailFromName !== undefined && { emailFromName: input.emailFromName }),
-        ...(input.riskThresholds !== undefined && { riskThresholds: input.riskThresholds }),
+        ...(input.riskThresholds !== undefined && { riskThresholds: input.riskThresholds as any }),
         ...(input.defaultReportPeriod !== undefined && {
           defaultReportPeriod: input.defaultReportPeriod,
         }),
@@ -121,7 +121,7 @@ export class SettingsService {
       locale: updated.locale,
       timezone: updated.timezone,
       emailFromName: updated.emailFromName,
-      riskThresholds: updated.riskThresholds as RiskThresholds,
+      riskThresholds: (updated.riskThresholds as unknown) as RiskThresholds,
       defaultReportPeriod: updated.defaultReportPeriod as TenantSettings["defaultReportPeriod"],
       createdAt: updated.createdAt,
       updatedAt: updated.updatedAt,
@@ -237,4 +237,5 @@ export class SettingsService {
 }
 
 export const settingsService = new SettingsService();
+
 

@@ -1,0 +1,40 @@
+{
+  "title": "Abonelik & Kullanım",
+  "subscription": {
+    "title": "Abonelik Planı",
+    "currentPlan": "Mevcut Plan",
+    "status": "Durum",
+    "trialUntil": "Deneme Sürümü Bitiş Tarihi",
+    "validUntil": "Abonelik Bitiş Tarihi",
+    "upgradeHint": "Daha yüksek limitler için planınızı yükseltebilirsiniz.",
+    "upgradeButton": "Planı Yükselt",
+    "statusActive": "Aktif",
+    "statusPastDue": "Pasif",
+    "statusCancelled": "İptal Edildi",
+    "planFree": "Ücretsiz",
+    "planPro": "Pro",
+    "planEnterprise": "Kurumsal"
+  },
+  "usage": {
+    "title": "Kullanım Özeti",
+    "clientCompanies": "Müşteri Şirketleri",
+    "documents": "Dokümanlar (aylık)",
+    "aiAnalyses": "Yapay Zekâ Analizleri (aylık)",
+    "users": "Kullanıcı Sayısı",
+    "scheduledReports": "Zamanlanmış Raporlar",
+    "noData": "Kullanım verisi bulunamadı.",
+    "used": "Kullanılan",
+    "limit": "Limit",
+    "remaining": "Kalan"
+  },
+  "errors": {
+    "clientCompanyLimit": "Maksimum müşteri şirketi limitine ulaşıldı. Daha fazla müşteri eklemek için planınızı yükseltmeniz gerekiyor.",
+    "userLimit": "Maksimum kullanıcı limitine ulaşıldı. Daha fazla kullanıcı eklemek için planınızı yükseltmeniz gerekiyor.",
+    "scheduledReportLimit": "Maksimum zamanlanmış rapor limitine ulaşıldı. Daha fazla rapor eklemek için planınızı yükseltmeniz gerekiyor.",
+    "upgradeRequired": "Plan limitine ulaşıldı. Daha fazla eklemek için planınızı yükseltmeniz gerekiyor."
+  },
+  "hints": {
+    "staffReadOnly": "Abonelik değişiklikleri için ofis yöneticinizle iletişime geçin."
+  }
+}
+

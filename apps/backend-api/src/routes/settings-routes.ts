@@ -1,14 +1,15 @@
-import { Router } from "express";
 import { z } from "zod";
 import { settingsService } from "../services/settings-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
 import { requireRole } from "../middleware/rbac-middleware";
 import { TENANT_ROLES } from "@repo/core-domain";
-import type { AuthenticatedRequest, Response } from "../types/request-context";
+import type { AuthenticatedRequest } from "../types/request-context";
+import type { Response } from "express";
 import { ValidationError } from "@repo/shared-utils";
 
-const router = Router();
+import { Router, type Router as ExpressRouter } from "express";
+const router: ExpressRouter = Router();
 
 // Tenant settings routes
 const tenantSettingsRouter = Router();
@@ -62,7 +63,7 @@ tenantSettingsRouter.put(
       console.error("Error updating tenant settings:", error);
       if (error instanceof z.ZodError) {
         const statusCode = 400;
-        const message = error.errors[0]?.message || "Geçersiz bilgiler.";
+        const message = error.issues[0]?.message || "Geçersiz bilgiler.";
         res.status(statusCode).json({ error: { message } });
       } else {
         const statusCode = error.statusCode || 500;
@@ -117,7 +118,7 @@ userSettingsRouter.put("/", async (req: AuthenticatedRequest, res: Response) => 
     console.error("Error updating user settings:", error);
     if (error instanceof z.ZodError) {
       const statusCode = 400;
-      const message = error.errors[0]?.message || "Geçersiz bilgiler.";
+      const message = error.issues[0]?.message || "Geçersiz bilgiler.";
       res.status(statusCode).json({ error: { message } });
     } else {
       const statusCode = error.statusCode || 500;
@@ -132,4 +133,5 @@ router.use("/tenant", tenantSettingsRouter);
 router.use("/user", userSettingsRouter);
 
 export default router;
+
 

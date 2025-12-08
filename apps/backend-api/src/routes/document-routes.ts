@@ -1,7 +1,7 @@
-import { Router } from "express";
+import { Router, type Router as ExpressRouter } from "express";
 import multer from "multer";
 import { z } from "zod";
-import type { NextFunction } from "express";
+import type { NextFunction, Response } from "express";
 import { ValidationError } from "@repo/shared-utils";
 import { prisma } from "../lib/prisma";
 import { documentService } from "../services/document-service";
@@ -12,9 +12,9 @@ import { tenantMiddleware } from "../middleware/tenant-middleware";
 import { requirePermission, requireRole } from "../middleware/rbac-middleware";
 import { TENANT_ROLES } from "@repo/core-domain";
 import { getStorageConfig } from "@repo/config";
-import type { AuthenticatedRequest, Response } from "../types/request-context";
+import type { AuthenticatedRequest } from "../types/request-context";
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 router.use(authMiddleware);
 router.use(tenantMiddleware);
@@ -40,7 +40,7 @@ router.post(
   "/upload",
   requirePermission("documents:create"),
   upload.single("file"),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       if (!req.file) {
         return res.status(400).json({
@@ -92,7 +92,7 @@ router.post(
       res.status(201).json({ data: document });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
-        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
+        return next(new ValidationError(error.issues[0]?.message || "Geçersiz bilgiler."));
       }
       next(error);
     }
@@ -130,7 +130,7 @@ router.get(
       res.json({ data: result });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
+        return next(new ValidationError(error.issues[0]?.message || "Geçersiz bilgiler."));
       }
       next(error);
     }
@@ -266,8 +266,8 @@ router.post(
 // DELETE /api/v1/documents/:id
 router.delete(
   "/:id",
-  requireRole(TENANT_ROLES.TenantOwner, TENANT_ROLES.Accountant),
-  async (req: AuthenticatedRequest, res: Response) => {
+  requireRole(TENANT_ROLES.TENANT_OWNER, TENANT_ROLES.ACCOUNTANT),
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     await documentService.deleteDocument(
       req.context!.tenantId!,
       req.params.id,

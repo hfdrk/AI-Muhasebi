@@ -2,7 +2,8 @@
   "title": "Raporlar",
   "list": {
     "title": "Rapor Listesi",
-    "generate": "Rapor Oluştur"
+    "generate": "Rapor Oluştur",
+    "emptyState": "Bu kriterlere uygun rapor sonucu bulunamadı."
   },
   "types": {
     "financial": "Mali Rapor",

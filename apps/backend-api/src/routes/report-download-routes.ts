@@ -1,4 +1,3 @@
-import { Router } from "express";
 import { z } from "zod";
 import type { NextFunction } from "express";
 import { ValidationError } from "@repo/shared-utils";
@@ -8,9 +7,11 @@ import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
 import { requirePermission } from "../middleware/rbac-middleware";
 import { getConfig } from "@repo/config";
-import type { AuthenticatedRequest, Response } from "../types/request-context";
+import type { AuthenticatedRequest } from "../types/request-context";
+import type { Response } from "express";
 
-const router = Router();
+import { Router, type Router as ExpressRouter } from "express";
+const router: ExpressRouter = Router();
 
 // All routes require authentication and tenant context
 router.use(authMiddleware);
@@ -24,9 +25,7 @@ const downloadReportSchema = z.object({
     end_date: z.string().datetime("Geçerli bir bitiş tarihi giriniz."),
     limit: z.number().int().min(1).max(1000).optional(),
   }),
-  format: z.enum(["pdf", "excel"], {
-    errorMap: () => ({ message: "Format 'pdf' veya 'excel' olmalıdır." }),
-  }),
+  format: z.enum(["pdf", "excel"]),
 });
 
 /**
@@ -157,7 +156,7 @@ router.post(
       res.send(buffer);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const firstError = error.errors?.[0];
+        const firstError = error.issues?.[0];
         return next(new ValidationError(firstError?.message || "Geçersiz bilgiler."));
       }
       next(error);

@@ -94,13 +94,14 @@ export class RiskRuleEngine {
     const severity = this.mapScoreToSeverity(score);
 
     // Save or update DocumentRiskScore
+    const generatedAt = new Date();
     const riskScoreData: CreateDocumentRiskScoreInput = {
       tenantId,
       documentId,
       score,
       severity,
       triggeredRuleCodes,
-      generatedAt: new Date(),
+      generatedAt,
     };
 
     const existing = await prisma.documentRiskScore.findUnique({
@@ -115,7 +116,7 @@ export class RiskRuleEngine {
           score: riskScoreData.score,
           severity: riskScoreData.severity,
           triggeredRuleCodes: riskScoreData.triggeredRuleCodes,
-          generatedAt: riskScoreData.generatedAt,
+          generatedAt: generatedAt,
         },
       });
       riskScore = this.mapToDocumentRiskScore(updated);
@@ -127,7 +128,7 @@ export class RiskRuleEngine {
           score: riskScoreData.score,
           severity: riskScoreData.severity,
           triggeredRuleCodes: riskScoreData.triggeredRuleCodes,
-          generatedAt: riskScoreData.generatedAt,
+          generatedAt: generatedAt,
         },
       });
       riskScore = this.mapToDocumentRiskScore(created);
@@ -174,13 +175,14 @@ export class RiskRuleEngine {
     const severity = this.mapScoreToSeverity(score);
 
     // Save or update ClientCompanyRiskScore
+    const generatedAt = new Date();
     const riskScoreData: CreateClientCompanyRiskScoreInput = {
       tenantId,
       clientCompanyId,
       score,
       severity,
       triggeredRuleCodes,
-      generatedAt: new Date(),
+      generatedAt,
     };
 
     const existing = await prisma.clientCompanyRiskScore.findFirst({
@@ -199,7 +201,7 @@ export class RiskRuleEngine {
           score: riskScoreData.score,
           severity: riskScoreData.severity,
           triggeredRuleCodes: riskScoreData.triggeredRuleCodes,
-          generatedAt: riskScoreData.generatedAt,
+          generatedAt: generatedAt,
         },
       });
       riskScore = this.mapToClientCompanyRiskScore(updated);
@@ -211,7 +213,7 @@ export class RiskRuleEngine {
           score: riskScoreData.score,
           severity: riskScoreData.severity,
           triggeredRuleCodes: riskScoreData.triggeredRuleCodes,
-          generatedAt: riskScoreData.generatedAt,
+          generatedAt: generatedAt,
         },
       });
       riskScore = this.mapToClientCompanyRiskScore(created);
@@ -226,10 +228,10 @@ export class RiskRuleEngine {
   private evaluateRuleCondition(
     rule: RiskRule,
     riskFeatures: DocumentRiskFeatures,
-    document: any
+    _document: any
   ): boolean {
     const features = riskFeatures.features;
-    const config = rule.config || {};
+    const _config = rule.config || {};
 
     switch (rule.code) {
       case "INV_DUE_BEFORE_ISSUE":
@@ -406,6 +408,7 @@ export class RiskRuleEngine {
 }
 
 export const riskRuleEngine = new RiskRuleEngine();
+
 
 
 

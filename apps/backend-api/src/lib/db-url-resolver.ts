@@ -191,6 +191,7 @@ export async function resolveDatabaseUrl(): Promise<string> {
       try {
         // ESM: use import.meta.url
         const { fileURLToPath } = await import("url");
+        // @ts-ignore - import.meta is available in ESM but TypeScript may not recognize it
         const currentFile = fileURLToPath(import.meta.url);
         backendApiDir = path.resolve(path.dirname(currentFile), "../..");
       } catch {

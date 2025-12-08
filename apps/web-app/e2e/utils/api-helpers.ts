@@ -116,7 +116,7 @@ export async function createClientCompanyViaAPI(
   return { id: data.data.id };
 }
 
-export async function cleanupTestData(token: string, tenantId: string) {
+export async function cleanupTestData(_token: string, _tenantId: string) {
   // Optional: Add cleanup logic if needed
   // For now, tests will rely on database reset between runs
 }

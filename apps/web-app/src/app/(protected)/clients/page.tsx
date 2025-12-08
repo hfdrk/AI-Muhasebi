@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { listClientCompanies } from "@repo/api-client";
-import { useRouter } from "next/navigation";
+import { clients as clientsI18n, common as commonI18n } from "@repo/i18n";
+// import { useRouter } from "next/navigation"; // Reserved for future use
 import Link from "next/link";
 
 export default function ClientsPage() {
-  const router = useRouter();
+  // const router = useRouter(); // Reserved for future use
   const [search, setSearch] = useState("");
   const [isActiveFilter, setIsActiveFilter] = useState<boolean | undefined>(undefined);
   const [page, setPage] = useState(1);
@@ -30,7 +31,7 @@ export default function ClientsPage() {
   return (
     <div style={{ padding: "40px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-        <h1>Müşteri Şirketler</h1>
+        <h1>{clientsI18n.title}</h1>
         <Link
           href="/clients/new"
           style={{
@@ -41,14 +42,14 @@ export default function ClientsPage() {
             borderRadius: "4px",
           }}
         >
-          Yeni Şirket Ekle
+          {clientsI18n.list.addNew}
         </Link>
       </div>
 
       <div style={{ display: "flex", gap: "16px", marginBottom: "24px" }}>
         <input
           type="text"
-          placeholder="Şirket adı veya vergi numarası ile ara…"
+          placeholder={clientsI18n.list.searchPlaceholder}
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
@@ -83,10 +84,10 @@ export default function ClientsPage() {
       </div>
 
       {isLoading ? (
-        <p>Yükleniyor...</p>
+        <p>{commonI18n.labels.loading}</p>
       ) : clients.length === 0 ? (
         <div style={{ textAlign: "center", padding: "40px" }}>
-          <p>Henüz müşteri şirketi bulunmamaktadır.</p>
+          <p>{clientsI18n.list.emptyState}</p>
           <Link
             href="/clients/new"
             style={{
@@ -99,7 +100,7 @@ export default function ClientsPage() {
               borderRadius: "4px",
             }}
           >
-            İlk Müşteri Şirketini Ekle
+            {clientsI18n.list.emptyStateAction}
           </Link>
         </div>
       ) : (
@@ -154,7 +155,7 @@ export default function ClientsPage() {
                         fontSize: "14px",
                       }}
                     >
-                      Düzenle
+                      {commonI18n.buttons.edit}
                     </Link>
                   </td>
                 </tr>

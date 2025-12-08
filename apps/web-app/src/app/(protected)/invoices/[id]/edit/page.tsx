@@ -6,7 +6,7 @@ import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getInvoice, updateInvoice, listClientCompanies } from "@repo/api-client";
 import { useParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 
 const invoiceLineSchema = z.object({
@@ -62,7 +62,6 @@ export default function EditInvoicePage() {
     watch,
     setValue,
     formState: { errors, isSubmitting },
-    reset,
   } = useForm<InvoiceForm>({
     resolver: zodResolver(invoiceSchema),
     values: invoice?.data

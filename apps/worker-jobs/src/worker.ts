@@ -1,4 +1,5 @@
 import { validateEnv } from "@repo/config";
+import { logger } from "@repo/shared-utils";
 import { documentJobService } from "./services/document-job-service";
 import { documentProcessor } from "./processors/document-processor";
 import { riskCalculationProcessor } from "./processors/risk-calculation-processor";
@@ -17,13 +18,6 @@ const INTEGRATION_SYNC_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 const INTEGRATION_SCHEDULER_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
 const SCHEDULED_REPORT_INTERVAL_MS = 60 * 1000; // 1 minute
 
-// Helper function for structured logging with timestamps
-function log(level: "info" | "error" | "warn", message: string, context?: Record<string, any>): void {
-  const timestamp = new Date().toISOString();
-  const contextStr = context ? ` ${JSON.stringify(context)}` : "";
-  console.log(`[${timestamp}] [${level.toUpperCase()}] ${message}${contextStr}`);
-}
-
 async function processPendingJobs(): Promise<void> {
   try {
     // Fetch pending jobs
@@ -33,8 +27,9 @@ async function processPendingJobs(): Promise<void> {
       return;
     }
 
-    log("info", `Picked up ${jobs.length} pending document processing job(s)`, {
+    logger.info(`Picked up ${jobs.length} pending document processing job(s)`, undefined, {
       jobCount: jobs.length,
+      jobType: "DOCUMENT_PROCESSING",
     });
 
     // Process each job
@@ -49,29 +44,32 @@ async function processPendingJobs(): Promise<void> {
           data: { status: "PROCESSING" },
         });
 
-        log("info", `Processing document job`, {
+        logger.info("Processing document job", {
+          tenantId: job.tenantId,
+        }, {
           jobId: job.id,
           documentId: job.documentId,
-          tenantId: job.tenantId,
           attempt: job.attemptsCount + 1,
         });
 
         // Process the document
         await documentProcessor.processDocument(job.tenantId, job.documentId);
 
-        log("info", `Document processed successfully`, {
+        logger.info("Document processed successfully", {
+          tenantId: job.tenantId,
+        }, {
           jobId: job.id,
           documentId: job.documentId,
-          tenantId: job.tenantId,
         });
       } catch (error: any) {
         const attempts = job.attemptsCount + 1;
         const errorMessage = error.message || "Bilinmeyen hata";
 
-        log("error", `Document processing failed`, {
+        logger.error("Document processing failed", {
+          tenantId: job.tenantId,
+        }, {
           jobId: job.id,
           documentId: job.documentId,
-          tenantId: job.tenantId,
           attempt: attempts,
           error: errorMessage,
           stack: error.stack,
@@ -81,17 +79,18 @@ async function processPendingJobs(): Promise<void> {
         await documentJobService.markJobFailed(job.id, errorMessage, attempts);
 
         if (attempts >= 3) {
-          log("error", `Document job failed after max attempts`, {
+          logger.error("Document job failed after max attempts", {
+            tenantId: job.tenantId,
+          }, {
             jobId: job.id,
             documentId: job.documentId,
-            tenantId: job.tenantId,
             attempts,
           });
         }
       }
     }
   } catch (error: any) {
-    log("error", "Error in document processing loop", {
+    logger.error("Error in document processing loop", undefined, {
       error: error.message,
       stack: error.stack,
     });
@@ -100,7 +99,9 @@ async function processPendingJobs(): Promise<void> {
 
 async function processScheduledRiskCalculations(): Promise<void> {
   try {
-    log("info", "Starting scheduled risk calculations");
+    logger.info("Starting scheduled risk calculations", undefined, {
+      jobType: "RISK_CALCULATION",
+    });
 
     // Get all tenants
     const tenants = await prisma.tenant.findMany({
@@ -109,8 +110,9 @@ async function processScheduledRiskCalculations(): Promise<void> {
       },
     });
 
-    log("info", `Processing risk calculations for ${tenants.length} tenant(s)`, {
+    logger.info(`Processing risk calculations for ${tenants.length} tenant(s)`, undefined, {
       tenantCount: tenants.length,
+      jobType: "RISK_CALCULATION",
     });
 
     for (const tenant of tenants) {
@@ -123,41 +125,52 @@ async function processScheduledRiskCalculations(): Promise<void> {
           },
         });
 
-        log("info", `Processing risk calculations for tenant`, {
+        logger.info("Processing risk calculations for tenant", {
           tenantId: tenant.id,
+        }, {
           companyCount: companies.length,
+          jobType: "RISK_CALCULATION",
         });
 
         for (const company of companies) {
           try {
             await riskCalculationProcessor.processCompanyRiskCalculation(tenant.id, company.id);
-            log("info", `Company risk calculation completed`, {
+            logger.info("Company risk calculation completed", {
               tenantId: tenant.id,
+            }, {
               companyId: company.id,
+              jobType: "RISK_CALCULATION",
             });
           } catch (error: any) {
-            log("error", `Error processing company risk calculation`, {
+            logger.error("Error processing company risk calculation", {
               tenantId: tenant.id,
+            }, {
               companyId: company.id,
               error: error.message,
+              jobType: "RISK_CALCULATION",
             });
             // Continue with other companies
           }
         }
       } catch (error: any) {
-        log("error", `Error processing tenant risk calculations`, {
+        logger.error("Error processing tenant risk calculations", {
           tenantId: tenant.id,
+        }, {
           error: error.message,
+          jobType: "RISK_CALCULATION",
         });
         // Continue with other tenants
       }
     }
 
-    log("info", "Scheduled risk calculations completed");
+    logger.info("Scheduled risk calculations completed", undefined, {
+      jobType: "RISK_CALCULATION",
+    });
   } catch (error: any) {
-    log("error", "Error in scheduled risk calculations", {
+    logger.error("Error in scheduled risk calculations", undefined, {
       error: error.message,
       stack: error.stack,
+      jobType: "RISK_CALCULATION",
     });
   }
 }
@@ -179,30 +192,34 @@ async function processIntegrationSyncJobs(): Promise<void> {
       return;
     }
 
-    log("info", `Picked up ${jobs.length} pending integration sync job(s)`, {
+    logger.info(`Picked up ${jobs.length} pending integration sync job(s)`, undefined, {
       jobCount: jobs.length,
+      jobType: "INTEGRATION_SYNC",
     });
 
     for (const job of jobs) {
       try {
-        log("info", `Processing integration sync job`, {
-          jobId: job.id,
+        logger.info("Processing integration sync job", {
           tenantId: job.tenantId,
+        }, {
+          jobId: job.id,
           integrationId: job.tenantIntegrationId,
           jobType: job.jobType,
         });
 
         await integrationSyncProcessor.processSyncJob(job.id);
 
-        log("info", `Integration sync job completed successfully`, {
-          jobId: job.id,
+        logger.info("Integration sync job completed successfully", {
           tenantId: job.tenantId,
+        }, {
+          jobId: job.id,
           integrationId: job.tenantIntegrationId,
         });
       } catch (error: any) {
-        log("error", `Integration sync job failed`, {
-          jobId: job.id,
+        logger.error("Integration sync job failed", {
           tenantId: job.tenantId,
+        }, {
+          jobId: job.id,
           integrationId: job.tenantIntegrationId,
           error: error.message,
           stack: error.stack,
@@ -211,22 +228,28 @@ async function processIntegrationSyncJobs(): Promise<void> {
       }
     }
   } catch (error: any) {
-    log("error", "Error in integration sync job processing loop", {
+    logger.error("Error in integration sync job processing loop", undefined, {
       error: error.message,
       stack: error.stack,
+      jobType: "INTEGRATION_SYNC",
     });
   }
 }
 
 async function scheduleIntegrationSyncs(): Promise<void> {
   try {
-    log("info", "Running integration sync scheduler");
+    logger.info("Running integration sync scheduler", undefined, {
+      jobType: "INTEGRATION_SCHEDULER",
+    });
     await integrationSyncScheduler.scheduleRecurringSyncs();
-    log("info", "Integration sync scheduler completed");
+    logger.info("Integration sync scheduler completed", undefined, {
+      jobType: "INTEGRATION_SCHEDULER",
+    });
   } catch (error: any) {
-    log("error", "Error in integration sync scheduler", {
+    logger.error("Error in integration sync scheduler", undefined, {
       error: error.message,
       stack: error.stack,
+      jobType: "INTEGRATION_SCHEDULER",
     });
   }
 }
@@ -235,15 +258,16 @@ async function processScheduledReports(): Promise<void> {
   try {
     await scheduledReportRunner.runOnce();
   } catch (error: any) {
-    log("error", "Error in scheduled reports processing loop", {
+    logger.error("Error in scheduled reports processing loop", undefined, {
       error: error.message,
       stack: error.stack,
+      jobType: "SCHEDULED_REPORT",
     });
   }
 }
 
 async function startWorker(): Promise<void> {
-  log("info", "Worker jobs service starting", {
+  logger.info("Worker jobs service starting", undefined, {
     documentProcessingInterval: `${POLL_INTERVAL_MS / 1000}s`,
     riskCalculationInterval: `${RISK_CALCULATION_INTERVAL_MS / (60 * 60 * 1000)}h`,
     integrationSyncInterval: `${INTEGRATION_SYNC_INTERVAL_MS / 1000}s`,
@@ -277,7 +301,7 @@ async function startWorker(): Promise<void> {
   }, SCHEDULED_REPORT_INTERVAL_MS);
 
   // Process immediately on startup
-  log("info", "Running initial job processing on startup");
+  logger.info("Running initial job processing on startup");
   await processPendingJobs();
   await processIntegrationSyncJobs();
   await scheduleIntegrationSyncs();
@@ -286,22 +310,25 @@ async function startWorker(): Promise<void> {
   // Run risk calculations once on startup (optional - can be removed if not desired)
   // await processScheduledRiskCalculations();
 
-  log("info", "Worker is running. Press Ctrl+C to stop.");
+  logger.info("Worker is running. Press Ctrl+C to stop.");
 }
 
 // Handle graceful shutdown
 process.on("SIGINT", () => {
-  log("info", "Received SIGINT, shutting down worker gracefully");
+  logger.info("Received SIGINT, shutting down worker gracefully");
   process.exit(0);
 });
 
 process.on("SIGTERM", () => {
-  log("info", "Received SIGTERM, shutting down worker gracefully");
+  logger.info("Received SIGTERM, shutting down worker gracefully");
   process.exit(0);
 });
 
 // Start the worker
 startWorker().catch((error) => {
-  console.error("Failed to start worker:", error);
+  logger.error("Failed to start worker", undefined, {
+    error: error.message,
+    stack: error.stack,
+  });
   process.exit(1);
 });

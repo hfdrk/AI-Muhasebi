@@ -58,16 +58,18 @@ methods.forEach((method) => {
 
 // Patch Express app methods as well
 const originalAppUse = express.application.use;
-express.application.use = function (path: any, ...handlers: any[]) {
+express.application.use = function (path: any, ...handlers: any[]): any {
   const wrappedHandlers = handlers.map(wrapAsyncHandler);
+  // @ts-ignore - Spread argument type issue with Express patching
   return originalAppUse.call(this, path, ...wrappedHandlers);
 };
 
 methods.forEach((method) => {
   if (method === "use") return; // Already handled above
   const original = express.application[method];
-  express.application[method] = function (path: any, ...handlers: any[]) {
+  express.application[method] = function (path: any, ...handlers: any[]): any {
     const wrappedHandlers = handlers.map(wrapAsyncHandler);
+    // @ts-ignore - Spread argument type issue with Express patching
     return original.call(this, path, ...wrappedHandlers);
   };
 });
@@ -92,12 +94,15 @@ import reportExecutionLogsRoutes from "../routes/report-execution-logs-routes";
 import notificationRoutes from "../routes/notification-routes";
 import settingsRoutes from "../routes/settings-routes";
 import auditLogsRoutes from "../routes/audit-logs-routes";
+import billingRoutes from "../routes/billing-routes";
+import onboardingRoutes from "../routes/onboarding-routes";
+import { healthCheck, readinessCheck } from "../routes/health-routes";
 
 /**
  * Create an Express app instance for testing
  * This is similar to the main server but without starting a listener
  */
-export function createTestApp() {
+export function createTestApp(): express.Application {
   const app = express();
 
   // CORS configuration
@@ -113,10 +118,9 @@ export function createTestApp() {
   app.use(express.json());
   app.use(cookieParser());
 
-  // Health check
-  app.get("/health", (req, res) => {
-    res.json({ status: "ok" });
-  });
+  // Health check endpoints
+  app.get("/health", healthCheck);
+  app.get("/ready", readinessCheck);
 
   // API routes
   app.use("/api/v1/auth", authRoutes);
@@ -139,6 +143,8 @@ export function createTestApp() {
   app.use("/api/v1/notifications", notificationRoutes);
   app.use("/api/v1/settings", settingsRoutes);
   app.use("/api/v1/audit-logs", auditLogsRoutes);
+  app.use("/api/v1/billing", billingRoutes);
+  app.use("/api/v1/onboarding", onboardingRoutes);
 
   // Error handler (must be last)
   app.use(errorHandler);

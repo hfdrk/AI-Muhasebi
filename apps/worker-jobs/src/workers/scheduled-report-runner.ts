@@ -8,12 +8,14 @@ async function getReportingService() {
   try {
     const module = await import("../../../backend-api/src/services/reporting-service.js");
     return module.reportingService;
-  } catch (error1) {
+  } catch (error1: unknown) {
     try {
       const module = await import("../../../backend-api/src/services/reporting-service");
       return module.reportingService;
-    } catch (error2) {
-      throw new Error(`Failed to load ReportingService: ${error1.message}, ${error2.message}`);
+    } catch (error2: unknown) {
+      const msg1 = error1 instanceof Error ? error1.message : String(error1);
+      const msg2 = error2 instanceof Error ? error2.message : String(error2);
+      throw new Error(`Failed to load ReportingService: ${msg1}, ${msg2}`);
     }
   }
 }
@@ -22,12 +24,14 @@ async function getExportService() {
   try {
     const module = await import("../../../backend-api/src/services/export-service.js");
     return module.exportService;
-  } catch (error1) {
+  } catch (error1: unknown) {
     try {
       const module = await import("../../../backend-api/src/services/export-service");
       return module.exportService;
-    } catch (error2) {
-      throw new Error(`Failed to load ExportService: ${error1.message}, ${error2.message}`);
+    } catch (error2: unknown) {
+      const msg1 = error1 instanceof Error ? error1.message : String(error1);
+      const msg2 = error2 instanceof Error ? error2.message : String(error2);
+      throw new Error(`Failed to load ExportService: ${msg1}, ${msg2}`);
     }
   }
 }
@@ -36,12 +40,14 @@ async function getNotificationService() {
   try {
     const module = await import("../../../backend-api/src/services/notification-service.js");
     return module.notificationService;
-  } catch (error1) {
+  } catch (error1: unknown) {
     try {
       const module = await import("../../../backend-api/src/services/notification-service");
       return module.notificationService;
-    } catch (error2) {
-      throw new Error(`Failed to load NotificationService: ${error1.message}, ${error2.message}`);
+    } catch (error2: unknown) {
+      const msg1 = error1 instanceof Error ? error1.message : String(error1);
+      const msg2 = error2 instanceof Error ? error2.message : String(error2);
+      throw new Error(`Failed to load NotificationService: ${msg1}, ${msg2}`);
     }
   }
 }
@@ -50,12 +56,14 @@ async function getEmailService() {
   try {
     const module = await import("../../../backend-api/src/services/email-service.js");
     return module.emailService;
-  } catch (error1) {
+  } catch (error1: unknown) {
     try {
       const module = await import("../../../backend-api/src/services/email-service");
       return module.emailService;
-    } catch (error2) {
-      throw new Error(`Failed to load EmailService: ${error1.message}, ${error2.message}`);
+    } catch (error2: unknown) {
+      const msg1 = error1 instanceof Error ? error1.message : String(error1);
+      const msg2 = error2 instanceof Error ? error2.message : String(error2);
+      throw new Error(`Failed to load EmailService: ${msg1}, ${msg2}`);
     }
   }
 }
@@ -180,7 +188,7 @@ export class ScheduledReportRunner {
         return;
       }
 
-      const now = new Date();
+      // const now = new Date(); // Reserved for future use
       const dueReports = scheduledReports.filter((report) =>
         isReportDue(report.scheduleCron, report.lastRunAt)
       );

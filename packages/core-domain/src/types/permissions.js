@@ -57,6 +57,8 @@ exports.ROLE_PERMISSIONS = {
         "reports:view",
         "reports:create",
         "reports:export",
+        "users:invite",
+        "users:read",
         "integrations:read",
         "integrations:manage",
     ],
@@ -66,6 +68,7 @@ exports.ROLE_PERMISSIONS = {
         "invoices:create",
         "invoices:read",
         "clients:read",
+        "users:read",
         "reports:view",
     ],
     ReadOnly: [
@@ -74,16 +77,26 @@ exports.ROLE_PERMISSIONS = {
         "clients:read",
         "risk:view",
         "reports:view",
+        "users:read",
         "integrations:read",
     ],
 };
 function hasPermission(role, permission) {
+    if (!role || !exports.ROLE_PERMISSIONS[role]) {
+        return false;
+    }
     return exports.ROLE_PERMISSIONS[role].includes(permission);
 }
 function hasAnyPermission(role, permissions) {
+    if (!role || !permissions || permissions.length === 0) {
+        return false;
+    }
     return permissions.some((permission) => hasPermission(role, permission));
 }
 function hasAllPermissions(role, permissions) {
+    if (!role || !permissions || permissions.length === 0) {
+        return false;
+    }
     return permissions.every((permission) => hasPermission(role, permission));
 }
 //# sourceMappingURL=permissions.js.map

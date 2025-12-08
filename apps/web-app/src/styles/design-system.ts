@@ -19,6 +19,7 @@ export const colors = {
   dark: "#343a40",
   white: "#ffffff",
   gray: {
+    50: "#fafafa",
     100: "#f8f9fa",
     200: "#e9ecef",
     300: "#dee2e6",
@@ -93,6 +94,7 @@ export const breakpoints = {
   lg: "1024px",
   xl: "1280px",
 };
+
 
 
 

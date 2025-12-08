@@ -41,7 +41,6 @@ export default function EditClientPage() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    reset,
   } = useForm<ClientCompanyForm>({
     resolver: zodResolver(clientCompanySchema),
     values: client?.data

@@ -197,6 +197,10 @@ describe("ReportingService", () => {
     });
 
     it("should count invoices by status", async () => {
+      // Ensure invoices are committed before querying
+      await prisma.$queryRaw`SELECT 1`;
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const result = await reportingService.generateCompanyFinancialSummary(
         testUser.tenant.id,
         company1.id,
@@ -412,7 +416,7 @@ describe("ReportingService", () => {
       expect(result.totals?.documentsByType).toBeDefined();
       expect(result.totals?.processingStatusCounts).toBeDefined();
       // Documents were created in beforeEach with dates updated to 2024, so they should be found
-      const totalDocs = Object.values(result.totals?.documentsByType || {}).reduce((a: number, b: number) => a + b, 0);
+      const totalDocs = (Object.values(result.totals?.documentsByType || {}) as number[]).reduce((a: number, b: number) => a + b, 0);
       expect(totalDocs).toBeGreaterThanOrEqual(1);
     });
   });

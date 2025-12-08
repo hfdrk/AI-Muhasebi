@@ -7,7 +7,7 @@
     "filterAll": "Tümü",
     "filterActive": "Aktif",
     "filterInactive": "Pasif",
-    "emptyState": "Henüz müşteri şirketi bulunmamaktadır.",
+    "emptyState": "Henüz müşteri şirketi eklenmemiş…",
     "emptyStateAction": "İlk Müşteri Şirketini Ekle",
     "columns": {
       "name": "Şirket Adı",

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listDocuments, deleteDocument, downloadDocument, type DocumentWithRiskFlags } from "@repo/api-client";
+import { documents as documentsI18n, common as commonI18n } from "@repo/i18n";
 import Link from "next/link";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -207,10 +208,10 @@ export function DocumentList({ clientCompanyId, onUploadClick, canUpload = true,
       </div>
 
       {isLoading ? (
-        <p>Yükleniyor...</p>
+        <p>{commonI18n.labels.loading}</p>
       ) : documents.length === 0 ? (
         <div style={{ textAlign: "center", padding: "40px" }}>
-          <p>Bu şirkete ait henüz yüklenmiş bir belge yok.</p>
+          <p>{documentsI18n.list.emptyState}</p>
           {canUpload && onUploadClick && (
             <button
               onClick={onUploadClick}
@@ -225,7 +226,7 @@ export function DocumentList({ clientCompanyId, onUploadClick, canUpload = true,
                 cursor: "pointer",
               }}
             >
-              Belge Yükle
+              {documentsI18n.list.upload}
             </button>
           )}
         </div>

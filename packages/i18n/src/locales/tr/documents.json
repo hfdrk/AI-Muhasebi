@@ -3,7 +3,7 @@
   "list": {
     "title": "Belgeler",
     "upload": "Belge Yükle",
-    "emptyState": "Bu şirkete ait henüz yüklenmiş bir belge yok.",
+    "emptyState": "Henüz belge yüklenmemiş…",
     "emptyStateAction": "Belge Yükle",
     "loading": "Yükleniyor...",
     "filters": {

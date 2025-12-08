@@ -1,4 +1,3 @@
-import { Router } from "express";
 import { z } from "zod";
 import type { NextFunction } from "express";
 import { ValidationError } from "@repo/shared-utils";
@@ -7,9 +6,11 @@ import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
 import { requirePermission, requireRole } from "../middleware/rbac-middleware";
 import { TENANT_ROLES } from "@repo/core-domain";
-import type { AuthenticatedRequest, Response } from "../types/request-context";
+import type { AuthenticatedRequest } from "../types/request-context";
+import type { Response } from "express";
 
-const router = Router();
+import { Router, type Router as ExpressRouter } from "express";
+const router: ExpressRouter = Router();
 
 router.use(authMiddleware);
 router.use(tenantMiddleware);
@@ -93,8 +94,8 @@ router.post(
 
       res.status(201).json({ data: transaction });
     } catch (error) {
-      if (error instanceof z.ZodError && error.errors && error.errors.length > 0) {
-        return next(new ValidationError(error.errors[0].message || "Geçersiz bilgiler."));
+      if (error instanceof z.ZodError && error.issues && error.issues.length > 0) {
+        return next(new ValidationError(error.issues[0].message || "Geçersiz bilgiler."));
       }
       next(error);
     }
@@ -118,8 +119,8 @@ router.patch(
 
       res.json({ data: transaction });
     } catch (error) {
-      if (error instanceof z.ZodError && error.errors && error.errors.length > 0) {
-        return next(new ValidationError(error.errors[0].message || "Geçersiz bilgiler."));
+      if (error instanceof z.ZodError && error.issues && error.issues.length > 0) {
+        return next(new ValidationError(error.issues[0].message || "Geçersiz bilgiler."));
       }
       next(error);
     }
@@ -159,8 +160,8 @@ router.get(
 
       res.json({ data: result });
     } catch (error) {
-      if (error instanceof z.ZodError && error.errors && error.errors.length > 0) {
-        return next(new ValidationError(error.errors[0].message || "Geçersiz bilgiler."));
+      if (error instanceof z.ZodError && error.issues && error.issues.length > 0) {
+        return next(new ValidationError(error.issues[0].message || "Geçersiz bilgiler."));
       }
       next(error);
     }

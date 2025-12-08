@@ -60,14 +60,15 @@ export default function DocumentDetailPage() {
     },
     onSuccess: ({ blob, documentId }) => {
       try {
+        if (typeof window === "undefined" || !window.document) return;
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
+        const a = window.document.createElement("a");
         a.href = url;
         a.download = documentData.originalFileName || `document-${documentId}`;
-        document.body.appendChild(a);
+        window.document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
+        window.document.body.removeChild(a);
       } catch (error) {
         console.error("Error downloading file:", error);
         alert("Dosya indirilirken bir hata oluştu.");

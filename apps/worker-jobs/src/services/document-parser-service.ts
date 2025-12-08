@@ -3,6 +3,7 @@ import type {
   ParsedInvoiceFields,
   ParsedBankStatementFields,
   ParsedDocumentFields,
+  ParsedDocumentResult,
   CreateDocumentParsedDataInput,
 } from "@repo/core-domain";
 
@@ -36,7 +37,7 @@ export class DocumentParserService {
     rawText: string,
     documentTypeHint: string,
     tenantId: string
-  ): Promise<ParsedDocumentData> {
+  ): Promise<ParsedDocumentResult> {
     // Determine document type from hint or text analysis
     const documentType = this.detectDocumentType(documentTypeHint, rawText);
 

@@ -3,7 +3,7 @@
   "list": {
     "title": "Faturalar",
     "addNew": "Yeni Fatura Ekle",
-    "emptyState": "Henüz fatura bulunmamaktadır.",
+    "emptyState": "Bu kriterlere uygun fatura bulunamadı…",
     "emptyStateAction": "İlk Faturayı Ekle",
     "filters": {
       "dateFrom": "Başlangıç Tarihi",

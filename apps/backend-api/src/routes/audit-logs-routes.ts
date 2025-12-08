@@ -5,9 +5,10 @@ import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
 import { requireRole } from "../middleware/rbac-middleware";
 import { TENANT_ROLES } from "@repo/core-domain";
-import type { AuthenticatedRequest, Response } from "../types/request-context";
+import type { AuthenticatedRequest } from "../types/request-context";
+import type { Response } from "express";
 
-const router = Router();
+const router: Router = Router();
 
 // All routes require authentication and tenant context
 router.use(authMiddleware);
@@ -157,4 +158,5 @@ router.get(
 );
 
 export default router;
+
 

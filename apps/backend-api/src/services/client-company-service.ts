@@ -4,7 +4,9 @@ import type {
   ClientCompany,
   CreateClientCompanyInput,
   UpdateClientCompanyInput,
+  UsageMetricType,
 } from "@repo/core-domain";
+import { usageService } from "./usage-service";
 
 export interface ListClientCompaniesFilters {
   isActive?: boolean;
@@ -127,6 +129,14 @@ export class ClientCompanyService {
     tenantId: string,
     input: CreateClientCompanyInput
   ): Promise<ClientCompany> {
+    // Check usage limit before creation
+    const limitCheck = await usageService.checkLimit(tenantId, "CLIENT_COMPANIES" as UsageMetricType);
+    if (!limitCheck.allowed) {
+      throw new ValidationError(
+        "Maksimum müşteri şirketi limitine ulaşıldı. Daha fazla müşteri eklemek için planınızı yükseltmeniz gerekiyor."
+      );
+    }
+
     // Check if tax number already exists for this tenant
     const existing = await prisma.clientCompany.findUnique({
       where: {
@@ -157,6 +167,9 @@ export class ClientCompanyService {
         isActive: input.isActive ?? true,
       },
     });
+
+    // Increment usage after successful creation
+    await usageService.incrementUsage(tenantId, "CLIENT_COMPANIES" as UsageMetricType, 1);
 
     return {
       id: client.id,

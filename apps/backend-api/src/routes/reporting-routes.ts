@@ -1,4 +1,3 @@
-import { Router } from "express";
 import { z } from "zod";
 import type { NextFunction } from "express";
 import { ValidationError } from "@repo/shared-utils";
@@ -8,9 +7,11 @@ import { tenantMiddleware } from "../middleware/tenant-middleware";
 import { requirePermission } from "../middleware/rbac-middleware";
 import { prisma } from "../lib/prisma";
 import { getConfig } from "@repo/config";
-import type { AuthenticatedRequest, Response } from "../types/request-context";
+import type { AuthenticatedRequest } from "../types/request-context";
+import type { Response } from "express";
 
-const router = Router();
+import { Router, type Router as ExpressRouter } from "express";
+const router: ExpressRouter = Router();
 
 // All routes require authentication and tenant context
 router.use(authMiddleware);
@@ -153,8 +154,15 @@ router.post(
       res.json({ data: result });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const firstError = error.errors && error.errors.length > 0 
-          ? error.errors[0].message 
+        // Check if the error is about missing date filters
+        const missingDateError = error.issues.find(
+          (issue) => issue.path.includes("start_date") || issue.path.includes("end_date")
+        );
+        if (missingDateError || (!req.body.filters?.start_date || !req.body.filters?.end_date)) {
+          return next(new ValidationError("Başlangıç ve bitiş tarihleri zorunludur."));
+        }
+        const firstError = error.issues && error.issues.length > 0 
+          ? error.issues[0].message 
           : "Geçersiz bilgiler.";
         return next(new ValidationError(firstError));
       }

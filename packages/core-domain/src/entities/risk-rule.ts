@@ -1,6 +1,7 @@
 export type RiskRuleScope = "document" | "company";
 
-export type RiskSeverity = "low" | "medium" | "high";
+import type { RiskSeverity } from "../types/risk-severity";
+export type { RiskSeverity };
 
 export interface RiskRule {
   id: string;
@@ -34,6 +35,7 @@ export interface UpdateRiskRuleInput {
   defaultSeverity?: RiskSeverity;
   config?: Record<string, unknown> | null;
 }
+
 
 
 

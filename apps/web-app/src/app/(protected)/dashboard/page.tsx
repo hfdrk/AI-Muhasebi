@@ -1,8 +1,9 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { listInvoices, listTransactions, listClientCompanies, listDocuments } from "@repo/api-client";
-import Link from "next/link";
+import { listInvoices, listTransactions, listClientCompanies, listDocuments, getCurrentUser, onboardingClient } from "@repo/api-client";
+import { dashboard as dashboardI18n } from "@repo/i18n";
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Table, TableRow, TableCell } from "@/components/ui/Table";
@@ -38,6 +39,52 @@ function formatDate(date: Date | string): string {
 }
 
 export default function DashboardPage() {
+  const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+
+  // Get current user for role check
+  const { data: userData } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: () => getCurrentUser(),
+  });
+
+  const currentUser = userData?.data;
+  const currentTenant = currentUser?.tenants?.find((t: any) => t.status === "active");
+  const userRole = currentTenant?.role;
+  const userId = currentUser?.user?.id;
+  const isReadOnly = userRole === "ReadOnly";
+
+  // Check localStorage for dismissed state
+  useEffect(() => {
+    if (userId) {
+      const dismissed = localStorage.getItem(`onboarding-dismissed-${userId}`);
+      setOnboardingDismissed(dismissed === "true");
+    }
+  }, [userId]);
+
+  // Fetch onboarding state
+  const { data: onboardingData } = useQuery({
+    queryKey: ["onboarding-state"],
+    queryFn: () => onboardingClient.getOnboardingState(),
+    enabled: !!userId && !onboardingDismissed,
+  });
+
+  const onboardingState = onboardingData?.data;
+  const shouldShowOnboarding =
+    !onboardingDismissed &&
+    onboardingState &&
+    (!onboardingState.hasClientCompanies ||
+      !onboardingState.hasUploadedDocuments ||
+      !onboardingState.hasGeneratedReports);
+
+  const handleDismissOnboarding = (dontShowAgain: boolean) => {
+    if (userId) {
+      if (dontShowAgain) {
+        localStorage.setItem(`onboarding-dismissed-${userId}`, "true");
+      }
+      setOnboardingDismissed(true);
+    }
+  };
+
   // Fetch recent invoices
   const { data: invoicesData, isLoading: invoicesLoading } = useQuery({
     queryKey: ["dashboard-invoices"],
@@ -93,8 +140,8 @@ export default function DashboardPage() {
   const totalCustomers = allCustomersData?.data.total || 0;
   const totalDocuments = allDocumentsData?.data.total || 0;
 
-  // Calculate total invoice amounts
-  const totalInvoiceAmount = recentInvoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
+  // Calculate total invoice amounts (reserved for future use)
+  // const totalInvoiceAmount = recentInvoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
 
   return (
     <div>
@@ -102,6 +149,82 @@ export default function DashboardPage() {
         title="Dashboard"
         subtitle="Genel bakış ve özet bilgiler"
       />
+
+      {/* Onboarding Card */}
+      {shouldShowOnboarding && (
+        <Card
+          style={{
+            marginBottom: spacing.xl,
+            backgroundColor: colors.primaryLight,
+            border: `2px solid ${colors.primary}`,
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: spacing.md }}>
+            <div style={{ flex: 1 }}>
+              <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: spacing.sm, color: colors.text.primary }}>
+                {dashboardI18n.onboarding.title}
+              </h2>
+              <p style={{ color: colors.text.secondary, marginBottom: spacing.md }}>
+                {dashboardI18n.onboarding.description}
+              </p>
+              <ul style={{ listStyle: "none", padding: 0, marginBottom: spacing.md }}>
+                <li style={{ marginBottom: spacing.xs, color: colors.text.primary }}>
+                  {dashboardI18n.onboarding.checklist.step1}
+                </li>
+                <li style={{ marginBottom: spacing.xs, color: colors.text.primary }}>
+                  {dashboardI18n.onboarding.checklist.step2}
+                </li>
+                <li style={{ marginBottom: spacing.xs, color: colors.text.primary }}>
+                  {dashboardI18n.onboarding.checklist.step3}
+                </li>
+              </ul>
+              <div style={{ display: "flex", gap: spacing.sm, flexWrap: "wrap" }}>
+                {!isReadOnly && (
+                  <>
+                    <Button asLink href="/clients/new" variant="primary" size="sm">
+                      {dashboardI18n.onboarding.buttons.createClient}
+                    </Button>
+                    <Button asLink href="/documents" variant="primary" size="sm">
+                      {dashboardI18n.onboarding.buttons.uploadDocument}
+                    </Button>
+                  </>
+                )}
+                <Button asLink href="/raporlar" variant="outline" size="sm">
+                  {dashboardI18n.onboarding.buttons.goToReports}
+                </Button>
+              </div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: spacing.xs }}>
+              <button
+                onClick={() => handleDismissOnboarding(false)}
+                style={{
+                  padding: `${spacing.xs} ${spacing.sm}`,
+                  backgroundColor: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                  color: colors.text.secondary,
+                }}
+              >
+                {dashboardI18n.onboarding.buttons.close}
+              </button>
+              <button
+                onClick={() => handleDismissOnboarding(true)}
+                style={{
+                  padding: `${spacing.xs} ${spacing.sm}`,
+                  backgroundColor: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                  color: colors.text.secondary,
+                }}
+              >
+                {dashboardI18n.onboarding.buttons.dontShowAgain}
+              </button>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Statistics Cards */}
       <div

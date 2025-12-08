@@ -255,20 +255,18 @@ describe("Audit Logs Integration Tests", () => {
         tenantSlug: `other2-${Date.now()}`,
       });
 
-      // Try to access first tenant's audit logs with other tenant's token
-      // This should either return empty results or 403
+      // Try to access other tenant's audit logs with first tenant's token
+      // This should return 401 because user is not a member of the other tenant
       const response = await request(app)
         .get("/api/v1/audit-logs")
         .set("Authorization", `Bearer ${tenantOwnerToken}`)
         .set("x-tenant-id", otherTenant.tenant.id)
-        .expect(200); // Should succeed but return empty or filtered results
+        .expect(401); // Should fail because user is not a member of other tenant
 
-      // All logs should be for the tenant specified in x-tenant-id
-      response.body.data.forEach((log: any) => {
-        // Since we're querying with otherTenant.tenant.id, we shouldn't see first tenant's logs
-        // The middleware should ensure tenant isolation
-      });
+      expect(response.body.error).toBeDefined();
+      expect(response.body.error.message).toContain("erişim yetkiniz yok");
     });
   });
 });
+
 

@@ -4,6 +4,9 @@ export interface AuditLog {
     tenantId: string | null;
     userId: string | null;
     action: AuditAction;
+    resourceType: string | null;
+    resourceId: string | null;
+    ipAddress: string | null;
     metadata: Record<string, unknown> | null;
     createdAt: Date;
 }
@@ -11,6 +14,9 @@ export interface CreateAuditLogInput {
     tenantId?: string | null;
     userId?: string | null;
     action: AuditAction;
+    resourceType?: string | null;
+    resourceId?: string | null;
+    ipAddress?: string | null;
     metadata?: Record<string, unknown> | null;
 }
 //# sourceMappingURL=audit-log.d.ts.map

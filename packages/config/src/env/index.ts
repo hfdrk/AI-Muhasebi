@@ -3,6 +3,7 @@ import { z } from "zod";
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "staging", "production"]).default("development"),
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
+  DATABASE_URL_TEST: z.string().optional(),
   REDIS_URL: z.string().optional(),
   JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
   JWT_ACCESS_TOKEN_EXPIRY: z.string().default("15m"),
@@ -10,7 +11,21 @@ const envSchema = z.object({
   API_URL: z.string().url().optional(),
   FRONTEND_URL: z.string().url().optional(),
   PORT: z.string().default("3800"),
-  // Email configuration (stubbed for now)
+  BACKEND_PORT: z.string().optional(),
+  CORS_ORIGIN: z.string().url().optional(),
+  // Logging
+  LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
+  // Worker configuration
+  WORKER_CONCURRENCY: z
+    .string()
+    .default("5")
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().int().min(1).max(100)),
+  // Web app configuration
+  NEXT_PUBLIC_API_BASE_URL: z.string().url().default("http://localhost:3800"),
+  // Email configuration
+  EMAIL_FROM_DEFAULT: z.string().email().optional(),
+  EMAIL_TRANSPORT: z.enum(["stub", "smtp"]).default("stub"),
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.string().optional(),
   SMTP_USER: z.string().optional(),

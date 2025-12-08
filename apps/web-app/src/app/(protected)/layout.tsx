@@ -95,6 +95,20 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
           >
             Ayarlar
           </Link>
+          <Link
+            href="/ayarlar/abonelik"
+            style={{
+              textDecoration: "none",
+              color: colors.text.secondary,
+              fontSize: "14px",
+              fontWeight: 500,
+              transition: "color 0.2s ease",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = colors.primary)}
+            onMouseLeave={(e) => (e.currentTarget.style.color = colors.text.secondary)}
+          >
+            Abonelik & Kullanım
+          </Link>
           <NotificationBell />
           <TenantSwitcher />
           <Link

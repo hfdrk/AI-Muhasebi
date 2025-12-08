@@ -1,13 +1,14 @@
-import { Router } from "express";
 import { z } from "zod";
 import { riskAlertService } from "../services/risk-alert-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
 import { requirePermission, requireRole } from "../middleware/rbac-middleware";
 import { TENANT_ROLES } from "@repo/core-domain";
-import type { AuthenticatedRequest, Response } from "../types/request-context";
+import type { AuthenticatedRequest } from "../types/request-context";
+import type { Response } from "express";
 
-const router = Router();
+import { Router, type Router as ExpressRouter } from "express";
+const router: ExpressRouter = Router();
 
 router.use(authMiddleware);
 router.use(tenantMiddleware);
@@ -43,7 +44,7 @@ router.get(
 // PATCH /api/v1/risk/alerts/:id/status
 router.patch(
   "/:id/status",
-  requireRole([TENANT_ROLES.TenantOwner, TENANT_ROLES.Accountant, TENANT_ROLES.Staff]), // ReadOnly cannot update
+  requireRole(TENANT_ROLES.TENANT_OWNER, TENANT_ROLES.ACCOUNTANT, TENANT_ROLES.STAFF), // ReadOnly cannot update
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       const body = updateAlertStatusSchema.parse(req.body);
@@ -58,7 +59,7 @@ router.patch(
       if (error instanceof z.ZodError) {
         return res.status(400).json({
           error: {
-            message: error.errors[0].message,
+            message: error.issues[0].message,
           },
         });
       }

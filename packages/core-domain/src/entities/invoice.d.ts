@@ -1,3 +1,4 @@
+import type { CreateInvoiceLineInput } from "./invoice-line";
 export type InvoiceType = "SATIŞ" | "ALIŞ";
 export type InvoiceStatus = "taslak" | "kesildi" | "iptal" | "muhasebeleştirilmiş";
 export type InvoiceSource = "manual" | "import" | "integration";

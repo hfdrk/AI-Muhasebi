@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { listInvoices, listClientCompanies } from "@repo/api-client";
+import { invoices as invoicesI18n, common as commonI18n } from "@repo/i18n";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -59,7 +60,7 @@ export default function InvoicesPage() {
   return (
     <div style={{ padding: "40px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-        <h1>Faturalar</h1>
+        <h1>{invoicesI18n.title}</h1>
         <Link
           href="/invoices/new"
           style={{
@@ -70,7 +71,7 @@ export default function InvoicesPage() {
             borderRadius: "4px",
           }}
         >
-          Yeni Fatura Ekle
+          {invoicesI18n.list.addNew}
         </Link>
       </div>
 
@@ -186,10 +187,10 @@ export default function InvoicesPage() {
       </div>
 
       {isLoading ? (
-        <p>Yükleniyor...</p>
+        <p>{commonI18n.labels.loading}</p>
       ) : invoices.length === 0 ? (
         <div style={{ textAlign: "center", padding: "40px" }}>
-          <p>Henüz fatura bulunmamaktadır.</p>
+          <p>{invoicesI18n.list.emptyState}</p>
           <Link
             href="/invoices/new"
             style={{
@@ -202,7 +203,7 @@ export default function InvoicesPage() {
               borderRadius: "4px",
             }}
           >
-            İlk Faturayı Ekle
+            {invoicesI18n.list.emptyStateAction}
           </Link>
         </div>
       ) : (

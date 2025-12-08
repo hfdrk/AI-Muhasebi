@@ -26,3 +26,4 @@ export * from "./integration-sync-job";
 export * from "./integration-sync-log";
 export * from "./notification";
 export * from "./notification-preference";
+export * from "./subscription";

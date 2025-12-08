@@ -21,12 +21,15 @@ model User {
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  memberships UserTenantMembership[]
-  auditLogs   AuditLog[]
-  userSettings UserSettings?
-  uploadedDocuments Document[]
-  resolvedRiskAlerts RiskAlert[]
-  passwordResetTokens PasswordResetToken[]
+  memberships             UserTenantMembership[]
+  auditLogs               AuditLog[]
+  userSettings            UserSettings?
+  uploadedDocuments       Document[]
+  resolvedRiskAlerts      RiskAlert[]
+  passwordResetTokens     PasswordResetToken[]
+  createdReportExecutions ReportExecutionLog[]
+  notifications           Notification[]
+  notificationPreferences NotificationPreference[]
 
   @@index([email])
   @@map("users")
@@ -66,6 +69,12 @@ model Tenant {
   tenantIntegrations TenantIntegration[]
   integrationSyncJobs IntegrationSyncJob[]
   integrationSyncLogs IntegrationSyncLog[]
+  tenantSubscription TenantSubscription?
+  tenantUsages TenantUsage[]
+  scheduledReports ScheduledReport[]
+  reportExecutionLogs ReportExecutionLog[]
+  notifications Notification[]
+  notificationPreferences NotificationPreference[]
 
   @@index([slug])
   @@map("tenants")
@@ -185,6 +194,7 @@ model ClientCompany {
   riskAlerts    RiskAlert[]
   tenantIntegrations TenantIntegration[]
   integrationSyncJobs IntegrationSyncJob[]
+  scheduledReports ScheduledReport[]
 
   @@unique([tenantId, taxNumber])
   @@index([tenantId])
@@ -629,5 +639,147 @@ model IntegrationSyncLog {
   @@index([level])
   @@index([createdAt])
   @@map("integration_sync_logs")
+}
+
+model TenantSubscription {
+  id         String    @id @default(cuid())
+  tenantId   String    @unique @map("tenant_id")
+  plan       String    @db.VarChar(50) // FREE, PRO, ENTERPRISE
+  status     String    @default("ACTIVE") @db.VarChar(50) // ACTIVE, PAST_DUE, CANCELLED
+  validUntil DateTime? @map("valid_until") @db.Timestamptz(6)
+  trialUntil DateTime? @map("trial_until") @db.Timestamptz(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([plan])
+  @@index([status])
+  @@map("tenant_subscriptions")
+}
+
+model TenantUsage {
+  id          String   @id @default(cuid())
+  tenantId    String   @map("tenant_id")
+  metric      String   @db.VarChar(50) // CLIENT_COMPANIES, DOCUMENTS, AI_ANALYSES, USERS, SCHEDULED_REPORTS
+  periodStart DateTime @map("period_start") @db.Timestamptz(6)
+  periodEnd   DateTime @map("period_end") @db.Timestamptz(6)
+  value       Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, metric, periodStart])
+  @@index([tenantId])
+  @@index([tenantId, metric])
+  @@index([periodStart, periodEnd])
+  @@map("tenant_usages")
+}
+
+model ReportDefinition {
+  id          String   @id @default(cuid())
+  code        String   @unique @db.VarChar(100)
+  name        String   @db.VarChar(255)
+  description String?  @db.Text
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([isActive])
+  @@map("report_definitions")
+}
+
+model ScheduledReport {
+  id              String    @id @default(cuid())
+  tenantId        String    @map("tenant_id")
+  reportCode      String    @map("report_code") @db.VarChar(100)
+  clientCompanyId String?   @map("client_company_id")
+  name            String    @db.VarChar(255)
+  format          String    @db.VarChar(50) // "pdf" | "excel" (string for now)
+  scheduleCron    String    @map("schedule_cron") @db.VarChar(100) // "daily" | "weekly" | "monthly" or cron-like
+  filters         Json?     @default("{}")
+  recipients      Json?     @default("[]") // array of emails
+  isActive        Boolean   @default(true) @map("is_active")
+  lastRunAt       DateTime? @map("last_run_at") @db.Timestamptz(6)
+  lastRunStatus   String?   @map("last_run_status") @db.VarChar(50) // "success" | "failed" | null
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant        Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientCompany ClientCompany?       @relation(fields: [clientCompanyId], references: [id], onDelete: SetNull)
+  executionLogs ReportExecutionLog[]
+
+  @@index([tenantId])
+  @@index([tenantId, isActive])
+  @@index([reportCode])
+  @@map("scheduled_reports")
+}
+
+model ReportExecutionLog {
+  id                String    @id @default(cuid())
+  tenantId          String    @map("tenant_id")
+  scheduledReportId String?   @map("scheduled_report_id")
+  reportCode        String    @map("report_code") @db.VarChar(100)
+  startedAt         DateTime  @default(now()) @map("started_at") @db.Timestamptz(6)
+  finishedAt        DateTime? @map("finished_at") @db.Timestamptz(6)
+  status            String    @db.VarChar(50) // "success" | "failed"
+  message           String?   @db.Text
+  createdByUserId   String?   @map("created_by_user_id")
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant          Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  scheduledReport ScheduledReport? @relation(fields: [scheduledReportId], references: [id], onDelete: SetNull)
+  createdByUser   User?            @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([tenantId, reportCode])
+  @@index([scheduledReportId])
+  @@index([status])
+  @@index([startedAt])
+  @@map("report_execution_logs")
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  tenantId  String    @map("tenant_id")
+  userId    String?   @map("user_id")
+  type      String    @db.VarChar(50) // RISK_ALERT, SCHEDULED_REPORT, INTEGRATION_SYNC, SYSTEM
+  title     String    @db.VarChar(255)
+  message   String    @db.Text
+  meta      Json?     @default("{}")
+  is_read   Boolean   @default(false) @map("is_read")
+  read_at   DateTime? @map("read_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([tenantId, userId])
+  @@index([tenantId, is_read])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id            String   @id @default(cuid())
+  tenantId      String   @map("tenant_id")
+  userId        String   @map("user_id")
+  type          String   @db.VarChar(50) // RISK_ALERT, SCHEDULED_REPORT, etc.
+  email_enabled Boolean  @default(true) @map("email_enabled")
+  in_app_enabled Boolean @default(true) @map("in_app_enabled")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId, type])
+  @@index([tenantId])
+  @@index([userId])
+  @@map("notification_preferences")
 }
 

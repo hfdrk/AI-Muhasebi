@@ -7,6 +7,7 @@ import {
   deleteScheduledReport,
   getCurrentUser,
 } from "@repo/api-client";
+import { reports as reportsI18n } from "@repo/i18n";
 import { getReportTypeLabel, getScheduleCronLabel, getStatusLabel, formatReportDate } from "@/lib/reports";
 import { colors, spacing } from "@/styles/design-system";
 import Link from "next/link";
@@ -135,7 +136,7 @@ export default function ScheduledReportsPage() {
             textAlign: "center",
           }}
         >
-          <p style={{ color: colors.text.secondary }}>Kayıt bulunamadı.</p>
+          <p style={{ color: colors.text.secondary }}>{reportsI18n.list.emptyState}</p>
           {canManage && (
             <Link
               href="/raporlar/zamanlanmis/new"

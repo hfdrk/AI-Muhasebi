@@ -34,7 +34,7 @@ export class NotificationService {
         type: input.type,
         title: input.title,
         message: input.message,
-        meta: input.meta ?? {},
+        meta: (input.meta ?? {}) as any,
       },
     });
 
@@ -185,4 +185,5 @@ export class NotificationService {
 }
 
 export const notificationService = new NotificationService();
+
 

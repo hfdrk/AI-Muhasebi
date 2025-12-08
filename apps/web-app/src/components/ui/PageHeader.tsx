@@ -1,7 +1,7 @@
 "use client";
 
+import React from "react";
 import { spacing } from "../../styles/design-system";
-import { Button } from "./Button";
 
 interface PageHeaderProps {
   title: string;
@@ -31,6 +31,7 @@ export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
     </div>
   );
 }
+
 
 
 

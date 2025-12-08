@@ -1,3 +1,5 @@
+import type { CreateTransactionLineInput } from "./transaction-line";
+
 export type TransactionSource = "manual" | "import" | "integration";
 
 export interface Transaction {

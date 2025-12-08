@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+
 import { colors, spacing, borderRadius, typography } from "../../styles/design-system";
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -52,6 +54,7 @@ export function Input({ label, error, helperText, style, className = "", ...prop
     </div>
   );
 }
+
 
 
 

@@ -14,7 +14,10 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import { validateEnv, getConfig } from "@repo/config";
+import { logger } from "@repo/shared-utils";
 import { errorHandler } from "./middleware/error-handler";
+import { requestLogger } from "./middleware/request-logger";
+import { healthCheck, readinessCheck } from "./routes/health-routes";
 import authRoutes from "./routes/auth-routes";
 import userRoutes from "./routes/user-routes";
 import tenantRoutes from "./routes/tenant-routes";
@@ -35,6 +38,8 @@ import reportExecutionLogsRoutes from "./routes/report-execution-logs-routes";
 import notificationRoutes from "./routes/notification-routes";
 import settingsRoutes from "./routes/settings-routes";
 import auditLogsRoutes from "./routes/audit-logs-routes";
+import billingRoutes from "./routes/billing-routes";
+import onboardingRoutes from "./routes/onboarding-routes";
 
 // Resolve database URL asynchronously and update if needed
 resolveDatabaseUrl()
@@ -73,10 +78,12 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-// Health check
-app.get("/health", (req, res) => {
-  res.json({ status: "ok" });
-});
+// Request logging middleware (before routes)
+app.use(requestLogger);
+
+// Health check endpoints
+app.get("/health", healthCheck);
+app.get("/ready", readinessCheck);
 
 // Config check endpoint (development only)
 if (process.env.NODE_ENV !== "production") {
@@ -115,32 +122,46 @@ app.use("/api/v1/report-execution-logs", reportExecutionLogsRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
 app.use("/api/v1/settings", settingsRoutes);
 app.use("/api/v1/audit-logs", auditLogsRoutes);
+app.use("/api/v1/billing", billingRoutes);
+app.use("/api/v1/onboarding", onboardingRoutes);
 
 // Error handler (must be last)
 app.use(errorHandler);
 
 const server = app.listen(PORT, () => {
-  console.log(`Backend API server running on port ${PORT}`);
+  logger.info("Backend API server started", undefined, {
+    port: PORT,
+    nodeEnv: process.env.NODE_ENV || "development",
+  });
 });
 
 // Handle server errors
 server.on("error", (error: NodeJS.ErrnoException) => {
   if (error.code === "EADDRINUSE") {
-    console.error(`Port ${PORT} is already in use. Please use a different port.`);
+    logger.error(`Port ${PORT} is already in use. Please use a different port.`);
   } else {
-    console.error("Server error:", error);
+    logger.error("Server error", undefined, {
+      error: error.message,
+      stack: error.stack,
+    });
   }
   process.exit(1);
 });
 
 // Handle unhandled promise rejections
 process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  logger.error("Unhandled Rejection", undefined, {
+    reason: reason instanceof Error ? reason.message : String(reason),
+    stack: reason instanceof Error ? reason.stack : undefined,
+  });
 });
 
 // Handle uncaught exceptions
 process.on("uncaughtException", (error) => {
-  console.error("Uncaught Exception:", error);
+  logger.error("Uncaught Exception", undefined, {
+    error: error.message,
+    stack: error.stack,
+  });
   process.exit(1);
 });
 

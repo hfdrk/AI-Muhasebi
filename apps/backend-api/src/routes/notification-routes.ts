@@ -1,12 +1,11 @@
-import { Router } from "express";
+import { Router, type Response, type NextFunction, type Router as ExpressRouter } from "express";
 import { z } from "zod";
 import { notificationService } from "../services/notification-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
-import type { AuthenticatedRequest, Response } from "../types/request-context";
-import { ValidationError } from "@repo/shared-utils";
+import type { AuthenticatedRequest } from "../types/request-context";
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 // All routes require authentication and tenant context
 router.use(authMiddleware);
@@ -75,7 +74,7 @@ router.post("/read-all", async (req: AuthenticatedRequest, res: Response) => {
 });
 
 // POST /api/v1/notifications/:id/read
-router.post("/:id/read", async (req: AuthenticatedRequest, res: Response) => {
+router.post("/:id/read", async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const tenantId = req.context!.tenantId!;
     const userId = req.context!.user!.id;
@@ -85,10 +84,7 @@ router.post("/:id/read", async (req: AuthenticatedRequest, res: Response) => {
 
     res.json({ data: notification });
   } catch (error: any) {
-    console.error("Error marking notification as read:", error);
-    const statusCode = error.statusCode || 500;
-    const message = error.message || "Bildirim okundu olarak işaretlenirken bir hata oluştu.";
-    res.status(statusCode).json({ error: { message } });
+    next(error); // Let error handler middleware handle NotFoundError properly
   }
 });
 

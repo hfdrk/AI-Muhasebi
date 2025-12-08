@@ -1,4 +1,5 @@
-export type RiskSeverity = "low" | "medium" | "high";
+import type { RiskSeverity } from "../types/risk-severity";
+export type { RiskSeverity };
 
 export interface DocumentRiskScore {
   id: string;
@@ -20,6 +21,7 @@ export interface CreateDocumentRiskScoreInput {
   triggeredRuleCodes: string[];
   generatedAt?: Date;
 }
+
 
 
 

@@ -35,7 +35,7 @@
     "title": "Risk Uyarıları",
     "list": {
       "title": "Uyarı Listesi",
-      "noAlerts": "Henüz uyarı yok.",
+      "noAlerts": "Bu dönemde risk uyarısı bulunmuyor.",
       "filterByCompany": "Müşteriye Göre Filtrele",
       "filterBySeverity": "Şiddete Göre Filtrele",
       "filterByStatus": "Duruma Göre Filtrele",
@@ -88,5 +88,8 @@
     "severity": "Şiddet",
     "isActive": "Aktif",
     "inactive": "Pasif"
+  },
+  "helpers": {
+    "riskScore": "Risk skoru 0–100 arasıdır. Düşük skor daha az risk, yüksek skor daha fazla risk anlamına gelir."
   }
 }

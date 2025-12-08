@@ -193,7 +193,7 @@ export class TenantIntegrationService {
           providerId: input.providerId,
           status: "connected",
           displayName: input.displayName || provider.name,
-          config: input.config,
+          config: input.config as any,
         },
       });
 
@@ -207,7 +207,7 @@ export class TenantIntegrationService {
         displayName: integration.displayName,
         config: maskConfig(integration.config as Record<string, unknown>),
         lastSyncAt: integration.lastSyncAt,
-        lastSyncStatus: integration.lastSyncStatus,
+        lastSyncStatus: integration.lastSyncStatus as any,
         createdAt: integration.createdAt,
         updatedAt: integration.updatedAt,
       };
@@ -251,7 +251,7 @@ export class TenantIntegrationService {
       where: { id },
       data: {
         displayName: input.displayName,
-        config: input.config ? input.config : undefined,
+        config: input.config ? (input.config as any) : undefined,
         status: input.config ? "connected" : undefined,
       },
     });
@@ -265,7 +265,7 @@ export class TenantIntegrationService {
       displayName: updated.displayName,
       config: maskConfig(updated.config as Record<string, unknown>),
       lastSyncAt: updated.lastSyncAt,
-      lastSyncStatus: updated.lastSyncStatus,
+      lastSyncStatus: updated.lastSyncStatus as any,
       createdAt: updated.createdAt,
       updatedAt: updated.updatedAt,
     };

@@ -16,28 +16,34 @@
     "db:migrate:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "seed:report-definitions": "tsx prisma/seed-report-definitions.ts",
-    "seed:notifications": "tsx prisma/seed-notifications.ts"
+    "seed:notifications": "tsx prisma/seed-notifications.ts",
+    "seed:demo": "tsx scripts/seed-demo.ts",
+    "perf:test": "tsx scripts/perf/load-test.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.19.1",
     "@repo/config": "workspace:*",
     "@repo/core-domain": "workspace:*",
     "@repo/shared-utils": "workspace:*",
+    "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
+    "express": "^4.18.2",
     "multer": "^1.4.5-lts.1",
-    "pdfkit": "^0.15.0"
+    "pdfkit": "^0.15.0",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
+    "@types/cookie-parser": "^1.4.6",
     "@types/express": "^4.17.21",
     "@types/multer": "^1.4.11",
     "@types/node": "^20.11.0",
     "@types/pdfkit": "^0.13.0",
     "@types/supertest": "^6.0.2",
+    "@types/uuid": "^9.0.7",
     "@vitest/coverage-v8": "^1.2.0",
     "eslint": "^8.56.0",
-    "express": "^4.18.2",
     "prisma": "^5.19.1",
     "supertest": "^6.3.3",
     "tsx": "^4.7.1",

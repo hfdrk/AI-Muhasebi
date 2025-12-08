@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { listAuditLogs, getCurrentUser } from "@repo/api-client";
+import { auditLogs as auditLogsI18n, common as commonI18n } from "@repo/i18n";
 import { colors, spacing } from "@/styles/design-system";
 
 export default function AuditLogsPage() {
@@ -250,7 +251,7 @@ export default function AuditLogsPage() {
       )}
 
       {isLoading ? (
-        <div style={{ padding: spacing.xxl, textAlign: "center" }}>Yükleniyor...</div>
+        <div style={{ padding: spacing.xxl, textAlign: "center" }}>{commonI18n.labels.loading}</div>
       ) : auditLogs.length === 0 ? (
         <div
           style={{
@@ -261,7 +262,7 @@ export default function AuditLogsPage() {
             border: `1px solid ${colors.border}`,
           }}
         >
-          <p style={{ color: colors.text.secondary }}>Bu kriterlere uygun denetim kaydı bulunamadı.</p>
+          <p style={{ color: colors.text.secondary }}>{auditLogsI18n.empty}</p>
         </div>
       ) : (
         <>
@@ -349,4 +350,5 @@ export default function AuditLogsPage() {
     </div>
   );
 }
+
 

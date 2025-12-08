@@ -1,5 +1,5 @@
-import { Router } from "express";
-import type { NextFunction } from "express";
+import { Router, type Router as ExpressRouter } from "express";
+import type { NextFunction, Response } from "express";
 import { z } from "zod";
 import { integrationProviderService } from "../services/integration-provider-service";
 import { tenantIntegrationService } from "../services/tenant-integration-service";
@@ -7,9 +7,9 @@ import { integrationSyncService } from "../services/integration-sync-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
 import { requirePermission } from "../middleware/rbac-middleware";
-import type { AuthenticatedRequest, Response } from "../types/request-context";
+import type { AuthenticatedRequest } from "../types/request-context";
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 router.use(authMiddleware);
 router.use(tenantMiddleware);
@@ -110,11 +110,11 @@ router.post(
     } catch (error: any) {
       console.error("[Integration Route] Error creating integration:", error);
       console.error("[Integration Route] Error stack:", error.stack);
-      if (error instanceof z.ZodError && error.errors && error.errors.length > 0) {
+      if (error instanceof z.ZodError && error.issues && error.issues.length > 0) {
         res.status(400).json({ 
           error: { 
-            message: error.errors[0].message || "Geçersiz bilgiler.",
-            details: error.errors 
+            message: error.issues[0].message || "Geçersiz bilgiler.",
+            details: error.issues 
           } 
         });
         return;
@@ -143,8 +143,8 @@ router.patch(
       if (error instanceof z.ZodError) {
         res.status(400).json({ 
           error: { 
-            message: error.errors[0]?.message || "Geçersiz bilgiler.",
-            details: error.errors 
+            message: error.issues[0]?.message || "Geçersiz bilgiler.",
+            details: error.issues 
           } 
         });
         return;
@@ -203,8 +203,8 @@ router.post(
       if (error instanceof z.ZodError) {
         res.status(400).json({ 
           error: { 
-            message: error.errors[0]?.message || "Geçersiz bilgiler.",
-            details: error.errors 
+            message: error.issues[0]?.message || "Geçersiz bilgiler.",
+            details: error.issues 
           } 
         });
         return;

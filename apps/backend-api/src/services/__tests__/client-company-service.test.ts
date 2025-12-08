@@ -15,9 +15,46 @@ vi.mock("../../lib/prisma", () => ({
       delete: vi.fn(),
       count: vi.fn(),
     },
+    tenantSubscription: {
+      findUnique: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+    },
+    tenantUsage: {
+      findUnique: vi.fn(),
+      upsert: vi.fn(),
+    },
     $queryRaw: vi.fn(),
     $executeRaw: vi.fn(),
     $executeRawUnsafe: vi.fn(),
+  },
+}));
+
+// Mock subscription service to return default FREE subscription
+vi.mock("../subscription-service", () => ({
+  subscriptionService: {
+    getTenantSubscription: vi.fn().mockResolvedValue({
+      id: "sub-123",
+      tenantId: "tenant-123",
+      plan: "FREE",
+      status: "ACTIVE",
+      validUntil: null,
+      trialUntil: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      planConfig: {
+        limits: {
+          clientCompanies: 3,
+          documents: 100,
+          scheduledReports: 1,
+        },
+        features: {
+          reporting: true,
+          integrations: false,
+          scheduledReports: false,
+        },
+      },
+    }),
   },
 }));
 

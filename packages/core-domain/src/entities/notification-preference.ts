@@ -15,3 +15,4 @@ export interface CreateNotificationPreferenceInput {
   in_app_enabled?: boolean;
 }
 
+

@@ -94,7 +94,7 @@ export class RiskRuleService {
     const globalRule = await prisma.riskRule.findUnique({
       where: {
         tenantId_code: {
-          tenantId: null,
+          tenantId: null as any,
           code,
         },
       },
@@ -116,7 +116,7 @@ export class RiskRuleService {
         weight: input.weight,
         isActive: input.isActive ?? true,
         defaultSeverity: input.defaultSeverity,
-        config: input.config ?? {},
+        config: (input.config ?? {}) as any,
       },
     });
 
@@ -151,7 +151,7 @@ export class RiskRuleService {
         weight: input.weight,
         isActive: input.isActive,
         defaultSeverity: input.defaultSeverity,
-        config: input.config,
+        config: input.config as any,
       },
     });
 
@@ -201,6 +201,7 @@ export class RiskRuleService {
 }
 
 export const riskRuleService = new RiskRuleService();
+
 
 
 

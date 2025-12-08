@@ -1,11 +1,11 @@
-import { Router } from "express";
+import { Router, type Router as ExpressRouter } from "express";
 import { z } from "zod";
 import type { Request, Response, NextFunction } from "express";
 import { authService } from "../services/auth-service";
 import { AuthenticationError, ValidationError } from "@repo/shared-utils";
 import type { AuthenticatedRequest } from "../types/request-context";
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 const loginSchema = z.object({
   email: z.string().email("Geçerli bir e-posta adresi giriniz."),
@@ -66,7 +66,7 @@ router.post("/login", async (req: Request, res: Response, next: NextFunction) =>
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return next(new ValidationError(error.errors && error.errors.length > 0 ? error.errors[0].message : "Geçersiz giriş bilgileri."));
+      return next(new ValidationError(error.issues && error.issues.length > 0 ? error.issues[0].message : "Geçersiz giriş bilgileri."));
     }
     next(error);
   }
@@ -133,7 +133,7 @@ router.post("/forgot-password", async (req: Request, res: Response, next: NextFu
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return next(new ValidationError(error.errors?.[0]?.message || "Geçersiz e-posta adresi."));
+      return next(new ValidationError(error.issues?.[0]?.message || "Geçersiz e-posta adresi."));
     }
     next(error);
   }
@@ -153,7 +153,7 @@ router.post("/reset-password", async (req: Request, res: Response, next: NextFun
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return next(new ValidationError(error.errors?.[0]?.message || "Geçersiz bilgiler."));
+      return next(new ValidationError(error.issues?.[0]?.message || "Geçersiz bilgiler."));
     }
     next(error);
   }

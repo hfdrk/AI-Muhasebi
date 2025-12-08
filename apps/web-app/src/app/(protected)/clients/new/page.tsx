@@ -76,6 +76,20 @@ export default function NewClientPage() {
         {error && (
           <div style={{ padding: "12px", backgroundColor: "#fee", color: "#c33", borderRadius: "4px" }}>
             {error}
+            {error.includes("limitine ulaşıldı") && (
+              <div style={{ marginTop: "8px" }}>
+                <Link
+                  href="/ayarlar/abonelik"
+                  style={{
+                    color: "#3b82f6",
+                    textDecoration: "underline",
+                    fontSize: "14px",
+                  }}
+                >
+                  Abonelik & Kullanım sayfasına git
+                </Link>
+              </div>
+            )}
           </div>
         )}
 

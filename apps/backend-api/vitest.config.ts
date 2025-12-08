@@ -34,14 +34,15 @@ export default defineConfig({
     setupFiles: ["./src/test-utils/test-setup.ts"],
     testTimeout: 30000,
     hookTimeout: 60000,
-    // Reduce parallelism to prevent database deadlocks
-    // Integration tests share the same database and can conflict
+    // Run tests sequentially to prevent database deadlocks and visibility issues
+    // Integration tests share the same database and parallel execution causes:
+    // - Deadlocks (40P01)
+    // - Foreign key violations (P2003) 
+    // - Records not visible across threads
     pool: "threads",
     poolOptions: {
       threads: {
-        singleThread: false,
-        maxThreads: 2, // Limit to 2 threads to reduce deadlock risk
-        minThreads: 1,
+        singleThread: true, // Sequential execution for stability
       },
     },
     // Use verbose reporter for human-readable output

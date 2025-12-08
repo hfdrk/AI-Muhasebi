@@ -91,6 +91,15 @@ export class ScheduledReportService {
       }
     }
 
+    // Check usage limit before creation
+    const { usageService } = await import("./usage-service");
+    const limitCheck = await usageService.checkLimit(input.tenantId, "SCHEDULED_REPORTS" as any);
+    if (!limitCheck.allowed) {
+      throw new ValidationError(
+        "Maksimum zamanlanmış rapor limitine ulaşıldı. Daha fazla rapor eklemek için planınızı yükseltmeniz gerekiyor."
+      );
+    }
+
     // Ensure recipients is properly formatted as JSON array
     const recipientsData = Array.isArray(input.recipients) ? input.recipients : [];
     
@@ -105,7 +114,7 @@ export class ScheduledReportService {
     }
     
     try {
-      return await prisma.scheduledReport.create({
+      const report = await prisma.scheduledReport.create({
         data: {
           tenantId: input.tenantId,
           reportCode: input.reportCode,
@@ -126,6 +135,11 @@ export class ScheduledReportService {
           },
         },
       });
+
+      // Increment usage after successful creation
+      await usageService.incrementUsage(input.tenantId, "SCHEDULED_REPORTS" as any, 1);
+
+      return report;
     } catch (error: any) {
       console.error("[ScheduledReportService.createScheduledReport] Prisma error:", error);
       console.error("Input data:", JSON.stringify({
@@ -272,6 +286,7 @@ export class ScheduledReportService {
       where: {
         id,
         tenantId,
+        isActive: true, // Only return active reports
       },
       include: {
         clientCompany: {

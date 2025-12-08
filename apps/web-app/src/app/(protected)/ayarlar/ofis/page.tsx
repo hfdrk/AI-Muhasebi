@@ -51,7 +51,7 @@ export default function OfficeSettingsPage() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors: formErrors, isSubmitting },
     reset,
   } = useForm<TenantSettingsForm>({
     resolver: zodResolver(tenantSettingsSchema),
@@ -62,7 +62,7 @@ export default function OfficeSettingsPage() {
       timezone: settingsData?.data?.timezone ?? "Europe/Istanbul",
       emailFromName: settingsData?.data?.emailFromName ?? null,
       riskThresholds: settingsData?.data?.riskThresholds ?? { high: 70, critical: 90 },
-      defaultReportPeriod: settingsData?.data?.defaultReportPeriod ?? "LAST_30_DAYS",
+      defaultReportPeriod: (settingsData?.data?.defaultReportPeriod ?? "LAST_30_DAYS") as "LAST_7_DAYS" | "LAST_30_DAYS" | "THIS_MONTH" | "LAST_MONTH" | "THIS_YEAR" | "LAST_YEAR" | undefined,
     },
   });
 
@@ -75,7 +75,7 @@ export default function OfficeSettingsPage() {
       timezone: settingsData.data.timezone ?? "Europe/Istanbul",
       emailFromName: settingsData.data.emailFromName ?? null,
       riskThresholds: settingsData.data.riskThresholds ?? { high: 70, critical: 90 },
-      defaultReportPeriod: settingsData.data.defaultReportPeriod ?? "LAST_30_DAYS",
+      defaultReportPeriod: (settingsData.data.defaultReportPeriod ?? "LAST_30_DAYS") as "LAST_7_DAYS" | "LAST_30_DAYS" | "THIS_MONTH" | "LAST_MONTH" | "THIS_YEAR" | "LAST_YEAR" | undefined,
     });
   }
 
@@ -193,8 +193,8 @@ export default function OfficeSettingsPage() {
                 }}
                 placeholder="Ofis adı"
               />
-              {errors.displayName && (
-                <p style={{ color: colors.error, fontSize: "12px", marginTop: spacing.xs }}>{errors.displayName.message}</p>
+              {formErrors.displayName && (
+                <p style={{ color: colors.danger, fontSize: "12px", marginTop: spacing.xs }}>{formErrors.displayName.message}</p>
               )}
             </div>
 
@@ -214,8 +214,8 @@ export default function OfficeSettingsPage() {
                 }}
                 placeholder="https://example.com/logo.png"
               />
-              {errors.logoUrl && (
-                <p style={{ color: colors.error, fontSize: "12px", marginTop: spacing.xs }}>{errors.logoUrl.message}</p>
+              {formErrors.logoUrl && (
+                <p style={{ color: colors.danger, fontSize: "12px", marginTop: spacing.xs }}>{formErrors.logoUrl.message}</p>
               )}
             </div>
 
@@ -400,4 +400,5 @@ export default function OfficeSettingsPage() {
     </div>
   );
 }
+
 

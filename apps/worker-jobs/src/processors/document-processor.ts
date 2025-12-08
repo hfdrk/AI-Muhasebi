@@ -85,6 +85,15 @@ export class DocumentProcessor {
         // Log but don't fail the document processing if risk calculation fails
         console.error(`[Document Processor] Error calculating risk for document ${documentId}:`, riskError);
       }
+
+      // Step 6: Increment AI analysis usage after successful processing
+      try {
+        const { usageService } = await import("../../../backend-api/src/services/usage-service");
+        await usageService.incrementUsage(tenantId, "AI_ANALYSES" as any, 1);
+      } catch (usageError: any) {
+        // Log but don't fail the document processing if usage tracking fails
+        console.error(`[Document Processor] Error tracking AI analysis usage for document ${documentId}:`, usageError);
+      }
     } catch (error: any) {
       // Error will be handled by the worker loop
       throw error;

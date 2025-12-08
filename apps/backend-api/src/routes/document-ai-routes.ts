@@ -1,13 +1,14 @@
-import { Router } from "express";
+import { Router, type Router as ExpressRouter } from "express";
 import { z } from "zod";
+import type { Response } from "express";
 import { documentAIService } from "../services/document-ai-service";
 import { documentService } from "../services/document-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
 import { requirePermission } from "../middleware/rbac-middleware";
-import type { AuthenticatedRequest, Response } from "../types/request-context";
+import type { AuthenticatedRequest } from "../types/request-context";
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 router.use(authMiddleware);
 router.use(tenantMiddleware);
@@ -28,7 +29,7 @@ router.get(
       if (error instanceof z.ZodError) {
         return res.status(400).json({
           error: {
-            message: error.errors[0].message,
+            message: error.issues[0].message,
           },
         });
       }
@@ -98,7 +99,7 @@ router.get(
       if (error instanceof z.ZodError) {
         return res.status(400).json({
           error: {
-            message: error.errors[0].message,
+            message: error.issues[0].message,
           },
         });
       }

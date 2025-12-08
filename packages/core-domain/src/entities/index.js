@@ -18,6 +18,8 @@ __exportStar(require("./user"), exports);
 __exportStar(require("./tenant"), exports);
 __exportStar(require("./user-tenant-membership"), exports);
 __exportStar(require("./audit-log"), exports);
+__exportStar(require("./tenant-settings"), exports);
+__exportStar(require("./user-settings"), exports);
 __exportStar(require("./client-company"), exports);
 __exportStar(require("./bank-account"), exports);
 __exportStar(require("./invoice"), exports);
@@ -38,4 +40,7 @@ __exportStar(require("./integration-provider"), exports);
 __exportStar(require("./tenant-integration"), exports);
 __exportStar(require("./integration-sync-job"), exports);
 __exportStar(require("./integration-sync-log"), exports);
+__exportStar(require("./notification"), exports);
+__exportStar(require("./notification-preference"), exports);
+__exportStar(require("./subscription"), exports);
 //# sourceMappingURL=index.js.map

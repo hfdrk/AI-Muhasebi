@@ -39,7 +39,7 @@ export class TenantService {
         phone: input.phone ?? undefined,
         email: input.email ?? undefined,
         address: input.address ?? undefined,
-        settings: input.settings ?? undefined,
+        settings: input.settings ? (input.settings as any) : undefined,
       },
     });
 
@@ -124,6 +124,15 @@ export class TenantService {
       throw new ValidationError("Bu kullanıcı zaten bu kiracıya üye.");
     }
 
+    // Check usage limit before creating membership
+    const { usageService } = await import("./usage-service");
+    const limitCheck = await usageService.checkLimit(tenantId, "USERS" as any);
+    if (!limitCheck.allowed) {
+      throw new ValidationError(
+        "Maksimum kullanıcı limitine ulaşıldı. Daha fazla kullanıcı eklemek için planınızı yükseltmeniz gerekiyor."
+      );
+    }
+
     // Create or update membership with "invited" status
     await prisma.userTenantMembership.create({
       data: {
@@ -133,6 +142,9 @@ export class TenantService {
         status: "invited",
       },
     });
+
+    // Increment usage after successful membership creation
+    await usageService.incrementUsage(tenantId, "USERS" as any, 1);
 
     await auditService.logAuthAction("USER_INVITED", inviterUserId, tenantId, {
       invitedUserId: user.id,

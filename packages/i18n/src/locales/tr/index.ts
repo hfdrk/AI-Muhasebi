@@ -11,4 +11,5 @@ export { default as reports } from "./reports.json";
 export { default as risk } from "./risk.json";
 export { default as settings } from "./settings.json";
 export { default as auditLogs } from "./audit-logs.json";
+export { default as billing } from "./billing.json";
 

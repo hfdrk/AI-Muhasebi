@@ -16,6 +16,14 @@
   "errors": {
     "required": "Bu alan zorunludur",
     "invalid": "Geçersiz değer"
+  },
+  "toasts": {
+    "success": "İşlem başarıyla tamamlandı.",
+    "error": "Bir hata oluştu. Lütfen tekrar deneyin.",
+    "permissionError": "Bu işlem için yetkiniz yok."
+  },
+  "helpers": {
+    "riskScore": "Risk skoru 0–100 arasıdır. Düşük skor daha az risk, yüksek skor daha fazla risk anlamına gelir."
   }
 }
 

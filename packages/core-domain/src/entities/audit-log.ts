@@ -13,7 +13,8 @@ export type AuditAction =
   | "TENANT_UPDATED"
   | "DOCUMENT_UPLOADED"
   | "DOCUMENT_DELETED"
-  | "DOCUMENT_DOWNLOADED";
+  | "DOCUMENT_DOWNLOADED"
+  | "DOCUMENT_RETRY";
 
 export interface AuditLog {
   id: string;

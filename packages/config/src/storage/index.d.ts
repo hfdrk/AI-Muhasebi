@@ -7,10 +7,10 @@ export declare function getStorage(): IObjectStorage;
  * Get storage configuration constants
  */
 export declare function getStorageConfig(): {
-    type: any;
-    basePath: any;
-    bucketName: any;
+    type: "local" | "s3" | "gcs" | "azure";
+    basePath: string;
+    bucketName: string | undefined;
     maxFileSize: number;
-    allowedMimeTypes: any;
+    allowedMimeTypes: string[];
 };
 //# sourceMappingURL=index.d.ts.map

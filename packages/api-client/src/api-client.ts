@@ -1,4 +1,5 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3800";
+// Support both NEXT_PUBLIC_API_BASE_URL (new) and NEXT_PUBLIC_API_URL (legacy) for backward compatibility
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3800";
 
 async function apiRequest<T>(
   endpoint: string,

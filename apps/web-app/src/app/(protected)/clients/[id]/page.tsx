@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getClientCompany, listBankAccounts, deleteBankAccount } from "@repo/api-client";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 import { BankAccountModal } from "../../../../components/bank-account-modal";
@@ -12,7 +12,7 @@ import { useClientCompanyRiskScore } from "@/hooks/use-risk";
 
 export default function ClientDetailPage() {
   const params = useParams();
-  const router = useRouter();
+  // const router = useRouter(); // Reserved for future use
   const clientId = params.id as string;
   const [activeTab, setActiveTab] = useState<"general" | "banks" | "invoices" | "transactions" | "documents" | "risk">("general");
   const [bankModalOpen, setBankModalOpen] = useState(false);

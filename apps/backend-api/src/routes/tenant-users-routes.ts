@@ -1,4 +1,3 @@
-import { Router } from "express";
 import { z } from "zod";
 import type { NextFunction } from "express";
 import { ValidationError } from "@repo/shared-utils";
@@ -7,9 +6,11 @@ import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
 import { requireRole, requirePermission } from "../middleware/rbac-middleware";
 import { TENANT_ROLES } from "@repo/core-domain";
-import type { AuthenticatedRequest, Response } from "../types/request-context";
+import type { AuthenticatedRequest } from "../types/request-context";
+import type { Response } from "express";
 
-const router = Router();
+import { Router, type Router as ExpressRouter } from "express";
+const router: ExpressRouter = Router();
 
 // All routes require authentication and tenant context
 router.use(authMiddleware);
@@ -67,7 +68,7 @@ router.post(
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
+        return next(new ValidationError(error.issues[0]?.message || "Geçersiz bilgiler."));
       }
       next(error);
     }
@@ -92,7 +93,7 @@ router.post(
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
+        return next(new ValidationError(error.issues[0]?.message || "Geçersiz bilgiler."));
       }
       next(error);
     }
@@ -119,7 +120,7 @@ router.patch(
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
+        return next(new ValidationError(error.issues[0]?.message || "Geçersiz bilgiler."));
       }
       next(error);
     }
@@ -146,7 +147,7 @@ router.patch(
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
+        return next(new ValidationError(error.issues[0]?.message || "Geçersiz bilgiler."));
       }
       next(error);
     }

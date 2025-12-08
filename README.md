@@ -1,5 +1,7 @@
 # AI Muhasebi - Turkish Accounting SaaS Platform
 
+[![CI](https://github.com/your-org/ai-muhasebi/workflows/CI/badge.svg)](https://github.com/your-org/ai-muhasebi/actions)
+
 ## Overview
 
 AI Muhasebi is a modern SaaS platform designed for Turkish accounting offices. The platform provides multi-tenant document and invoice analysis, anomaly detection, risk scoring, client management, dashboards, and comprehensive reporting capabilities.
@@ -85,6 +87,84 @@ pnpm test
 ```bash
 pnpm type-check
 ```
+
+## CI/CD
+
+The project uses GitHub Actions for continuous integration. The CI pipeline includes:
+
+- **Lint**: Code linting with ESLint and format checking with Prettier
+- **Type Check**: TypeScript type checking across all packages
+- **Test**: Backend API tests with focused test suite (auth, RBAC, tenant isolation, health checks)
+- **Build**: Production build verification for all apps
+- **Web App Checks**: Separate lint and type-check for the web app
+
+The CI runs on:
+- Push to `main`, `develop`, or `staging` branches
+- Pull requests targeting these branches
+
+To view CI status, check the [Actions tab](https://github.com/your-org/ai-muhasebi/actions) in GitHub.
+
+**Note**: Update the CI badge URL in this README to match your repository path.
+
+## Production Build & Run
+
+### Building for Production
+
+1. Install dependencies:
+   ```bash
+   pnpm install
+   ```
+
+2. Build all apps:
+   ```bash
+   pnpm build
+   ```
+
+   This will:
+   - Compile TypeScript in `apps/backend-api` and `apps/worker-jobs` to `dist/` folders
+   - Build Next.js app in `apps/web-app` to `.next/` folder
+   - Generate Prisma clients
+
+3. Set up environment variables:
+   - Copy `.env.example` to `.env` and fill in production values
+   - Ensure `NODE_ENV=production`
+   - Set `NEXT_PUBLIC_API_BASE_URL` to your production API URL
+
+### Running in Production
+
+1. Start backend API:
+   ```bash
+   pnpm --filter backend-api start
+   ```
+   Or from the backend-api directory:
+   ```bash
+   cd apps/backend-api && pnpm start
+   ```
+
+2. Start worker jobs (in a separate process):
+   ```bash
+   pnpm --filter worker-jobs start
+   ```
+
+3. Start web app:
+   ```bash
+   pnpm --filter web-app start
+   ```
+
+   Or use the root start script to run backend and web-app together:
+   ```bash
+   pnpm start
+   ```
+
+### Environment Configuration
+
+See `.env.example` for all required environment variables. Key variables:
+
+- `DATABASE_URL`: PostgreSQL connection string
+- `JWT_SECRET`: Secret key for JWT tokens (min 32 characters)
+- `NEXT_PUBLIC_API_BASE_URL`: Public API URL for frontend
+- `CORS_ORIGIN` or `FRONTEND_URL`: Frontend URL for CORS
+- `LOG_LEVEL`: Logging level (debug, info, warn, error)
 
 ## Deployment
 

@@ -1,4 +1,3 @@
-import { Router } from "express";
 import { z } from "zod";
 import type { NextFunction } from "express";
 import { ValidationError } from "@repo/shared-utils";
@@ -7,9 +6,11 @@ import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
 import { requirePermission } from "../middleware/rbac-middleware";
 import { getConfig } from "@repo/config";
-import type { AuthenticatedRequest, Response } from "../types/request-context";
+import type { AuthenticatedRequest } from "../types/request-context";
+import type { Response } from "express";
 
-const router = Router();
+import { Router, type Router as ExpressRouter } from "express";
+const router: ExpressRouter = Router();
 
 // All routes require authentication and tenant context
 router.use(authMiddleware);
@@ -32,12 +33,8 @@ const createScheduledReportSchema = z.object({
   name: z.string().min(1, "Rapor adı gerekli."),
   report_code: z.string().min(1, "Rapor kodu gerekli."),
   client_company_id: z.string().optional().nullable(),
-  format: z.enum(["pdf", "excel"], {
-    errorMap: () => ({ message: "Format 'pdf' veya 'excel' olmalıdır." }),
-  }),
-  schedule_cron: z.enum(["daily", "weekly", "monthly"], {
-    errorMap: () => ({ message: "Zamanlama 'daily', 'weekly' veya 'monthly' olmalıdır." }),
-  }),
+  format: z.enum(["pdf", "excel"]),
+  schedule_cron: z.enum(["daily", "weekly", "monthly"]),
   filters: z.record(z.string(), z.unknown()).optional().default({}),
   recipients: z.array(z.string().email("Geçerli bir e-posta adresi giriniz.")).min(1, "En az bir alıcı gerekli."),
   is_active: z.boolean().default(true),
@@ -128,7 +125,7 @@ router.post(
       const body = createScheduledReportSchema.parse(req.body);
       console.log("[POST /scheduled-reports] Parsed body:", JSON.stringify(body, null, 2));
       const tenantId = req.context!.tenantId!;
-      const userId = req.context!.userId!;
+      const userId = req.context!.user.id;
       console.log("[POST /scheduled-reports] Tenant ID:", tenantId, "User ID:", userId);
 
       const report = await scheduledReportService.createScheduledReport({
@@ -160,7 +157,7 @@ router.post(
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const firstError = error.errors?.[0];
+        const firstError = error.issues?.[0];
         return next(new ValidationError(firstError?.message || "Geçersiz bilgiler."));
       }
       // Log the actual error for debugging
@@ -211,7 +208,7 @@ router.put(
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const firstError = error.errors?.[0];
+        const firstError = error.issues?.[0];
         return next(new ValidationError(firstError?.message || "Geçersiz bilgiler."));
       }
       next(error);

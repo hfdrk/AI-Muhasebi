@@ -127,6 +127,10 @@ export class DocumentService {
     // Create processing job
     await documentJobService.createProcessingJob(tenantId, document.id);
 
+    // Increment document usage after successful upload
+    const { usageService } = await import("./usage-service");
+    await usageService.incrementUsage(tenantId, "DOCUMENTS" as any, 1);
+
     return this.mapToDocument(document);
   }
 

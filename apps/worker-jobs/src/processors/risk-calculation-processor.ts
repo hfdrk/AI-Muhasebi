@@ -9,12 +9,12 @@ async function getRiskRuleEngine() {
     // Try with .js extension first
     const module = await import("../../../backend-api/src/services/risk-rule-engine.js");
     return module.riskRuleEngine;
-  } catch (error1) {
+  } catch (error1: unknown) {
     try {
       // Fallback to without extension
       const module = await import("../../../backend-api/src/services/risk-rule-engine");
       return module.riskRuleEngine;
-    } catch (error2) {
+    } catch (error2: unknown) {
       // Last resort: try absolute path from workspace root
       const path = await import("path");
       const fs = await import("fs");
@@ -27,7 +27,9 @@ async function getRiskRuleEngine() {
         return module.riskRuleEngine;
       }
       
-      throw new Error(`Failed to load risk-rule-engine: ${error1.message}, ${error2.message}`);
+      const msg1 = error1 instanceof Error ? error1.message : String(error1);
+      const msg2 = error2 instanceof Error ? error2.message : String(error2);
+      throw new Error(`Failed to load risk-rule-engine: ${msg1}, ${msg2}`);
     }
   }
 }

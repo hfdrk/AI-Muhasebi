@@ -15,7 +15,13 @@ export function errorHandler(
     return next(err);
   }
 
-  logger.error("Request error", {
+  const context = {
+    requestId: (req as any).requestId,
+    tenantId: (req as any).tenantId,
+    userId: (req as any).userId,
+  };
+  
+  logger.error("Request error", context, {
     error: err.message,
     stack: err.stack,
     path: req.path,
@@ -57,8 +63,8 @@ export function errorHandler(
     res.status(400).json({
       error: {
         code: "VALIDATION_ERROR",
-        message: err.errors[0]?.message || "Geçersiz bilgiler.",
-        details: err.errors,
+        message: err.issues[0]?.message || "Geçersiz bilgiler.",
+        details: err.issues,
       },
     });
     return;

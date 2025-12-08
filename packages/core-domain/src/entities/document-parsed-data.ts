@@ -39,6 +39,13 @@ export interface ParsedBankStatementFields {
 
 export type ParsedDocumentFields = ParsedInvoiceFields | ParsedBankStatementFields | Record<string, any>;
 
+// Result from parser (without database fields)
+export interface ParsedDocumentResult {
+  documentType: DocumentParsedType;
+  fields: ParsedDocumentFields;
+  parserVersion: string;
+}
+
 export interface DocumentParsedData {
   id: string;
   tenantId: string;
@@ -49,6 +56,9 @@ export interface DocumentParsedData {
   createdAt: Date;
   updatedAt: Date;
 }
+
+// Alias for backward compatibility - maps to ParsedDocumentResult for parser output
+export type ParsedDocumentData = ParsedDocumentResult | DocumentParsedData;
 
 export interface CreateDocumentParsedDataInput {
   tenantId: string;

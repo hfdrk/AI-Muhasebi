@@ -1,4 +1,5 @@
-export type RiskSeverity = "low" | "medium" | "high" | "critical";
+import type { RiskSeverity } from "../types/risk-severity";
+export type { RiskSeverity };
 export interface RiskFlag {
     code: string;
     severity: RiskSeverity;

@@ -1,4 +1,3 @@
-import { Router } from "express";
 import { z } from "zod";
 import type { NextFunction } from "express";
 import { ValidationError } from "@repo/shared-utils";
@@ -7,9 +6,11 @@ import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
 import { requireRole } from "../middleware/rbac-middleware";
 import { TENANT_ROLES } from "@repo/core-domain";
-import type { AuthenticatedRequest, Response } from "../types/request-context";
+import type { AuthenticatedRequest } from "../types/request-context";
+import type { Response } from "express";
 
-const router = Router();
+import { Router, type Router as ExpressRouter } from "express";
+const router: ExpressRouter = Router();
 
 // All routes require authentication and tenant context
 router.use(authMiddleware);
@@ -21,7 +22,7 @@ const updateTenantSchema = z.object({
   phone: z.string().optional().nullable(),
   email: z.string().email("Geçerli bir e-posta adresi giriniz.").optional().nullable().or(z.literal("")),
   address: z.string().optional().nullable(),
-  settings: z.record(z.unknown()).optional().nullable(),
+  settings: z.record(z.string(), z.unknown()).optional().nullable(),
 });
 
 router.get("/:tenantId", async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
@@ -53,7 +54,7 @@ router.patch(
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
+        return next(new ValidationError(error.issues[0]?.message || "Geçersiz bilgiler."));
       }
       next(error);
     }

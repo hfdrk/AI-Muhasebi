@@ -1,6 +1,6 @@
 import { prisma } from "../lib/prisma";
 import type {
-  ParsedDocumentData,
+  ParsedDocumentResult,
   RiskFeatureMap,
   RiskFlag,
   CreateDocumentRiskFeaturesInput,
@@ -29,7 +29,7 @@ export class RiskFeatureService {
    * @returns Promise resolving to risk features
    */
   async generateRiskFeatures(
-    parsedData: ParsedDocumentData,
+    parsedData: ParsedDocumentResult,
     documentId: string,
     tenantId: string
   ): Promise<RiskFeaturesResult> {
@@ -117,14 +117,16 @@ export class RiskFeatureService {
       }, 0);
 
       const tolerance = 0.01; // Allow small rounding differences
-      if (Math.abs(fields.totalAmount - lineTotal) > tolerance) {
-        features.amountMismatch = true;
-        flags.push({
-          code: "AMOUNT_MISMATCH",
-          severity: "medium",
-          description: `Fatura toplamı (${fields.totalAmount}) ile satır toplamları (${lineTotal}) eşleşmiyor`,
-          value: Math.abs(fields.totalAmount - lineTotal),
-        });
+      if (fields.totalAmount !== null && fields.totalAmount !== undefined) {
+        if (Math.abs(fields.totalAmount - lineTotal) > tolerance) {
+          features.amountMismatch = true;
+          flags.push({
+            code: "AMOUNT_MISMATCH",
+            severity: "medium",
+            description: `Fatura toplamı (${fields.totalAmount}) ile satır toplamları (${lineTotal}) eşleşmiyor`,
+            value: Math.abs(fields.totalAmount - lineTotal),
+          });
+        }
       }
     }
 
@@ -134,7 +136,7 @@ export class RiskFeatureService {
     }
 
     // Check for abnormally high amount (threshold: 1,000,000 TRY)
-    if (fields.totalAmount !== null && fields.totalAmount > 1000000) {
+    if (fields.totalAmount !== null && fields.totalAmount !== undefined && fields.totalAmount > 1000000) {
       features.highAmount = true;
       flags.push({
         code: "HIGH_AMOUNT",
@@ -173,8 +175,10 @@ export class RiskFeatureService {
     // Check for negative ending balance (if starting was positive)
     if (
       fields.startingBalance !== null &&
+      fields.startingBalance !== undefined &&
       fields.startingBalance > 0 &&
       fields.endingBalance !== null &&
+      fields.endingBalance !== undefined &&
       fields.endingBalance < 0
     ) {
       features.negativeBalance = true;

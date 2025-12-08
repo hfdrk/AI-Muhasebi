@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRiskAlerts, useUpdateAlertStatus } from "@/hooks/use-risk";
 import { useQueryClient } from "@tanstack/react-query";
+import { risk as riskI18n, common as commonI18n } from "@repo/i18n";
 import Link from "next/link";
 
 const SEVERITY_COLORS: Record<string, string> = {
@@ -137,7 +138,7 @@ export default function RiskAlertsPage() {
       {/* Alerts Table */}
       {isLoading ? (
         <div style={{ padding: "40px", textAlign: "center" }}>
-          <p>Yükleniyor...</p>
+          <p>{commonI18n.labels.loading}</p>
         </div>
       ) : alerts.length === 0 ? (
         <div
@@ -150,7 +151,7 @@ export default function RiskAlertsPage() {
             border: "1px solid #e0e0e0",
           }}
         >
-          <p style={{ color: "#666" }}>Henüz uyarı yok.</p>
+          <p style={{ color: "#666" }}>{riskI18n.alerts.list.noAlerts}</p>
         </div>
       ) : (
         <>

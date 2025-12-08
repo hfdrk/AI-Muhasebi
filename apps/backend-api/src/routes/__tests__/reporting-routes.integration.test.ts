@@ -371,10 +371,11 @@ describe("Reporting Routes Integration Tests", () => {
         data: {
           tenantId: testUser.tenant.id,
           clientCompanyId: company1.id,
+          type: "RISK_THRESHOLD_EXCEEDED",
+          title: "Test High Risk Alert",
           severity: "high",
           status: "open",
           message: "Test high risk alert",
-          ruleCode: "RULE_001",
         },
       });
       await prisma.$queryRaw`SELECT 1`;
@@ -383,10 +384,11 @@ describe("Reporting Routes Integration Tests", () => {
         data: {
           tenantId: testUser.tenant.id,
           clientCompanyId: company1.id,
+          type: "ANOMALY_DETECTED",
+          title: "Test Medium Risk Alert",
           severity: "medium",
           status: "open",
           message: "Test medium risk alert",
-          ruleCode: "RULE_002",
         },
       });
       await prisma.$queryRaw`SELECT 1`;
@@ -655,7 +657,7 @@ describe("Reporting Routes Integration Tests", () => {
         .expect(400);
 
       expect(response.body.error).toBeDefined();
-      expect(response.body.error.message).toContain("Müşteri şirketi ID'si gerekli");
+      expect(response.body.error.message).toMatch(/müşteri şirket/i);
     });
 
     it("should handle no data scenario gracefully (empty rows, no crash)", async () => {

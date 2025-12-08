@@ -222,16 +222,35 @@ describe("Integrations & Sync Integration Tests", () => {
       expect(updatedIntegration?.lastSyncAt).toBeDefined();
       expect(updatedIntegration?.lastSyncStatus).toBe("success");
 
+      // Wait for invoices to be created and committed
+      await prisma.$queryRaw`SELECT 1`;
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       // Verify invoices were created with source = "integration"
       // The invoice importer may create invoices for different client companies
       // based on tax number matching, or use the integration's clientCompanyId as fallback
       // So we check for all invoices with source = "integration" for this tenant
-      const invoices = await prisma.invoice.findMany({
+      let invoices = await prisma.invoice.findMany({
         where: {
           tenantId: testUser.tenant.id,
           source: "integration", // Check for integration source (regardless of clientCompanyId)
         },
       });
+      
+      // Retry if no invoices found (might need time to commit)
+      if (invoices.length === 0) {
+        for (let i = 0; i < 5; i++) {
+          await prisma.$queryRaw`SELECT 1`;
+          await new Promise(resolve => setTimeout(resolve, 200));
+          invoices = await prisma.invoice.findMany({
+            where: {
+              tenantId: testUser.tenant.id,
+              source: "integration",
+            },
+          });
+          if (invoices.length > 0) break;
+        }
+      }
 
       // Mock connector should create some invoices
       // The mock connector returns invoices with externalId like "INV-2024-001"

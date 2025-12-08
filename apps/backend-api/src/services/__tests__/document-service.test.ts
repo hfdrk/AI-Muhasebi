@@ -26,6 +26,15 @@ vi.mock("../../lib/prisma", () => ({
     documentProcessingJob: {
       create: vi.fn(),
     },
+    tenantSubscription: {
+      findUnique: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+    },
+    tenantUsage: {
+      findUnique: vi.fn(),
+      upsert: vi.fn(),
+    },
     $queryRaw: vi.fn(),
     $executeRaw: vi.fn(),
     $executeRawUnsafe: vi.fn(),

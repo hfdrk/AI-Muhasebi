@@ -38,7 +38,7 @@ export default function ProfilePage() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
     reset,
     watch,
   } = useForm<UserSettingsForm>({
@@ -146,7 +146,7 @@ export default function ProfilePage() {
               </label>
               <input
                 type="text"
-                value={currentUser?.fullName || ""}
+                value={currentUser?.user?.fullName || ""}
                 disabled
                 style={{
                   width: "100%",
@@ -166,7 +166,7 @@ export default function ProfilePage() {
               </label>
               <input
                 type="email"
-                value={currentUser?.email || ""}
+                value={currentUser?.user?.email || ""}
                 disabled
                 style={{
                   width: "100%",
@@ -317,4 +317,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
 
