@@ -37,16 +37,22 @@ export default function UsersPage() {
   });
 
   const changeRoleMutation = useMutation({
-    mutationFn: ({ userId, role }: { userId: string; role: string }) =>
-      tenantId ? changeUserRole(tenantId, userId, { role: role as any }) : Promise.resolve(),
+    mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
+      if (tenantId) {
+        await changeUserRole(tenantId, userId, { role: role as any });
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tenantUsers", tenantId] });
     },
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: ({ userId, status }: { userId: string; status: "active" | "suspended" }) =>
-      tenantId ? updateUserStatus(tenantId, userId, { status }) : Promise.resolve(),
+    mutationFn: async ({ userId, status }: { userId: string; status: "active" | "suspended" }) => {
+      if (tenantId) {
+        await updateUserStatus(tenantId, userId, { status });
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tenantUsers", tenantId] });
     },

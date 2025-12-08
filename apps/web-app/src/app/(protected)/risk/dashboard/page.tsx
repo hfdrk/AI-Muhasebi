@@ -1,6 +1,6 @@
 "use client";
 
-import { useRiskDashboard } from "@/hooks/use-risk.ts";
+import { useRiskDashboard } from "@/hooks/use-risk";
 import Link from "next/link";
 
 export default function RiskDashboardPage() {

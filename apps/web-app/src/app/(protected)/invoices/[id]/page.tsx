@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getInvoice, updateInvoiceStatus } from "@repo/api-client";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -19,7 +19,6 @@ const TYPE_LABELS: Record<string, string> = {
 
 export default function InvoiceDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const invoiceId = params.id as string;
   const queryClient = useQueryClient();
 

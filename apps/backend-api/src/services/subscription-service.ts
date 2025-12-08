@@ -26,22 +26,18 @@ export class SubscriptionService {
    * Get tenant subscription, creating a default FREE subscription if none exists
    */
   async getTenantSubscription(tenantId: string): Promise<TenantSubscription & { planConfig: PlanConfig }> {
-    let subscription = await prisma.tenantSubscription.findUnique({
+    // Use upsert to atomically get or create subscription, avoiding race conditions
+    const subscription = await prisma.tenantSubscription.upsert({
       where: { tenantId },
+      create: {
+        tenantId,
+        plan: "FREE",
+        status: "ACTIVE",
+        validUntil: null,
+        trialUntil: null,
+      },
+      update: {}, // If exists, don't update anything, just return it
     });
-
-    // Create default FREE subscription if none exists
-    if (!subscription) {
-      subscription = await prisma.tenantSubscription.create({
-        data: {
-          tenantId,
-          plan: "FREE",
-          status: "ACTIVE",
-          validUntil: null,
-          trialUntil: null,
-        },
-      });
-    }
 
     const mapped = this.mapToTenantSubscription(subscription);
     const planConfig = getPlanConfig(mapped.plan);

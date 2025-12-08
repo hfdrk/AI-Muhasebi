@@ -3,14 +3,13 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
-  listReportDefinitions,
   generateReport,
   downloadReport,
   listClientCompanies,
   type BaseReportResult,
   type GenerateReportParams,
 } from "@repo/api-client";
-import { getReportTypeLabel, requiresClientCompany, formatReportDate } from "../../../../lib/reports";
+import { requiresClientCompany, formatReportDate } from "../../../../lib/reports";
 import { colors, spacing } from "../../../../styles/design-system";
 import Link from "next/link";
 

@@ -1,4 +1,4 @@
-import express, { type Request, Response } from "express";
+import express, { type Request, Response, type NextFunction } from "express";
 import { z } from "zod";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
@@ -6,6 +6,7 @@ import { requirePermission, requireRole } from "../middleware/rbac-middleware";
 import { subscriptionService } from "../services/subscription-service";
 import { usageService } from "../services/usage-service";
 import { ValidationError } from "@repo/shared-utils";
+import { logger } from "@repo/shared-utils";
 import type { AuthenticatedRequest } from "../types/request-context";
 import { SubscriptionPlan, SubscriptionStatus } from "@repo/core-domain";
 
@@ -25,7 +26,8 @@ const updateSubscriptionSchema = z.object({
 // GET /api/v1/billing/subscription
 router.get(
   "/subscription",
-  async (req: AuthenticatedRequest, res: Response) => {
+  requirePermission("settings:billing"),
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const tenantId = req.context!.tenantId!;
       const membership = req.context!.membership!;
@@ -60,12 +62,15 @@ router.get(
         },
       });
     } catch (error: any) {
-      console.error("Error getting subscription:", error);
-      return res.status(500).json({
-        error: {
-          message: "Abonelik bilgisi alınırken bir hata oluştu.",
-        },
+      logger.error("Error getting subscription", {
+        requestId: req.requestId,
+        tenantId: req.context?.tenantId,
+        userId: req.context?.user?.id,
+      }, {
+        error: error.message,
+        stack: error.stack,
       });
+      next(error);
     }
   }
 );
@@ -74,7 +79,7 @@ router.get(
 router.put(
   "/subscription",
   requireRole("TenantOwner"),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const tenantId = req.context!.tenantId!;
       const body = updateSubscriptionSchema.parse(req.body);
@@ -112,18 +117,17 @@ router.put(
       });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({
-          error: {
-            message: error.issues[0]?.message || "Geçersiz bilgiler.",
-          },
-        });
+        return next(new ValidationError(error.issues[0]?.message || "Geçersiz bilgiler."));
       }
-      console.error("Error updating subscription:", error);
-      return res.status(500).json({
-        error: {
-          message: "Abonelik güncellenirken bir hata oluştu.",
-        },
+      logger.error("Error updating subscription", {
+        requestId: req.requestId,
+        tenantId: req.context?.tenantId,
+        userId: req.context?.user?.id,
+      }, {
+        error: error.message,
+        stack: error.stack,
       });
+      next(error);
     }
   }
 );
@@ -131,7 +135,8 @@ router.put(
 // GET /api/v1/billing/usage
 router.get(
   "/usage",
-  async (req: AuthenticatedRequest, res: Response) => {
+  requirePermission("settings:billing"),
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const tenantId = req.context!.tenantId!;
       const usage = await usageService.getUsageForTenant(tenantId);
@@ -146,12 +151,15 @@ router.get(
         },
       });
     } catch (error: any) {
-      console.error("Error getting usage:", error);
-      return res.status(500).json({
-        error: {
-          message: "Kullanım bilgisi alınırken bir hata oluştu.",
-        },
+      logger.error("Error getting usage", {
+        requestId: req.requestId,
+        tenantId: req.context?.tenantId,
+        userId: req.context?.user?.id,
+      }, {
+        error: error.message,
+        stack: error.stack,
       });
+      next(error);
     }
   }
 );

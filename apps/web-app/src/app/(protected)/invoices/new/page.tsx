@@ -157,8 +157,9 @@ export default function NewInvoicePage() {
   };
 
   const mutation = useMutation({
-    mutationFn: (data: InvoiceForm) =>
-      createInvoice({
+    mutationFn: (data: InvoiceForm) => {
+      const selectedClient = clientsData?.data?.data?.find((c: any) => c.id === data.clientCompanyId);
+      return createInvoice({
         ...data,
         issueDate: new Date(data.issueDate),
         dueDate: data.dueDate ? new Date(data.dueDate) : null,
@@ -166,11 +167,14 @@ export default function NewInvoicePage() {
         netAmount: data.netAmount || null,
         counterpartyName: data.counterpartyName || null,
         counterpartyTaxNumber: data.counterpartyTaxNumber || null,
+        source: "manual" as const,
+        clientCompanyName: selectedClient?.name || null,
         lines: data.lines.map((line, idx) => ({
           ...line,
           lineNumber: idx + 1,
         })),
-      }),
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
       router.push("/invoices");

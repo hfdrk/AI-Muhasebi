@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,7 +10,6 @@ import {
   getScheduledReport,
   updateScheduledReport,
   listExecutionLogsForScheduled,
-  listReportDefinitions,
   listClientCompanies,
   getCurrentUser,
 } from "@repo/api-client";
@@ -37,7 +36,6 @@ type UpdateScheduledReportForm = z.infer<typeof updateScheduledReportSchema>;
 
 export default function ScheduledReportDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const queryClient = useQueryClient();
   const id = params.id as string;
   const [isEditing, setIsEditing] = useState(false);
@@ -66,10 +64,6 @@ export default function ScheduledReportDetailPage() {
     enabled: !!id,
   });
 
-  const { data: reportDefinitionsData } = useQuery({
-    queryKey: ["reportDefinitions"],
-    queryFn: () => listReportDefinitions(),
-  });
 
   const { data: clientsData } = useQuery({
     queryKey: ["clientCompanies"],
@@ -181,7 +175,6 @@ export default function ScheduledReportDetailPage() {
     );
   }
 
-  const reportDefinitions = reportDefinitionsData?.data || [];
   const clients = clientsData?.data.data || [];
 
   return (
