@@ -7,7 +7,8 @@ This document lists all routes and URLs in the AI Muhasebi project.
 All backend routes are prefixed with `/api/v1/` and require authentication (except auth routes).
 
 ### Health & Config
-- `GET /health` - Health check endpoint
+- `GET /health` - Health check endpoint (returns status and database connectivity)
+- `GET /ready` - Readiness check endpoint (returns 200 only when database is reachable, used by orchestration systems)
 - `GET /api/v1/config/check` - Config check endpoint (development only)
 
 ### Authentication (`/api/v1/auth`)
@@ -134,6 +135,14 @@ All backend routes are prefixed with `/api/v1/` and require authentication (exce
 ### Audit Logs (`/api/v1/audit-logs`)
 - `GET /api/v1/audit-logs` - List audit logs (with filters: user_id, action, resource_type, from, to, limit, offset, page, pageSize) - TenantOwner/Accountant only
 
+### Billing (`/api/v1/billing`)
+- `GET /api/v1/billing/subscription` - Get subscription details (TenantOwner/Accountant see full data, others see limited data)
+- `PUT /api/v1/billing/subscription` - Update subscription (TenantOwner only)
+- `GET /api/v1/billing/usage` - Get usage statistics (clientCompanies, documents, aiAnalyses, users, scheduledReports)
+
+### Onboarding (`/api/v1/onboarding`)
+- `GET /api/v1/onboarding/state` - Get onboarding state for tenant
+
 ---
 
 ## Frontend Routes (Next.js App Router)
@@ -195,6 +204,7 @@ All backend routes are prefixed with `/api/v1/` and require authentication (exce
 - `/ayarlar` - Settings root (redirects to `/ayarlar/ofis` or `/ayarlar/profil` based on role)
 - `/ayarlar/ofis` - Office/tenant settings
 - `/ayarlar/profil` - User profile settings
+- `/ayarlar/abonelik` - Subscription/billing page
 - `/ayarlar/denetim-kayitlari` - Audit logs page
 - `/settings/users` - Tenant users management page
 
@@ -224,9 +234,10 @@ All backend routes are prefixed with `/api/v1/` and require authentication (exce
 
 ## Summary Statistics
 
-- **Backend API Routes**: ~80+ endpoints
-- **Frontend Routes**: ~30+ pages
+- **Backend API Routes**: ~85+ endpoints
+- **Frontend Routes**: ~31+ pages
 - **Route Groups**: 
+  - Health & Config: 3 routes
   - Authentication: 5 routes
   - Users & Tenants: 8 routes
   - Client Companies: 8 routes (including bank accounts)
@@ -240,5 +251,7 @@ All backend routes are prefixed with `/api/v1/` and require authentication (exce
   - Notifications: 3 routes
   - Settings: 4 routes
   - Audit Logs: 1 route
+  - Billing: 3 routes
+  - Onboarding: 1 route
 
 
