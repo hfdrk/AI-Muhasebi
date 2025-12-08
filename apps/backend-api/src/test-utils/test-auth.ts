@@ -63,31 +63,83 @@ export async function createTestUser(
     });
     if (!tenant) {
       // Create tenant if it doesn't exist (prevents "No Tenant found" errors in tests)
+      // Use upsert to handle race conditions where tenant might be created by another test
+      const finalSlug = tenantSlug || `test-tenant-${tenantId}-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+      try {
+        tenant = await prisma.tenant.create({
+          data: {
+            id: tenantId,
+            name: tenantName || `Test Tenant ${tenantId}`,
+            slug: finalSlug,
+            taxNumber: `123456789${Date.now() % 10000}`,
+            settings: {},
+          },
+        });
+      } catch (error: any) {
+        // If unique constraint violation, try to find existing tenant
+        if (error?.code === "P2002") {
+          tenant = await prisma.tenant.findUnique({
+            where: { id: tenantId },
+          });
+          if (!tenant) {
+            // If still not found, try by slug
+            tenant = await prisma.tenant.findUnique({
+              where: { slug: finalSlug },
+            });
+          }
+        } else {
+          throw error;
+        }
+      }
+      // Ensure tenant is committed and visible
+      await prisma.$queryRaw`SELECT 1`;
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  } else {
+    // Ensure unique slug with timestamp and random string
+    const uniqueSlug = `${tenantSlug}-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    try {
       tenant = await prisma.tenant.create({
         data: {
-          id: tenantId,
-          name: tenantName || `Test Tenant ${tenantId}`,
-          slug: tenantSlug || `test-tenant-${tenantId}`,
+          name: tenantName,
+          slug: uniqueSlug,
           taxNumber: `123456789${Date.now() % 10000}`,
           settings: {},
         },
       });
-      // Ensure tenant is committed and visible
-      await prisma.$queryRaw`SELECT 1`;
-      await new Promise(resolve => setTimeout(resolve, 50));
+    } catch (error: any) {
+      // If unique constraint violation, retry with new slug
+      if (error?.code === "P2002") {
+        const retrySlug = `${tenantSlug}-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+        tenant = await prisma.tenant.create({
+          data: {
+            name: tenantName,
+            slug: retrySlug,
+            taxNumber: `123456789${Date.now() % 10000}`,
+            settings: {},
+          },
+        });
+      } else {
+        throw error;
+      }
     }
-  } else {
-    tenant = await prisma.tenant.create({
-      data: {
-        name: tenantName,
-        slug: tenantSlug,
-        taxNumber: `123456789${Date.now() % 10000}`,
-        settings: {},
-      },
-    });
     // Ensure tenant is committed and visible
     await prisma.$queryRaw`SELECT 1`;
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  
+  // Verify tenant is accessible before proceeding
+  if (!tenant) {
+    throw new Error("Failed to create or find tenant");
+  }
+  
+  // Double-check tenant is in database
+  const verifyTenant = await prisma.tenant.findUnique({
+    where: { id: tenant.id },
+  });
+  if (!verifyTenant) {
+    await prisma.$queryRaw`SELECT 1`;
+    await new Promise(resolve => setTimeout(resolve, 100));
   }
 
   // Step 2: Create user
@@ -105,6 +157,26 @@ export async function createTestUser(
   await new Promise(resolve => setTimeout(resolve, 50));
 
   // Step 3: Create or update membership (check if exists first, then create or update)
+  // Ensure both user and tenant are fully committed before creating membership
+  await prisma.$queryRaw`SELECT 1`;
+  await new Promise(resolve => setTimeout(resolve, 100));
+  
+  // Verify tenant exists
+  const verifyTenantAgain = await prisma.tenant.findUnique({
+    where: { id: tenant.id },
+  });
+  if (!verifyTenantAgain) {
+    throw new Error(`Tenant ${tenant.id} not found when creating membership`);
+  }
+  
+  // Verify user exists
+  const verifyUserAgain = await prisma.user.findUnique({
+    where: { id: user.id },
+  });
+  if (!verifyUserAgain) {
+    throw new Error(`User ${user.id} not found when creating membership`);
+  }
+  
   let membership = await prisma.userTenantMembership.findUnique({
     where: {
       userId_tenantId: {
@@ -126,19 +198,37 @@ export async function createTestUser(
       },
     });
   } else {
-    // Create new membership
-    membership = await prisma.userTenantMembership.create({
-      data: {
-        userId: user.id,
-        tenantId: tenant.id,
-        role,
-        status: "active",
-      },
-    });
+    // Create new membership - retry if foreign key error
+    let retries = 3;
+    while (retries > 0) {
+      try {
+        membership = await prisma.userTenantMembership.create({
+          data: {
+            userId: user.id,
+            tenantId: tenant.id,
+            role,
+            status: "active",
+          },
+        });
+        break;
+      } catch (error: any) {
+        if (error?.code === "P2003" && retries > 1) {
+          // Foreign key constraint - wait and retry
+          await prisma.$queryRaw`SELECT 1`;
+          await new Promise(resolve => setTimeout(resolve, 200));
+          retries--;
+          continue;
+        }
+        throw error;
+      }
+    }
+    if (!membership) {
+      throw new Error("Failed to create membership after retries");
+    }
   }
   // Ensure membership is committed and visible
   await prisma.$queryRaw`SELECT 1`;
-  await new Promise(resolve => setTimeout(resolve, 50));
+  await new Promise(resolve => setTimeout(resolve, 100));
 
   // Final verification: ensure user is visible by both email and ID
   // Retry a few times to ensure visibility across connections
@@ -182,7 +272,7 @@ export async function createTestUser(
     },
     membership: {
       id: membership.id,
-      role: membership.role,
+      role: membership.role as TenantRole,
     },
   };
 }
@@ -207,7 +297,6 @@ export async function getAuthToken(
     let lastError: any;
     const { getTestPrisma } = await import("./test-db.js");
     const prisma = getTestPrisma();
-    const normalizedEmail = email.toLowerCase().trim();
     
     // createTestUser already ensures visibility, so attempt login with retries
     for (let attempt = 0; attempt < 5; attempt++) {
@@ -291,11 +380,14 @@ export async function getAuthToken(
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: { message: "Login failed" } }));
+    const error = await response.json().catch(() => ({ error: { message: "Login failed" } })) as { error?: { message?: string } };
     throw new Error(`Failed to get auth token: ${error.error?.message || "Unknown error"}`);
   }
 
-  const data = await response.json();
+  const data = await response.json() as { data?: { accessToken?: string } };
+  if (!data.data?.accessToken) {
+    throw new Error("Failed to get auth token: accessToken not found in response");
+  }
   return data.data.accessToken;
 }
 

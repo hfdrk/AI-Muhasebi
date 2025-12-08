@@ -4,6 +4,7 @@ import { documentProcessor } from "./processors/document-processor";
 import { riskCalculationProcessor } from "./processors/risk-calculation-processor";
 import { integrationSyncProcessor } from "./processors/integration-sync-processor";
 import { integrationSyncScheduler } from "./schedulers/integration-sync-scheduler";
+import { scheduledReportRunner } from "./workers/scheduled-report-runner";
 import { prisma } from "./lib/prisma";
 
 // Validate environment variables at startup
@@ -14,6 +15,7 @@ const MAX_JOBS_PER_BATCH = 10;
 const RISK_CALCULATION_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours (daily)
 const INTEGRATION_SYNC_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 const INTEGRATION_SCHEDULER_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
+const SCHEDULED_REPORT_INTERVAL_MS = 60 * 1000; // 1 minute
 
 // Helper function for structured logging with timestamps
 function log(level: "info" | "error" | "warn", message: string, context?: Record<string, any>): void {
@@ -229,12 +231,24 @@ async function scheduleIntegrationSyncs(): Promise<void> {
   }
 }
 
+async function processScheduledReports(): Promise<void> {
+  try {
+    await scheduledReportRunner.runOnce();
+  } catch (error: any) {
+    log("error", "Error in scheduled reports processing loop", {
+      error: error.message,
+      stack: error.stack,
+    });
+  }
+}
+
 async function startWorker(): Promise<void> {
   log("info", "Worker jobs service starting", {
     documentProcessingInterval: `${POLL_INTERVAL_MS / 1000}s`,
     riskCalculationInterval: `${RISK_CALCULATION_INTERVAL_MS / (60 * 60 * 1000)}h`,
     integrationSyncInterval: `${INTEGRATION_SYNC_INTERVAL_MS / 1000}s`,
     integrationSchedulerInterval: `${INTEGRATION_SCHEDULER_INTERVAL_MS / 1000}s`,
+    scheduledReportInterval: `${SCHEDULED_REPORT_INTERVAL_MS / 1000}s`,
   });
 
   // Start document processing polling loop
@@ -257,11 +271,17 @@ async function startWorker(): Promise<void> {
     await scheduleIntegrationSyncs();
   }, INTEGRATION_SCHEDULER_INTERVAL_MS);
 
+  // Start scheduled report processing loop
+  setInterval(async () => {
+    await processScheduledReports();
+  }, SCHEDULED_REPORT_INTERVAL_MS);
+
   // Process immediately on startup
   log("info", "Running initial job processing on startup");
   await processPendingJobs();
   await processIntegrationSyncJobs();
   await scheduleIntegrationSyncs();
+  await processScheduledReports();
 
   // Run risk calculations once on startup (optional - can be removed if not desired)
   // await processScheduledRiskCalculations();

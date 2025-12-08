@@ -17,7 +17,7 @@ test.describe("Document & AI Analysis Flow", () => {
   test.beforeEach(async () => {
     testUser = await createTestUserViaAPI({
       email: `e2e-document-${Date.now()}@example.com`,
-      password: "Test123!@#",
+      password: "Test123!@#Pass",
       fullName: "E2E Document Test User",
       tenantName: `E2E Document Tenant ${Date.now()}`,
       tenantSlug: `e2e-document-${Date.now()}`,

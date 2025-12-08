@@ -13,7 +13,7 @@ try {
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import { validateEnv } from "@repo/config";
+import { validateEnv, getConfig } from "@repo/config";
 import { errorHandler } from "./middleware/error-handler";
 import authRoutes from "./routes/auth-routes";
 import userRoutes from "./routes/user-routes";
@@ -28,6 +28,13 @@ import documentAIRoutes from "./routes/document-ai-routes";
 import riskRoutes from "./routes/risk-routes";
 import riskAlertRoutes from "./routes/risk-alert-routes";
 import integrationRoutes from "./routes/integration-routes";
+import reportingRoutes from "./routes/reporting-routes";
+import reportDownloadRoutes from "./routes/report-download-routes";
+import scheduledReportsRoutes from "./routes/scheduled-reports-routes";
+import reportExecutionLogsRoutes from "./routes/report-execution-logs-routes";
+import notificationRoutes from "./routes/notification-routes";
+import settingsRoutes from "./routes/settings-routes";
+import auditLogsRoutes from "./routes/audit-logs-routes";
 
 // Resolve database URL asynchronously and update if needed
 resolveDatabaseUrl()
@@ -71,6 +78,22 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+// Config check endpoint (development only)
+if (process.env.NODE_ENV !== "production") {
+  app.get("/api/v1/config/check", (req, res) => {
+    const config = getConfig();
+    res.json({
+      REPORTING_ENABLED: config.REPORTING_ENABLED ?? "undefined",
+      PDF_EXPORT_ENABLED: config.PDF_EXPORT_ENABLED ?? "undefined",
+      EXCEL_EXPORT_ENABLED: config.EXCEL_EXPORT_ENABLED ?? "undefined",
+      SCHEDULED_REPORTS_ENABLED: config.SCHEDULED_REPORTS_ENABLED ?? "undefined",
+      env_REPORTING_ENABLED: process.env.REPORTING_ENABLED,
+      NODE_ENV: process.env.NODE_ENV,
+      configKeys: Object.keys(config).filter(k => k.includes("REPORT") || k.includes("EXPORT") || k.includes("SCHEDULED")),
+    });
+  });
+}
+
 // API routes
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
@@ -85,6 +108,13 @@ app.use("/api/v1/documents", documentAIRoutes);
 app.use("/api/v1/risk", riskRoutes);
 app.use("/api/v1/risk/alerts", riskAlertRoutes);
 app.use("/api/v1/integrations", integrationRoutes);
+app.use("/api/v1/reports", reportingRoutes);
+app.use("/api/v1/reports", reportDownloadRoutes);
+app.use("/api/v1/scheduled-reports", scheduledReportsRoutes);
+app.use("/api/v1/report-execution-logs", reportExecutionLogsRoutes);
+app.use("/api/v1/notifications", notificationRoutes);
+app.use("/api/v1/settings", settingsRoutes);
+app.use("/api/v1/audit-logs", auditLogsRoutes);
 
 // Error handler (must be last)
 app.use(errorHandler);

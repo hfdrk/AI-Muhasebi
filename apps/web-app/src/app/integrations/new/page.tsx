@@ -10,14 +10,22 @@ export default function NewIntegrationPage() {
   const type = (searchParams.get("type") as "accounting" | "bank") || undefined;
 
   const handleClose = () => {
-    router.push("/integrations");
+    // Restore body overflow before navigation to prevent DOM manipulation errors
+    document.body.style.overflow = "unset";
+    // Use setTimeout to ensure cleanup completes before navigation
+    setTimeout(() => {
+      router.push("/integrations");
+    }, 0);
   };
 
   // Prevent body scroll when modal is open
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = "unset";
+      // Ensure cleanup happens on unmount
+      if (document.body) {
+        document.body.style.overflow = "unset";
+      }
     };
   }, []);
 

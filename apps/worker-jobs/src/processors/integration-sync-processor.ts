@@ -3,6 +3,35 @@ import { connectorRegistry } from "../integrations/connectors/connector-registry
 import { InvoiceImporter } from "../integrations/importers/invoice-importer";
 import { BankTransactionImporter } from "../integrations/importers/bank-transaction-importer";
 
+// Use dynamic imports to load services from backend-api at runtime
+async function getNotificationService() {
+  try {
+    const module = await import("../../../backend-api/src/services/notification-service.js");
+    return module.notificationService;
+  } catch (error1) {
+    try {
+      const module = await import("../../../backend-api/src/services/notification-service");
+      return module.notificationService;
+    } catch (error2) {
+      throw new Error(`Failed to load NotificationService: ${error1.message}, ${error2.message}`);
+    }
+  }
+}
+
+async function getEmailService() {
+  try {
+    const module = await import("../../../backend-api/src/services/email-service.js");
+    return module.emailService;
+  } catch (error1) {
+    try {
+      const module = await import("../../../backend-api/src/services/email-service");
+      return module.emailService;
+    } catch (error2) {
+      throw new Error(`Failed to load EmailService: ${error1.message}, ${error2.message}`);
+    }
+  }
+}
+
 export class IntegrationSyncProcessor {
   private invoiceImporter = new InvoiceImporter();
   private bankTransactionImporter = new BankTransactionImporter();
@@ -174,6 +203,59 @@ export class IntegrationSyncProcessor {
           },
         },
       });
+
+      // Create notification for integration sync failure
+      try {
+        const notificationService = await getNotificationService();
+        const emailService = await getEmailService();
+
+        const notification = await notificationService.createNotification({
+          tenantId: job.tenantId,
+          userId: null, // Tenant-wide notification
+          type: "INTEGRATION_SYNC",
+          title: "Entegrasyon senkronizasyon hatası",
+          message: `${job.tenantIntegration.displayName || job.tenantIntegration.provider.name} için senkronizasyon başarısız oldu.`,
+          meta: {
+            integrationId: job.tenantIntegrationId,
+            jobId: jobId,
+          },
+        });
+
+        // Send email notification (stub) - for MVP, send to tenant owners
+        try {
+          const tenantMembers = await prisma.userTenantMembership.findMany({
+            where: {
+              tenantId: job.tenantId,
+              status: "active",
+              role: "TenantOwner",
+            },
+            include: {
+              user: {
+                select: { email: true },
+              },
+            },
+          });
+
+          const recipientEmails = tenantMembers
+            .map((m) => m.user.email)
+            .filter((email): email is string => email !== null);
+
+          if (recipientEmails.length > 0) {
+            await emailService.sendNotificationEmail(
+              recipientEmails,
+              "INTEGRATION_SYNC",
+              notification.title,
+              notification.message
+            );
+          }
+        } catch (emailError: any) {
+          // Don't fail notification creation if email fails
+          console.error("[IntegrationSyncProcessor] Failed to send notification email:", emailError);
+        }
+      } catch (notificationError: any) {
+        // Don't fail sync processing if notification fails
+        console.error("[IntegrationSyncProcessor] Failed to create notification:", notificationError);
+      }
 
       throw error;
     }

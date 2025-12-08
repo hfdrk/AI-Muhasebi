@@ -32,6 +32,16 @@ router.get(
           },
         });
       }
+      // Handle NotFoundError specifically
+      if (error.name === "NotFoundError" || error.message?.includes("bulunamadı")) {
+        return res.status(404).json({
+          error: {
+            message: error.message || "Belge bulunamadı.",
+          },
+        });
+      }
+      // Log unexpected errors
+      console.error("Error fetching AI analysis:", error);
       throw error;
     }
   }

@@ -1,0 +1,46 @@
+{
+  "title": "Bildirimler",
+  "unread": "Okunmamış",
+  "read": "Okundu",
+  "markAllAsRead": "Tümünü okundu işaretle",
+  "viewAll": "Tüm bildirimleri gör",
+  "noNotifications": "Bu kriterlere uygun bildirim bulunamadı.",
+  "new": "Yeni",
+  "types": {
+    "RISK_ALERT": "Risk uyarıları",
+    "SCHEDULED_REPORT": "Raporlar",
+    "INTEGRATION_SYNC": "Entegrasyonlar",
+    "SYSTEM": "Sistem"
+  },
+  "status": {
+    "all": "Tümü",
+    "unread": "Okunmamış",
+    "read": "Okunmuş"
+  },
+  "type": {
+    "all": "Tümü",
+    "RISK_ALERT": "Risk uyarıları",
+    "SCHEDULED_REPORT": "Raporlar",
+    "INTEGRATION_SYNC": "Entegrasyonlar",
+    "SYSTEM": "Sistem"
+  },
+  "columns": {
+    "title": "Başlık",
+    "message": "Mesaj",
+    "type": "Tür",
+    "status": "Durum",
+    "createdAt": "Oluşturulma Zamanı"
+  },
+  "titles": {
+    "riskAlert": "Yeni risk uyarısı",
+    "scheduledReportError": "Zamanlanmış rapor çalıştırma hatası",
+    "integrationSyncError": "Entegrasyon senkronizasyon hatası"
+  },
+  "timeAgo": {
+    "justNow": "Az önce",
+    "minutesAgo": "{{count}} dakika önce",
+    "hoursAgo": "{{count}} saat önce",
+    "daysAgo": "{{count}} gün önce"
+  }
+}
+

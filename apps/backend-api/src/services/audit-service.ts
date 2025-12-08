@@ -9,6 +9,9 @@ export class AuditService {
           tenantId: input.tenantId ?? null,
           userId: input.userId ?? null,
           action: input.action,
+          resourceType: input.resourceType ?? null,
+          resourceId: input.resourceId ?? null,
+          ipAddress: input.ipAddress ?? null,
           metadata: (input.metadata ?? {}) as any,
         },
       });

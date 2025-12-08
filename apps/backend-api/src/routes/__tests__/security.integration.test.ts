@@ -507,7 +507,7 @@ describe("Security Tests", () => {
       // Should return 400 for validation error
       expect(response.status).toBe(400);
       expect(response.body.error).toBeDefined();
-      expect(response.body.error.message).toContain("kısa ad");
+      expect(response.body.error.message.toLowerCase()).toContain("kısa ad");
     });
 
     it("should sanitize numeric inputs", async () => {

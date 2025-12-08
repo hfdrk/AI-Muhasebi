@@ -23,6 +23,7 @@ model User {
 
   memberships UserTenantMembership[]
   auditLogs   AuditLog[]
+  userSettings UserSettings?
   uploadedDocuments Document[]
   resolvedRiskAlerts RiskAlert[]
   passwordResetTokens PasswordResetToken[]
@@ -45,6 +46,7 @@ model Tenant {
 
   memberships        UserTenantMembership[]
   auditLogs          AuditLog[]
+  tenantSettings     TenantSettings?
   clientCompanies    ClientCompany[]
   invoices           Invoice[]
   transactions       Transaction[]
@@ -88,12 +90,15 @@ model UserTenantMembership {
 }
 
 model AuditLog {
-  id        String    @id @default(cuid())
-  tenantId  String?   @map("tenant_id")
-  userId    String?   @map("user_id")
-  action    String    @db.VarChar(100) // LOGIN_SUCCESS, LOGIN_FAILED, etc.
-  metadata  Json?     @default("{}")
-  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  id           String   @id @default(cuid())
+  tenantId     String?  @map("tenant_id")
+  userId       String?  @map("user_id")
+  action       String   @db.VarChar(100) // LOGIN_SUCCESS, LOGIN_FAILED, etc.
+  resourceType String?  @map("resource_type") @db.VarChar(100)
+  resourceId   String?  @map("resource_id") @db.VarChar(255)
+  ipAddress    String?  @map("ip_address") @db.VarChar(45)
+  metadata     Json?    @default("{}")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
   user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -101,8 +106,43 @@ model AuditLog {
   @@index([tenantId])
   @@index([userId])
   @@index([action])
+  @@index([resourceType])
+  @@index([resourceId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+model TenantSettings {
+  id                 String   @id @default(cuid())
+  tenantId           String   @unique @map("tenant_id")
+  displayName        String?  @map("display_name") @db.VarChar(255)
+  logoUrl            String?  @map("logo_url") @db.VarChar(500)
+  locale             String   @default("tr-TR") @db.VarChar(10)
+  timezone           String   @default("Europe/Istanbul") @db.VarChar(50)
+  emailFromName      String?  @map("email_from_name") @db.VarChar(255)
+  riskThresholds     Json     @default("{\"high\":70,\"critical\":90}") @map("risk_thresholds")
+  defaultReportPeriod String   @default("LAST_30_DAYS") @map("default_report_period") @db.VarChar(50)
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_settings")
+}
+
+model UserSettings {
+  id                        String   @id @default(cuid())
+  userId                    String   @unique @map("user_id")
+  locale                    String?  @db.VarChar(10)
+  timezone                  String?  @db.VarChar(50)
+  emailNotificationsEnabled Boolean  @default(true) @map("email_notifications_enabled")
+  inAppNotificationsEnabled Boolean  @default(true) @map("in_app_notifications_enabled")
+  createdAt                 DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                 DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
 }
 
 model PasswordResetToken {

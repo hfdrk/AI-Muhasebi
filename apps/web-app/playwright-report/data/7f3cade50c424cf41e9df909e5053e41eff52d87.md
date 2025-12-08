@@ -1,0 +1,76 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - link "AI Muhasebi" [ref=e4] [cursor=pointer]:
+        - /url: /dashboard
+        - heading "AI Muhasebi" [level=1] [ref=e5]
+      - navigation [ref=e6]:
+        - link "Risk Panosu" [ref=e7] [cursor=pointer]:
+          - /url: /risk/dashboard
+        - link "Risk Uyarıları" [ref=e8] [cursor=pointer]:
+          - /url: /risk/alerts
+        - link "Belgeler" [ref=e9] [cursor=pointer]:
+          - /url: /documents
+        - link "Raporlar" [ref=e10] [cursor=pointer]:
+          - /url: /raporlar/anlik
+        - generic [ref=e11]: "Şirket / Ofis: E2E Client Tenant 1765163051363"
+        - link "Kullanıcı Yönetimi" [ref=e12] [cursor=pointer]:
+          - /url: /settings/users
+    - main [ref=e13]:
+      - generic [ref=e14]:
+        - generic [ref=e15]:
+          - heading "E2E Company 1765163052815" [level=1] [ref=e16]
+          - generic [ref=e17]:
+            - link "Düzenle" [ref=e18] [cursor=pointer]:
+              - /url: /clients/cmiwkiffa005f36cwzqj3pdtb/edit
+            - link "Geri" [ref=e19] [cursor=pointer]:
+              - /url: /clients
+        - generic [ref=e21]:
+          - button "Genel Bilgiler" [ref=e22] [cursor=pointer]
+          - button "Banka Hesapları" [ref=e23] [cursor=pointer]
+          - button "Faturalar" [ref=e24] [cursor=pointer]
+          - button "Mali Hareketler" [ref=e25] [cursor=pointer]
+          - button "Belgeler" [ref=e26] [cursor=pointer]
+          - button "Risk Analizi" [ref=e27] [cursor=pointer]
+        - generic [ref=e28]:
+          - generic [ref=e29]:
+            - strong [ref=e30]: "Şirket Adı:"
+            - text: E2E Company 1765163052815
+          - generic [ref=e31]:
+            - strong [ref=e32]: "Şirket Türü:"
+            - text: Limited
+          - generic [ref=e33]:
+            - strong [ref=e34]: "Vergi Numarası:"
+            - text: "1765163052815"
+          - generic [ref=e35]:
+            - strong [ref=e36]: "Ticaret Sicil No:"
+            - text: "-"
+          - generic [ref=e37]:
+            - strong [ref=e38]: "Sektör:"
+            - text: "-"
+          - generic [ref=e39]:
+            - strong [ref=e40]: "Durum:"
+            - text: Aktif
+          - generic [ref=e41]:
+            - strong [ref=e42]: "İlgili Kişi:"
+            - text: "-"
+          - generic [ref=e43]:
+            - strong [ref=e44]: "Telefon:"
+            - text: "-"
+          - generic [ref=e45]:
+            - strong [ref=e46]: "E-posta:"
+            - text: "-"
+          - generic [ref=e47]:
+            - strong [ref=e48]: "Adres:"
+            - text: "-"
+          - generic [ref=e49]:
+            - strong [ref=e50]: "Fatura Sayısı:"
+            - text: "0"
+          - generic [ref=e51]:
+            - strong [ref=e52]: "Mali Hareket Sayısı:"
+            - text: "0"
+  - alert [ref=e53]
+```

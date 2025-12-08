@@ -6,6 +6,8 @@ import type {
   UpdateRiskAlertInput,
   RiskAlertStatus,
 } from "@repo/core-domain";
+import { notificationService } from "./notification-service";
+import { emailService } from "./email-service";
 
 export class RiskAlertService {
   private mapToRiskAlert(alert: any): RiskAlert {
@@ -71,6 +73,69 @@ export class RiskAlertService {
         status: input.status || "open",
       },
     });
+
+    // Create notification for risk alert
+    try {
+      // Get client company name if available
+      let companyName = "Bir şirket";
+      if (input.clientCompanyId) {
+        const company = await prisma.clientCompany.findUnique({
+          where: { id: input.clientCompanyId },
+          select: { name: true },
+        });
+        if (company) {
+          companyName = company.name;
+        }
+      }
+
+      const notification = await notificationService.createNotification({
+        tenantId: input.tenantId,
+        userId: null, // Tenant-wide notification
+        type: "RISK_ALERT",
+        title: "Yeni risk uyarısı",
+        message: `${companyName} için yüksek riskli bir belge tespit edildi.`,
+        meta: {
+          riskAlertId: alert.id,
+          clientCompanyId: input.clientCompanyId,
+          documentId: input.documentId,
+        },
+      });
+
+      // Send email notification (stub) - for MVP, send to tenant owners
+      try {
+        const tenantMembers = await prisma.userTenantMembership.findMany({
+          where: {
+            tenantId: input.tenantId,
+            status: "active",
+            role: "TenantOwner",
+          },
+          include: {
+            user: {
+              select: { email: true },
+            },
+          },
+        });
+
+        const recipientEmails = tenantMembers
+          .map((m) => m.user.email)
+          .filter((email): email is string => email !== null);
+
+        if (recipientEmails.length > 0) {
+          await emailService.sendNotificationEmail(
+            recipientEmails,
+            "RISK_ALERT",
+            notification.title,
+            notification.message
+          );
+        }
+      } catch (emailError: any) {
+        // Don't fail notification creation if email fails
+        console.error("[RiskAlertService] Failed to send notification email:", emailError);
+      }
+    } catch (notificationError: any) {
+      // Don't fail alert creation if notification fails
+      console.error("[RiskAlertService] Failed to create notification:", notificationError);
+    }
 
     return this.mapToRiskAlert(alert);
   }

@@ -101,7 +101,7 @@ router.post(
       res.status(201).json({ data: invoice });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
+        return next(new ValidationError(error.errors?.[0]?.message || "Geçersiz bilgiler."));
       }
       next(error);
     }
@@ -127,7 +127,7 @@ router.patch(
       res.json({ data: invoice });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
+        return next(new ValidationError(error.errors?.[0]?.message || "Geçersiz bilgiler."));
       }
       next(error);
     }
@@ -152,7 +152,7 @@ router.patch(
       res.json({ data: invoice });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
+        return next(new ValidationError(error.errors?.[0]?.message || "Geçersiz bilgiler."));
       }
       next(error);
     }

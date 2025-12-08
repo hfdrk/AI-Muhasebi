@@ -11,59 +11,68 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique @db.VarChar(255)
-  hashedPassword String   @map("hashed_password") @db.VarChar(255)
-  fullName      String    @map("full_name") @db.VarChar(255)
-  locale        String    @default("tr-TR") @db.VarChar(10)
-  isActive      Boolean   @default(true) @map("is_active")
-  lastLoginAt   DateTime? @map("last_login_at") @db.Timestamptz(6)
-  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id             String    @id @default(cuid())
+  email          String    @unique @db.VarChar(255)
+  hashedPassword String    @map("hashed_password") @db.VarChar(255)
+  fullName       String    @map("full_name") @db.VarChar(255)
+  locale         String    @default("tr-TR") @db.VarChar(10)
+  isActive       Boolean   @default(true) @map("is_active")
+  lastLoginAt    DateTime? @map("last_login_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  memberships UserTenantMembership[]
-  auditLogs   AuditLog[]
-  uploadedDocuments Document[]
-  resolvedRiskAlerts RiskAlert[]
-  passwordResetTokens PasswordResetToken[]
+  memberships             UserTenantMembership[]
+  auditLogs               AuditLog[]
+  userSettings            UserSettings?
+  uploadedDocuments       Document[]
+  resolvedRiskAlerts      RiskAlert[]
+  passwordResetTokens     PasswordResetToken[]
+  createdReportExecutions ReportExecutionLog[]
+  notifications           Notification[]
+  notificationPreferences NotificationPreference[]
 
   @@index([email])
   @@map("users")
 }
 
 model Tenant {
-  id         String    @id @default(cuid())
-  name       String    @db.VarChar(255)
-  slug       String    @unique @db.VarChar(100)
-  taxNumber  String?   @map("tax_number") @db.VarChar(50)
-  phone      String?   @db.VarChar(50)
-  email      String?   @db.VarChar(255)
-  address    String?   @db.Text
-  settings   Json?     @default("{}")
-  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id        String   @id @default(cuid())
+  name      String   @db.VarChar(255)
+  slug      String   @unique @db.VarChar(100)
+  taxNumber String?  @map("tax_number") @db.VarChar(50)
+  phone     String?  @db.VarChar(50)
+  email     String?  @db.VarChar(255)
+  address   String?  @db.Text
+  settings  Json?    @default("{}")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  memberships        UserTenantMembership[]
-  auditLogs          AuditLog[]
-  clientCompanies    ClientCompany[]
-  invoices           Invoice[]
-  transactions       Transaction[]
-  ledgerAccounts     LedgerAccount[]
-  bankAccounts       ClientCompanyBankAccount[]
-  invoiceLines       InvoiceLine[]
-  transactionLines   TransactionLine[]
-  documents          Document[]
-  documentProcessingJobs DocumentProcessingJob[]
-  documentOCRResults DocumentOCRResult[]
-  documentParsedData DocumentParsedData[]
-  documentRiskFeatures DocumentRiskFeatures[]
-  riskRules RiskRule[]
-  documentRiskScores DocumentRiskScore[]
+  memberships             UserTenantMembership[]
+  auditLogs               AuditLog[]
+  tenantSettings          TenantSettings?
+  clientCompanies         ClientCompany[]
+  invoices                Invoice[]
+  transactions            Transaction[]
+  ledgerAccounts          LedgerAccount[]
+  bankAccounts            ClientCompanyBankAccount[]
+  invoiceLines            InvoiceLine[]
+  transactionLines        TransactionLine[]
+  documents               Document[]
+  documentProcessingJobs  DocumentProcessingJob[]
+  documentOCRResults      DocumentOCRResult[]
+  documentParsedData      DocumentParsedData[]
+  documentRiskFeatures    DocumentRiskFeatures[]
+  riskRules               RiskRule[]
+  documentRiskScores      DocumentRiskScore[]
   clientCompanyRiskScores ClientCompanyRiskScore[]
-  riskAlerts RiskAlert[]
-  tenantIntegrations TenantIntegration[]
-  integrationSyncJobs IntegrationSyncJob[]
-  integrationSyncLogs IntegrationSyncLog[]
+  riskAlerts              RiskAlert[]
+  tenantIntegrations      TenantIntegration[]
+  integrationSyncJobs     IntegrationSyncJob[]
+  integrationSyncLogs     IntegrationSyncLog[]
+  scheduledReports        ScheduledReport[]
+  reportExecutionLogs     ReportExecutionLog[]
+  notifications           Notification[]
+  notificationPreferences NotificationPreference[]
 
   @@index([slug])
   @@map("tenants")
@@ -88,12 +97,15 @@ model UserTenantMembership {
 }
 
 model AuditLog {
-  id        String    @id @default(cuid())
-  tenantId  String?   @map("tenant_id")
-  userId    String?   @map("user_id")
-  action    String    @db.VarChar(100) // LOGIN_SUCCESS, LOGIN_FAILED, etc.
-  metadata  Json?     @default("{}")
-  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  id           String   @id @default(cuid())
+  tenantId     String?  @map("tenant_id")
+  userId       String?  @map("user_id")
+  action       String   @db.VarChar(100) // LOGIN_SUCCESS, LOGIN_FAILED, etc.
+  resourceType String?  @map("resource_type") @db.VarChar(100)
+  resourceId   String?  @map("resource_id") @db.VarChar(255)
+  ipAddress    String?  @map("ip_address") @db.VarChar(45)
+  metadata     Json?    @default("{}")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
   user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -101,8 +113,43 @@ model AuditLog {
   @@index([tenantId])
   @@index([userId])
   @@index([action])
+  @@index([resourceType])
+  @@index([resourceId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+model TenantSettings {
+  id                 String   @id @default(cuid())
+  tenantId           String   @unique @map("tenant_id")
+  displayName        String?  @map("display_name") @db.VarChar(255)
+  logoUrl            String?  @map("logo_url") @db.VarChar(500)
+  locale             String   @default("tr-TR") @db.VarChar(10)
+  timezone           String   @default("Europe/Istanbul") @db.VarChar(50)
+  emailFromName      String?  @map("email_from_name") @db.VarChar(255)
+  riskThresholds     Json     @default("{\"high\":70,\"critical\":90}") @map("risk_thresholds")
+  defaultReportPeriod String   @default("LAST_30_DAYS") @map("default_report_period") @db.VarChar(50)
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_settings")
+}
+
+model UserSettings {
+  id                        String   @id @default(cuid())
+  userId                    String   @unique @map("user_id")
+  locale                    String?  @db.VarChar(10)
+  timezone                  String?  @db.VarChar(50)
+  emailNotificationsEnabled Boolean  @default(true) @map("email_notifications_enabled")
+  inAppNotificationsEnabled Boolean  @default(true) @map("in_app_notifications_enabled")
+  createdAt                 DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                 DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
 }
 
 model PasswordResetToken {
@@ -136,15 +183,16 @@ model ClientCompany {
   createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  tenant        Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  bankAccounts  ClientCompanyBankAccount[]
-  invoices      Invoice[]
-  transactions  Transaction[]
-  documents     Document[]
-  riskScores    ClientCompanyRiskScore[]
-  riskAlerts    RiskAlert[]
-  tenantIntegrations TenantIntegration[]
+  tenant              Tenant                     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  bankAccounts        ClientCompanyBankAccount[]
+  invoices            Invoice[]
+  transactions        Transaction[]
+  documents           Document[]
+  riskScores          ClientCompanyRiskScore[]
+  riskAlerts          RiskAlert[]
+  tenantIntegrations  TenantIntegration[]
   integrationSyncJobs IntegrationSyncJob[]
+  scheduledReports    ScheduledReport[]
 
   @@unique([tenantId, taxNumber])
   @@index([tenantId])
@@ -153,18 +201,18 @@ model ClientCompany {
 }
 
 model ClientCompanyBankAccount {
-  id            String    @id @default(cuid())
-  tenantId      String    @map("tenant_id")
-  clientCompanyId String  @map("client_company_id")
-  bankName      String    @map("bank_name") @db.VarChar(255)
-  iban          String    @db.VarChar(34)
-  accountNumber String?   @map("account_number") @db.VarChar(50)
-  currency      String    @default("TRY") @db.VarChar(3)
-  isPrimary     Boolean   @default(false) @map("is_primary")
-  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id              String   @id @default(cuid())
+  tenantId        String   @map("tenant_id")
+  clientCompanyId String   @map("client_company_id")
+  bankName        String   @map("bank_name") @db.VarChar(255)
+  iban            String   @db.VarChar(34)
+  accountNumber   String?  @map("account_number") @db.VarChar(50)
+  currency        String   @default("TRY") @db.VarChar(3)
+  isPrimary       Boolean  @default(false) @map("is_primary")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  tenant        Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   clientCompany ClientCompany @relation(fields: [clientCompanyId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
@@ -173,27 +221,27 @@ model ClientCompanyBankAccount {
 }
 
 model Invoice {
-  id                  String    @id @default(cuid())
-  tenantId            String    @map("tenant_id")
-  clientCompanyId     String    @map("client_company_id")
-  externalId          String?   @map("external_id") @db.VarChar(255)
-  type                String    @db.VarChar(50) // SATIŞ, ALIŞ
-  issueDate           DateTime  @map("issue_date") @db.Timestamptz(6)
-  dueDate             DateTime? @map("due_date") @db.Timestamptz(6)
-  totalAmount         Decimal   @map("total_amount") @db.Decimal(15, 2)
-  currency            String    @default("TRY") @db.VarChar(3)
-  taxAmount           Decimal   @map("tax_amount") @db.Decimal(15, 2)
-  netAmount           Decimal?   @map("net_amount") @db.Decimal(15, 2)
-  counterpartyName    String?   @map("counterparty_name") @db.VarChar(255)
-  counterpartyTaxNumber String? @map("counterparty_tax_number") @db.VarChar(50)
-  status              String    @default("taslak") @db.VarChar(50) // taslak, kesildi, iptal, muhasebeleştirilmiş
-  source              String    @default("manual") @db.VarChar(50) // manual, import, integration
-  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt           DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                    String    @id @default(cuid())
+  tenantId              String    @map("tenant_id")
+  clientCompanyId       String    @map("client_company_id")
+  externalId            String?   @map("external_id") @db.VarChar(255)
+  type                  String    @db.VarChar(50) // SATIŞ, ALIŞ
+  issueDate             DateTime  @map("issue_date") @db.Timestamptz(6)
+  dueDate               DateTime? @map("due_date") @db.Timestamptz(6)
+  totalAmount           Decimal   @map("total_amount") @db.Decimal(15, 2)
+  currency              String    @default("TRY") @db.VarChar(3)
+  taxAmount             Decimal   @map("tax_amount") @db.Decimal(15, 2)
+  netAmount             Decimal?  @map("net_amount") @db.Decimal(15, 2)
+  counterpartyName      String?   @map("counterparty_name") @db.VarChar(255)
+  counterpartyTaxNumber String?   @map("counterparty_tax_number") @db.VarChar(50)
+  status                String    @default("taslak") @db.VarChar(50) // taslak, kesildi, iptal, muhasebeleştirilmiş
+  source                String    @default("manual") @db.VarChar(50) // manual, import, integration
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  tenant        Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  clientCompany ClientCompany @relation(fields: [clientCompanyId], references: [id], onDelete: Cascade)
-  lines         InvoiceLine[]
+  tenant           Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientCompany    ClientCompany @relation(fields: [clientCompanyId], references: [id], onDelete: Cascade)
+  lines            InvoiceLine[]
   relatedDocuments Document[]
 
   @@index([tenantId])
@@ -226,16 +274,16 @@ model InvoiceLine {
 }
 
 model LedgerAccount {
-  id        String    @id @default(cuid())
-  tenantId  String    @map("tenant_id")
-  code      String    @db.VarChar(50)
-  name      String    @db.VarChar(255)
-  type      String    @db.VarChar(50) // asset, liability, equity, income, expense
-  isActive  Boolean   @default(true) @map("is_active")
-  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id        String   @id @default(cuid())
+  tenantId  String   @map("tenant_id")
+  code      String   @db.VarChar(50)
+  name      String   @db.VarChar(255)
+  type      String   @db.VarChar(50) // asset, liability, equity, income, expense
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  tenant        Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   transactionLines TransactionLine[]
 
   @@unique([tenantId, code])
@@ -245,20 +293,20 @@ model LedgerAccount {
 }
 
 model Transaction {
-  id            String    @id @default(cuid())
-  tenantId      String    @map("tenant_id")
-  clientCompanyId String? @map("client_company_id")
-  externalId    String?   @map("external_id") @db.VarChar(255)
-  date          DateTime  @db.Timestamptz(6)
-  referenceNo   String?   @map("reference_no") @db.VarChar(100)
-  description   String?   @db.Text
-  source        String    @default("manual") @db.VarChar(50) // manual, import, integration
-  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id              String   @id @default(cuid())
+  tenantId        String   @map("tenant_id")
+  clientCompanyId String?  @map("client_company_id")
+  externalId      String?  @map("external_id") @db.VarChar(255)
+  date            DateTime @db.Timestamptz(6)
+  referenceNo     String?  @map("reference_no") @db.VarChar(100)
+  description     String?  @db.Text
+  source          String   @default("manual") @db.VarChar(50) // manual, import, integration
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  tenant        Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  clientCompany ClientCompany?   @relation(fields: [clientCompanyId], references: [id], onDelete: SetNull)
-  lines         TransactionLine[]
+  tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientCompany    ClientCompany?    @relation(fields: [clientCompanyId], references: [id], onDelete: SetNull)
+  lines            TransactionLine[]
   relatedDocuments Document[]
 
   @@index([tenantId])
@@ -269,19 +317,19 @@ model Transaction {
 }
 
 model TransactionLine {
-  id            String    @id @default(cuid())
-  tenantId      String    @map("tenant_id")
-  transactionId String    @map("transaction_id")
-  ledgerAccountId String  @map("ledger_account_id")
-  debitAmount   Decimal   @map("debit_amount") @db.Decimal(15, 2)
-  creditAmount  Decimal   @map("credit_amount") @db.Decimal(15, 2)
-  description   String?   @db.Text
-  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id              String   @id @default(cuid())
+  tenantId        String   @map("tenant_id")
+  transactionId   String   @map("transaction_id")
+  ledgerAccountId String   @map("ledger_account_id")
+  debitAmount     Decimal  @map("debit_amount") @db.Decimal(15, 2)
+  creditAmount    Decimal  @map("credit_amount") @db.Decimal(15, 2)
+  description     String?  @db.Text
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  transaction    Transaction     @relation(fields: [transactionId], references: [id], onDelete: Cascade)
-  ledgerAccount  LedgerAccount   @relation(fields: [ledgerAccountId], references: [id], onDelete: Restrict)
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  transaction   Transaction   @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  ledgerAccount LedgerAccount @relation(fields: [ledgerAccountId], references: [id], onDelete: Restrict)
 
   @@index([tenantId])
   @@index([transactionId])
@@ -290,36 +338,36 @@ model TransactionLine {
 }
 
 model Document {
-  id                    String    @id @default(cuid())
-  tenantId              String    @map("tenant_id")
-  clientCompanyId       String    @map("client_company_id")
-  relatedInvoiceId      String?   @map("related_invoice_id")
-  relatedTransactionId  String?   @map("related_transaction_id")
-  type                  String    @db.VarChar(50) // INVOICE, BANK_STATEMENT, RECEIPT, OTHER
-  originalFileName      String    @map("original_file_name") @db.VarChar(500)
-  storagePath           String    @map("storage_path") @db.VarChar(1000)
-  mimeType              String    @map("mime_type") @db.VarChar(100)
-  fileSizeBytes         BigInt    @map("file_size_bytes")
-  uploadUserId          String    @map("upload_user_id")
-  uploadSource          String    @default("manual") @map("upload_source") @db.VarChar(50) // manual, email_import, integration
-  status                String    @default("UPLOADED") @db.VarChar(50) // UPLOADED, PROCESSING, PROCESSED, FAILED
-  processingErrorMessage String?  @map("processing_error_message") @db.Text
-  processedAt           DateTime? @map("processed_at") @db.Timestamptz(6)
-  isDeleted             Boolean   @default(false) @map("is_deleted")
-  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt             DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                     String    @id @default(cuid())
+  tenantId               String    @map("tenant_id")
+  clientCompanyId        String    @map("client_company_id")
+  relatedInvoiceId       String?   @map("related_invoice_id")
+  relatedTransactionId   String?   @map("related_transaction_id")
+  type                   String    @db.VarChar(50) // INVOICE, BANK_STATEMENT, RECEIPT, OTHER
+  originalFileName       String    @map("original_file_name") @db.VarChar(500)
+  storagePath            String    @map("storage_path") @db.VarChar(1000)
+  mimeType               String    @map("mime_type") @db.VarChar(100)
+  fileSizeBytes          BigInt    @map("file_size_bytes")
+  uploadUserId           String    @map("upload_user_id")
+  uploadSource           String    @default("manual") @map("upload_source") @db.VarChar(50) // manual, email_import, integration
+  status                 String    @default("UPLOADED") @db.VarChar(50) // UPLOADED, PROCESSING, PROCESSED, FAILED
+  processingErrorMessage String?   @map("processing_error_message") @db.Text
+  processedAt            DateTime? @map("processed_at") @db.Timestamptz(6)
+  isDeleted              Boolean   @default(false) @map("is_deleted")
+  createdAt              DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  clientCompany ClientCompany @relation(fields: [clientCompanyId], references: [id], onDelete: Cascade)
-  relatedInvoice Invoice?     @relation(fields: [relatedInvoiceId], references: [id], onDelete: SetNull)
-  relatedTransaction Transaction? @relation(fields: [relatedTransactionId], references: [id], onDelete: SetNull)
-  uploadUser    User          @relation(fields: [uploadUserId], references: [id], onDelete: Restrict)
-  processingJob DocumentProcessingJob?
-  ocrResult     DocumentOCRResult?
-  parsedData    DocumentParsedData?
-  riskFeatures  DocumentRiskFeatures?
-  riskScore     DocumentRiskScore?
-  riskAlerts    RiskAlert[]
+  tenant             Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientCompany      ClientCompany          @relation(fields: [clientCompanyId], references: [id], onDelete: Cascade)
+  relatedInvoice     Invoice?               @relation(fields: [relatedInvoiceId], references: [id], onDelete: SetNull)
+  relatedTransaction Transaction?           @relation(fields: [relatedTransactionId], references: [id], onDelete: SetNull)
+  uploadUser         User                   @relation(fields: [uploadUserId], references: [id], onDelete: Restrict)
+  processingJob      DocumentProcessingJob?
+  ocrResult          DocumentOCRResult?
+  parsedData         DocumentParsedData?
+  riskFeatures       DocumentRiskFeatures?
+  riskScore          DocumentRiskScore?
+  riskAlerts         RiskAlert[]
 
   @@index([tenantId])
   @@index([clientCompanyId])
@@ -330,15 +378,15 @@ model Document {
 }
 
 model DocumentProcessingJob {
-  id              String    @id @default(cuid())
-  tenantId        String    @map("tenant_id")
-  documentId      String    @unique @map("document_id")
-  status          String    @default("PENDING") @db.VarChar(50) // PENDING, IN_PROGRESS, SUCCESS, FAILED
-  attemptsCount   Int       @default(0) @map("attempts_count")
-  lastErrorMessage String?  @map("last_error_message") @db.Text
-  lastAttemptAt   DateTime? @map("last_attempt_at") @db.Timestamptz(6)
-  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id               String    @id @default(cuid())
+  tenantId         String    @map("tenant_id")
+  documentId       String    @unique @map("document_id")
+  status           String    @default("PENDING") @db.VarChar(50) // PENDING, IN_PROGRESS, SUCCESS, FAILED
+  attemptsCount    Int       @default(0) @map("attempts_count")
+  lastErrorMessage String?   @map("last_error_message") @db.Text
+  lastAttemptAt    DateTime? @map("last_attempt_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
@@ -350,14 +398,14 @@ model DocumentProcessingJob {
 }
 
 model DocumentOCRResult {
-  id          String   @id @default(cuid())
-  tenantId    String   @map("tenant_id")
-  documentId  String   @unique @map("document_id")
-  rawText     String   @map("raw_text") @db.Text
-  ocrEngine   String   @map("ocr_engine") @db.VarChar(50) // stub, tesseract, textract, vision
-  confidence  Decimal? @map("confidence") @db.Decimal(5, 4)
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id         String   @id @default(cuid())
+  tenantId   String   @map("tenant_id")
+  documentId String   @unique @map("document_id")
+  rawText    String   @map("raw_text") @db.Text
+  ocrEngine  String   @map("ocr_engine") @db.VarChar(50) // stub, tesseract, textract, vision
+  confidence Decimal? @map("confidence") @db.Decimal(5, 4)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
@@ -387,15 +435,15 @@ model DocumentParsedData {
 }
 
 model DocumentRiskFeatures {
-  id          String    @id @default(cuid())
-  tenantId    String    @map("tenant_id")
-  documentId  String    @unique @map("document_id")
-  features    Json      @default("{}")
-  riskFlags   Json      @default("[]")
-  riskScore   Decimal?  @map("risk_score") @db.Decimal(5, 2)
-  generatedAt DateTime  @map("generated_at") @db.Timestamptz(6)
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id          String   @id @default(cuid())
+  tenantId    String   @map("tenant_id")
+  documentId  String   @unique @map("document_id")
+  features    Json     @default("{}")
+  riskFlags   Json     @default("[]")
+  riskScore   Decimal? @map("risk_score") @db.Decimal(5, 2)
+  generatedAt DateTime @map("generated_at") @db.Timestamptz(6)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
@@ -407,17 +455,17 @@ model DocumentRiskFeatures {
 }
 
 model RiskRule {
-  id            String   @id @default(cuid())
-  tenantId      String?  @map("tenant_id")
-  scope         String   @db.VarChar(50) // document, company
-  code          String   @db.VarChar(100)
-  description   String   @db.VarChar(500)
-  weight        Decimal  @db.Decimal(5, 2)
-  isActive      Boolean  @default(true) @map("is_active")
-  defaultSeverity String @map("default_severity") @db.VarChar(50) // low, medium, high
-  config        Json?    @default("{}")
-  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id              String   @id @default(cuid())
+  tenantId        String?  @map("tenant_id")
+  scope           String   @db.VarChar(50) // document, company
+  code            String   @db.VarChar(100)
+  description     String   @db.VarChar(500)
+  weight          Decimal  @db.Decimal(5, 2)
+  isActive        Boolean  @default(true) @map("is_active")
+  defaultSeverity String   @map("default_severity") @db.VarChar(50) // low, medium, high
+  config          Json?    @default("{}")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
@@ -429,15 +477,15 @@ model RiskRule {
 }
 
 model DocumentRiskScore {
-  id                String   @id @default(cuid())
-  tenantId          String   @map("tenant_id")
-  documentId        String   @unique @map("document_id")
-  score             Decimal  @db.Decimal(5, 2) // 0-100
-  severity          String   @db.VarChar(50) // low, medium, high
-  triggeredRuleCodes Json    @default("[]") // Array of rule codes
-  generatedAt       DateTime @map("generated_at") @db.Timestamptz(6)
-  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                 String   @id @default(cuid())
+  tenantId           String   @map("tenant_id")
+  documentId         String   @unique @map("document_id")
+  score              Decimal  @db.Decimal(5, 2) // 0-100
+  severity           String   @db.VarChar(50) // low, medium, high
+  triggeredRuleCodes Json     @default("[]") // Array of rule codes
+  generatedAt        DateTime @map("generated_at") @db.Timestamptz(6)
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
@@ -451,15 +499,15 @@ model DocumentRiskScore {
 }
 
 model ClientCompanyRiskScore {
-  id                String   @id @default(cuid())
-  tenantId          String   @map("tenant_id")
-  clientCompanyId   String   @map("client_company_id")
-  score             Decimal  @db.Decimal(5, 2) // 0-100
-  severity          String   @db.VarChar(50) // low, medium, high
-  triggeredRuleCodes Json    @default("[]") // Array of rule codes
-  generatedAt       DateTime @map("generated_at") @db.Timestamptz(6)
-  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                 String   @id @default(cuid())
+  tenantId           String   @map("tenant_id")
+  clientCompanyId    String   @map("client_company_id")
+  score              Decimal  @db.Decimal(5, 2) // 0-100
+  severity           String   @db.VarChar(50) // low, medium, high
+  triggeredRuleCodes Json     @default("[]") // Array of rule codes
+  generatedAt        DateTime @map("generated_at") @db.Timestamptz(6)
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   clientCompany ClientCompany @relation(fields: [clientCompanyId], references: [id], onDelete: Cascade)
@@ -473,24 +521,24 @@ model ClientCompanyRiskScore {
 }
 
 model RiskAlert {
-  id                String    @id @default(cuid())
-  tenantId          String    @map("tenant_id")
+  id               String    @id @default(cuid())
+  tenantId         String    @map("tenant_id")
   clientCompanyId  String?   @map("client_company_id")
   documentId       String?   @map("document_id")
   type             String    @db.VarChar(100) // RISK_THRESHOLD_EXCEEDED, ANOMALY_DETECTED
-  title             String    @db.VarChar(255)
-  message           String    @db.Text
-  severity          String    @db.VarChar(50) // low, medium, high, critical
-  status            String    @default("open") @db.VarChar(50) // open, in_progress, closed, ignored
-  resolvedAt        DateTime? @map("resolved_at") @db.Timestamptz(6)
-  resolvedByUserId  String?   @map("resolved_by_user_id")
-  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  title            String    @db.VarChar(255)
+  message          String    @db.Text
+  severity         String    @db.VarChar(50) // low, medium, high, critical
+  status           String    @default("open") @db.VarChar(50) // open, in_progress, closed, ignored
+  resolvedAt       DateTime? @map("resolved_at") @db.Timestamptz(6)
+  resolvedByUserId String?   @map("resolved_by_user_id")
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   clientCompany ClientCompany? @relation(fields: [clientCompanyId], references: [id], onDelete: SetNull)
-  document      Document?     @relation(fields: [documentId], references: [id], onDelete: SetNull)
-  resolvedBy    User?         @relation(fields: [resolvedByUserId], references: [id], onDelete: SetNull)
+  document      Document?      @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  resolvedBy    User?          @relation(fields: [resolvedByUserId], references: [id], onDelete: SetNull)
 
   @@index([tenantId])
   @@index([clientCompanyId])
@@ -504,15 +552,15 @@ model RiskAlert {
 }
 
 model IntegrationProvider {
-  id            String    @id @default(cuid())
-  type          String    @db.VarChar(50) // accounting, bank
-  code          String    @unique @db.VarChar(100)
-  name          String    @db.VarChar(255)
-  description   String?   @db.Text
-  isActive      Boolean   @default(true) @map("is_active")
-  configSchema  Json?     @map("config_schema")
-  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id           String   @id @default(cuid())
+  type         String   @db.VarChar(50) // accounting, bank
+  code         String   @unique @db.VarChar(100)
+  name         String   @db.VarChar(255)
+  description  String?  @db.Text
+  isActive     Boolean  @default(true) @map("is_active")
+  configSchema Json?    @map("config_schema")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   tenantIntegrations TenantIntegration[]
 
@@ -534,8 +582,8 @@ model TenantIntegration {
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  clientCompany ClientCompany?      @relation(fields: [clientCompanyId], references: [id], onDelete: SetNull)
+  tenant        Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientCompany ClientCompany?       @relation(fields: [clientCompanyId], references: [id], onDelete: SetNull)
   provider      IntegrationProvider  @relation(fields: [providerId], references: [id], onDelete: Restrict)
   syncJobs      IntegrationSyncJob[]
   syncLogs      IntegrationSyncLog[]
@@ -572,13 +620,13 @@ model IntegrationSyncJob {
 }
 
 model IntegrationSyncLog {
-  id                  String    @id @default(cuid())
-  tenantId            String    @map("tenant_id")
-  tenantIntegrationId String    @map("tenant_integration_id")
-  level               String    @db.VarChar(50) // info, warning, error
-  message             String    @db.Text
-  context             Json?     @default("{}")
-  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  id                  String   @id @default(cuid())
+  tenantId            String   @map("tenant_id")
+  tenantIntegrationId String   @map("tenant_integration_id")
+  level               String   @db.VarChar(50) // info, warning, error
+  message             String   @db.Text
+  context             Json?    @default("{}")
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   tenant            Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   tenantIntegration TenantIntegration @relation(fields: [tenantIntegrationId], references: [id], onDelete: Cascade)
@@ -591,3 +639,106 @@ model IntegrationSyncLog {
   @@map("integration_sync_logs")
 }
 
+model ReportDefinition {
+  id          String   @id @default(cuid())
+  code        String   @unique @db.VarChar(100)
+  name        String   @db.VarChar(255)
+  description String?  @db.Text
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([isActive])
+  @@map("report_definitions")
+}
+
+model ScheduledReport {
+  id              String    @id @default(cuid())
+  tenantId        String    @map("tenant_id")
+  reportCode      String    @map("report_code") @db.VarChar(100)
+  clientCompanyId String?   @map("client_company_id")
+  name            String    @db.VarChar(255)
+  format          String    @db.VarChar(50) // "pdf" | "excel" (string for now)
+  scheduleCron    String    @map("schedule_cron") @db.VarChar(100) // "daily" | "weekly" | "monthly" or cron-like
+  filters         Json?     @default("{}")
+  recipients      Json?     @default("[]") // array of emails
+  isActive        Boolean   @default(true) @map("is_active")
+  lastRunAt       DateTime? @map("last_run_at") @db.Timestamptz(6)
+  lastRunStatus   String?   @map("last_run_status") @db.VarChar(50) // "success" | "failed" | null
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant        Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientCompany ClientCompany?       @relation(fields: [clientCompanyId], references: [id], onDelete: SetNull)
+  executionLogs ReportExecutionLog[]
+
+  @@index([tenantId])
+  @@index([tenantId, isActive])
+  @@index([reportCode])
+  @@map("scheduled_reports")
+}
+
+model ReportExecutionLog {
+  id                String    @id @default(cuid())
+  tenantId          String    @map("tenant_id")
+  scheduledReportId String?   @map("scheduled_report_id")
+  reportCode        String    @map("report_code") @db.VarChar(100)
+  startedAt         DateTime  @default(now()) @map("started_at") @db.Timestamptz(6)
+  finishedAt        DateTime? @map("finished_at") @db.Timestamptz(6)
+  status            String    @db.VarChar(50) // "success" | "failed"
+  message           String?   @db.Text
+  createdByUserId   String?   @map("created_by_user_id")
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant          Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  scheduledReport ScheduledReport? @relation(fields: [scheduledReportId], references: [id], onDelete: SetNull)
+  createdByUser   User?            @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([tenantId, reportCode])
+  @@index([scheduledReportId])
+  @@index([status])
+  @@index([startedAt])
+  @@map("report_execution_logs")
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  tenantId  String    @map("tenant_id")
+  userId    String?   @map("user_id")
+  type      String    @db.VarChar(50) // RISK_ALERT, SCHEDULED_REPORT, INTEGRATION_SYNC, SYSTEM
+  title     String    @db.VarChar(255)
+  message   String    @db.Text
+  meta      Json?     @default("{}")
+  is_read   Boolean   @default(false) @map("is_read")
+  read_at   DateTime? @map("read_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([tenantId, userId])
+  @@index([tenantId, is_read])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id            String   @id @default(cuid())
+  tenantId      String   @map("tenant_id")
+  userId        String   @map("user_id")
+  email_enabled Boolean  @default(true) @map("email_enabled")
+  in_app_enabled Boolean @default(true) @map("in_app_enabled")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId])
+  @@index([tenantId])
+  @@index([userId])
+  @@map("notification_preferences")
+}

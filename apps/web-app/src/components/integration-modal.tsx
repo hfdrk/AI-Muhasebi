@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listProviders, createIntegration, updateIntegration, testConnection, type IntegrationProvider } from "@repo/api-client";
 
@@ -176,7 +177,7 @@ export default function IntegrationModal({
 
   if (!isOpen || !mounted) return null;
 
-  return (
+  const modalContent = (
     <div
       style={{
         position: "fixed",
@@ -362,5 +363,7 @@ export default function IntegrationModal({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }
 

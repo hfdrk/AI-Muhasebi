@@ -270,7 +270,7 @@ export async function waitForDocumentStatus(
 
 export const TEST_CREDENTIALS = {
   email: "test@example.com",
-  password: "Test123!@#",
+  password: "Test123!@#Pass",
 };
 
 export const TEST_COMPANY = {

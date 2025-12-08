@@ -236,13 +236,29 @@ export async function createTestDocument(data: CreateDocumentData) {
     }
   }
 
-  // Ensure user exists
+  // Ensure user exists - wait for it to be committed if it was just created
   if (uploadUserId) {
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { id: uploadUserId },
     });
     if (!user) {
-      throw new Error(`User ${uploadUserId} not found. Create user before creating document.`);
+      // Wait a bit for user to be committed (might have been created in another test)
+      await prisma.$queryRaw`SELECT 1`;
+      await new Promise(resolve => setTimeout(resolve, 100));
+      user = await prisma.user.findUnique({
+        where: { id: uploadUserId },
+      });
+      if (!user) {
+        // Wait one more time
+        await prisma.$queryRaw`SELECT 1`;
+        await new Promise(resolve => setTimeout(resolve, 200));
+        user = await prisma.user.findUnique({
+          where: { id: uploadUserId },
+        });
+      }
+      if (!user) {
+        throw new Error(`User ${uploadUserId} not found. Create user before creating document.`);
+      }
     }
   }
 

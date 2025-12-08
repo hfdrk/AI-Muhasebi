@@ -1,6 +1,7 @@
 "use client";
 
 import { TenantSwitcher } from "../../components/tenant-switcher";
+import { NotificationBell } from "../../components/notification-bell";
 import Link from "next/link";
 import { colors, spacing, shadows } from "../../styles/design-system";
 
@@ -66,6 +67,35 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
           >
             Belgeler
           </Link>
+          <Link
+            href="/raporlar/anlik"
+            style={{
+              textDecoration: "none",
+              color: colors.text.secondary,
+              fontSize: "14px",
+              fontWeight: 500,
+              transition: "color 0.2s ease",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = colors.primary)}
+            onMouseLeave={(e) => (e.currentTarget.style.color = colors.text.secondary)}
+          >
+            Raporlar
+          </Link>
+          <Link
+            href="/ayarlar"
+            style={{
+              textDecoration: "none",
+              color: colors.text.secondary,
+              fontSize: "14px",
+              fontWeight: 500,
+              transition: "color 0.2s ease",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = colors.primary)}
+            onMouseLeave={(e) => (e.currentTarget.style.color = colors.text.secondary)}
+          >
+            Ayarlar
+          </Link>
+          <NotificationBell />
           <TenantSwitcher />
           <Link
             href="/settings/users"

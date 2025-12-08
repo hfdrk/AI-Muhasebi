@@ -20,7 +20,7 @@ const registerSchema = z.object({
   }),
   tenant: z.object({
     name: z.string().min(1, "Ofis adı gerekli."),
-    slug: z.string().min(1, "Ofis kısa adı gerekli.").regex(/^[a-z0-9-]+$/, "Sadece küçük harf, rakam ve tire kullanılabilir."),
+    slug: z.string().min(1, "Ofis kısa adı gerekli.").regex(/^[a-z0-9-]+$/, "Kısa ad sadece küçük harf, rakam ve tire içerebilir."),
     taxNumber: z.string().optional(),
     phone: z.string().optional(),
     email: z.string().email("Geçerli bir e-posta adresi giriniz.").optional().or(z.literal("")),
@@ -66,7 +66,7 @@ router.post("/login", async (req: Request, res: Response, next: NextFunction) =>
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return next(new ValidationError(error.errors[0]?.message || "Geçersiz giriş bilgileri."));
+      return next(new ValidationError(error.errors && error.errors.length > 0 ? error.errors[0].message : "Geçersiz giriş bilgileri."));
     }
     next(error);
   }
@@ -105,7 +105,14 @@ router.post("/register", async (req: Request, res: Response, next: NextFunction)
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return next(new ValidationError(error.errors[0]?.message || "Geçersiz kayıt bilgileri."));
+      // ZodError uses 'issues' property
+      if (error.issues && error.issues.length > 0) {
+        const firstIssue = error.issues[0];
+        // Each issue has a 'message' property
+        const errorMessage = firstIssue.message || "Geçersiz kayıt bilgileri.";
+        return next(new ValidationError(errorMessage));
+      }
+      return next(new ValidationError("Geçersiz kayıt bilgileri."));
     }
     next(error);
   }
@@ -126,7 +133,7 @@ router.post("/forgot-password", async (req: Request, res: Response, next: NextFu
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return next(new ValidationError(error.errors[0]?.message || "Geçersiz e-posta adresi."));
+      return next(new ValidationError(error.errors?.[0]?.message || "Geçersiz e-posta adresi."));
     }
     next(error);
   }
@@ -146,7 +153,7 @@ router.post("/reset-password", async (req: Request, res: Response, next: NextFun
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return next(new ValidationError(error.errors[0]?.message || "Geçersiz bilgiler."));
+      return next(new ValidationError(error.errors?.[0]?.message || "Geçersiz bilgiler."));
     }
     next(error);
   }

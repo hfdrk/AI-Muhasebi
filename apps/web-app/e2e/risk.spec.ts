@@ -14,7 +14,7 @@ test.describe("Risk & Alerts Flow", () => {
   test.beforeEach(async () => {
     testUser = await createTestUserViaAPI({
       email: `e2e-risk-${Date.now()}@example.com`,
-      password: "Test123!@#",
+      password: "Test123!@#Pass",
       fullName: "E2E Risk Test User",
       tenantName: `E2E Risk Tenant ${Date.now()}`,
       tenantSlug: `e2e-risk-${Date.now()}`,

@@ -24,6 +24,23 @@ const envSchema = z.object({
   STORAGE_BUCKET_NAME: z.string().optional(),
   STORAGE_MAX_FILE_SIZE: z.string().default("20971520"), // 20MB in bytes
   STORAGE_ALLOWED_MIME_TYPES: z.string().default("application/pdf,image/jpeg,image/png,image/jpg,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+  // Reporting feature flags
+  REPORTING_ENABLED: z
+    .string()
+    .default("true")
+    .transform((val) => val === "true" || val === "1"),
+  PDF_EXPORT_ENABLED: z
+    .string()
+    .default("true")
+    .transform((val) => val === "true" || val === "1"),
+  EXCEL_EXPORT_ENABLED: z
+    .string()
+    .default("true")
+    .transform((val) => val === "true" || val === "1"),
+  SCHEDULED_REPORTS_ENABLED: z
+    .string()
+    .default("true")
+    .transform((val) => val === "true" || val === "1"),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;
@@ -31,8 +48,15 @@ export type EnvConfig = z.infer<typeof envSchema>;
 let config: EnvConfig | null = null;
 
 export function getConfig(): EnvConfig {
-  if (config) {
+  // Always re-read from process.env in development to pick up changes
+  // In production, cache for performance
+  if (config && process.env.NODE_ENV === "production") {
     return config;
+  }
+
+  // Clear cache in development to pick up env changes
+  if (process.env.NODE_ENV !== "production") {
+    config = null;
   }
 
   const result = envSchema.safeParse(process.env);
@@ -44,6 +68,11 @@ export function getConfig(): EnvConfig {
 
   config = result.data;
   return config;
+}
+
+// Function to clear config cache (useful for testing or hot reloading)
+export function clearConfigCache(): void {
+  config = null;
 }
 
 export function validateEnv(): void {

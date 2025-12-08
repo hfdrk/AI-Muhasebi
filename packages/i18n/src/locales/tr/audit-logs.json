@@ -1,0 +1,25 @@
+{
+  "title": "Denetim Kayıtları",
+  "filters": {
+    "user": "Kullanıcı",
+    "action": "İşlem Türü",
+    "resourceType": "Kaynak Türü",
+    "dateRange": "Tarih Aralığı",
+    "from": "Başlangıç",
+    "to": "Bitiş",
+    "apply": "Filtreleri Uygula",
+    "clear": "Temizle"
+  },
+  "table": {
+    "date": "Tarih",
+    "user": "Kullanıcı",
+    "action": "İşlem",
+    "resourceType": "Kaynak Türü",
+    "resourceId": "Kaynak ID",
+    "ipAddress": "IP Adresi"
+  },
+  "empty": "Bu kriterlere uygun denetim kaydı bulunamadı.",
+  "noPermission": "Bu sayfayı görüntüleme yetkiniz yok.",
+  "loadError": "Denetim kayıtları yüklenirken bir hata oluştu."
+}
+

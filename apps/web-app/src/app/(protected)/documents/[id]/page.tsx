@@ -35,10 +35,12 @@ export default function DocumentDetailPage() {
     enabled: !!documentId,
   });
 
-  const { data: aiAnalysis, isLoading: aiLoading } = useQuery({
+  const { data: aiAnalysis, isLoading: aiLoading, error: aiError, refetch: refetchAIAnalysis } = useQuery({
     queryKey: ["document-ai", documentId],
     queryFn: () => getDocumentAIAnalysis(documentId),
-    enabled: !!documentId && document?.data?.status === "PROCESSED",
+    enabled: !!documentId && !!document?.data && (document.data.status === "PROCESSED" || document.data.status === "PROCESSING"),
+    retry: 1,
+    retryDelay: 1000,
   });
 
   const { data: riskScoreData, isLoading: riskLoading } = useDocumentRiskScore(documentId);
@@ -457,6 +459,30 @@ export default function DocumentDetailPage() {
             </div>
           )}
 
+          {aiError && (
+            <div style={{ padding: "16px", backgroundColor: "#f8d7da", borderRadius: "4px", marginBottom: "24px" }}>
+              <p style={{ color: "#721c24", margin: 0, marginBottom: "8px" }}>
+                <strong>Hata:</strong> AI analizi yüklenirken bir hata oluştu.
+              </p>
+              <p style={{ color: "#721c24", margin: 0, fontSize: "14px", marginBottom: "8px" }}>
+                {aiError instanceof Error ? aiError.message : "Bilinmeyen bir hata oluştu."}
+              </p>
+              <button
+                onClick={() => refetchAIAnalysis()}
+                style={{
+                  padding: "8px 16px",
+                  backgroundColor: "#dc3545",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                Tekrar Dene
+              </button>
+            </div>
+          )}
+
           {aiLoading && (
             <div style={{ padding: "16px" }}>
               <p>AI analizi yükleniyor...</p>
@@ -635,9 +661,12 @@ export default function DocumentDetailPage() {
             </>
           )}
 
-          {!aiLoading && !aiAnalysis?.data && documentData.status === "PROCESSED" && (
+          {!aiLoading && !aiError && !aiAnalysis?.data && documentData.status === "PROCESSED" && (
             <div style={{ padding: "16px", backgroundColor: "#e2e3e5", borderRadius: "4px" }}>
               <p>Bu belge henüz AI tarafından analiz edilmemiş.</p>
+              <p style={{ fontSize: "14px", color: "#666", marginTop: "8px" }}>
+                Belge işlendi ancak AI analiz verisi bulunamadı. Bu durum genellikle belge işleme sırasında bir sorun olduğunu gösterir.
+              </p>
             </div>
           )}
         </div>

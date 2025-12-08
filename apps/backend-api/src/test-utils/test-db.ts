@@ -403,7 +403,62 @@ export async function resetTestDatabase(): Promise<void> {
   // Re-enable foreign key checks
   await prisma.$executeRawUnsafe(`SET session_replication_role = 'origin'`);
 
+  // Re-seed report definitions (they get truncated above)
+  await seedReportDefinitions();
+
   console.log("✅ Test database reset");
+}
+
+/**
+ * Seed report definitions for tests
+ */
+async function seedReportDefinitions(): Promise<void> {
+  const prismaModule = await import("../lib/prisma.js");
+  const prisma = prismaModule.prisma;
+  
+  const reportDefinitions = [
+    {
+      code: "COMPANY_FINANCIAL_SUMMARY",
+      name: "Müşteri Finansal Özeti",
+      description: "Seçili müşteri için belirli tarih aralığında satış, alış ve fatura özetleri.",
+      isActive: true,
+    },
+    {
+      code: "COMPANY_RISK_SUMMARY",
+      name: "Müşteri Risk Özeti",
+      description: "Seçili müşteri için risk skoru, seviyeleri ve uyarı özetleri.",
+      isActive: true,
+    },
+    {
+      code: "TENANT_PORTFOLIO",
+      name: "Portföy Özeti",
+      description: "Tüm müşteri portföyü için risk ve aktivite özeti.",
+      isActive: true,
+    },
+    {
+      code: "DOCUMENT_ACTIVITY",
+      name: "Belge ve Fatura Aktivitesi",
+      description: "Belge yüklemeleri, AI analizleri ve fatura durumları.",
+      isActive: true,
+    },
+  ];
+
+  for (const def of reportDefinitions) {
+    try {
+      await prisma.reportDefinition.upsert({
+        where: { code: def.code },
+        update: {
+          name: def.name,
+          description: def.description,
+          isActive: def.isActive,
+        },
+        create: def,
+      });
+    } catch (error) {
+      // Ignore errors during seeding (table might not exist yet)
+      console.warn(`Warning: Could not seed report definition ${def.code}:`, error);
+    }
+  }
 }
 
 /**

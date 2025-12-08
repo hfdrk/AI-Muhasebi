@@ -85,6 +85,13 @@ import documentAIRoutes from "../routes/document-ai-routes";
 import riskRoutes from "../routes/risk-routes";
 import riskAlertRoutes from "../routes/risk-alert-routes";
 import integrationRoutes from "../routes/integration-routes";
+import reportingRoutes from "../routes/reporting-routes";
+import reportDownloadRoutes from "../routes/report-download-routes";
+import scheduledReportsRoutes from "../routes/scheduled-reports-routes";
+import reportExecutionLogsRoutes from "../routes/report-execution-logs-routes";
+import notificationRoutes from "../routes/notification-routes";
+import settingsRoutes from "../routes/settings-routes";
+import auditLogsRoutes from "../routes/audit-logs-routes";
 
 /**
  * Create an Express app instance for testing
@@ -125,6 +132,13 @@ export function createTestApp() {
   app.use("/api/v1/risk", riskRoutes);
   app.use("/api/v1/risk/alerts", riskAlertRoutes);
   app.use("/api/v1/integrations", integrationRoutes);
+  app.use("/api/v1/reports", reportingRoutes);
+  app.use("/api/v1/reports", reportDownloadRoutes);
+  app.use("/api/v1/scheduled-reports", scheduledReportsRoutes);
+  app.use("/api/v1/report-execution-logs", reportExecutionLogsRoutes);
+  app.use("/api/v1/notifications", notificationRoutes);
+  app.use("/api/v1/settings", settingsRoutes);
+  app.use("/api/v1/audit-logs", auditLogsRoutes);
 
   // Error handler (must be last)
   app.use(errorHandler);

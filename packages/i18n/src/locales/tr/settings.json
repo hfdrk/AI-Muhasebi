@@ -1,5 +1,37 @@
 {
   "title": "Ayarlar",
+  "office": {
+    "title": "Ofis Ayarları",
+    "officeName": "Ofis Adı",
+    "logo": "Logo",
+    "logoUrl": "Logo URL",
+    "defaultLanguage": "Varsayılan Dil",
+    "timezone": "Saat Dilimi",
+    "emailFromName": "E-posta Gönderen Adı",
+    "riskThresholds": "Risk Eşikleri",
+    "highRiskThreshold": "Yüksek Risk Eşiği (%)",
+    "criticalRiskThreshold": "Kritik Risk Eşiği (%)",
+    "defaultReportPeriod": "Varsayılan Rapor Dönemi",
+    "noPermission": "Bu alanı görüntüleme yetkiniz yok.",
+    "noPermissionMessage": "Ofis ayarlarını sadece yönetici kullanıcılar düzenleyebilir.",
+    "saveSuccess": "Ofis ayarları başarıyla güncellendi.",
+    "saveError": "Ofis ayarları güncellenirken bir hata oluştu."
+  },
+  "profile": {
+    "title": "Profilim",
+    "personalInfo": "Kişisel Bilgiler",
+    "fullName": "Ad Soyad",
+    "email": "E-posta",
+    "preferences": "Tercihler",
+    "language": "Dil",
+    "timezone": "Saat Dilimi",
+    "notifications": "Bildirimler",
+    "emailNotifications": "E-posta bildirimleri",
+    "inAppNotifications": "Uygulama içi bildirimler",
+    "tenantDefault": "Ofis varsayılanı",
+    "saveSuccess": "Profil ayarları başarıyla güncellendi.",
+    "saveError": "Profil ayarları güncellenirken bir hata oluştu."
+  },
   "tenant": {
     "title": "Kiracı Ayarları",
     "name": "Şirket Adı",
@@ -13,11 +45,6 @@
     "title": "Faturalama",
     "plan": "Plan",
     "usage": "Kullanım"
-  },
-  "profile": {
-    "title": "Profil",
-    "email": "E-posta",
-    "changePassword": "Şifre Değiştir"
   }
 }
 
