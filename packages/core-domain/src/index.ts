@@ -3,6 +3,7 @@ export * from "./entities";
 export * from "./types/roles";
 export * from "./types/permissions";
 export * from "./types/risk-severity";
+export * from "./types/saved-filter";
 export * from "./value-objects";
 export * from "./repositories";
 export * from "./services";

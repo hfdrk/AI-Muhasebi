@@ -139,7 +139,7 @@ export default function EditTransactionPage() {
     return (
       <div style={{ padding: "40px" }}>
         <p>Mali hareket bulunamadı.</p>
-        <Link href="/transactions">Mali hareket listesine dön</Link>
+        <Link href="/islemler">Mali hareket listesine dön</Link>
       </div>
     );
   }

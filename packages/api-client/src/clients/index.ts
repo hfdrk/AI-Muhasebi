@@ -1,3 +1,4 @@
+export * from "./shared-types";
 export * from "./auth-client";
 export * from "./user-client";
 export * from "./tenant-client";
@@ -14,3 +15,6 @@ export * from "./settings-client";
 export * from "./audit-logs-client";
 export * from "./billing-client";
 export * from "./onboarding-client";
+export * from "./search-client";
+export * from "./saved-filter-client";
+export * from "./admin-client";

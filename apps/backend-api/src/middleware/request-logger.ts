@@ -20,7 +20,7 @@ const SENSITIVE_ROUTES = [
 ];
 
 // Routes that should be skipped entirely (health checks, etc.)
-const SKIP_ROUTES = ["/health", "/ready"];
+const SKIP_ROUTES = ["/health", "/ready", "/healthz", "/readyz"];
 
 export function requestLogger(req: Request, res: Response, next: NextFunction): void {
   // Skip logging for certain routes

@@ -12,7 +12,7 @@ export default function HomePage() {
     
     if (token) {
       // Redirect to dashboard if logged in
-      router.push("/dashboard");
+      router.push("/anasayfa");
     } else {
       // Redirect to login if not logged in
       router.push("/auth/login");

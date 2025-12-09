@@ -96,7 +96,10 @@ import settingsRoutes from "../routes/settings-routes";
 import auditLogsRoutes from "../routes/audit-logs-routes";
 import billingRoutes from "../routes/billing-routes";
 import onboardingRoutes from "../routes/onboarding-routes";
-import { healthCheck, readinessCheck } from "../routes/health-routes";
+import searchRoutes from "../routes/search-routes";
+import savedFiltersRoutes from "../routes/saved-filters-routes";
+import adminRoutes from "../routes/admin-routes";
+import { healthCheck, readinessCheck, healthzCheck, readyzCheck } from "../routes/health-routes";
 
 /**
  * Create an Express app instance for testing
@@ -121,6 +124,8 @@ export function createTestApp(): express.Application {
   // Health check endpoints
   app.get("/health", healthCheck);
   app.get("/ready", readinessCheck);
+  app.get("/healthz", healthzCheck);
+  app.get("/readyz", readyzCheck);
 
   // API routes
   app.use("/api/v1/auth", authRoutes);
@@ -145,6 +150,9 @@ export function createTestApp(): express.Application {
   app.use("/api/v1/audit-logs", auditLogsRoutes);
   app.use("/api/v1/billing", billingRoutes);
   app.use("/api/v1/onboarding", onboardingRoutes);
+  app.use("/api/v1/search", searchRoutes);
+  app.use("/api/v1/saved-filters", savedFiltersRoutes);
+  app.use("/api/v1/admin", adminRoutes);
 
   // Error handler (must be last)
   app.use(errorHandler);

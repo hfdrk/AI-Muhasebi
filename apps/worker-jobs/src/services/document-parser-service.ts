@@ -114,23 +114,100 @@ export class DocumentParserService {
       }
     }
 
-    // Extract amounts
-    const totalMatch = text.match(/(?:Toplam|Genel\s*Toplam|Tutar)[\s:]*([\d.,]+)/i);
-    if (totalMatch) {
-      const amountStr = totalMatch[1].replace(/\./g, "").replace(",", ".");
-      fields.totalAmount = parseFloat(amountStr) || null;
+    // Extract amounts - try multiple patterns to handle different formats
+    const amountPatterns = [
+      // Standard patterns: "Toplam: 1.234,56" or "Toplam 1234.56" or "Toplam: 1,234.56"
+      /(?:Toplam|Genel\s*Toplam|Tutar|TOPLAM)[\s:]*([\d.,\s]+)/i,
+      // Patterns with currency: "1.234,56 TL" or "1234.56 TRY"
+      /([\d.,\s]+)\s*(?:TL|TRY|EUR|USD)/i,
+      // Patterns at end of line: "Toplam\n1.234,56"
+      /(?:Toplam|Tutar)[\s:]*\n\s*([\d.,\s]+)/i,
+    ];
+
+    // Try to extract total amount
+    for (const pattern of amountPatterns) {
+      const match = text.match(pattern);
+      if (match) {
+        const amountStr = match[1].trim().replace(/\s/g, "");
+        // Handle Turkish format: 1.234,56 or international: 1,234.56
+        let normalizedStr = amountStr;
+        if (amountStr.includes(",")) {
+          // Has comma - could be Turkish (1.234,56) or international (1,234.56)
+          const commaIndex = amountStr.lastIndexOf(",");
+          const beforeComma = amountStr.substring(0, commaIndex);
+          const afterComma = amountStr.substring(commaIndex + 1);
+          // If there are dots before comma, it's Turkish format
+          if (beforeComma.includes(".")) {
+            // Turkish format: 1.234,56
+            normalizedStr = beforeComma.replace(/\./g, "") + "." + afterComma;
+          } else {
+            // International format: 1,234.56
+            normalizedStr = beforeComma.replace(/,/g, "") + "." + afterComma;
+          }
+        } else if (amountStr.includes(".") && amountStr.split(".").length > 2) {
+          // Multiple dots but no comma - likely Turkish format without decimal: 1.234
+          normalizedStr = amountStr.replace(/\./g, "");
+        }
+        const parsed = parseFloat(normalizedStr);
+        if (!isNaN(parsed) && parsed > 0) {
+          fields.totalAmount = parsed;
+          break;
+        }
+      }
     }
 
-    const taxMatch = text.match(/(?:KDV|Vergi)[\s:]*([\d.,]+)/i);
-    if (taxMatch) {
-      const taxStr = taxMatch[1].replace(/\./g, "").replace(",", ".");
-      fields.taxAmount = parseFloat(taxStr) || null;
+    // Extract KDV/VAT amount
+    const taxPatterns = [
+      /(?:KDV|Vergi|VAT)[\s:]*([\d.,\s]+)/i,
+      /(?:KDV|Vergi)[\s:]*\n\s*([\d.,\s]+)/i,
+    ];
+    for (const pattern of taxPatterns) {
+      const match = text.match(pattern);
+      if (match) {
+        const amountStr = match[1].trim().replace(/\s/g, "");
+        let normalizedStr = amountStr;
+        if (amountStr.includes(",") && amountStr.split(",").length === 2) {
+          normalizedStr = amountStr.replace(/\./g, "").replace(",", ".");
+        } else if (amountStr.includes(".") && amountStr.split(".").length > 2) {
+          const parts = amountStr.split(",");
+          normalizedStr = parts[0].replace(/\./g, "") + "." + (parts[1] || "00");
+        }
+        const parsed = parseFloat(normalizedStr);
+        if (!isNaN(parsed) && parsed > 0) {
+          fields.taxAmount = parsed;
+          break;
+        }
+      }
     }
 
-    const netMatch = text.match(/(?:Net|Ara\s*Toplam)[\s:]*([\d.,]+)/i);
-    if (netMatch) {
-      const netStr = netMatch[1].replace(/\./g, "").replace(",", ".");
-      fields.netAmount = parseFloat(netStr) || null;
+    // Extract net amount
+    const netPatterns = [
+      /(?:Net|Ara\s*Toplam|Net\s*Tutar)[\s:]*([\d.,\s]+)/i,
+      /(?:Net|Ara\s*Toplam)[\s:]*\n\s*([\d.,\s]+)/i,
+    ];
+    for (const pattern of netPatterns) {
+      const match = text.match(pattern);
+      if (match) {
+        const amountStr = match[1].trim().replace(/\s/g, "");
+        let normalizedStr = amountStr;
+        if (amountStr.includes(",") && amountStr.split(",").length === 2) {
+          normalizedStr = amountStr.replace(/\./g, "").replace(",", ".");
+        } else if (amountStr.includes(".") && amountStr.split(".").length > 2) {
+          const parts = amountStr.split(",");
+          normalizedStr = parts[0].replace(/\./g, "") + "." + (parts[1] || "00");
+        }
+        const parsed = parseFloat(normalizedStr);
+        if (!isNaN(parsed) && parsed > 0) {
+          fields.netAmount = parsed;
+          break;
+        }
+      }
+    }
+
+    // If we have totalAmount but not netAmount or taxAmount, try to calculate
+    if (fields.totalAmount && !fields.netAmount && !fields.taxAmount) {
+      // Try to find net and tax separately
+      // This is a fallback - ideally the patterns above should catch them
     }
 
     // Extract currency

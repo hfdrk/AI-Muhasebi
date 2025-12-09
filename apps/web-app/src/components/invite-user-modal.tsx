@@ -10,6 +10,7 @@ import { useState } from "react";
 const inviteSchema = z.object({
   email: z.string().email("Geçerli bir e-posta adresi giriniz."),
   role: z.enum(["TenantOwner", "Accountant", "Staff", "ReadOnly"]),
+  name: z.string().optional(),
 });
 
 type InviteForm = z.infer<typeof inviteSchema>;
@@ -25,11 +26,17 @@ interface InviteUserModalProps {
   tenantId: string;
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export function InviteUserModal({ tenantId, isOpen, onClose }: InviteUserModalProps) {
+export function InviteUserModal({ tenantId, isOpen, onClose, onSuccess }: InviteUserModalProps) {
   const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
+
+  if (!tenantId) {
+    console.error("InviteUserModal: tenantId is required");
+    return null;
+  }
 
   const {
     register,
@@ -48,10 +55,19 @@ export function InviteUserModal({ tenantId, isOpen, onClose }: InviteUserModalPr
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tenantUsers", tenantId] });
       reset();
+      setError(null);
       onClose();
+      if (onSuccess) {
+        onSuccess();
+      }
     },
-    onError: (err: Error) => {
-      setError(err.message || "Kullanıcı davet edilirken bir hata oluştu.");
+    onError: (err: any) => {
+      console.error("Invite user error:", err);
+      const errorMessage =
+        err?.message ||
+        err?.error?.message ||
+        (typeof err === "string" ? err : "Kullanıcı davet edilirken bir hata oluştu.");
+      setError(errorMessage);
     },
   });
 
@@ -97,6 +113,27 @@ export function InviteUserModal({ tenantId, isOpen, onClose }: InviteUserModalPr
               {error}
             </div>
           )}
+
+          <div>
+            <label htmlFor="name" style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>
+              Ad Soyad
+            </label>
+            <input
+              id="name"
+              type="text"
+              {...register("name")}
+              style={{
+                width: "100%",
+                padding: "8px 12px",
+                border: "1px solid #ddd",
+                borderRadius: "4px",
+                fontSize: "16px",
+              }}
+            />
+            {errors.name && (
+              <p style={{ color: "#c33", fontSize: "14px", marginTop: "4px" }}>{errors.name.message}</p>
+            )}
+          </div>
 
           <div>
             <label htmlFor="email" style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>
@@ -161,18 +198,18 @@ export function InviteUserModal({ tenantId, isOpen, onClose }: InviteUserModalPr
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={mutation.isPending || isSubmitting}
               style={{
                 padding: "8px 16px",
                 backgroundColor: "#0066cc",
                 color: "white",
                 border: "none",
                 borderRadius: "4px",
-                cursor: isSubmitting ? "not-allowed" : "pointer",
-                opacity: isSubmitting ? 0.6 : 1,
+                cursor: mutation.isPending || isSubmitting ? "not-allowed" : "pointer",
+                opacity: mutation.isPending || isSubmitting ? 0.6 : 1,
               }}
             >
-              {isSubmitting ? "Gönderiliyor..." : "Davet Gönder"}
+              {mutation.isPending || isSubmitting ? "Gönderiliyor..." : "Davet Gönder"}
             </button>
           </div>
         </form>

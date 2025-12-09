@@ -49,7 +49,7 @@ export default function DocumentDetailPage() {
     mutationFn: (id: string) => deleteDocument(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["documents"] });
-      router.push("/clients");
+      router.push("/musteriler");
     },
   });
 
@@ -68,7 +68,10 @@ export default function DocumentDetailPage() {
         window.document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
-        window.document.body.removeChild(a);
+        // Safely remove the element if it's still in the DOM
+        if (a.parentNode) {
+          a.parentNode.removeChild(a);
+        }
       } catch (error) {
         console.error("Error downloading file:", error);
         alert("Dosya indirilirken bir hata oluştu.");
@@ -109,7 +112,7 @@ export default function DocumentDetailPage() {
     return (
       <div style={{ padding: "40px" }}>
         <p>Belge bulunamadı.</p>
-        <Link href="/clients">Müşteri listesine dön</Link>
+        <Link href="/musteriler">Müşteri listesine dön</Link>
       </div>
     );
   }
@@ -144,7 +147,7 @@ export default function DocumentDetailPage() {
             {deleteMutation.isPending ? "Siliniyor..." : "Sil"}
           </button>
           <Link
-            href={`/clients/${documentData.clientCompanyId}`}
+            href={`/musteriler/${documentData.clientCompanyId}`}
             style={{
               padding: "8px 16px",
               backgroundColor: "#f5f5f5",
@@ -436,7 +439,7 @@ export default function DocumentDetailPage() {
             <div>
               <strong style={{ display: "block", marginBottom: "4px", color: "#666" }}>Müşteri Şirketi</strong>
               <Link
-                href={`/clients/${documentData.clientCompanyId}`}
+                href={`/musteriler/${documentData.clientCompanyId}`}
                 style={{ color: "#0066cc", textDecoration: "none", fontSize: "16px" }}
               >
                 Müşteri Detaylarını Görüntüle →

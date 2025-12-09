@@ -1,0 +1,19 @@
+{
+  "title": "Kayıtlı Filtreler",
+  "selectPlaceholder": "Filtre seçin...",
+  "saveFilter": "Filtreyi Kaydet",
+  "setDefault": "Varsayılan Yap",
+  "delete": "Sil",
+  "setAsDefault": "Varsayılan filtre yap",
+  "emptyState": "Bu liste için kayıtlı filtreniz yok.",
+  "defaultApplied": "Varsayılan filtre uygulanıyor: {name}",
+  "filterName": "Filtre Adı",
+  "filterNamePlaceholder": "Örn: Aktif Müşteriler",
+  "save": "Kaydet",
+  "cancel": "İptal",
+  "deleteConfirm": "Bu filtreyi silmek istediğinize emin misiniz?",
+  "saved": "Filtre kaydedildi.",
+  "deleted": "Filtre silindi.",
+  "setAsDefaultSuccess": "Filtre varsayılan olarak ayarlandı."
+}
+

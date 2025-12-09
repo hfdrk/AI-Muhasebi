@@ -18,6 +18,7 @@
     "@repo/api-client": "workspace:*",
     "@repo/i18n": "workspace:*",
     "@repo/config": "workspace:*",
+    "@tanstack/react-query": "^5.90.11",
     "react-hook-form": "^7.50.0",
     "zod": "^3.22.4"
   },

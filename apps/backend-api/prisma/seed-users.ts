@@ -15,10 +15,32 @@ async function seedUsers() {
   // Check if test user already exists
   const existingUser = await prisma.user.findUnique({
     where: { email: "test@example.com" },
+    include: {
+      memberships: {
+        include: {
+          tenant: true,
+        },
+      },
+    },
   });
 
   if (existingUser) {
-    console.log("Test user already exists, skipping...");
+    console.log("Test user already exists, updating role to TenantOwner...");
+    
+    // Update all memberships to TenantOwner
+    for (const membership of existingUser.memberships) {
+      if (membership.role !== TENANT_ROLES.TENANT_OWNER) {
+        await prisma.userTenantMembership.update({
+          where: { id: membership.id },
+          data: { role: TENANT_ROLES.TENANT_OWNER },
+        });
+        console.log(`✅ Updated role to TenantOwner for tenant: ${membership.tenant.name}`);
+      } else {
+        console.log(`ℹ️  User is already TenantOwner for tenant: ${membership.tenant.name}`);
+      }
+    }
+    
+    console.log("✅ Test user role update completed!");
     return;
   }
 

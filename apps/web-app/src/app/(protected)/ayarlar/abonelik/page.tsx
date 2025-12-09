@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getSubscription, getUsage } from "@repo/api-client";
 import type { SubscriptionResponse, UsageResponse } from "@repo/api-client";
 import { billing as billingTranslations } from "@repo/i18n";
+import { UpgradePlanModal } from "@/components/upgrade-plan-modal";
 
 export default function BillingPage() {
   const [subscription, setSubscription] = useState<SubscriptionResponse | null>(null);
@@ -11,29 +12,30 @@ export default function BillingPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [subData, usageData, userData] = await Promise.all([
+        getSubscription(),
+        getUsage(),
+        import("@repo/api-client").then((m) => m.getCurrentUser()),
+      ]);
+
+      setSubscription(subData.data);
+      setUsage(usageData.data);
+      
+      const currentTenant = userData?.data?.tenants?.find((t: any) => t.status === "active");
+      setUserRole(currentTenant?.role || null);
+    } catch (err: any) {
+      setError(err.message || "Veri yüklenirken bir hata oluştu.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        const [subData, usageData, userData] = await Promise.all([
-          getSubscription(),
-          getUsage(),
-          import("@repo/api-client").then((m) => m.getCurrentUser()),
-        ]);
-
-        setSubscription(subData.data);
-        setUsage(usageData.data);
-        
-        const currentTenant = userData?.data?.tenants?.find((t: any) => t.status === "active");
-        setUserRole(currentTenant?.role || null);
-      } catch (err: any) {
-        setError(err.message || "Veri yüklenirken bir hata oluştu.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadData();
   }, []);
 
@@ -91,12 +93,23 @@ export default function BillingPage() {
   }
 
   const isStaffOrReadOnly = userRole === "Staff" || userRole === "ReadOnly";
+  const isTenantOwner = userRole === "TenantOwner";
+  const canUpgrade = isTenantOwner && subscription && (subscription.plan === "FREE" || subscription.plan === "PRO");
 
   return (
     <div style={{ padding: "2rem", maxWidth: "1200px", margin: "0 auto" }}>
       <h1 style={{ fontSize: "2rem", fontWeight: "bold", marginBottom: "2rem" }}>
         {billingTranslations.title}
       </h1>
+
+      {subscription && (
+        <UpgradePlanModal
+          isOpen={isUpgradeModalOpen}
+          onClose={() => setIsUpgradeModalOpen(false)}
+          currentPlan={subscription.plan}
+          onSuccess={loadData}
+        />
+      )}
 
       {/* Subscription Section */}
       <div
@@ -164,20 +177,29 @@ export default function BillingPage() {
 
         {!isStaffOrReadOnly && (
           <button
+            onClick={() => setIsUpgradeModalOpen(true)}
+            disabled={!canUpgrade}
             style={{
               marginTop: "1rem",
               padding: "0.5rem 1rem",
-              backgroundColor: "#3b82f6",
+              backgroundColor: canUpgrade ? "#3b82f6" : "#9ca3af",
               color: "#fff",
               border: "none",
               borderRadius: "4px",
-              cursor: "not-allowed",
-              opacity: 0.6,
+              cursor: canUpgrade ? "pointer" : "not-allowed",
+              opacity: canUpgrade ? 1 : 0.6,
             }}
-            disabled
           >
             {billingTranslations.subscription.upgradeButton}
           </button>
+        )}
+
+        {!isStaffOrReadOnly && !canUpgrade && userRole === "Accountant" && (
+          <div style={{ marginTop: "1rem", padding: "0.75rem", backgroundColor: "#fef3c7", borderRadius: "4px" }}>
+            <p style={{ fontSize: "0.875rem", color: "#92400e" }}>
+              Plan yükseltme işlemi için ofis sahibi yetkisi gereklidir.
+            </p>
+          </div>
         )}
 
         {isStaffOrReadOnly && (

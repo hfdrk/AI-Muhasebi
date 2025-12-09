@@ -100,7 +100,7 @@ export default function EditClientPage() {
     return (
       <div style={{ padding: "40px" }}>
         <p>Müşteri şirketi bulunamadı.</p>
-        <Link href="/clients">Müşteri listesine dön</Link>
+        <Link href="/musteriler">Müşteri listesine dön</Link>
       </div>
     );
   }

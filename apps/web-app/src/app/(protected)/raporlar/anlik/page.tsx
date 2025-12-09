@@ -128,7 +128,10 @@ export default function OnDemandReportsPage() {
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      // Safely remove the element if it's still in the DOM
+      if (a.parentNode) {
+        a.parentNode.removeChild(a);
+      }
     } catch (err: any) {
       const errorMessage =
         err?.response?.data?.error?.message ||

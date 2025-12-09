@@ -72,8 +72,8 @@ export class TenantService {
 
     return users.map((m) => ({
       id: m.user.id,
+      name: m.user.fullName,
       email: m.user.email,
-      fullName: m.user.fullName,
       role: m.role,
       status: m.status,
       createdAt: m.createdAt,
@@ -84,7 +84,8 @@ export class TenantService {
     tenantId: string,
     email: string,
     role: string,
-    inviterUserId: string
+    inviterUserId: string,
+    name?: string
   ): Promise<void> {
     const normalizedEmail = email.toLowerCase().trim();
 
@@ -103,10 +104,16 @@ export class TenantService {
         data: {
           email: normalizedEmail,
           hashedPassword,
-          fullName: normalizedEmail.split("@")[0], // Temporary name
+          fullName: name || normalizedEmail.split("@")[0], // Use provided name or temporary name
           locale: "tr-TR",
           isActive: true,
         },
+      });
+    } else if (name && user.fullName !== name) {
+      // Update user's name if provided and different
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { fullName: name },
       });
     }
 
@@ -247,14 +254,11 @@ export class TenantService {
       data: { status },
     });
 
-    await auditService.logAuthAction(
-      status === "active" ? "USER_ACTIVATED" : "USER_DEACTIVATED",
-      changerUserId,
-      tenantId,
-      {
-        targetUserId: userId,
-      }
-    );
+    await auditService.logAuthAction("USER_STATUS_CHANGED", changerUserId, tenantId, {
+      targetUserId: userId,
+      oldStatus: membership.status,
+      newStatus: status,
+    });
   }
 }
 

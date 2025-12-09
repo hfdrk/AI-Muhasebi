@@ -12,4 +12,7 @@ export { default as risk } from "./risk.json";
 export { default as settings } from "./settings.json";
 export { default as auditLogs } from "./audit-logs.json";
 export { default as billing } from "./billing.json";
+export { default as search } from "./search.json";
+export { default as savedFilters } from "./saved-filters.json";
+export { default as admin } from "./admin.json";
 

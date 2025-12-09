@@ -1,9 +1,81 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { useMutation } from "@tanstack/react-query";
 import { colors, spacing } from "../../../styles/design-system";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3800";
+
+async function getDailyRiskSummary() {
+  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+  const response = await fetch(`${API_URL}/api/v1/ai/summaries/daily-risk`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+    credentials: "include",
+    body: JSON.stringify({}),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: { message: "Bir hata oluştu." } }));
+    throw new Error(error.error?.message || "Özet oluşturulamadı.");
+  }
+  return response.json();
+}
+
+async function getPortfolioSummary() {
+  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+  const response = await fetch(`${API_URL}/api/v1/ai/summaries/portfolio`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+    credentials: "include",
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: { message: "Bir hata oluştu." } }));
+    throw new Error(error.error?.message || "Özet oluşturulamadı.");
+  }
+  return response.json();
+}
+
 export default function ReportsPage() {
+  const [summaryModal, setSummaryModal] = useState<{ visible: boolean; title: string; text: string }>({
+    visible: false,
+    title: "",
+    text: "",
+  });
+
+  const dailyRiskMutation = useMutation({
+    mutationFn: getDailyRiskSummary,
+    onSuccess: (data) => {
+      setSummaryModal({
+        visible: true,
+        title: "Bugünün Risk Özeti",
+        text: data.data.summary,
+      });
+    },
+    onError: (error: any) => {
+      alert(error.message || "Özet oluşturulamadı.");
+    },
+  });
+
+  const portfolioMutation = useMutation({
+    mutationFn: getPortfolioSummary,
+    onSuccess: (data) => {
+      setSummaryModal({
+        visible: true,
+        title: "Portföy Özeti",
+        text: data.data.summary,
+      });
+    },
+    onError: (error: any) => {
+      alert(error.message || "Özet oluşturulamadı.");
+    },
+  });
   return (
     <div style={{ padding: spacing.xxl }}>
       <div style={{ marginBottom: spacing.xxl }}>
@@ -13,6 +85,55 @@ export default function ReportsPage() {
         <p style={{ color: colors.text.secondary, fontSize: "16px" }}>
           Finansal özetler, risk analizleri ve aktivite raporları oluşturun ve yönetin.
         </p>
+      </div>
+
+      {/* AI Summary Panel */}
+      <div
+        style={{
+          marginBottom: spacing.xl,
+          padding: spacing.lg,
+          backgroundColor: "#f0f9ff",
+          borderRadius: "8px",
+          border: "1px solid #bae6fd",
+        }}
+      >
+        <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: spacing.md, color: "#0369a1" }}>
+          AI Özetleri
+        </h3>
+        <div style={{ display: "flex", gap: spacing.md }}>
+          <button
+            onClick={() => dailyRiskMutation.mutate()}
+            disabled={dailyRiskMutation.isPending}
+            style={{
+              padding: "10px 20px",
+              backgroundColor: "#007AFF",
+              color: "#fff",
+              border: "none",
+              borderRadius: "6px",
+              cursor: dailyRiskMutation.isPending ? "not-allowed" : "pointer",
+              opacity: dailyRiskMutation.isPending ? 0.6 : 1,
+              fontWeight: 500,
+            }}
+          >
+            {dailyRiskMutation.isPending ? "Oluşturuluyor..." : "Bugünün Risk Özetini Oluştur"}
+          </button>
+          <button
+            onClick={() => portfolioMutation.mutate()}
+            disabled={portfolioMutation.isPending}
+            style={{
+              padding: "10px 20px",
+              backgroundColor: "#007AFF",
+              color: "#fff",
+              border: "none",
+              borderRadius: "6px",
+              cursor: portfolioMutation.isPending ? "not-allowed" : "pointer",
+              opacity: portfolioMutation.isPending ? 0.6 : 1,
+              fontWeight: 500,
+            }}
+          >
+            {portfolioMutation.isPending ? "Oluşturuluyor..." : "Portföy Özeti Oluştur"}
+          </button>
+        </div>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: spacing.lg }}>
@@ -76,6 +197,57 @@ export default function ReportsPage() {
           </p>
         </Link>
       </div>
+
+      {/* Summary Modal */}
+      {summaryModal.visible && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+          onClick={() => setSummaryModal({ visible: false, title: "", text: "" })}
+        >
+          <div
+            style={{
+              backgroundColor: colors.white,
+              borderRadius: "12px",
+              padding: spacing.xl,
+              maxWidth: "600px",
+              maxHeight: "80vh",
+              overflow: "auto",
+              boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.md }}>
+              <h3 style={{ fontSize: "20px", fontWeight: "600", color: colors.text.primary }}>{summaryModal.title}</h3>
+              <button
+                onClick={() => setSummaryModal({ visible: false, title: "", text: "" })}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: "24px",
+                  cursor: "pointer",
+                  color: colors.text.secondary,
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <div style={{ color: colors.text.primary, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+              {summaryModal.text}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

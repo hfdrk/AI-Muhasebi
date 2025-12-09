@@ -60,7 +60,6 @@ export default function NewTransactionPage() {
     handleSubmit,
     control,
     watch,
-    setValue,
     formState: { errors, isSubmitting },
   } = useForm<TransactionForm>({
     resolver: zodResolver(transactionSchema),
@@ -393,7 +392,7 @@ export default function NewTransactionPage() {
 
         <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
           <Link
-            href="/transactions"
+            href="/islemler"
             style={{
               padding: "8px 16px",
               backgroundColor: "#f5f5f5",

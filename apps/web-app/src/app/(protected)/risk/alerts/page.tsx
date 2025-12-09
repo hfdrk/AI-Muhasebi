@@ -2,9 +2,29 @@
 
 import { useState } from "react";
 import { useRiskAlerts, useUpdateAlertStatus } from "@/hooks/use-risk";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { risk as riskI18n, common as commonI18n } from "@repo/i18n";
 import Link from "next/link";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3800";
+
+async function getDailyRiskSummary() {
+  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+  const response = await fetch(`${API_URL}/api/v1/ai/summaries/daily-risk`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+    credentials: "include",
+    body: JSON.stringify({}),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: { message: "Bir hata oluştu." } }));
+    throw new Error(error.error?.message || "Özet oluşturulamadı.");
+  }
+  return response.json();
+}
 
 const SEVERITY_COLORS: Record<string, string> = {
   low: "#10b981",
@@ -64,11 +84,52 @@ export default function RiskAlertsPage() {
     }
   };
 
+  const dailyRiskMutation = useMutation({
+    mutationFn: getDailyRiskSummary,
+    onSuccess: (data) => {
+      alert(`Bugünün Risk Özeti:\n\n${data.data.summary}`);
+    },
+    onError: (error: any) => {
+      alert(error.message || "Özet oluşturulamadı.");
+    },
+  });
+
   return (
     <div style={{ padding: "40px" }}>
       <div style={{ marginBottom: "30px" }}>
         <h1 style={{ fontSize: "24px", fontWeight: "bold", marginBottom: "10px" }}>Risk Uyarıları</h1>
         <p style={{ color: "#666" }}>Tüm risk uyarılarını görüntüleyin ve yönetin</p>
+      </div>
+
+      {/* AI Summary Panel */}
+      <div
+        style={{
+          marginBottom: "20px",
+          padding: "20px",
+          backgroundColor: "#f0f9ff",
+          borderRadius: "8px",
+          border: "1px solid #bae6fd",
+        }}
+      >
+        <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "12px", color: "#0369a1" }}>
+          AI Önerileri
+        </h3>
+        <button
+          onClick={() => dailyRiskMutation.mutate()}
+          disabled={dailyRiskMutation.isPending}
+          style={{
+            padding: "10px 20px",
+            backgroundColor: "#007AFF",
+            color: "#fff",
+            border: "none",
+            borderRadius: "6px",
+            cursor: dailyRiskMutation.isPending ? "not-allowed" : "pointer",
+            opacity: dailyRiskMutation.isPending ? 0.6 : 1,
+            fontWeight: 500,
+          }}
+        >
+          {dailyRiskMutation.isPending ? "Oluşturuluyor..." : "Bugünün Risk Özetini Oluştur"}
+        </button>
       </div>
 
       {/* Filters */}
@@ -215,7 +276,7 @@ export default function RiskAlertsPage() {
                     <td style={{ padding: "12px", fontSize: "14px" }}>
                       {alert.clientCompanyId ? (
                         <Link
-                          href={`/clients/${alert.clientCompanyId}`}
+                          href={`/musteriler/${alert.clientCompanyId}`}
                           style={{ color: "#2563eb", textDecoration: "none" }}
                         >
                           Müşteri Detayı

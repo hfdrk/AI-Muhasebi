@@ -295,7 +295,7 @@ export default function NewClientPage() {
 
         <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
           <Link
-            href="/clients"
+            href="/musteriler"
             style={{
               padding: "8px 16px",
               backgroundColor: "#f5f5f5",

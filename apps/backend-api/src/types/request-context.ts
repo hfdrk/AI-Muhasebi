@@ -5,6 +5,10 @@ export interface RequestContext {
   user: User;
   tenantId?: string;
   membership?: UserTenantMembership;
+  platformRoles?: string[];
+  isImpersonating?: boolean;
+  impersonatorId?: string;
+  impersonatedUserId?: string;
 }
 
 export interface AuthenticatedRequest extends Request {

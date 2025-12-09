@@ -39,7 +39,16 @@
   },
   "users": {
     "title": "Kullanıcı Yönetimi",
-    "invite": "Kullanıcı Davet Et"
+    "invite": "Kullanıcı Davet Et",
+    "inviteButton": "Davet Gönder",
+    "changeRoleButton": "Rolü Değiştir",
+    "suspendButton": "Askıya Al",
+    "reactivateButton": "Tekrar Aktifleştir",
+    "viewOnlyMessage": "Kullanıcı ayarlarını sadece yönetici kullanıcılar düzenleyebilir.",
+    "inviteSuccess": "Davet başarıyla gönderildi.",
+    "roleUpdated": "Rol güncellendi.",
+    "userSuspended": "Kullanıcı askıya alındı.",
+    "userReactivated": "Kullanıcı tekrar aktifleştirildi."
   },
   "billing": {
     "title": "Faturalama",

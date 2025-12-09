@@ -22,6 +22,12 @@ export default function RiskDashboardPage() {
       error.message.includes("Unauthorized")
     );
 
+    const isTenantError = error instanceof Error && (
+      error.message.includes("Kiracı bulunamadı") ||
+      error.message.includes("tenant") ||
+      error.message.includes("Tenant not found")
+    );
+
     return (
       <div style={{ padding: "40px" }}>
         <div style={{ marginBottom: "30px" }}>
@@ -31,17 +37,41 @@ export default function RiskDashboardPage() {
         <div
           style={{
             padding: "20px",
-            backgroundColor: isAuthError ? "#fef3c7" : "#fee2e2",
+            backgroundColor: isAuthError ? "#fef3c7" : isTenantError ? "#dbeafe" : "#fee2e2",
             borderRadius: "8px",
-            border: `1px solid ${isAuthError ? "#fcd34d" : "#fca5a5"}`,
-            color: isAuthError ? "#92400e" : "#991b1b",
+            border: `1px solid ${isAuthError ? "#fcd34d" : isTenantError ? "#93c5fd" : "#fca5a5"}`,
+            color: isAuthError ? "#92400e" : isTenantError ? "#1e40af" : "#991b1b",
           }}
         >
           <p style={{ fontWeight: "bold", marginBottom: "8px" }}>Hata oluştu</p>
           <p style={{ fontSize: "14px", marginBottom: "12px" }}>
             {error instanceof Error ? error.message : "Risk verileri yüklenirken bir hata oluştu."}
           </p>
-          {isAuthError && (
+          {isTenantError && (
+            <div style={{ marginTop: "12px" }}>
+              <p style={{ fontSize: "14px", marginBottom: "8px" }}>
+                Risk panosunu görüntülemek için önce bir şirket/ofis seçmeniz gerekiyor.
+              </p>
+              <p style={{ fontSize: "12px", marginBottom: "12px", color: "#1e3a8a" }}>
+                Lütfen sayfanın üst kısmındaki "Şirket / Ofis" seçicisinden bir kiracı seçin veya ana sayfaya dönün.
+              </p>
+              <Link
+                href="/anasayfa"
+                style={{
+                  display: "inline-block",
+                  padding: "10px 20px",
+                  backgroundColor: "#2563eb",
+                  color: "#fff",
+                  borderRadius: "6px",
+                  textDecoration: "none",
+                  fontWeight: "500",
+                }}
+              >
+                Ana Sayfaya Dön
+              </Link>
+            </div>
+          )}
+          {isAuthError && !isTenantError && (
             <div style={{ marginTop: "12px" }}>
               <p style={{ fontSize: "14px", marginBottom: "8px" }}>
                 Risk panosunu görüntülemek için giriş yapmanız gerekiyor.
@@ -62,7 +92,7 @@ export default function RiskDashboardPage() {
               </Link>
             </div>
           )}
-          {!isAuthError && (
+          {!isAuthError && !isTenantError && (
             <p style={{ fontSize: "12px", marginTop: "8px", color: "#7f1d1d" }}>
               Backend API'nin çalıştığından emin olun: http://localhost:3800
             </p>
@@ -273,7 +303,7 @@ export default function RiskDashboardPage() {
               Uyarıları Görüntüle
             </Link>
             <Link
-              href="/clients"
+              href="/musteriler"
               style={{
                 padding: "10px 20px",
                 backgroundColor: "#fff",

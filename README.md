@@ -73,9 +73,37 @@ See [Worker Jobs Documentation](docs/WORKER_JOBS.md) for details on what the wor
 
 ### Running Tests
 
+**Full Test Suite:**
 ```bash
 pnpm test
 ```
+
+This runs the complete test suite for all apps. Note that full backend tests can be heavier and take longer to complete.
+
+**Smoke Tests (Quick Validation):**
+
+For quick validation after deployment or when checking system health, use the smoke test suite:
+
+```bash
+# Backend smoke tests only
+pnpm smoke:backend
+
+# Full stack smoke tests (backend + web app)
+pnpm smoke:full
+
+# Worker smoke tests
+pnpm smoke:worker
+```
+
+The smoke test suite is designed to be:
+- Small and deterministic
+- Fast to run (typically completes in under a minute)
+- Covers critical happy-path flows: auth, core domain operations, reporting, notifications, settings, and audit logs
+
+For more details, see:
+- Backend smoke tests: `apps/backend-api/src/routes/__tests__/smoke.integration.test.ts`
+- Web app smoke tests: `apps/web-app/e2e/smoke.spec.ts`
+- Worker smoke test: `apps/worker-jobs/src/smoke-test.ts`
 
 ### Code Style
 
@@ -158,17 +186,91 @@ To view CI status, check the [Actions tab](https://github.com/your-org/ai-muhase
 
 ### Environment Configuration
 
-See `.env.example` for all required environment variables. Key variables:
+**Environment Files Location:**
+- Backend API: `apps/backend-api/.env` (copy from `apps/backend-api/.env.example`)
+- Web App: `apps/web-app/.env.local` (copy from `apps/web-app/.env.example`)
+- Worker Jobs: `apps/worker-jobs/.env` (copy from `apps/worker-jobs/.env.example`)
 
-- `DATABASE_URL`: PostgreSQL connection string
-- `JWT_SECRET`: Secret key for JWT tokens (min 32 characters)
-- `NEXT_PUBLIC_API_BASE_URL`: Public API URL for frontend
-- `CORS_ORIGIN` or `FRONTEND_URL`: Frontend URL for CORS
-- `LOG_LEVEL`: Logging level (debug, info, warn, error)
+**Minimal Required Variables:**
+
+- `DATABASE_URL`: PostgreSQL connection string (required for all apps)
+- `JWT_SECRET`: Secret key for JWT tokens (min 32 characters, required for backend-api)
+- `NEXT_PUBLIC_API_BASE_URL`: Public API URL for frontend (required for web-app)
+- `CORS_ORIGIN` or `FRONTEND_URL`: Frontend URL for CORS (required for backend-api)
+- `LOG_LEVEL`: Logging level (debug, info, warn, error) - optional
+
+**Email/Queue Configuration:**
+- Email service configuration is optional for local development (stubs are used)
+- Queue/background job processing uses database-backed jobs (no external queue required)
+
+See `.env.example` files in each app directory for complete variable lists.
 
 ## Deployment
 
-See `docs/deployment/` for deployment guides and infrastructure setup.
+### High-Level Deployment Process
+
+The system is designed for container-based deployment (Docker, Kubernetes, etc.).
+
+**Pre-Deployment Steps:**
+1. Run database migrations before deploying new version:
+   ```bash
+   cd apps/backend-api
+   pnpm db:migrate:deploy
+   ```
+2. Ensure environment variables are configured in your deployment environment
+3. Build production artifacts:
+   ```bash
+   pnpm build
+   ```
+
+**Health Endpoints:**
+
+The backend API exposes health check endpoints for orchestration systems:
+
+- `GET /healthz` - Lightweight health check (returns 200 if HTTP server is up)
+- `GET /readyz` - Readiness check (returns 200 when database is reachable, 503 otherwise)
+
+These endpoints are:
+- Not protected by authentication (used by load balancers/k8s)
+- Should be used for health probes and readiness checks
+- Example usage:
+  ```bash
+  curl http://localhost:3800/healthz
+  curl http://localhost:3800/readyz
+  ```
+  Or use the helper script:
+  ```bash
+  ./scripts/healthcheck-backend.sh [API_URL]
+  ```
+
+**Post-Deployment Verification:**
+
+After deployment, verify system health:
+
+1. Check health endpoints:
+   ```bash
+   curl http://your-api-url/healthz
+   curl http://your-api-url/readyz
+   ```
+
+2. Run smoke tests:
+   ```bash
+   pnpm smoke:backend
+   # Or full stack:
+   pnpm smoke:full
+   ```
+
+3. Check application logs for errors
+
+**Database Migrations:**
+
+Always run migrations before deploying a new version:
+```bash
+cd apps/backend-api
+pnpm db:migrate:deploy
+```
+
+For detailed deployment guides and infrastructure setup, see `docs/deployment/`.
 
 ## Support
 

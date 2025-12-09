@@ -77,7 +77,7 @@ export default function IntegrationDetailPage() {
   const deleteMutation = useMutation({
     mutationFn: () => deleteIntegration(integrationId),
     onSuccess: () => {
-      router.push("/integrations");
+      router.push("/entegrasyonlar");
     },
   });
 

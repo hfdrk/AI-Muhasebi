@@ -1,0 +1,45 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - link "AI Muhasebi" [ref=e4] [cursor=pointer]:
+        - /url: /anasayfa
+        - heading "AI Muhasebi" [level=1] [ref=e5]
+      - navigation [ref=e6]:
+        - link "Risk Panosu" [ref=e7] [cursor=pointer]:
+          - /url: /risk/dashboard
+        - link "Risk Uyarıları" [ref=e8] [cursor=pointer]:
+          - /url: /risk/alerts
+        - link "Belgeler" [ref=e9] [cursor=pointer]:
+          - /url: /belgeler
+        - link "Raporlar" [ref=e10] [cursor=pointer]:
+          - /url: /raporlar
+        - link "AI Asistan" [ref=e11] [cursor=pointer]:
+          - /url: /ai-asistan
+        - link "Ayarlar" [ref=e12] [cursor=pointer]:
+          - /url: /ayarlar
+        - link "Abonelik & Kullanım" [ref=e13] [cursor=pointer]:
+          - /url: /ayarlar/abonelik
+        - button "🔍 Ara" [ref=e14] [cursor=pointer]
+        - button "🔔" [ref=e16] [cursor=pointer]
+        - generic [ref=e17]: "Şirket / Ofis: E2E Owner Tenant 1765316107004"
+        - link "Kullanıcı Yönetimi" [ref=e18] [cursor=pointer]:
+          - /url: /ayarlar/kullanicilar
+    - main [ref=e19]:
+      - generic [ref=e20]:
+        - generic [ref=e21]:
+          - generic [ref=e22]:
+            - link "← Raporlara Dön" [ref=e23] [cursor=pointer]:
+              - /url: /raporlar
+            - heading "Zamanlanmış Raporlar" [level=1] [ref=e24]
+            - paragraph [ref=e25]: Otomatik olarak oluşturulan ve e-posta ile gönderilen raporları yönetin.
+          - link "Yeni Zamanlanmış Rapor Oluştur" [ref=e26] [cursor=pointer]:
+            - /url: /raporlar/zamanlanmis/new
+        - generic [ref=e27]:
+          - paragraph [ref=e28]: Bu kriterlere uygun rapor sonucu bulunamadı.
+          - link "İlk Zamanlanmış Raporu Oluştur" [ref=e29] [cursor=pointer]:
+            - /url: /raporlar/zamanlanmis/new
+  - alert [ref=e30]
+```

@@ -33,6 +33,21 @@ PostgreSQL is used as the primary database with strict multi-tenant isolation.
 ### AuditLogs
 - `id`, `tenant_id`, `user_id`, `action`, `resource_type`, `resource_id`, `ip_address`, `user_agent`, `result`, `metadata`, `timestamp`
 
+### SavedFilters
+- `id` (TEXT, PRIMARY KEY) - Unique identifier
+- `tenant_id` (TEXT, FK → tenants) - Tenant ownership
+- `user_id` (TEXT, FK → users) - User ownership
+- `name` (VARCHAR(255)) - Display name for the filter
+- `target` (VARCHAR(50)) - Filter target type: CLIENT_COMPANIES, INVOICES, DOCUMENTS, RISK_ALERTS, REPORTS
+- `filters` (JSONB) - Filter configuration as JSON object
+- `is_default` (BOOLEAN) - Whether this is the default filter for (tenant, user, target)
+- `created_at` (TIMESTAMPTZ) - Creation timestamp
+- `updated_at` (TIMESTAMPTZ) - Last update timestamp
+
+**Constraints**:
+- Only one default filter per (tenant_id, user_id, target) combination (enforced in application logic)
+- Cascade delete when tenant or user is deleted
+
 ## Relationships
 
 - Users belong to Tenants
@@ -42,6 +57,7 @@ PostgreSQL is used as the primary database with strict multi-tenant isolation.
 - RiskScores and RiskAlerts belong to Tenants and Clients
 - Reports belong to Tenants
 - AuditLogs belong to Tenants and Users
+- SavedFilters belong to Tenants and Users
 
 ## Indexes
 

@@ -105,9 +105,9 @@ export default function NotificationsPage() {
       case "INTEGRATION_SYNC":
         // If there's an integration ID, go to integrations page
         if (meta.integrationId && typeof meta.integrationId === "string") {
-          return `/integrations?integrationId=${meta.integrationId}`;
+          return `/entegrasyonlar?integrationId=${meta.integrationId}`;
         }
-        return "/integrations";
+        return "/entegrasyonlar";
       
       case "SYSTEM":
         // System notifications might go to dashboard or stay on notifications page

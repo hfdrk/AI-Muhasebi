@@ -16,3 +16,15 @@ export const ROLE_LABELS_TR: Record<TenantRole, string> = {
   ReadOnly: "Sadece Görüntüleme",
 };
 
+export const PLATFORM_ROLES = {
+  PLATFORM_ADMIN: "PLATFORM_ADMIN",
+  PLATFORM_SUPPORT: "PLATFORM_SUPPORT",
+} as const;
+
+export type PlatformRole = typeof PLATFORM_ROLES[keyof typeof PLATFORM_ROLES];
+
+export const PLATFORM_ROLE_LABELS_TR: Record<PlatformRole, string> = {
+  PLATFORM_ADMIN: "Platform Yöneticisi",
+  PLATFORM_SUPPORT: "Platform Destek",
+};
+

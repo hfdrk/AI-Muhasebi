@@ -15,16 +15,19 @@ export interface Tenant {
 
 export interface TenantUser {
   id: string;
+  name: string;
   email: string;
-  fullName: string;
   role: string;
   status: string;
   createdAt: Date;
+  // Legacy field for backward compatibility
+  fullName?: string;
 }
 
 export interface InviteUserInput {
   email: string;
   role: "TenantOwner" | "Accountant" | "Staff" | "ReadOnly";
+  name?: string;
 }
 
 export interface ChangeRoleInput {
@@ -33,6 +36,11 @@ export interface ChangeRoleInput {
 
 export interface UpdateStatusInput {
   status: "active" | "suspended";
+}
+
+export interface UpdateUserInput {
+  role?: "TenantOwner" | "Accountant" | "Staff" | "ReadOnly";
+  status?: "active" | "suspended";
 }
 
 async function apiRequest<T>(
@@ -61,8 +69,25 @@ async function apiRequest<T>(
         }
       }
     }
-    const error = await response.json().catch(() => ({ error: { message: "Bir hata oluştu." } }));
-    throw new Error(error.error?.message || "Bir hata oluştu.");
+    
+    let errorMessage = "Bir hata oluştu.";
+    try {
+      const error = await response.json();
+      errorMessage = error.error?.message || error.message || errorMessage;
+    } catch {
+      // If response is not JSON, try to get text
+      try {
+        const text = await response.text();
+        if (text) errorMessage = text;
+      } catch {
+        // Fallback to status text
+        errorMessage = response.statusText || `HTTP ${response.status} hatası`;
+      }
+    }
+    
+    const error = new Error(errorMessage);
+    (error as any).status = response.status;
+    throw error;
   }
 
   return response.json();
@@ -117,6 +142,20 @@ export async function updateUserStatus(
 ): Promise<{ data: { message: string } }> {
   return apiRequest<{ data: { message: string } }>(
     `/api/v1/tenants/${tenantId}/users/${userId}/status`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }
+  );
+}
+
+export async function updateUser(
+  tenantId: string,
+  userId: string,
+  input: UpdateUserInput
+): Promise<{ data: { message: string } }> {
+  return apiRequest<{ data: { message: string } }>(
+    `/api/v1/tenants/${tenantId}/users/${userId}`,
     {
       method: "PATCH",
       body: JSON.stringify(input),

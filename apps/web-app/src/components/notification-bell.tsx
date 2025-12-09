@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { notificationClient, type Notification } from "@repo/api-client";
+import { notificationClient, type Notification, getCurrentUser } from "@repo/api-client";
 import { useRouter } from "next/navigation";
 import { colors, spacing, shadows, borderRadius } from "../styles/design-system";
 import Link from "next/link";
@@ -31,11 +31,53 @@ export function NotificationBell() {
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
 
+  // Check if user is authenticated and has an active tenant
+  const hasAuthToken = typeof window !== "undefined" && !!localStorage.getItem("accessToken");
+  
+  // Get current user to check for active tenant
+  const { data: userData } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: () => getCurrentUser(),
+    enabled: hasAuthToken,
+  });
+
+  const currentTenant = userData?.data?.tenants?.find((t: any) => t.status === "active");
+  const hasActiveTenant = !!currentTenant;
+
   // Fetch notifications
-  const { data, refetch } = useQuery({
+  const { data, refetch, error } = useQuery({
     queryKey: ["notifications", "list"],
     queryFn: () => notificationClient.listNotifications({ limit: 5, is_read: false }),
-    refetchInterval: 30000, // Poll every 30 seconds
+    enabled: hasAuthToken && hasActiveTenant, // Only fetch if user is authenticated AND has active tenant
+    refetchInterval: (query) => {
+      // Only poll if query is successful, user is authenticated, and has active tenant
+      if (!hasAuthToken || !hasActiveTenant || query.state.error) {
+        return false;
+      }
+      return 30000; // Poll every 30 seconds
+    },
+    retry: (failureCount, error: any) => {
+      // Don't retry on 401/403/404 errors (auth/tenant issues)
+      if (error?.status === 401 || error?.status === 403 || error?.status === 404) {
+        return false;
+      }
+      // Don't retry on network errors (status 0) - server is likely down
+      if (error?.status === 0) {
+        return false;
+      }
+      // Retry up to 2 times for other errors
+      return failureCount < 2;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+    onError: (error: any) => {
+      // Silently handle errors - don't spam console
+      // Only log if it's not a connection/auth error
+      const isNetworkError = error?.status === 0 || error?.message?.includes("Failed to fetch") || error?.message?.includes("connection");
+      const isAuthError = error?.status === 401 || error?.status === 403 || error?.status === 404;
+      if (!isNetworkError && !isAuthError) {
+        console.warn("Notification fetch error:", error);
+      }
+    },
   });
 
   const markAsReadMutation = useMutation({
@@ -85,9 +127,9 @@ export function NotificationBell() {
       case "INTEGRATION_SYNC":
         // If there's an integration ID, go to integrations page
         if (meta.integrationId && typeof meta.integrationId === "string") {
-          return `/integrations?integrationId=${meta.integrationId}`;
+          return `/entegrasyonlar?integrationId=${meta.integrationId}`;
         }
-        return "/integrations";
+        return "/entegrasyonlar";
       
       case "SYSTEM":
         // System notifications might go to dashboard or stay on notifications page

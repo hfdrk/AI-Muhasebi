@@ -168,7 +168,7 @@ export default function EditInvoicePage() {
     return (
       <div style={{ padding: "40px" }}>
         <p>Fatura bulunamadı.</p>
-        <Link href="/invoices">Fatura listesine dön</Link>
+        <Link href="/faturalar">Fatura listesine dön</Link>
       </div>
     );
   }

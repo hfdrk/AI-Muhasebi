@@ -59,15 +59,23 @@ async function apiRequest<T>(endpoint: string, options?: RequestInit & { params?
 
   const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
 
-  const response = await fetch(url, {
-    ...fetchOptions,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token && { Authorization: `Bearer ${token}` }),
-      ...fetchOptions?.headers,
-    },
-    credentials: "include",
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...fetchOptions,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+        ...fetchOptions?.headers,
+      },
+      credentials: "include",
+    });
+  } catch (networkError: any) {
+    // Handle network errors (connection refused, timeout, etc.)
+    const error = new Error(networkError.message || "Sunucuya bağlanılamadı.");
+    (error as any).status = 0; // 0 indicates network error
+    throw error;
+  }
 
   if (!response.ok) {
     if (response.status === 401) {
@@ -78,8 +86,19 @@ async function apiRequest<T>(endpoint: string, options?: RequestInit & { params?
         }
       }
     }
-    const error = await response.json().catch(() => ({ error: { message: "Bir hata oluştu." } }));
-    throw new Error(error.error?.message || "Bir hata oluştu.");
+    
+    let errorMessage = "Bir hata oluştu.";
+    try {
+      const error = await response.json();
+      errorMessage = error.error?.message || error.message || errorMessage;
+    } catch {
+      // If response is not JSON (e.g., connection refused), use status text
+      errorMessage = response.statusText || `HTTP ${response.status} hatası`;
+    }
+    
+    const error = new Error(errorMessage);
+    (error as any).status = response.status;
+    throw error;
   }
 
   return response.json();

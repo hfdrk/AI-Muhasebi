@@ -53,7 +53,7 @@ export default function ClientDetailPage() {
     return (
       <div style={{ padding: "40px" }}>
         <p>Müşteri şirketi bulunamadı.</p>
-        <Link href="/clients">Müşteri listesine dön</Link>
+        <Link href="/musteriler">Müşteri listesine dön</Link>
       </div>
     );
   }
@@ -78,7 +78,7 @@ export default function ClientDetailPage() {
             Düzenle
           </Link>
           <Link
-            href="/clients"
+            href="/musteriler"
             style={{
               padding: "8px 16px",
               backgroundColor: "#f5f5f5",

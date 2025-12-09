@@ -202,8 +202,19 @@ async function createClientCompany(
     return { id: "dry-run-company-id" };
   }
 
-  return await prisma.clientCompany.create({
-    data: {
+  return await prisma.clientCompany.upsert({
+    where: {
+      tenantId_taxNumber: {
+        tenantId,
+        taxNumber: companyData.taxNumber,
+      },
+    },
+    update: {
+      name: companyData.name,
+      legalType: companyData.legalType,
+      isActive: true,
+    },
+    create: {
       tenantId,
       name: companyData.name,
       taxNumber: companyData.taxNumber,
@@ -234,8 +245,12 @@ async function createDemoData() {
       return idx >= 3; // Last 2 users for second tenant
     });
 
+    let uploadUserId = "";
     for (const userData of tenantUsers) {
       const { user } = await createUser(userData, tenant.id);
+      if (!uploadUserId) {
+        uploadUserId = user.id; // Store first user ID for document uploads
+      }
       createdUsers.push({
         email: user.email,
         password: userData.password,
@@ -256,24 +271,48 @@ async function createDemoData() {
       if (!DRY_RUN) {
         await createSampleInvoices(tenant.id, company.id);
         await createSampleTransactions(tenant.id, company.id);
-        await createSampleDocuments(tenant.id, company.id);
+        await createSampleDocuments(tenant.id, company.id, uploadUserId);
         await createRiskData(tenant.id, company.id);
       }
     }
 
-    // Create tenant settings
+    // Create tenant settings (optional - table may not exist)
     if (!DRY_RUN) {
-      await createTenantSettings(tenant.id);
+      try {
+        await createTenantSettings(tenant.id);
+      } catch (error: any) {
+        if (error.code === "P2021") {
+          console.log("    ⚠️  Tenant settings table not found, skipping...");
+        } else {
+          throw error;
+        }
+      }
     }
 
-    // Create notifications
+    // Create notifications (optional)
     if (!DRY_RUN) {
-      await createSampleNotifications(tenant.id);
+      try {
+        await createSampleNotifications(tenant.id);
+      } catch (error: any) {
+        if (error.code === "P2021") {
+          console.log("    ⚠️  Notifications table not found, skipping...");
+        } else {
+          console.warn(`    ⚠️  Error creating notifications: ${error.message}`);
+        }
+      }
     }
 
-    // Create scheduled reports
+    // Create scheduled reports (optional)
     if (!DRY_RUN) {
-      await createScheduledReports(tenant.id);
+      try {
+        await createScheduledReports(tenant.id);
+      } catch (error: any) {
+        if (error.code === "P2021") {
+          console.log("    ⚠️  Scheduled reports table not found, skipping...");
+        } else {
+          console.warn(`    ⚠️  Error creating scheduled reports: ${error.message}`);
+        }
+      }
     }
   }
 
@@ -299,15 +338,25 @@ async function createDemoData() {
 async function createSampleInvoices(tenantId: string, companyId: string) {
   const invoices = [];
   for (let i = 0; i < 5; i++) {
+    const totalAmount = new Decimal(1000 + i * 500);
+    const taxAmount = new Decimal((1000 + i * 500) * 0.2);
+    const netAmount = new Decimal(Number(totalAmount) - Number(taxAmount));
+    const statuses = ["taslak", "kesildi", "iptal", "muhasebeleştirilmiş"];
+    const types = ["SATIŞ", "ALIŞ"];
+    
     invoices.push({
       tenantId,
       clientCompanyId: companyId,
-      invoiceNumber: `FAT-2024-${String(i + 1).padStart(4, "0")}`,
+      externalId: `FAT-2024-${String(i + 1).padStart(4, "0")}`,
+      type: types[i % 2], // Alternate between SATIŞ and ALIŞ
       issueDate: new Date(2024, 0, i + 1),
       dueDate: new Date(2024, 1, i + 1),
-      totalAmount: new Decimal(1000 + i * 500),
-      taxAmount: new Decimal((1000 + i * 500) * 0.2),
-      status: i % 3 === 0 ? "PAID" : i % 3 === 1 ? "PENDING" : "OVERDUE",
+      totalAmount,
+      taxAmount,
+      netAmount,
+      currency: "TRY",
+      status: statuses[i % 4], // Cycle through statuses
+      source: "manual",
     });
   }
   await prisma.invoice.createMany({ data: invoices });
@@ -340,92 +389,147 @@ async function createSampleTransactions(tenantId: string, companyId: string) {
     }),
   ]);
 
-  const transactions = [];
+  // Create transactions one by one so we can create lines immediately
   for (let i = 0; i < 3; i++) {
-    transactions.push({
-      tenantId,
-      clientCompanyId: companyId,
-      date: new Date(2024, 0, i + 1),
-      description: `İşlem ${i + 1}`,
-      amount: new Decimal(500 + i * 200),
-      type: i % 2 === 0 ? "INCOME" : "EXPENSE",
+    const amount = new Decimal(500 + i * 200);
+    const isIncome = i % 2 === 0;
+    
+    // Create transaction
+    const transaction = await prisma.transaction.create({
+      data: {
+        tenantId,
+        clientCompanyId: companyId,
+        date: new Date(2024, 0, i + 1),
+        referenceNo: `REF-2024-${String(i + 1).padStart(4, "0")}`,
+        description: `İşlem ${i + 1}`,
+        source: "manual",
+      },
     });
-  }
-  const created = await prisma.transaction.createMany({ data: transactions });
-  
-  // Create transaction lines
-  const transList = await prisma.transaction.findMany({
-    where: { tenantId, clientCompanyId: companyId },
-    take: 3,
-  });
-  
-  for (const trans of transList) {
-    await prisma.transactionLine.createMany({
-      data: [
-        {
-          tenantId,
-          transactionId: trans.id,
-          ledgerAccountId: accounts[0].id,
-          amount: trans.amount,
-          type: trans.type === "INCOME" ? "CREDIT" : "DEBIT",
-        },
-        {
-          tenantId,
-          transactionId: trans.id,
-          ledgerAccountId: accounts[1].id,
-          amount: trans.amount,
-          type: trans.type === "INCOME" ? "DEBIT" : "CREDIT",
-        },
-      ],
-    });
+    
+    // Create transaction lines
+    if (isIncome) {
+      // Income: Debit Sales (600), Credit Cash (100)
+      await prisma.transactionLine.createMany({
+        data: [
+          {
+            tenantId,
+            transactionId: transaction.id,
+            ledgerAccountId: accounts[1].id, // Sales
+            debitAmount: amount,
+            creditAmount: new Decimal(0),
+            description: `Satış işlemi ${i + 1}`,
+          },
+          {
+            tenantId,
+            transactionId: transaction.id,
+            ledgerAccountId: accounts[0].id, // Cash
+            debitAmount: new Decimal(0),
+            creditAmount: amount,
+            description: `Kasa girişi ${i + 1}`,
+          },
+        ],
+      });
+    } else {
+      // Expense: Debit Expense account, Credit Cash
+      await prisma.transactionLine.createMany({
+        data: [
+          {
+            tenantId,
+            transactionId: transaction.id,
+            ledgerAccountId: accounts[1].id, // Using sales account as expense for demo
+            debitAmount: new Decimal(0),
+            creditAmount: amount,
+            description: `Gider işlemi ${i + 1}`,
+          },
+          {
+            tenantId,
+            transactionId: transaction.id,
+            ledgerAccountId: accounts[0].id, // Cash
+            debitAmount: amount,
+            creditAmount: new Decimal(0),
+            description: `Kasa çıkışı ${i + 1}`,
+          },
+        ],
+      });
+    }
   }
 }
 
-async function createSampleDocuments(tenantId: string, companyId: string) {
-  const documents = [];
-  for (let i = 0; i < 3; i++) {
-    documents.push({
-      tenantId,
-      clientCompanyId: companyId,
-      fileName: `belge-${i + 1}.pdf`,
-      fileType: "application/pdf",
-      fileSize: 1024 * 100 * (i + 1),
-      documentType: i === 0 ? "INVOICE" : i === 1 ? "BANK_STATEMENT" : "RECEIPT",
-      status: i === 0 ? "PROCESSED" : i === 1 ? "PROCESSING" : "UPLOADED",
-    });
+async function createSampleDocuments(tenantId: string, companyId: string, uploadUserId: string) {
+  if (!uploadUserId) {
+    console.warn("⚠️  No user ID available, skipping document creation");
+    return;
   }
-  const created = await prisma.document.createMany({ data: documents });
 
-  // Create AI analysis stubs for processed documents
-  const docList = await prisma.document.findMany({
-    where: { tenantId, clientCompanyId: companyId, status: "PROCESSED" },
-    take: 1,
-  });
-
-  for (const doc of docList) {
-    await prisma.documentOCRResult.create({
+  const documentTypes = ["INVOICE", "BANK_STATEMENT", "RECEIPT"];
+  const statuses = ["PROCESSED", "PROCESSING", "UPLOADED"];
+  
+  for (let i = 0; i < 3; i++) {
+    const fileName = `belge-${i + 1}.pdf`;
+    const fileSize = BigInt(1024 * 100 * (i + 1));
+    const documentId = `doc_${Date.now()}_${i}_${Math.random().toString(36).substring(7)}`;
+    const storagePath = `documents/${documentId}/${fileName}`;
+    
+    const document = await prisma.document.create({
       data: {
         tenantId,
-        documentId: doc.id,
-        confidence: 0.95,
-        rawText: "Örnek OCR metni",
-        extractedData: { amount: 1000, date: "2024-01-01" },
+        clientCompanyId: companyId,
+        type: documentTypes[i],
+        originalFileName: fileName,
+        storagePath,
+        mimeType: "application/pdf",
+        fileSizeBytes: fileSize,
+        uploadUserId,
+        uploadSource: "manual",
+        status: statuses[i],
       },
     });
+
+    // Create AI analysis stubs for processed documents
+    if (document.status === "PROCESSED") {
+      await prisma.documentOCRResult.create({
+        data: {
+          tenantId,
+          documentId: document.id,
+          ocrEngine: "stub",
+          confidence: new Decimal(0.95),
+          rawText: "Örnek OCR metni",
+        },
+      });
+      
+      // Create parsed data if it's an invoice
+      if (document.type === "INVOICE") {
+        await prisma.documentParsedData.create({
+          data: {
+            tenantId,
+            documentId: document.id,
+            documentType: "invoice",
+            parserVersion: "1.0-stub",
+            fields: {
+              amount: 1000,
+              date: "2024-01-01",
+              invoiceNumber: `FAT-2024-${i + 1}`,
+            },
+          },
+        });
+      }
+    }
   }
 }
 
 async function createRiskData(tenantId: string, companyId: string) {
   // Create risk score
+  const score = new Decimal(65.5);
+  const severity = score.toNumber() < 50 ? "low" : score.toNumber() < 75 ? "medium" : "high";
+  
   await prisma.clientCompanyRiskScore.create({
     data: {
       tenantId,
       clientCompanyId: companyId,
-      overallScore: new Decimal(65.5),
-      financialScore: new Decimal(70.0),
-      complianceScore: new Decimal(60.0),
-      behavioralScore: new Decimal(66.0),
-      calculatedAt: new Date(),
+      score,
+      severity,
+      triggeredRuleCodes: ["RULE_001", "RULE_003"],
+      generatedAt: new Date(),
     },
   });
 
@@ -434,11 +538,11 @@ async function createRiskData(tenantId: string, companyId: string) {
     data: {
       tenantId,
       clientCompanyId: companyId,
-      severity: "MEDIUM",
+      type: "RISK_THRESHOLD_EXCEEDED",
+      severity: "medium",
       status: "open",
       title: "Yüksek Risk Skoru Tespit Edildi",
       message: "Bu müşteri için orta seviye risk skoru hesaplandı.",
-      metadata: { score: 65.5 },
     },
   });
 }
@@ -451,9 +555,11 @@ async function createTenantSettings(tenantId: string) {
       tenantId,
       locale: "tr-TR",
       timezone: "Europe/Istanbul",
-      dateFormat: "DD.MM.YYYY",
-      currency: "TRY",
-      fiscalYearStart: "01-01",
+      defaultReportPeriod: "LAST_30_DAYS",
+      riskThresholds: {
+        high: 70,
+        critical: 90,
+      },
     },
   });
 }
@@ -494,7 +600,8 @@ async function createScheduledReports(tenantId: string) {
       tenantId,
       reportCode: "MONTHLY_SUMMARY",
       name: "Aylık Özet Raporu",
-      schedule: "0 0 1 * *", // First day of month
+      format: "pdf",
+      scheduleCron: "0 0 1 * *", // First day of month
       isActive: true,
       recipients: ["info@example.com"],
     },

@@ -6,6 +6,10 @@ export interface TokenPayload {
   tenantId?: string;
   email: string;
   roles?: string[];
+  platformRoles?: string[];
+  isImpersonating?: boolean;
+  impersonatorId?: string;
+  impersonatedUserId?: string;
 }
 
 export function generateAccessToken(payload: TokenPayload): string {

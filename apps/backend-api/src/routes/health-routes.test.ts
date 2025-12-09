@@ -1,7 +1,7 @@
 /**
  * Health Routes Tests
  * 
- * Tests for /health and /ready endpoints
+ * Tests for /health, /ready, /healthz and /readyz endpoints
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
@@ -95,6 +95,69 @@ describe("Health Routes", () => {
       const response = await request(app).get("/ready").expect(503);
 
       expect(response.body.status).toBe("not ready");
+    }, 10000);
+  });
+
+  describe("GET /healthz", () => {
+    it("should return 200 with ok status and service name (no DB check)", async () => {
+      const response = await request(app).get("/healthz").expect(200);
+
+      expect(response.body).toEqual({
+        status: "ok",
+        service: "backend-api",
+      });
+    });
+
+    it("should be very lightweight and not query database", async () => {
+      const querySpy = vi.spyOn(prisma, "$queryRaw");
+      
+      const response = await request(app).get("/healthz").expect(200);
+
+      expect(response.body).toEqual({
+        status: "ok",
+        service: "backend-api",
+      });
+      // Verify no database query was made
+      expect(querySpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("GET /readyz", () => {
+    it("should return 200 with ready status when database is reachable", async () => {
+      // Mock successful database query
+      vi.spyOn(prisma, "$queryRaw").mockResolvedValue([{ ready_check: 1 }]);
+
+      const response = await request(app).get("/readyz").expect(200);
+
+      expect(response.body).toEqual({
+        status: "ready",
+      });
+    });
+
+    it("should return 503 with not_ready status when database is not reachable", async () => {
+      // Mock database error
+      vi.spyOn(prisma, "$queryRaw").mockRejectedValue(new Error("Connection failed"));
+
+      const response = await request(app).get("/readyz").expect(503);
+
+      expect(response.body).toMatchObject({
+        status: "not_ready",
+        details: {
+          error: "Connection failed",
+        },
+      });
+    });
+
+    it("should handle database timeout", async () => {
+      // Mock timeout
+      vi.spyOn(prisma, "$queryRaw").mockImplementation(
+        () => new Promise((_, reject) => setTimeout(() => reject(new Error("Database connection timeout")), 10)) as any
+      );
+
+      const response = await request(app).get("/readyz").expect(503);
+
+      expect(response.body.status).toBe("not_ready");
+      expect(response.body.details).toBeDefined();
     }, 10000);
   });
 });

@@ -97,11 +97,13 @@ export class AuthService {
     const tenantId = firstMembership?.tenantId;
 
     // Generate tokens
+    const platformRoles = user.platformRole ? [user.platformRole] : [];
     const accessToken = generateAccessToken({
       userId: user.id,
       email: user.email,
       tenantId,
       roles: firstMembership ? [firstMembership.role] : [],
+      platformRoles,
     });
 
     const refreshToken = generateRefreshToken({

@@ -6,6 +6,7 @@ import { riskCalculationProcessor } from "./processors/risk-calculation-processo
 import { integrationSyncProcessor } from "./processors/integration-sync-processor";
 import { integrationSyncScheduler } from "./schedulers/integration-sync-scheduler";
 import { scheduledReportRunner } from "./workers/scheduled-report-runner";
+import { aiSummaryRunner } from "./workers/ai-summary-runner";
 import { prisma } from "./lib/prisma";
 
 // Validate environment variables at startup
@@ -17,6 +18,7 @@ const RISK_CALCULATION_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours (daily)
 const INTEGRATION_SYNC_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 const INTEGRATION_SCHEDULER_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
 const SCHEDULED_REPORT_INTERVAL_MS = 60 * 1000; // 1 minute
+const AI_SUMMARY_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours (daily)
 
 async function processPendingJobs(): Promise<void> {
   try {
@@ -266,6 +268,18 @@ async function processScheduledReports(): Promise<void> {
   }
 }
 
+async function processAISummaries(): Promise<void> {
+  try {
+    await aiSummaryRunner.runOnce();
+  } catch (error: any) {
+    logger.error("Error in AI summaries processing loop", undefined, {
+      error: error.message,
+      stack: error.stack,
+      jobType: "AI_SUMMARY",
+    });
+  }
+}
+
 async function startWorker(): Promise<void> {
   logger.info("Worker jobs service starting", undefined, {
     documentProcessingInterval: `${POLL_INTERVAL_MS / 1000}s`,
@@ -273,6 +287,7 @@ async function startWorker(): Promise<void> {
     integrationSyncInterval: `${INTEGRATION_SYNC_INTERVAL_MS / 1000}s`,
     integrationSchedulerInterval: `${INTEGRATION_SCHEDULER_INTERVAL_MS / 1000}s`,
     scheduledReportInterval: `${SCHEDULED_REPORT_INTERVAL_MS / 1000}s`,
+    aiSummaryInterval: `${AI_SUMMARY_INTERVAL_MS / (60 * 60 * 1000)}h`,
   });
 
   // Start document processing polling loop
@@ -299,6 +314,11 @@ async function startWorker(): Promise<void> {
   setInterval(async () => {
     await processScheduledReports();
   }, SCHEDULED_REPORT_INTERVAL_MS);
+
+  // Start AI summary processing loop (daily)
+  setInterval(async () => {
+    await processAISummaries();
+  }, AI_SUMMARY_INTERVAL_MS);
 
   // Process immediately on startup
   logger.info("Running initial job processing on startup");

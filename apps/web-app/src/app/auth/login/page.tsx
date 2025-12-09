@@ -31,7 +31,7 @@ export default function LoginPage() {
   const mutation = useMutation({
     mutationFn: (data: LoginForm) => login(data),
     onSuccess: () => {
-      router.push("/dashboard");
+      router.push("/anasayfa");
     },
     onError: (err: Error) => {
       setError(err.message || "Giriş yapılırken bir hata oluştu.");

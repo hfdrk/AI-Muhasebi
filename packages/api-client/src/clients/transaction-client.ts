@@ -33,15 +33,10 @@ export interface ListTransactionsParams {
   pageSize?: number;
 }
 
-export interface PaginatedResponse<T> {
-  data: {
-    data: T[];
-    total: number;
-    page: number;
-    pageSize: number;
-    totalPages: number;
-  };
-}
+import type { PaginatedResponse } from "./shared-types";
+
+// Re-export for backward compatibility
+export type { PaginatedResponse };
 
 export interface TrialBalanceEntry {
   ledgerAccountId: string;

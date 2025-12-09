@@ -72,7 +72,10 @@ export function DocumentList({ clientCompanyId, onUploadClick, canUpload = true,
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      // Safely remove the element if it's still in the DOM
+      if (a.parentNode) {
+        a.parentNode.removeChild(a);
+      }
     },
   });
 
@@ -258,7 +261,7 @@ export function DocumentList({ clientCompanyId, onUploadClick, canUpload = true,
                 <tr key={document.id} style={{ borderBottom: "1px solid #eee" }}>
                   <td style={{ padding: "12px" }}>
                     <Link
-                      href={`/documents/${document.id}`}
+                      href={`/belgeler/${document.id}`}
                       style={{ color: "#0066cc", textDecoration: "none" }}
                     >
                       {document.originalFileName}
@@ -322,7 +325,7 @@ export function DocumentList({ clientCompanyId, onUploadClick, canUpload = true,
                   <td style={{ padding: "12px" }}>
                     <div style={{ display: "flex", gap: "8px" }}>
                       <Link
-                        href={`/documents/${document.id}`}
+                        href={`/belgeler/${document.id}`}
                         style={{
                           padding: "4px 8px",
                           color: "#0066cc",

@@ -60,6 +60,10 @@ export async function authMiddleware(
         updatedAt: user.updatedAt,
       },
       tenantId: decoded.tenantId,
+      platformRoles: user.platformRole ? [user.platformRole] : decoded.platformRoles,
+      isImpersonating: decoded.isImpersonating ?? false,
+      impersonatorId: decoded.impersonatorId,
+      impersonatedUserId: decoded.impersonatedUserId,
     };
 
     next();

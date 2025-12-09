@@ -17,7 +17,7 @@ import { validateEnv, getConfig } from "@repo/config";
 import { logger } from "@repo/shared-utils";
 import { errorHandler } from "./middleware/error-handler";
 import { requestLogger } from "./middleware/request-logger";
-import { healthCheck, readinessCheck } from "./routes/health-routes";
+import { healthCheck, readinessCheck, healthzCheck, readyzCheck } from "./routes/health-routes";
 import authRoutes from "./routes/auth-routes";
 import userRoutes from "./routes/user-routes";
 import tenantRoutes from "./routes/tenant-routes";
@@ -37,9 +37,14 @@ import scheduledReportsRoutes from "./routes/scheduled-reports-routes";
 import reportExecutionLogsRoutes from "./routes/report-execution-logs-routes";
 import notificationRoutes from "./routes/notification-routes";
 import settingsRoutes from "./routes/settings-routes";
+import searchRoutes from "./routes/search-routes";
+import savedFiltersRoutes from "./routes/saved-filters-routes";
 import auditLogsRoutes from "./routes/audit-logs-routes";
 import billingRoutes from "./routes/billing-routes";
 import onboardingRoutes from "./routes/onboarding-routes";
+import adminRoutes from "./routes/admin-routes";
+import aiRoutes from "./routes/ai-routes";
+import mobileRoutes from "./routes/mobile-routes";
 
 // Resolve database URL asynchronously and update if needed
 resolveDatabaseUrl()
@@ -84,6 +89,9 @@ app.use(requestLogger);
 // Health check endpoints
 app.get("/health", healthCheck);
 app.get("/ready", readinessCheck);
+// Kubernetes-style health endpoints (no auth, lightweight)
+app.get("/healthz", healthzCheck);
+app.get("/readyz", readyzCheck);
 
 // Config check endpoint (development only)
 if (process.env.NODE_ENV !== "production") {
@@ -124,6 +132,11 @@ app.use("/api/v1/settings", settingsRoutes);
 app.use("/api/v1/audit-logs", auditLogsRoutes);
 app.use("/api/v1/billing", billingRoutes);
 app.use("/api/v1/onboarding", onboardingRoutes);
+app.use("/api/v1/search", searchRoutes);
+app.use("/api/v1/saved-filters", savedFiltersRoutes);
+app.use("/api/v1/admin", adminRoutes);
+app.use("/api/v1/ai", aiRoutes);
+app.use("/api/v1/mobile", mobileRoutes);
 
 // Error handler (must be last)
 app.use(errorHandler);

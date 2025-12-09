@@ -19,6 +19,7 @@ router.use(tenantMiddleware);
 const inviteUserSchema = z.object({
   email: z.string().email("Geçerli bir e-posta adresi giriniz."),
   role: z.enum(["TenantOwner", "Accountant", "Staff", "ReadOnly"]),
+  name: z.string().optional(),
 });
 
 const changeRoleSchema = z.object({
@@ -31,6 +32,11 @@ const updateStatusSchema = z.object({
 
 const acceptInvitationSchema = z.object({
   password: z.string().min(1, "Şifre gerekli.").optional(),
+});
+
+const updateUserSchema = z.object({
+  role: z.enum(["TenantOwner", "Accountant", "Staff", "ReadOnly"]).optional(),
+  status: z.enum(["active", "suspended"]).optional(),
 });
 
 router.get(
@@ -56,7 +62,8 @@ router.post(
         req.context!.tenantId!,
         body.email,
         body.role,
-        req.context!.user.id
+        req.context!.user.id,
+        body.name
       );
 
       res.status(201).json({
@@ -145,6 +152,52 @@ router.patch(
           message: `Kullanıcı ${body.status === "active" ? "aktif" : "devre dışı"} edildi.`,
         },
       });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return next(new ValidationError(error.issues[0]?.message || "Geçersiz bilgiler."));
+      }
+      next(error);
+    }
+  }
+);
+
+// Unified PATCH route that accepts either role or status
+router.patch(
+  "/:tenantId/users/:userId",
+  requirePermission("users:update"),
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const body = updateUserSchema.parse(req.body);
+
+      if (body.role) {
+        await tenantService.changeUserRole(
+          req.context!.tenantId!,
+          req.params.userId,
+          body.role,
+          req.context!.user.id
+        );
+
+        res.json({
+          data: {
+            message: "Kullanıcı rolü güncellendi.",
+          },
+        });
+      } else if (body.status) {
+        await tenantService.updateUserStatus(
+          req.context!.tenantId!,
+          req.params.userId,
+          body.status,
+          req.context!.user.id
+        );
+
+        res.json({
+          data: {
+            message: `Kullanıcı ${body.status === "active" ? "aktif" : "devre dışı"} edildi.`,
+          },
+        });
+      } else {
+        return next(new ValidationError("Rol veya durum belirtilmelidir."));
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
         return next(new ValidationError(error.issues[0]?.message || "Geçersiz bilgiler."));

@@ -49,6 +49,15 @@
 - `GET /api/v1/risk/alerts`
 - `PATCH /api/v1/risk/alerts/:id/acknowledge`
 
+### Search
+- `GET /api/v1/search/global?query=...` - Global search across all entities
+
+### Saved Filters
+- `GET /api/v1/saved-filters?target=...` - List saved filters
+- `POST /api/v1/saved-filters` - Create saved filter
+- `PUT /api/v1/saved-filters/:id` - Update saved filter
+- `DELETE /api/v1/saved-filters/:id` - Delete saved filter
+
 ### Reports
 - `GET /api/v1/reports`
 - `GET /api/v1/reports/:id`

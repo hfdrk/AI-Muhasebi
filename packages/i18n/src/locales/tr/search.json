@@ -1,0 +1,14 @@
+{
+  "placeholder": "Ara... (müşteri, fatura, belge)",
+  "groups": {
+    "clients": "Müşteriler",
+    "invoices": "Faturalar",
+    "documents": "Belgeler",
+    "riskAlerts": "Risk Uyarıları",
+    "reports": "Raporlar"
+  },
+  "emptyState": "Bu arama için sonuç bulunamadı.",
+  "hint": "Hızlı aç: Ctrl+K",
+  "loading": "Aranıyor..."
+}
+

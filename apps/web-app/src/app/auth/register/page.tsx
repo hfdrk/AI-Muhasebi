@@ -41,7 +41,7 @@ export default function RegisterPage() {
   const mutation = useMutation({
     mutationFn: (data: RegisterForm) => register(data),
     onSuccess: () => {
-      router.push("/dashboard");
+      router.push("/anasayfa");
     },
     onError: (err: Error) => {
       setError(err.message || "Kayıt olurken bir hata oluştu.");

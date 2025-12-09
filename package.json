@@ -14,6 +14,9 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "seed:demo-tenant": "tsx scripts/seed-demo-tenant.ts",
+    "smoke:backend": "cd apps/backend-api && pnpm test -- smoke.integration.test.ts",
+    "smoke:full": "pnpm -C apps/backend-api test -- smoke.integration.test.ts && pnpm -C apps/web-app test:e2e -- smoke.spec.ts",
+    "smoke:worker": "pnpm -C apps/worker-jobs test:smoke",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "turbo run build && changeset publish"

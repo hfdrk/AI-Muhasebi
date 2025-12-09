@@ -4,14 +4,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getTransaction, deleteTransaction } from "@repo/api-client";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { useState } from "react";
 
 export default function TransactionDetailPage() {
   const params = useParams();
   const router = useRouter();
   const transactionId = params.id as string;
   const queryClient = useQueryClient();
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  // const [showDeleteConfirm, setShowDeleteConfirm] = useState(false); // Reserved for future use
 
   const { data: transaction, isLoading } = useQuery({
     queryKey: ["transaction", transactionId],
@@ -23,7 +22,7 @@ export default function TransactionDetailPage() {
     mutationFn: () => deleteTransaction(transactionId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      router.push("/transactions");
+      router.push("/islemler");
     },
   });
 
@@ -45,7 +44,7 @@ export default function TransactionDetailPage() {
     return (
       <div style={{ padding: "40px" }}>
         <p>Mali hareket bulunamadı.</p>
-        <Link href="/transactions">Mali hareket listesine dön</Link>
+        <Link href="/islemler">Mali hareket listesine dön</Link>
       </div>
     );
   }
@@ -87,7 +86,7 @@ export default function TransactionDetailPage() {
             {deleteMutation.isPending ? "Siliniyor..." : "Sil"}
           </button>
           <Link
-            href="/transactions"
+            href="/islemler"
             style={{
               padding: "8px 16px",
               backgroundColor: "#f5f5f5",

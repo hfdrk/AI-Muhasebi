@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "platform_role" VARCHAR(50);
+
+-- AlterTable
+ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "status" VARCHAR(50) NOT NULL DEFAULT 'ACTIVE';
+

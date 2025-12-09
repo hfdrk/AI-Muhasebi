@@ -55,7 +55,7 @@ export default function InvoiceDetailPage() {
     return (
       <div style={{ padding: "40px" }}>
         <p>Fatura bulunamadı.</p>
-        <Link href="/invoices">Fatura listesine dön</Link>
+        <Link href="/faturalar">Fatura listesine dön</Link>
       </div>
     );
   }
@@ -100,7 +100,7 @@ export default function InvoiceDetailPage() {
             </button>
           )}
           <Link
-            href="/invoices"
+            href="/faturalar"
             style={{
               padding: "8px 16px",
               backgroundColor: "#f5f5f5",

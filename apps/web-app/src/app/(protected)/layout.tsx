@@ -1,11 +1,29 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { TenantSwitcher } from "../../components/tenant-switcher";
 import { NotificationBell } from "../../components/notification-bell";
+import { GlobalSearch } from "../../components/global-search";
 import Link from "next/link";
 import { colors, spacing, shadows } from "../../styles/design-system";
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
+
+  useEffect(() => {
+    // Check if user has platform admin role from token
+    const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        const platformRoles = payload.platformRoles || [];
+        setIsPlatformAdmin(platformRoles.includes("PLATFORM_ADMIN"));
+      } catch (e) {
+        // Invalid token, ignore
+      }
+    }
+  }, []);
+
   return (
     <div style={{ minHeight: "100vh", backgroundColor: colors.gray[50] }}>
       <header
@@ -19,7 +37,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
           alignItems: "center",
         }}
       >
-        <Link href="/dashboard" style={{ textDecoration: "none", color: "inherit" }}>
+        <Link href="/anasayfa" style={{ textDecoration: "none", color: "inherit" }}>
           <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 600, color: colors.primary }}>
             AI Muhasebi
           </h1>
@@ -54,7 +72,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
             Risk Uyarıları
           </Link>
           <Link
-            href="/documents"
+            href="/belgeler"
             style={{
               textDecoration: "none",
               color: colors.text.secondary,
@@ -68,7 +86,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
             Belgeler
           </Link>
           <Link
-            href="/raporlar/anlik"
+            href="/raporlar"
             style={{
               textDecoration: "none",
               color: colors.text.secondary,
@@ -80,6 +98,20 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
             onMouseLeave={(e) => (e.currentTarget.style.color = colors.text.secondary)}
           >
             Raporlar
+          </Link>
+          <Link
+            href="/ai-asistan"
+            style={{
+              textDecoration: "none",
+              color: colors.text.secondary,
+              fontSize: "14px",
+              fontWeight: 500,
+              transition: "color 0.2s ease",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = colors.primary)}
+            onMouseLeave={(e) => (e.currentTarget.style.color = colors.text.secondary)}
+          >
+            AI Asistan
           </Link>
           <Link
             href="/ayarlar"
@@ -109,10 +141,11 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
           >
             Abonelik & Kullanım
           </Link>
+          <GlobalSearch />
           <NotificationBell />
           <TenantSwitcher />
           <Link
-            href="/settings/users"
+            href="/ayarlar/kullanicilar"
             style={{
               textDecoration: "none",
               color: colors.text.secondary,
@@ -125,6 +158,22 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
           >
             Kullanıcı Yönetimi
           </Link>
+          {isPlatformAdmin && (
+            <Link
+              href="/admin/overview"
+              style={{
+                textDecoration: "none",
+                color: colors.text.secondary,
+                fontSize: "14px",
+                fontWeight: 500,
+                transition: "color 0.2s ease",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = colors.primary)}
+              onMouseLeave={(e) => (e.currentTarget.style.color = colors.text.secondary)}
+            >
+              Yönetim Konsolu
+            </Link>
+          )}
         </nav>
       </header>
       <main style={{ padding: spacing.xxl, maxWidth: "1400px", margin: "0 auto" }}>{children}</main>

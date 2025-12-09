@@ -17,6 +17,7 @@ model User {
   fullName       String    @map("full_name") @db.VarChar(255)
   locale         String    @default("tr-TR") @db.VarChar(10)
   isActive       Boolean   @default(true) @map("is_active")
+  platformRole   String?   @map("platform_role") @db.VarChar(50) // PLATFORM_ADMIN, PLATFORM_SUPPORT
   lastLoginAt    DateTime? @map("last_login_at") @db.Timestamptz(6)
   createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -30,6 +31,7 @@ model User {
   createdReportExecutions ReportExecutionLog[]
   notifications           Notification[]
   notificationPreferences NotificationPreference[]
+  savedFilters            SavedFilter[]
 
   @@index([email])
   @@map("users")
@@ -43,6 +45,7 @@ model Tenant {
   phone     String?  @db.VarChar(50)
   email     String?  @db.VarChar(255)
   address   String?  @db.Text
+  status    String   @default("ACTIVE") @db.VarChar(50) // ACTIVE, SUSPENDED
   settings  Json?    @default("{}")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -75,6 +78,7 @@ model Tenant {
   notificationPreferences NotificationPreference[]
   subscription            TenantSubscription?
   usages                  TenantUsage[]
+  savedFilters            SavedFilter[]
 
   @@index([slug])
   @@map("tenants")
@@ -780,4 +784,24 @@ model TenantUsage {
   @@index([tenantId, metric])
   @@index([periodStart, periodEnd])
   @@map("tenant_usages")
+}
+
+model SavedFilter {
+  id        String   @id @default(cuid())
+  tenantId  String   @map("tenant_id")
+  userId    String   @map("user_id")
+  name      String   @db.VarChar(255)
+  target    String   @db.VarChar(50) // CLIENT_COMPANIES, INVOICES, DOCUMENTS, RISK_ALERTS, REPORTS
+  filters   Json     @default("{}")
+  isDefault Boolean  @default(false) @map("is_default")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([tenantId, userId, target])
+  @@map("saved_filters")
 }

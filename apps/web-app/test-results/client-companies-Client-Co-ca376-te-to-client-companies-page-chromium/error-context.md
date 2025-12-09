@@ -1,0 +1,103 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e2]: AI Muhasebi
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - link "AI Muhasebi" [ref=e5] [cursor=pointer]:
+        - /url: /anasayfa
+        - heading "AI Muhasebi" [level=1] [ref=e6]
+      - navigation [ref=e7]:
+        - link "Risk Panosu" [ref=e8] [cursor=pointer]:
+          - /url: /risk/dashboard
+        - link "Risk Uyarıları" [ref=e9] [cursor=pointer]:
+          - /url: /risk/alerts
+        - link "Belgeler" [ref=e10] [cursor=pointer]:
+          - /url: /belgeler
+        - link "Raporlar" [ref=e11] [cursor=pointer]:
+          - /url: /raporlar
+        - link "AI Asistan" [ref=e12] [cursor=pointer]:
+          - /url: /ai-asistan
+        - link "Ayarlar" [ref=e13] [cursor=pointer]:
+          - /url: /ayarlar
+        - link "Abonelik & Kullanım" [ref=e14] [cursor=pointer]:
+          - /url: /ayarlar/abonelik
+        - button "🔍 Ara" [ref=e15] [cursor=pointer]
+        - button "🔔" [ref=e17] [cursor=pointer]
+        - generic [ref=e18]: "Şirket / Ofis: E2E Client Tenant 1765316076084"
+        - link "Kullanıcı Yönetimi" [ref=e19] [cursor=pointer]:
+          - /url: /ayarlar/kullanicilar
+    - main [ref=e20]:
+      - generic [ref=e21]:
+        - generic [ref=e23]:
+          - heading "Dashboard" [level=1] [ref=e24]
+          - paragraph [ref=e25]: Genel bakış ve özet bilgiler
+        - generic [ref=e28]:
+          - generic [ref=e29]:
+            - heading "AI Muhasebe'ye Hoş Geldiniz" [level=2] [ref=e30]
+            - paragraph [ref=e31]: "Başlamak için aşağıdaki adımları takip edebilirsiniz:"
+            - list [ref=e32]:
+              - listitem [ref=e33]: 1. İlk müşteri şirketinizi ekleyin
+              - listitem [ref=e34]: 2. İlk belgenizi yükleyin
+              - listitem [ref=e35]: 3. İlk raporunuzu oluşturun
+            - generic [ref=e36]:
+              - link "Müşteri oluştur" [ref=e37] [cursor=pointer]:
+                - /url: /musteriler/new
+              - link "Belge yükle" [ref=e38] [cursor=pointer]:
+                - /url: /belgeler
+              - link "Raporlara git" [ref=e39] [cursor=pointer]:
+                - /url: /raporlar
+          - generic [ref=e40]:
+            - button "Kapat" [ref=e41] [cursor=pointer]
+            - button "Bir daha gösterme" [ref=e42] [cursor=pointer]
+        - generic [ref=e43]:
+          - generic [ref=e46]:
+            - generic [ref=e47]:
+              - paragraph [ref=e48]: Toplam Fatura
+              - heading "0" [level=2] [ref=e49]
+            - generic [ref=e50]: 📄
+          - generic [ref=e53]:
+            - generic [ref=e54]:
+              - paragraph [ref=e55]: Toplam İşlem
+              - heading "0" [level=2] [ref=e56]
+            - generic [ref=e57]: 💰
+          - generic [ref=e60]:
+            - generic [ref=e61]:
+              - paragraph [ref=e62]: Toplam Müşteri
+              - heading "0" [level=2] [ref=e63]
+            - generic [ref=e64]: 👥
+          - generic [ref=e67]:
+            - generic [ref=e68]:
+              - paragraph [ref=e69]: Toplam Belge
+              - heading "0" [level=2] [ref=e70]
+            - generic [ref=e71]: 📎
+        - generic [ref=e72]:
+          - generic [ref=e73]:
+            - generic [ref=e74]:
+              - heading "Son Faturalar" [level=2] [ref=e75]
+              - link "Tümünü Gör" [ref=e77] [cursor=pointer]:
+                - /url: /faturalar
+            - paragraph [ref=e79]: Henüz fatura bulunmuyor.
+          - generic [ref=e80]:
+            - generic [ref=e81]:
+              - heading "Son İşlemler" [level=2] [ref=e82]
+              - link "Tümünü Gör" [ref=e84] [cursor=pointer]:
+                - /url: /islemler
+            - paragraph [ref=e86]: Henüz işlem bulunmuyor.
+          - generic [ref=e87]:
+            - generic [ref=e88]:
+              - heading "Son Müşteriler" [level=2] [ref=e89]
+              - link "Tümünü Gör" [ref=e91] [cursor=pointer]:
+                - /url: /musteriler
+            - paragraph [ref=e93]: Henüz müşteri bulunmuyor.
+          - generic [ref=e94]:
+            - generic [ref=e95]:
+              - heading "Son Belgeler" [level=2] [ref=e96]
+              - link "Tümünü Gör" [ref=e98] [cursor=pointer]:
+                - /url: /belgeler
+            - generic [ref=e100]:
+              - paragraph [ref=e101]: Henüz belge bulunmuyor.
+              - link "Belge Yükle" [ref=e102] [cursor=pointer]:
+                - /url: /belgeler
+```
