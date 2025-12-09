@@ -9,6 +9,8 @@ All backend routes are prefixed with `/api/v1/` and require authentication (exce
 ### Health & Config
 - `GET /health` - Health check endpoint (returns status and database connectivity)
 - `GET /ready` - Readiness check endpoint (returns 200 only when database is reachable, used by orchestration systems)
+- `GET /healthz` - Kubernetes-style health check endpoint (no auth, lightweight)
+- `GET /readyz` - Kubernetes-style readiness check endpoint (no auth, lightweight)
 - `GET /api/v1/config/check` - Config check endpoint (development only)
 
 ### Authentication (`/api/v1/auth`)
@@ -143,12 +145,50 @@ All backend routes are prefixed with `/api/v1/` and require authentication (exce
 ### Onboarding (`/api/v1/onboarding`)
 - `GET /api/v1/onboarding/state` - Get onboarding state for tenant
 
+### Search (`/api/v1/search`)
+- `GET /api/v1/search/global` - Global search across all resources (query param required, min 2 chars)
+
+### Saved Filters (`/api/v1/saved-filters`)
+- `GET /api/v1/saved-filters` - List saved filters (with optional target filter: CLIENT_COMPANIES, INVOICES, DOCUMENTS, RISK_ALERTS, REPORTS)
+- `POST /api/v1/saved-filters` - Create saved filter
+- `PUT /api/v1/saved-filters/:id` - Update saved filter
+- `DELETE /api/v1/saved-filters/:id` - Delete saved filter
+
+### AI Assistant (`/api/v1/ai`)
+- `POST /api/v1/ai/chat` - Chat with AI assistant (with question, optional type, dateRange, companyId)
+- `POST /api/v1/ai/summaries/daily-risk` - Generate daily risk summary (optional date)
+- `POST /api/v1/ai/summaries/portfolio` - Generate portfolio overview summary
+
+### Mobile (`/api/v1/mobile`)
+- `GET /api/v1/mobile/dashboard` - Get mobile dashboard statistics (totalClientCompanies, openRiskAlerts, pendingDocuments, todayInvoices, recentNotifications)
+
+### Admin (`/api/v1/admin`)
+**Note:** All admin routes require Platform Admin role.
+
+#### Admin Tenants (`/api/v1/admin/tenants`)
+- `GET /api/v1/admin/tenants` - List tenants with overview stats (with filters: page, pageSize, status, search)
+- `GET /api/v1/admin/tenants/:tenantId` - Get tenant detail
+- `PATCH /api/v1/admin/tenants/:tenantId/status` - Update tenant status (ACTIVE or SUSPENDED)
+
+#### Admin Users (`/api/v1/admin/users`)
+- `GET /api/v1/admin/users` - List users with filters (with filters: page, pageSize, email, tenantId, role)
+
+#### Admin Support (`/api/v1/admin/support`)
+- `GET /api/v1/admin/support/incidents` - List support incidents (with filters: page, pageSize, tenantId, type, status)
+
+#### Admin Impersonation (`/api/v1/admin/impersonation`)
+- `POST /api/v1/admin/impersonation/start` - Start impersonating a user (requires targetUserId or targetUserEmail, optional targetTenantId)
+- `POST /api/v1/admin/impersonation/stop` - Stop impersonation
+
+#### Admin Metrics (`/api/v1/admin/metrics`)
+- `GET /api/v1/admin/metrics/overview` - Get platform metrics overview
+
 ---
 
 ## Frontend Routes (Next.js App Router)
 
 ### Public Routes
-- `/` - Root page (redirects to `/dashboard` if authenticated, otherwise `/auth/login`)
+- `/` - Root page (redirects to `/anasayfa` if authenticated, otherwise `/auth/login`)
 - `/auth/login` - Login page
 - `/auth/register` - Tenant registration page
 - `/auth/forgot-password` - Forgot password page
@@ -157,56 +197,85 @@ All backend routes are prefixed with `/api/v1/` and require authentication (exce
 ### Protected Routes (require authentication)
 
 #### Dashboard
-- `/dashboard` - Main dashboard
+- `/dashboard` - Main dashboard (English)
+- `/anasayfa` - Main dashboard (Turkish)
 
-#### Clients
-- `/clients` - Client companies list
-- `/clients/new` - Create new client company
-- `/clients/[id]` - Client company detail page
-- `/clients/[id]/edit` - Edit client company
+#### Clients / Müşteriler
+- `/clients` - Client companies list (English)
+- `/clients/new` - Create new client company (English)
+- `/clients/[id]` - Client company detail page (English)
+- `/clients/[id]/edit` - Edit client company (English)
+- `/musteriler` - Client companies list (Turkish)
+- `/musteriler/new` - Create new client company (Turkish)
+- `/musteriler/[id]` - Client company detail page (Turkish)
+- `/musteriler/[id]/edit` - Edit client company (Turkish)
 
-#### Invoices
-- `/invoices` - Invoices list
-- `/invoices/new` - Create new invoice
-- `/invoices/[id]` - Invoice detail page
-- `/invoices/[id]/edit` - Edit invoice
+#### Invoices / Faturalar
+- `/invoices` - Invoices list (English)
+- `/invoices/new` - Create new invoice (English)
+- `/invoices/[id]` - Invoice detail page (English)
+- `/invoices/[id]/edit` - Edit invoice (English)
+- `/faturalar` - Invoices list (Turkish)
+- `/faturalar/new` - Create new invoice (Turkish)
+- `/faturalar/[id]` - Invoice detail page (Turkish)
+- `/faturalar/[id]/edit` - Edit invoice (Turkish)
 
-#### Transactions
-- `/transactions` - Transactions list
-- `/transactions/new` - Create new transaction
-- `/transactions/[id]` - Transaction detail page
-- `/transactions/[id]/edit` - Edit transaction
+#### Transactions / İşlemler
+- `/transactions` - Transactions list (English)
+- `/transactions/new` - Create new transaction (English)
+- `/transactions/[id]` - Transaction detail page (English)
+- `/transactions/[id]/edit` - Edit transaction (English)
+- `/islemler` - Transactions list (Turkish)
+- `/islemler/new` - Create new transaction (Turkish)
+- `/islemler/[id]` - Transaction detail page (Turkish)
+- `/islemler/[id]/edit` - Edit transaction (Turkish)
 
-#### Documents
-- `/documents` - Documents list
-- `/documents/[id]` - Document detail page
+#### Documents / Belgeler
+- `/documents` - Documents list (English)
+- `/documents/[id]` - Document detail page (English)
+- `/belgeler` - Documents list (Turkish)
+- `/belgeler/[id]` - Document detail page (Turkish)
 
 #### Risk
 - `/risk/dashboard` - Risk dashboard
 - `/risk/alerts` - Risk alerts list
 
-#### Reports
+#### Reports / Raporlar
 - `/raporlar` - Reports main page
 - `/raporlar/anlik` - On-demand reports page
 - `/raporlar/zamanlanmis` - Scheduled reports list
 - `/raporlar/zamanlanmis/new` - Create new scheduled report
 - `/raporlar/zamanlanmis/[id]` - Scheduled report detail page
 
-#### Integrations
-- `/integrations` - Integrations list
-- `/integrations/new` - Create new integration
-- `/integrations/[id]` - Integration detail page
+#### Integrations / Entegrasyonlar
+- `/integrations` - Integrations list (English)
+- `/integrations/new` - Create new integration (English)
+- `/integrations/[id]` - Integration detail page (English)
+- `/entegrasyonlar` - Integrations list (Turkish)
+- `/entegrasyonlar/new` - Create new integration (Turkish)
+- `/entegrasyonlar/[id]` - Integration detail page (Turkish)
 
-#### Notifications
+#### Notifications / Bildirimler
 - `/bildirimler` - Notifications page
 
-#### Settings
+#### Settings / Ayarlar
 - `/ayarlar` - Settings root (redirects to `/ayarlar/ofis` or `/ayarlar/profil` based on role)
 - `/ayarlar/ofis` - Office/tenant settings
 - `/ayarlar/profil` - User profile settings
 - `/ayarlar/abonelik` - Subscription/billing page
 - `/ayarlar/denetim-kayitlari` - Audit logs page
-- `/settings/users` - Tenant users management page
+- `/ayarlar/kullanicilar` - Tenant users management page (Turkish)
+- `/settings/users` - Tenant users management page (English)
+
+#### AI Assistant / AI Asistan
+- `/ai-asistan` - AI Assistant chat page
+
+#### Admin (Platform Admin only)
+- `/admin/overview` - Admin overview dashboard
+- `/admin/tenants` - List all tenants
+- `/admin/tenants/[tenantId]` - Tenant detail page
+- `/admin/users` - List all users
+- `/admin/support` - Support incidents page
 
 ---
 
@@ -234,8 +303,8 @@ All backend routes are prefixed with `/api/v1/` and require authentication (exce
 
 ## Summary Statistics
 
-- **Backend API Routes**: ~85+ endpoints
-- **Frontend Routes**: ~31+ pages
+- **Backend API Routes**: ~110+ endpoints
+- **Frontend Routes**: ~60+ pages (including both English and Turkish versions)
 - **Route Groups**: 
   - Health & Config: 3 routes
   - Authentication: 5 routes
@@ -253,5 +322,10 @@ All backend routes are prefixed with `/api/v1/` and require authentication (exce
   - Audit Logs: 1 route
   - Billing: 3 routes
   - Onboarding: 1 route
+  - Search: 1 route
+  - Saved Filters: 4 routes
+  - AI Assistant: 3 routes
+  - Mobile: 1 route
+  - Admin: 9 routes (tenants: 3, users: 1, support: 1, impersonation: 2, metrics: 1)
 
 

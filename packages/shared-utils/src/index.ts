@@ -6,5 +6,6 @@ export * from "./errors";
 export * from "./password";
 export * from "./jwt";
 export * from "./storage";
-export * from "./llm-client";
+// Explicitly export LLM client functions to avoid module resolution issues
+export { createLLMClient, hasRealAIProvider, type LLMClient, type LLMClientConfig, OpenAIClient, AnthropicClient, MockLLMClient } from "./llm-client";
 

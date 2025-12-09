@@ -5,13 +5,24 @@ import { TenantSwitcher } from "../../components/tenant-switcher";
 import { NotificationBell } from "../../components/notification-bell";
 import { GlobalSearch } from "../../components/global-search";
 import Link from "next/link";
-import { colors, spacing, shadows } from "../../styles/design-system";
+import { usePathname } from "next/navigation";
+import { colors, spacing, shadows, borderRadius, transitions, zIndex, typography } from "../../styles/design-system";
+
+interface NavItem {
+  href: string;
+  label: string;
+  icon: string;
+  badge?: number;
+  children?: NavItem[];
+}
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const pathname = usePathname();
 
   useEffect(() => {
-    // Check if user has platform admin role from token
     const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
     if (token) {
       try {
@@ -24,160 +35,495 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     }
   }, []);
 
+  // Auto-expand sections if current path matches
+  useEffect(() => {
+    if (pathname?.startsWith("/ayarlar")) {
+      setExpandedSections((prev) => new Set(prev).add("settings"));
+    }
+    if (pathname?.startsWith("/risk")) {
+      setExpandedSections((prev) => new Set(prev).add("risk"));
+    }
+    if (pathname?.startsWith("/raporlar") || pathname?.startsWith("/entegrasyonlar") || pathname?.startsWith("/ai-asistan") || pathname?.startsWith("/bildirimler")) {
+      setExpandedSections((prev) => new Set(prev).add("other"));
+    }
+  }, [pathname]);
+
+  // Main navigation items
+  const mainNavItems: NavItem[] = [
+    { href: "/anasayfa", label: "Ana Sayfa", icon: "🏠" },
+    { href: "/musteriler", label: "Müşteriler", icon: "👥" },
+    { href: "/faturalar", label: "Faturalar", icon: "📄" },
+    { href: "/islemler", label: "İşlemler", icon: "💼" },
+    { href: "/belgeler", label: "Belgeler", icon: "📁" },
+  ];
+
+  const riskNavItems: NavItem[] = [
+    { href: "/risk/dashboard", label: "Risk Panosu", icon: "📊" },
+    { href: "/risk/alerts", label: "Risk Uyarıları", icon: "⚠️", badge: 0 },
+  ];
+
+  const otherNavItems: NavItem[] = [
+    { href: "/raporlar", label: "Raporlar", icon: "📈" },
+    { href: "/entegrasyonlar", label: "Entegrasyonlar", icon: "🔌" },
+    { href: "/ai-asistan", label: "AI Asistan", icon: "🤖" },
+    { href: "/bildirimler", label: "Bildirimler", icon: "🔔" },
+  ];
+
+  const settingsItems: NavItem[] = [
+    { href: "/ayarlar/ofis", label: "Ofis Ayarları", icon: "🏢" },
+    { href: "/ayarlar/profil", label: "Profil Ayarları", icon: "👤" },
+    { href: "/ayarlar/kullanicilar", label: "Kullanıcı Yönetimi", icon: "👥" },
+    { href: "/ayarlar/abonelik", label: "Abonelik & Kullanım", icon: "💳" },
+    { href: "/ayarlar/denetim-kayitlari", label: "Denetim Kayıtları", icon: "📋" },
+  ];
+
+  const toggleSection = (section: string) => {
+    setExpandedSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(section)) {
+        next.delete(section);
+      } else {
+        next.add(section);
+      }
+      return next;
+    });
+  };
+
+  const isActive = (href: string) => {
+    if (href === "/anasayfa") return pathname === href;
+    return pathname?.startsWith(href);
+  };
+
+  const NavLink = ({ item, level = 0 }: { item: NavItem; level?: number }) => {
+    const active = isActive(item.href);
+
+    return (
+      <div>
+        <Link
+          href={item.href}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: spacing.sm,
+            padding: `${spacing.sm} ${spacing.md}`,
+            marginLeft: level > 0 ? spacing.lg : 0,
+            textDecoration: "none",
+            color: active ? colors.primary : colors.text.secondary,
+            backgroundColor: active ? colors.primaryLighter : "transparent",
+            borderRadius: borderRadius.md,
+            fontWeight: active ? typography.fontWeight.semibold : typography.fontWeight.normal,
+            fontSize: typography.fontSize.sm,
+            transition: `all ${transitions.normal} ease`,
+            position: "relative",
+          }}
+          onMouseEnter={(e) => {
+            if (!active) {
+              e.currentTarget.style.backgroundColor = colors.gray[100];
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!active) {
+              e.currentTarget.style.backgroundColor = "transparent";
+            }
+          }}
+        >
+          <span style={{ fontSize: "18px", lineHeight: 1 }}>{item.icon}</span>
+          {!sidebarCollapsed && (
+            <>
+              <span style={{ flex: 1 }}>{item.label}</span>
+              {item.badge !== undefined && item.badge > 0 && (
+                <span
+                  style={{
+                    backgroundColor: colors.danger,
+                    color: colors.white,
+                    borderRadius: borderRadius.full,
+                    padding: `2px ${spacing.xs}`,
+                    fontSize: typography.fontSize.xs,
+                    fontWeight: typography.fontWeight.semibold,
+                    minWidth: "20px",
+                    textAlign: "center",
+                  }}
+                >
+                  {item.badge}
+                </span>
+              )}
+            </>
+          )}
+          {active && (
+            <div
+              style={{
+                position: "absolute",
+                left: 0,
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: "3px",
+                height: "60%",
+                backgroundColor: colors.primary,
+                borderRadius: "0 2px 2px 0",
+              }}
+            />
+          )}
+        </Link>
+      </div>
+    );
+  };
+
+  const NavSection = ({
+    title,
+    items,
+    sectionKey,
+    defaultExpanded = false,
+  }: {
+    title: string;
+    items: NavItem[];
+    sectionKey: string;
+    defaultExpanded?: boolean;
+  }) => {
+    const isExpanded = expandedSections.has(sectionKey) || defaultExpanded;
+
+    if (sidebarCollapsed) {
+      return (
+        <div style={{ marginTop: spacing.md }}>
+          {items.map((item) => (
+            <NavLink key={item.href} item={item} />
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <div style={{ marginTop: spacing.md }}>
+        <button
+          onClick={() => toggleSection(sectionKey)}
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: `${spacing.xs} ${spacing.md}`,
+            backgroundColor: "transparent",
+            border: "none",
+            color: colors.text.secondary,
+            fontSize: typography.fontSize.xs,
+            fontWeight: typography.fontWeight.semibold,
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+            cursor: "pointer",
+            transition: `color ${transitions.normal} ease`,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = colors.text.primary;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = colors.text.secondary;
+          }}
+        >
+          <span>{title}</span>
+          <span
+            style={{
+              transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
+              transition: `transform ${transitions.normal} ease`,
+              fontSize: "12px",
+            }}
+          >
+            ▼
+          </span>
+        </button>
+        {isExpanded && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: spacing.xs,
+              marginTop: spacing.xs,
+            }}
+          >
+            {items.map((item) => (
+              <NavLink key={item.href} item={item} />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: colors.gray[50] }}>
-      <header
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundColor: colors.gray[50],
+        display: "flex",
+      }}
+    >
+      {/* Enhanced Sidebar */}
+      <aside
         style={{
-          padding: `${spacing.md} ${spacing.xxl}`,
-          borderBottom: `1px solid ${colors.border}`,
+          width: sidebarCollapsed ? "80px" : "280px",
           backgroundColor: colors.white,
-          boxShadow: shadows.sm,
+          borderRight: `1px solid ${colors.border}`,
+          minHeight: "100vh",
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          flexDirection: "column",
+          transition: `width ${transitions.slow} ease`,
+          position: "sticky",
+          top: 0,
+          zIndex: zIndex.sticky,
+          boxShadow: shadows.md,
         }}
       >
-        <Link href="/anasayfa" style={{ textDecoration: "none", color: "inherit" }}>
-          <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 600, color: colors.primary }}>
-            AI Muhasebi
-          </h1>
-        </Link>
-        <nav style={{ display: "flex", gap: spacing.lg, alignItems: "center" }}>
-          <Link
-            href="/risk/dashboard"
-            style={{
-              textDecoration: "none",
-              color: colors.text.secondary,
-              fontSize: "14px",
-              fontWeight: 500,
-              transition: "color 0.2s ease",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = colors.primary)}
-            onMouseLeave={(e) => (e.currentTarget.style.color = colors.text.secondary)}
-          >
-            Risk Panosu
-          </Link>
-          <Link
-            href="/risk/alerts"
-            style={{
-              textDecoration: "none",
-              color: colors.text.secondary,
-              fontSize: "14px",
-              fontWeight: 500,
-              transition: "color 0.2s ease",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = colors.primary)}
-            onMouseLeave={(e) => (e.currentTarget.style.color = colors.text.secondary)}
-          >
-            Risk Uyarıları
-          </Link>
-          <Link
-            href="/belgeler"
-            style={{
-              textDecoration: "none",
-              color: colors.text.secondary,
-              fontSize: "14px",
-              fontWeight: 500,
-              transition: "color 0.2s ease",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = colors.primary)}
-            onMouseLeave={(e) => (e.currentTarget.style.color = colors.text.secondary)}
-          >
-            Belgeler
-          </Link>
-          <Link
-            href="/raporlar"
-            style={{
-              textDecoration: "none",
-              color: colors.text.secondary,
-              fontSize: "14px",
-              fontWeight: 500,
-              transition: "color 0.2s ease",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = colors.primary)}
-            onMouseLeave={(e) => (e.currentTarget.style.color = colors.text.secondary)}
-          >
-            Raporlar
-          </Link>
-          <Link
-            href="/ai-asistan"
-            style={{
-              textDecoration: "none",
-              color: colors.text.secondary,
-              fontSize: "14px",
-              fontWeight: 500,
-              transition: "color 0.2s ease",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = colors.primary)}
-            onMouseLeave={(e) => (e.currentTarget.style.color = colors.text.secondary)}
-          >
-            AI Asistan
-          </Link>
-          <Link
-            href="/ayarlar"
-            style={{
-              textDecoration: "none",
-              color: colors.text.secondary,
-              fontSize: "14px",
-              fontWeight: 500,
-              transition: "color 0.2s ease",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = colors.primary)}
-            onMouseLeave={(e) => (e.currentTarget.style.color = colors.text.secondary)}
-          >
-            Ayarlar
-          </Link>
-          <Link
-            href="/ayarlar/abonelik"
-            style={{
-              textDecoration: "none",
-              color: colors.text.secondary,
-              fontSize: "14px",
-              fontWeight: 500,
-              transition: "color 0.2s ease",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = colors.primary)}
-            onMouseLeave={(e) => (e.currentTarget.style.color = colors.text.secondary)}
-          >
-            Abonelik & Kullanım
-          </Link>
-          <GlobalSearch />
-          <NotificationBell />
-          <TenantSwitcher />
-          <Link
-            href="/ayarlar/kullanicilar"
-            style={{
-              textDecoration: "none",
-              color: colors.text.secondary,
-              fontSize: "14px",
-              fontWeight: 500,
-              transition: "color 0.2s ease",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = colors.primary)}
-            onMouseLeave={(e) => (e.currentTarget.style.color = colors.text.secondary)}
-          >
-            Kullanıcı Yönetimi
-          </Link>
-          {isPlatformAdmin && (
-            <Link
-              href="/admin/overview"
-              style={{
-                textDecoration: "none",
-                color: colors.text.secondary,
-                fontSize: "14px",
-                fontWeight: 500,
-                transition: "color 0.2s ease",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = colors.primary)}
-              onMouseLeave={(e) => (e.currentTarget.style.color = colors.text.secondary)}
-            >
-              Yönetim Konsolu
+        {/* Logo/Header */}
+        <div
+          style={{
+            padding: spacing.lg,
+            borderBottom: `1px solid ${colors.border}`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            minHeight: "72px",
+          }}
+        >
+          {!sidebarCollapsed && (
+            <Link href="/anasayfa" style={{ textDecoration: "none", color: "inherit" }}>
+              <h1
+                style={{
+                  margin: 0,
+                  fontSize: typography.fontSize.xl,
+                  fontWeight: typography.fontWeight.bold,
+                  background: colors.gradients.primary,
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                AI Muhasebi
+              </h1>
             </Link>
           )}
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            style={{
+              backgroundColor: colors.gray[100],
+              border: "none",
+              borderRadius: borderRadius.md,
+              padding: spacing.xs,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: `all ${transitions.normal} ease`,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = colors.gray[200];
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = colors.gray[100];
+            }}
+          >
+            <span style={{ fontSize: "18px" }}>{sidebarCollapsed ? "→" : "←"}</span>
+          </button>
+        </div>
+
+        {/* Navigation */}
+        <nav
+          style={{
+            flex: 1,
+            padding: spacing.md,
+            overflowY: "auto",
+            overflowX: "hidden",
+          }}
+        >
+          {/* Main Navigation */}
+          <div style={{ display: "flex", flexDirection: "column", gap: spacing.xs }}>
+            {mainNavItems.map((item) => (
+              <NavLink key={item.href} item={item} />
+            ))}
+          </div>
+
+          {/* Risk Section */}
+          <NavSection
+            title="Risk Yönetimi"
+            items={riskNavItems}
+            sectionKey="risk"
+            defaultExpanded={riskNavItems.some((item) => isActive(item.href))}
+          />
+
+          {/* Other Features */}
+          <NavSection
+            title="Diğer"
+            items={otherNavItems}
+            sectionKey="other"
+            defaultExpanded={otherNavItems.some((item) => isActive(item.href))}
+          />
+
+          {/* Settings Section */}
+          <div style={{ marginTop: spacing.lg, paddingTop: spacing.md, borderTop: `1px solid ${colors.border}` }}>
+            <button
+              onClick={() => toggleSection("settings")}
+              style={{
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                gap: spacing.sm,
+                padding: `${spacing.sm} ${spacing.md}`,
+                backgroundColor: isActive("/ayarlar") ? colors.primaryLighter : "transparent",
+                border: "none",
+                borderRadius: borderRadius.md,
+                color: isActive("/ayarlar") ? colors.primary : colors.text.secondary,
+                fontSize: typography.fontSize.sm,
+                fontWeight: isActive("/ayarlar") ? typography.fontWeight.semibold : typography.fontWeight.normal,
+                cursor: "pointer",
+                transition: `all ${transitions.normal} ease`,
+                textAlign: "left",
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive("/ayarlar")) {
+                  e.currentTarget.style.backgroundColor = colors.gray[100];
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive("/ayarlar")) {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }
+              }}
+            >
+              <span style={{ fontSize: "18px" }}>⚙️</span>
+              {!sidebarCollapsed && (
+                <>
+                  <span style={{ flex: 1 }}>Ayarlar</span>
+                  <span
+                    style={{
+                      transform: expandedSections.has("settings") ? "rotate(180deg)" : "rotate(0deg)",
+                      transition: `transform ${transitions.normal} ease`,
+                      fontSize: "12px",
+                    }}
+                  >
+                    ▼
+                  </span>
+                </>
+              )}
+            </button>
+            {expandedSections.has("settings") && !sidebarCollapsed && (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: spacing.xs,
+                  marginTop: spacing.xs,
+                  paddingLeft: spacing.md,
+                }}
+              >
+                {settingsItems.map((item) => (
+                  <NavLink key={item.href} item={item} level={1} />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Admin Link */}
+          {isPlatformAdmin && (
+            <div style={{ marginTop: spacing.md, paddingTop: spacing.md, borderTop: `1px solid ${colors.border}` }}>
+              <Link
+                href="/admin/overview"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: spacing.sm,
+                  padding: `${spacing.sm} ${spacing.md}`,
+                  textDecoration: "none",
+                  color: isActive("/admin") ? colors.primary : colors.text.secondary,
+                  backgroundColor: isActive("/admin") ? colors.primaryLighter : "transparent",
+                  borderRadius: borderRadius.md,
+                  fontWeight: isActive("/admin") ? typography.fontWeight.semibold : typography.fontWeight.normal,
+                  fontSize: typography.fontSize.sm,
+                  transition: `all ${transitions.normal} ease`,
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive("/admin")) {
+                    e.currentTarget.style.backgroundColor = colors.gray[100];
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive("/admin")) {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                  }
+                }}
+              >
+                <span style={{ fontSize: "18px" }}>👑</span>
+                {!sidebarCollapsed && <span>Yönetim Konsolu</span>}
+              </Link>
+            </div>
+          )}
         </nav>
-      </header>
-      <main style={{ padding: spacing.xxl, maxWidth: "1400px", margin: "0 auto" }}>{children}</main>
+      </aside>
+
+      {/* Main Content Area */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+        {/* Enhanced Top Header */}
+        <header
+          style={{
+            padding: `${spacing.md} ${spacing.xxl}`,
+            borderBottom: `1px solid ${colors.border}`,
+            backgroundColor: colors.white,
+            boxShadow: shadows.sm,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            position: "sticky",
+            top: 0,
+            zIndex: zIndex.sticky,
+          }}
+        >
+          {/* Breadcrumb or Page Title could go here */}
+          <div style={{ flex: 1 }} />
+
+          {/* Right side actions */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: spacing.md,
+            }}
+          >
+            <GlobalSearch />
+            <NotificationBell />
+            <TenantSwitcher />
+          </div>
+        </header>
+
+        {/* Main Content with smooth transitions */}
+        <main
+          style={{
+            flex: 1,
+            padding: spacing.xxl,
+            maxWidth: "1600px",
+            margin: "0 auto",
+            width: "100%",
+            transition: `padding ${transitions.normal} ease`,
+          }}
+        >
+          <div
+            style={{
+              animation: "fadeIn 0.3s ease-in",
+            }}
+          >
+            {children}
+          </div>
+        </main>
+      </div>
+
+      {/* Add fade-in animation */}
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }
-

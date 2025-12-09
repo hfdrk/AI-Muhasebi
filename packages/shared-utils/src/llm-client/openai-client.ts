@@ -56,14 +56,44 @@ export class OpenAIClient implements LLMClient {
       });
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ error: { message: "Unknown error" } }));
-        throw new Error(`OpenAI API error: ${error.error?.message || response.statusText}`);
+        const errorData = await response.json().catch(() => ({ error: { message: "Unknown error", type: "parse_error" } }));
+        const errorMessage = errorData.error?.message || response.statusText;
+        const errorType = errorData.error?.type || "api_error";
+        const statusCode = response.status;
+        
+        // Log detailed error for debugging
+        console.error(`[OpenAI Client] API Error (${statusCode}):`, {
+          type: errorType,
+          message: errorMessage,
+          status: statusCode,
+        });
+        
+        throw new Error(`OpenAI API error (${statusCode}): ${errorMessage}`);
       }
 
       const data = await response.json();
-      return data.choices[0]?.message?.content || "Yanıt alınamadı.";
+      const content = data.choices[0]?.message?.content;
+      
+      if (!content) {
+        console.warn("[OpenAI Client] No content in response:", data);
+        return "Yanıt alınamadı.";
+      }
+      
+      return content;
     } catch (error: any) {
-      // Wrap network errors in a user-friendly message
+      // Log the full error for debugging
+      console.error("[OpenAI Client] Error generating text:", {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      });
+      
+      // Preserve original error message if it's already descriptive
+      if (error.message.includes("OpenAI API error")) {
+        throw error;
+      }
+      
+      // Wrap network/unknown errors in a user-friendly message
       throw new Error(`AI yanıtı oluşturulurken bir hata oluştu: ${error.message}`);
     }
   }

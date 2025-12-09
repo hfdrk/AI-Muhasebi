@@ -1,6 +1,25 @@
 import { prisma } from "../lib/prisma";
-import { createLLMClient, hasRealAIProvider } from "@repo/shared-utils";
 import { auditService } from "./audit-service";
+
+// Dynamic import to ensure module is loaded correctly
+let createLLMClient: typeof import("@repo/shared-utils").createLLMClient;
+let hasRealAIProvider: typeof import("@repo/shared-utils").hasRealAIProvider;
+
+// Lazy load the LLM client module
+function getLLMClientModule() {
+  if (!createLLMClient || !hasRealAIProvider) {
+    const llmModule = require("@repo/shared-utils");
+    createLLMClient = llmModule.createLLMClient;
+    hasRealAIProvider = llmModule.hasRealAIProvider;
+    
+    if (typeof createLLMClient !== "function") {
+      console.error("[AI Assistant] ERROR: createLLMClient is not a function after require. Type:", typeof createLLMClient);
+      console.error("[AI Assistant] Module exports:", Object.keys(llmModule));
+      throw new Error("createLLMClient is not a function. Check module exports.");
+    }
+  }
+  return { createLLMClient, hasRealAIProvider };
+}
 
 export type AIAssistantType = "CHAT" | "DAILY_RISK_SUMMARY" | "PORTFOLIO_OVERVIEW";
 
@@ -15,7 +34,14 @@ export class AIAssistantService {
   
   private get llmClient() {
     if (!this._llmClient) {
-      this._llmClient = createLLMClient();
+      const { createLLMClient: createClient } = getLLMClientModule();
+      this._llmClient = createClient();
+      // Log which client is being used (without exposing API keys)
+      const clientType = this._llmClient.constructor.name;
+      console.log(`[AI Assistant] Using LLM client: ${clientType}`);
+      if (clientType === "MockLLMClient") {
+        console.warn("[AI Assistant] WARNING: Using MockLLMClient. Set OPENAI_API_KEY or ANTHROPIC_API_KEY to use real AI.");
+      }
     }
     return this._llmClient;
   }
@@ -44,6 +70,11 @@ Yanıtlarını Türkçe, profesyonel ve yardımcı bir tonla ver.`;
     const userPrompt = this.buildChatPrompt(question, contextData, type);
 
     try {
+      // Ensure LLM client is initialized
+      if (!this.llmClient) {
+        throw new Error("LLM client is not initialized");
+      }
+      
       const answer = await this.llmClient.generateText({
         systemPrompt,
         userPrompt,
@@ -51,37 +82,58 @@ Yanıtlarını Türkçe, profesyonel ve yardımcı bir tonla ver.`;
       });
 
       // Log audit
-      await auditService.log({
-        tenantId,
-        userId,
-        action: "AI_CHAT",
-        resourceType: "AI_ASSISTANT",
-        resourceId: null,
-        metadata: {
-          type: type || "GENEL",
-          filters: contextFilters || {},
-          hasRealAIProvider: hasRealAIProvider(),
-          questionLength: question.length,
-        },
-      });
+      try {
+        await auditService.log({
+          tenantId,
+          userId,
+          action: "AI_CHAT",
+          resourceType: "AI_ASSISTANT",
+          resourceId: null,
+          metadata: {
+            type: type || "GENEL",
+            filters: contextFilters || {},
+            hasRealAIProvider: getLLMClientModule().hasRealAIProvider(),
+            questionLength: question.length,
+          },
+        });
+      } catch (auditError: any) {
+        // Don't fail the request if audit logging fails
+        console.error("Audit logging failed:", auditError.message);
+      }
 
       return answer;
     } catch (error: any) {
-      // Log error but don't expose internal details
-      await auditService.log({
+      // Log the actual error for debugging
+      console.error("[AI Assistant] Error generating chat response:", {
+        error: error.message,
+        stack: error.stack,
         tenantId,
         userId,
-        action: "AI_CHAT",
-        resourceType: "AI_ASSISTANT",
-        resourceId: null,
-        metadata: {
-          type: type || "GENEL",
-          error: "AI yanıtı oluşturulamadı",
-          hasRealAIProvider: hasRealAIProvider(),
-        },
+        questionLength: question.length,
       });
+      
+      // Log error but don't expose internal details
+      try {
+        await auditService.log({
+          tenantId,
+          userId,
+          action: "AI_CHAT",
+          resourceType: "AI_ASSISTANT",
+          resourceId: null,
+          metadata: {
+            type: type || "GENEL",
+            error: "AI yanıtı oluşturulamadı",
+            errorMessage: error.message?.substring(0, 100), // Log first 100 chars for debugging
+            hasRealAIProvider: getLLMClientModule().hasRealAIProvider(),
+          },
+        });
+      } catch (auditError: any) {
+        // Don't fail if audit logging fails
+        console.error("Audit logging failed:", auditError.message);
+      }
 
-      throw new Error("AI yanıtı oluşturulurken bir hata oluştu. Lütfen daha sonra tekrar deneyin.");
+      // Re-throw with user-friendly message
+      throw new Error(`AI yanıtı oluşturulurken bir hata oluştu: ${error.message}`);
     }
   }
 
@@ -165,12 +217,15 @@ Yanıtlarını Türkçe, profesyonel ve yardımcı bir tonla ver.`;
         metadata: {
           date: date.toISOString(),
           alertCount: riskAlerts.length,
-          hasRealAIProvider: hasRealAIProvider(),
+          hasRealAIProvider: typeof hasRealAIProvider === "function" ? hasRealAIProvider() : false,
         },
       });
 
       return summary;
     } catch (error: any) {
+      // Log the actual error for debugging
+      console.error("[AI Assistant] Error generating daily risk summary:", error);
+      
       await auditService.log({
         tenantId,
         userId,
@@ -179,12 +234,15 @@ Yanıtlarını Türkçe, profesyonel ve yardımcı bir tonla ver.`;
         resourceId: null,
         metadata: {
           date: date.toISOString(),
-          error: "Özet oluşturulamadı",
-          hasRealAIProvider: hasRealAIProvider(),
+          error: error?.message || "Özet oluşturulamadı",
+          errorType: error?.constructor?.name,
+          hasRealAIProvider: typeof hasRealAIProvider === "function" ? hasRealAIProvider() : false,
         },
       });
 
-      throw new Error("Risk özeti oluşturulurken bir hata oluştu. Lütfen daha sonra tekrar deneyin.");
+      // Provide more helpful error message
+      const errorMessage = error?.message || "Bilinmeyen hata";
+      throw new Error(`Risk özeti oluşturulurken bir hata oluştu: ${errorMessage}. Lütfen daha sonra tekrar deneyin.`);
     }
   }
 
@@ -266,12 +324,15 @@ Yanıtlarını Türkçe, profesyonel ve yardımcı bir tonla ver.`;
         resourceId: null,
         metadata: {
           companyCount: companies.length,
-          hasRealAIProvider: hasRealAIProvider(),
+          hasRealAIProvider: typeof hasRealAIProvider === "function" ? hasRealAIProvider() : false,
         },
       });
 
       return summary;
     } catch (error: any) {
+      // Log the actual error for debugging
+      console.error("[AI Assistant] Error generating portfolio overview:", error);
+      
       await auditService.log({
         tenantId,
         userId,
@@ -279,12 +340,15 @@ Yanıtlarını Türkçe, profesyonel ve yardımcı bir tonla ver.`;
         resourceType: "AI_ASSISTANT",
         resourceId: null,
         metadata: {
-          error: "Özet oluşturulamadı",
-          hasRealAIProvider: hasRealAIProvider(),
+          error: error?.message || "Özet oluşturulamadı",
+          errorType: error?.constructor?.name,
+          hasRealAIProvider: typeof hasRealAIProvider === "function" ? hasRealAIProvider() : false,
         },
       });
 
-      throw new Error("Portföy özeti oluşturulurken bir hata oluştu. Lütfen daha sonra tekrar deneyin.");
+      // Provide more helpful error message
+      const errorMessage = error?.message || "Bilinmeyen hata";
+      throw new Error(`Portföy özeti oluşturulurken bir hata oluştu: ${errorMessage}. Lütfen daha sonra tekrar deneyin.`);
     }
   }
 

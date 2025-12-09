@@ -46,10 +46,9 @@ export function createLLMClient(): LLMClient {
  * Note: In browser environments, this will always return false as
  * environment variables are not available client-side.
  */
-// Export as both function declaration and const to ensure compatibility
-function hasRealAIProviderImpl(): boolean {
-  // Check if we're in a browser environment
-  if (typeof window !== "undefined" || typeof process === "undefined") {
+export function hasRealAIProvider(): boolean {
+  // Check if we're in a Node.js environment (process.env is only available server-side)
+  if (typeof process === "undefined" || !process.env) {
     return false;
   }
   // Safely access process.env
@@ -59,7 +58,3 @@ function hasRealAIProviderImpl(): boolean {
     return false;
   }
 }
-
-export const hasRealAIProvider = hasRealAIProviderImpl;
-
-

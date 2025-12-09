@@ -17,6 +17,15 @@ const nextConfig = {
         net: false,
         tls: false,
       };
+      
+      // Replace LLM client with empty stub for client bundle
+      const webpack = require("webpack");
+      config.plugins.push(
+        new webpack.NormalModuleReplacementPlugin(
+          /shared-utils\/src\/llm-client/,
+          require.resolve("./src/lib/empty-llm-client.ts")
+        )
+      );
     }
     return config;
   },
