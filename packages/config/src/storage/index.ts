@@ -45,7 +45,9 @@ export function getStorageConfig() {
     basePath: config.STORAGE_BASE_PATH,
     bucketName: config.STORAGE_BUCKET_NAME,
     maxFileSize: parseInt(config.STORAGE_MAX_FILE_SIZE, 10),
+    maxZipFileSize: parseInt(config.STORAGE_MAX_ZIP_FILE_SIZE, 10),
     allowedMimeTypes: config.STORAGE_ALLOWED_MIME_TYPES.split(",").map((t) => t.trim()),
+    allowedZipMimeTypes: config.STORAGE_ALLOWED_ZIP_MIME_TYPES.split(",").map((t) => t.trim()),
   };
 }
 

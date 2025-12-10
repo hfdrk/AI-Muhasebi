@@ -38,7 +38,9 @@ const envSchema = z.object({
   STORAGE_BASE_PATH: z.string().default("./storage"),
   STORAGE_BUCKET_NAME: z.string().optional(),
   STORAGE_MAX_FILE_SIZE: z.string().default("20971520"), // 20MB in bytes
+  STORAGE_MAX_ZIP_FILE_SIZE: z.string().default("104857600"), // 100MB in bytes for zip files
   STORAGE_ALLOWED_MIME_TYPES: z.string().default("application/pdf,image/jpeg,image/png,image/jpg,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+  STORAGE_ALLOWED_ZIP_MIME_TYPES: z.string().default("application/zip,application/x-zip-compressed,application/x-zip"),
   // Reporting feature flags
   REPORTING_ENABLED: z
     .string()

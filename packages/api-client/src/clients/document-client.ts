@@ -149,6 +149,112 @@ export async function uploadDocument(
   return response.json();
 }
 
+export interface BatchUploadResult {
+  batchId: string;
+  totalFiles: number;
+  successfulUploads: number;
+  failedUploads: number;
+  documentIds: string[];
+  errors: Array<{ fileName: string; error: string }>;
+}
+
+export interface BatchStatus {
+  batchId: string;
+  totalFiles: number;
+  processed: number;
+  failed: number;
+  documents: Array<{
+    id: string;
+    fileName: string;
+    status: string;
+    error?: string;
+  }>;
+}
+
+export interface BatchAnalysisResult {
+  analysisId: string;
+  batchId: string;
+  summary: string;
+  riskScore: number;
+  findings: Array<{
+    type: "risk" | "anomaly" | "pattern" | "recommendation";
+    severity: "low" | "medium" | "high";
+    description: string;
+    documentIds?: string[];
+  }>;
+  documentCount: number;
+  analyzedAt: Date;
+}
+
+export async function uploadZipFile(
+  zipFile: File,
+  metadata: {
+    clientCompanyId: string;
+    type?: "INVOICE" | "BANK_STATEMENT" | "RECEIPT" | "OTHER";
+    relatedInvoiceId?: string | null;
+    relatedTransactionId?: string | null;
+  }
+): Promise<{ data: BatchUploadResult }> {
+  const formData = new FormData();
+  formData.append("zipFile", zipFile);
+  formData.append("clientCompanyId", metadata.clientCompanyId);
+  if (metadata.type) {
+    formData.append("type", metadata.type);
+  }
+  if (metadata.relatedInvoiceId) {
+    formData.append("relatedInvoiceId", metadata.relatedInvoiceId);
+  }
+  if (metadata.relatedTransactionId) {
+    formData.append("relatedTransactionId", metadata.relatedTransactionId);
+  }
+
+  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+
+  const response = await fetch(`${API_URL}/api/v1/documents/upload-batch`, {
+    method: "POST",
+    headers: {
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+    credentials: "include",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: { message: "Bir hata oluştu." } }));
+    throw new Error(error.error?.message || "Bir hata oluştu.");
+  }
+
+  return response.json();
+}
+
+export async function getBatchStatus(batchId: string): Promise<{ data: BatchStatus }> {
+  return apiRequest<{ data: BatchStatus }>(`/api/v1/documents/batch/${batchId}/status`);
+}
+
+export async function analyzeBatch(params: {
+  clientCompanyId: string;
+  documentIds: string[];
+}): Promise<{ data: BatchAnalysisResult }> {
+  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+
+  const response = await fetch(`${API_URL}/api/v1/documents/batch/analyze`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+    credentials: "include",
+    body: JSON.stringify(params),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: { message: "Bir hata oluştu." } }));
+    throw new Error(error.error?.message || "Bir hata oluştu.");
+  }
+
+  return response.json();
+}
+
 export async function listDocuments(
   params?: ListDocumentsParams
 ): Promise<PaginatedResponse<DocumentWithRiskFlags>> {

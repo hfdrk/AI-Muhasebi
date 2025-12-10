@@ -6,6 +6,8 @@ import { ValidationError } from "@repo/shared-utils";
 import { prisma } from "../lib/prisma";
 import { documentService } from "../services/document-service";
 import { documentJobService } from "../services/document-job-service";
+import { batchUploadService } from "../services/batch-upload-service";
+import { batchAIAnalysisService } from "../services/batch-ai-analysis-service";
 import { auditService } from "../services/audit-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
@@ -32,6 +34,21 @@ const upload = multer({
       cb(null, true);
     } else {
       cb(new Error(`Bu dosya türüne izin verilmiyor: ${file.mimetype}`));
+    }
+  },
+});
+
+// Configure multer for ZIP file uploads (larger size limit)
+const uploadZip = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: storageConfig.maxZipFileSize,
+  },
+  fileFilter: (req, file, cb) => {
+    if (storageConfig.allowedZipMimeTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`ZIP dosyası bekleniyor. İzin verilen türler: ${storageConfig.allowedZipMimeTypes.join(", ")}`));
     }
   },
 });
@@ -91,6 +108,126 @@ router.post(
       });
 
       res.status(201).json({ data: document });
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return next(new ValidationError(error.issues[0]?.message || "Geçersiz bilgiler."));
+      }
+      next(error);
+    }
+  }
+);
+
+// POST /api/v1/documents/upload-batch
+router.post(
+  "/upload-batch",
+  requirePermission("documents:create"),
+  uploadZip.single("zipFile"),
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          error: {
+            message: "Lütfen bir ZIP dosyası seçin.",
+          },
+        });
+      }
+
+      const schema = z.object({
+        clientCompanyId: z.string().min(1, "Müşteri şirketi gerekli."),
+        type: z.enum(["INVOICE", "BANK_STATEMENT", "RECEIPT", "OTHER"]).optional(),
+        relatedInvoiceId: z.string().optional().nullable(),
+        relatedTransactionId: z.string().optional().nullable(),
+      });
+
+      const body = schema.parse(req.body);
+
+      const result = await batchUploadService.uploadZipContents(
+        req.context!.tenantId!,
+        req.context!.user.id,
+        req.file.buffer,
+        req.file.originalname,
+        {
+          clientCompanyId: body.clientCompanyId,
+          type: body.type,
+          relatedInvoiceId: body.relatedInvoiceId,
+          relatedTransactionId: body.relatedTransactionId,
+        }
+      );
+
+      // Audit log
+      await auditService.log({
+        action: "DOCUMENT_BATCH_UPLOADED",
+        tenantId: req.context!.tenantId!,
+        userId: req.context!.user.id,
+        metadata: {
+          batchId: result.batchId,
+          totalFiles: result.totalFiles,
+          successfulUploads: result.successfulUploads,
+          failedUploads: result.failedUploads,
+          zipFileName: req.file.originalname,
+        },
+      });
+
+      res.status(201).json({ data: result });
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return next(new ValidationError(error.issues[0]?.message || "Geçersiz bilgiler."));
+      }
+      next(error);
+    }
+  }
+);
+
+// GET /api/v1/documents/batch/:batchId/status
+router.get(
+  "/batch/:batchId/status",
+  requirePermission("documents:read"),
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const status = await batchUploadService.getBatchStatus(
+        req.context!.tenantId!,
+        req.params.batchId
+      );
+
+      res.json({ data: status });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// POST /api/v1/documents/batch/analyze
+router.post(
+  "/batch/analyze",
+  requirePermission("documents:read"),
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const schema = z.object({
+        clientCompanyId: z.string().min(1, "Müşteri şirketi gerekli."),
+        documentIds: z.array(z.string()).min(1, "En az bir belge ID'si gerekli."),
+      });
+
+      const body = schema.parse(req.body);
+
+      const result = await batchAIAnalysisService.analyzeBatchContents(
+        req.context!.tenantId!,
+        body.clientCompanyId,
+        body.documentIds
+      );
+
+      // Audit log
+      await auditService.log({
+        action: "DOCUMENT_BATCH_ANALYZED",
+        tenantId: req.context!.tenantId!,
+        userId: req.context!.user.id,
+        metadata: {
+          analysisId: result.analysisId,
+          documentCount: result.documentCount,
+          riskScore: result.riskScore,
+        },
+      });
+
+      res.json({ data: result });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         return next(new ValidationError(error.issues[0]?.message || "Geçersiz bilgiler."));
