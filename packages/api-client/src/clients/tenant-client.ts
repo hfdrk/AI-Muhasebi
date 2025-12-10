@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3800";
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "";
 
 export interface Tenant {
   id: string;
@@ -20,6 +20,7 @@ export interface TenantUser {
   role: string;
   status: string;
   createdAt: Date;
+  companyName?: string | null; // Company name for customer (ReadOnly) users
   // Legacy field for backward compatibility
   fullName?: string;
 }

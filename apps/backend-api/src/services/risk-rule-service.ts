@@ -90,13 +90,12 @@ export class RiskRuleService {
       return this.mapToRiskRule(tenantRule);
     }
 
-    // Fall back to global rule
-    const globalRule = await prisma.riskRule.findUnique({
+    // Fall back to global rule - use findFirst since tenantId_code doesn't support null
+    const globalRule = await prisma.riskRule.findFirst({
       where: {
-        tenantId_code: {
-          tenantId: null as any,
-          code,
-        },
+        tenantId: null,
+        code,
+        isActive: true,
       },
     });
 

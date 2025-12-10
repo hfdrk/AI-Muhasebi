@@ -51,7 +51,23 @@ export default function DashboardPage() {
   const currentTenant = currentUser?.tenants?.find((t: any) => t.status === "active");
   const userRole = currentTenant?.role;
   const userId = currentUser?.user?.id;
+  const userEmail = currentUser?.user?.email;
   const isReadOnly = userRole === "ReadOnly";
+
+  // For ReadOnly users, find their associated client company by email matching
+  const { data: allCompaniesData } = useQuery({
+    queryKey: ["all-client-companies-for-customer"],
+    queryFn: () => listClientCompanies({ pageSize: 1000, isActive: true }),
+    enabled: isReadOnly && !!userEmail,
+  });
+
+  const customerCompany = isReadOnly && userEmail
+    ? allCompaniesData?.data.data?.find(
+        (company: any) => company.contactEmail?.toLowerCase() === userEmail.toLowerCase()
+      )
+    : null;
+
+  const customerCompanyId = customerCompany?.id;
 
   // Check localStorage for dismissed state
   useEffect(() => {
@@ -85,49 +101,81 @@ export default function DashboardPage() {
     }
   };
 
-  // Fetch recent invoices
+  // Fetch recent invoices - filter by customer company if ReadOnly
   const { data: invoicesData, isLoading: invoicesLoading } = useQuery({
-    queryKey: ["dashboard-invoices"],
-    queryFn: () => listInvoices({ page: 1, pageSize: 5 }),
+    queryKey: ["dashboard-invoices", customerCompanyId],
+    queryFn: () => listInvoices({ 
+      page: 1, 
+      pageSize: 5,
+      ...(isReadOnly && customerCompanyId ? { clientCompanyId: customerCompanyId } : {})
+    }),
+    enabled: !isReadOnly || !!customerCompanyId,
   });
 
-  // Fetch recent transactions
+  // Fetch recent transactions - filter by customer company if ReadOnly
   const { data: transactionsData, isLoading: transactionsLoading } = useQuery({
-    queryKey: ["dashboard-transactions"],
-    queryFn: () => listTransactions({ page: 1, pageSize: 5 }),
+    queryKey: ["dashboard-transactions", customerCompanyId],
+    queryFn: () => listTransactions({ 
+      page: 1, 
+      pageSize: 5,
+      ...(isReadOnly && customerCompanyId ? { clientCompanyId: customerCompanyId } : {})
+    }),
+    enabled: !isReadOnly || !!customerCompanyId,
   });
 
-  // Fetch recent customers
+  // Fetch recent customers - only for non-ReadOnly users
   const { data: customersData, isLoading: customersLoading } = useQuery({
     queryKey: ["dashboard-customers"],
     queryFn: () => listClientCompanies({ page: 1, pageSize: 5, isActive: true }),
+    enabled: !isReadOnly,
   });
 
-  // Fetch recent documents
+  // Fetch recent documents - filter by customer company if ReadOnly
   const { data: documentsData, isLoading: documentsLoading } = useQuery({
-    queryKey: ["dashboard-documents"],
-    queryFn: () => listDocuments({ page: 1, pageSize: 5 }),
+    queryKey: ["dashboard-documents", customerCompanyId],
+    queryFn: () => listDocuments({ 
+      page: 1, 
+      pageSize: 5,
+      ...(isReadOnly && customerCompanyId ? { clientCompanyId: customerCompanyId } : {})
+    }),
+    enabled: !isReadOnly || !!customerCompanyId,
   });
 
-  // Fetch totals for statistics
+  // Fetch totals for statistics - filter by customer company if ReadOnly
   const { data: allInvoicesData } = useQuery({
-    queryKey: ["dashboard-invoices-total"],
-    queryFn: () => listInvoices({ page: 1, pageSize: 1 }),
+    queryKey: ["dashboard-invoices-total", customerCompanyId],
+    queryFn: () => listInvoices({ 
+      page: 1, 
+      pageSize: 1,
+      ...(isReadOnly && customerCompanyId ? { clientCompanyId: customerCompanyId } : {})
+    }),
+    enabled: !isReadOnly || !!customerCompanyId,
   });
 
   const { data: allTransactionsData } = useQuery({
-    queryKey: ["dashboard-transactions-total"],
-    queryFn: () => listTransactions({ page: 1, pageSize: 1 }),
+    queryKey: ["dashboard-transactions-total", customerCompanyId],
+    queryFn: () => listTransactions({ 
+      page: 1, 
+      pageSize: 1,
+      ...(isReadOnly && customerCompanyId ? { clientCompanyId: customerCompanyId } : {})
+    }),
+    enabled: !isReadOnly || !!customerCompanyId,
   });
 
   const { data: allCustomersData } = useQuery({
     queryKey: ["dashboard-customers-total"],
     queryFn: () => listClientCompanies({ page: 1, pageSize: 1, isActive: true }),
+    enabled: !isReadOnly,
   });
 
   const { data: allDocumentsData } = useQuery({
-    queryKey: ["dashboard-documents-total"],
-    queryFn: () => listDocuments({ page: 1, pageSize: 1 }),
+    queryKey: ["dashboard-documents-total", customerCompanyId],
+    queryFn: () => listDocuments({ 
+      page: 1, 
+      pageSize: 1,
+      ...(isReadOnly && customerCompanyId ? { clientCompanyId: customerCompanyId } : {})
+    }),
+    enabled: !isReadOnly || !!customerCompanyId,
   });
 
   const recentInvoices = invoicesData?.data.data || [];
@@ -285,30 +333,33 @@ export default function DashboardPage() {
           </div>
         </Card>
 
-        <Card>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <p style={{ margin: 0, color: colors.text.secondary, fontSize: "14px" }}>Toplam Müşteri</p>
-              <h2 style={{ margin: `${spacing.xs} 0 0 0`, fontSize: "32px", fontWeight: 600 }}>
-                {totalCustomers}
-              </h2>
+        {/* Hide "Toplam Müşteri" card for ReadOnly users */}
+        {!isReadOnly && (
+          <Card>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <p style={{ margin: 0, color: colors.text.secondary, fontSize: "14px" }}>Toplam Müşteri</p>
+                <h2 style={{ margin: `${spacing.xs} 0 0 0`, fontSize: "32px", fontWeight: 600 }}>
+                  {totalCustomers}
+                </h2>
+              </div>
+              <div
+                style={{
+                  width: "48px",
+                  height: "48px",
+                  borderRadius: "12px",
+                  backgroundColor: colors.warning + "20",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "24px",
+                }}
+              >
+                👥
+              </div>
             </div>
-            <div
-              style={{
-                width: "48px",
-                height: "48px",
-                borderRadius: "12px",
-                backgroundColor: colors.warning + "20",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "24px",
-              }}
-            >
-              👥
-            </div>
-          </div>
-        </Card>
+          </Card>
+        )}
 
         <Card>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -335,6 +386,21 @@ export default function DashboardPage() {
           </div>
         </Card>
       </div>
+
+      {/* Show message if customer company not found */}
+      {isReadOnly && !customerCompany && (
+        <Card
+          style={{
+            marginBottom: spacing.lg,
+            backgroundColor: colors.warning + "20",
+            border: `1px solid ${colors.warning}`,
+          }}
+        >
+          <p style={{ color: colors.text.primary, margin: 0 }}>
+            ⚠️ Müşteri şirketi bulunamadı. Lütfen yöneticinizle iletişime geçin.
+          </p>
+        </Card>
+      )}
 
       {/* Recent Data Grid */}
       <div
@@ -461,59 +527,61 @@ export default function DashboardPage() {
           )}
         </Card>
 
-        {/* Recent Customers */}
-        <Card
-          title="Son Müşteriler"
-          actions={
-            <Button asLink href="/musteriler" variant="outline" size="sm">
-              Tümünü Gör
-            </Button>
-          }
-        >
-          {customersLoading ? (
-            <p style={{ color: colors.text.secondary }}>Yükleniyor...</p>
-          ) : recentCustomers.length === 0 ? (
-            <p style={{ color: colors.text.secondary }}>Henüz müşteri bulunmuyor.</p>
-          ) : (
-            <Table
-              headers={["Müşteri Adı", "Vergi No", "Durum"]}
-            >
-              {recentCustomers.map((customer) => (
-                <TableRow
-                  key={customer.id}
-                  onClick={() => window.location.href = `/musteriler/${customer.id}`}
-                >
-                  <TableCell>
-                    <div style={{ fontWeight: 500 }}>{customer.name}</div>
-                    {customer.contactPersonName && (
-                      <div style={{ fontSize: "12px", color: colors.text.secondary }}>
-                        {customer.contactPersonName}
+        {/* Recent Customers - Hide for ReadOnly users */}
+        {!isReadOnly && (
+          <Card
+            title="Son Müşteriler"
+            actions={
+              <Button asLink href="/musteriler" variant="outline" size="sm">
+                Tümünü Gör
+              </Button>
+            }
+          >
+            {customersLoading ? (
+              <p style={{ color: colors.text.secondary }}>Yükleniyor...</p>
+            ) : recentCustomers.length === 0 ? (
+              <p style={{ color: colors.text.secondary }}>Henüz müşteri bulunmuyor.</p>
+            ) : (
+              <Table
+                headers={["Müşteri Adı", "Vergi No", "Durum"]}
+              >
+                {recentCustomers.map((customer) => (
+                  <TableRow
+                    key={customer.id}
+                    onClick={() => window.location.href = `/musteriler/${customer.id}`}
+                  >
+                    <TableCell>
+                      <div style={{ fontWeight: 500 }}>{customer.name}</div>
+                      {customer.contactPersonName && (
+                        <div style={{ fontSize: "12px", color: colors.text.secondary }}>
+                          {customer.contactPersonName}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div style={{ fontSize: "14px", color: colors.text.secondary }}>
+                        {customer.taxNumber}
                       </div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div style={{ fontSize: "14px", color: colors.text.secondary }}>
-                      {customer.taxNumber}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span
-                      style={{
-                        padding: `${spacing.xs} ${spacing.sm}`,
-                        borderRadius: "4px",
-                        fontSize: "12px",
-                        backgroundColor: customer.isActive ? colors.successLight : colors.gray[200],
-                        color: customer.isActive ? colors.successDark : colors.text.secondary,
-                      }}
-                    >
-                      {customer.isActive ? "Aktif" : "Pasif"}
-                    </span>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </Table>
-          )}
-        </Card>
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        style={{
+                          padding: `${spacing.xs} ${spacing.sm}`,
+                          borderRadius: "4px",
+                          fontSize: "12px",
+                          backgroundColor: customer.isActive ? colors.successLight : colors.gray[200],
+                          color: customer.isActive ? colors.successDark : colors.text.secondary,
+                        }}
+                      >
+                        {customer.isActive ? "Aktif" : "Pasif"}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </Table>
+            )}
+          </Card>
+        )}
 
         {/* Recent Documents */}
         <Card

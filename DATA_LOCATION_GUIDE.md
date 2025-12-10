@@ -160,3 +160,4 @@ The main tables storing your dashboard data:
 
 All data is filtered by `tenantId` to ensure multi-tenancy isolation.
 
+

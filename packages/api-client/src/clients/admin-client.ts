@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3800";
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "";
 
 export interface TenantOverviewItem {
   id: string;
@@ -320,4 +320,5 @@ export async function stopImpersonation(): Promise<StopImpersonationResponse> {
 
   return response;
 }
+
 

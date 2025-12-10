@@ -2,7 +2,7 @@
 
 import { ImpersonationBanner } from "../../../components/impersonation-banner";
 import Link from "next/link";
-import { colors, spacing, shadows } from "../../../styles/design-system";
+import { colors, spacing } from "../../../styles/design-system";
 import { usePathname } from "next/navigation";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

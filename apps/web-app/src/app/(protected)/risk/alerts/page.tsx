@@ -6,11 +6,9 @@ import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { risk as riskI18n, common as commonI18n } from "@repo/i18n";
 import Link from "next/link";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3800";
-
 async function getDailyRiskSummary() {
   const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
-  const response = await fetch(`${API_URL}/api/v1/ai/summaries/daily-risk`, {
+  const response = await fetch("/api/v1/ai/summaries/daily-risk", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -21,7 +19,7 @@ async function getDailyRiskSummary() {
   });
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: { message: "Bir hata oluştu." } }));
-    throw new Error(error.error?.message || "Özet oluşturulamadı.");
+    throw new Error(error.error?.message || "Şu anda AI servisine ulaşılamıyor. Lütfen daha sonra tekrar deneyin.");
   }
   return response.json();
 }
@@ -90,7 +88,7 @@ export default function RiskAlertsPage() {
       alert(`Bugünün Risk Özeti:\n\n${data.data.summary}`);
     },
     onError: (error: any) => {
-      alert(error.message || "Özet oluşturulamadı.");
+      alert(error.message || "Şu anda AI servisine ulaşılamıyor. Lütfen daha sonra tekrar deneyin.");
     },
   });
 

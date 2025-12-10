@@ -39,7 +39,7 @@ export default function ClientDetailPage() {
     },
   });
 
-  const { data: riskScoreData, isLoading: riskLoading } = useClientCompanyRiskScore(clientId);
+  const { data: riskScoreData, isLoading: riskLoading, error: riskError } = useClientCompanyRiskScore(clientId);
 
   if (clientLoading) {
     return (
@@ -376,6 +376,22 @@ export default function ClientDetailPage() {
           {riskLoading && (
             <div style={{ padding: "16px" }}>
               <p>Risk skoru yükleniyor...</p>
+            </div>
+          )}
+
+          {riskError && (
+            <div style={{ padding: "16px", backgroundColor: "#fee2e2", borderRadius: "4px", color: "#dc2626" }}>
+              <p>Risk skoru yüklenirken bir hata oluştu: {riskError instanceof Error ? riskError.message : "Bilinmeyen hata"}</p>
+              <pre style={{ fontSize: "12px", marginTop: "8px" }}>{JSON.stringify(riskError, null, 2)}</pre>
+            </div>
+          )}
+
+          {/* Debug info - remove in production */}
+          {process.env.NODE_ENV === "development" && riskScoreData && (
+            <div style={{ padding: "8px", backgroundColor: "#f0f0f0", fontSize: "12px", marginBottom: "8px" }}>
+              Debug: riskScoreData exists: {riskScoreData ? "yes" : "no"}, 
+              riskScore: {riskScoreData?.data?.riskScore ? "exists" : "null"},
+              breakdown: {JSON.stringify(riskScoreData?.data?.breakdown)}
             </div>
           )}
 

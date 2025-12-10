@@ -1,13 +1,14 @@
 import { Router, type Router as ExpressRouter } from "express";
 import { z } from "zod";
 import type { NextFunction, Response } from "express";
-import { ValidationError } from "@repo/shared-utils";
+import { ValidationError, AuthorizationError } from "@repo/shared-utils";
 import { clientCompanyService } from "../services/client-company-service";
 import { bankAccountService } from "../services/bank-account-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
 import { requirePermission } from "../middleware/rbac-middleware";
 import type { AuthenticatedRequest } from "../types/request-context";
+import { getCustomerCompanyId } from "../utils/customer-isolation";
 
 const router: ExpressRouter = Router();
 
@@ -46,6 +47,28 @@ router.get(
   requirePermission("clients:read"),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
+      // For ReadOnly users, only return their own company
+      const customerCompanyId = await getCustomerCompanyId(req.context!);
+      
+      if (customerCompanyId) {
+        // ReadOnly user - only return their own company
+        const company = await clientCompanyService.getClientCompanyById(
+          req.context!.tenantId!,
+          customerCompanyId
+        );
+        res.json({ 
+          data: {
+            data: [company],
+            total: 1,
+            page: 1,
+            pageSize: 1,
+            totalPages: 1,
+          }
+        });
+        return;
+      }
+
+      // Non-ReadOnly users - return all companies with filters
       const filters = {
         isActive: req.query.isActive === "true" ? true : req.query.isActive === "false" ? false : undefined,
         search: req.query.search as string | undefined,
@@ -70,6 +93,13 @@ router.get(
   requirePermission("clients:read"),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
+      // For ReadOnly users, only allow access to their own company
+      const customerCompanyId = await getCustomerCompanyId(req.context!);
+      
+      if (customerCompanyId && req.params.id !== customerCompanyId) {
+        throw new AuthorizationError("Bu müşteri şirketine erişim yetkiniz yok.");
+      }
+
       const client = await clientCompanyService.getClientCompanyById(
         req.context!.tenantId!,
         req.params.id

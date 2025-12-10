@@ -1,5 +1,6 @@
-// Support both NEXT_PUBLIC_API_BASE_URL (new) and NEXT_PUBLIC_API_URL (legacy) for backward compatibility
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3800";
+// Use relative path with Next.js proxy, or fallback to env var for production
+// Note: Client functions already include /api/v1/... so base should be empty or just /
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "";
 
 async function apiRequest<T>(
   endpoint: string,
@@ -48,7 +49,7 @@ async function apiRequest<T>(
       }
     }
     const error = await response.json().catch(() => ({ error: { message: "Bir hata oluştu." } }));
-    throw new Error(error.error?.message || "Bir hata oluştu.");
+    throw new Error(error.error?.message || "Şu anda servise ulaşılamıyor. Lütfen daha sonra tekrar deneyin.");
   }
 
   return response.json();

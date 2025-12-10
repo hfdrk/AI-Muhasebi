@@ -17,7 +17,7 @@ router.use(tenantMiddleware);
 // GET /api/v1/audit-logs
 router.get(
   "/",
-  requireRole(TENANT_ROLES.TENANT_OWNER, TENANT_ROLES.ACCOUNTANT),
+  requireRole(TENANT_ROLES.TENANT_OWNER), // Only Accountant role can access
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       const tenantId = req.context!.tenantId!;

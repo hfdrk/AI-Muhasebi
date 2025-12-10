@@ -24,6 +24,8 @@ export function useClientCompanyRiskScore(clientCompanyId: string) {
     queryKey: ["client-company-risk-score", clientCompanyId],
     queryFn: () => riskClient.getClientCompanyRiskScore(clientCompanyId),
     enabled: !!clientCompanyId,
+    refetchOnWindowFocus: true, // Refetch when window regains focus to get latest data
+    staleTime: 0, // Always consider data stale to ensure fresh data
   });
 }
 

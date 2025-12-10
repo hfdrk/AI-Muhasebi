@@ -99,6 +99,7 @@ import onboardingRoutes from "../routes/onboarding-routes";
 import searchRoutes from "../routes/search-routes";
 import savedFiltersRoutes from "../routes/saved-filters-routes";
 import adminRoutes from "../routes/admin-routes";
+import aiRoutes from "../routes/ai-routes";
 import { healthCheck, readinessCheck, healthzCheck, readyzCheck } from "../routes/health-routes";
 
 /**
@@ -153,6 +154,7 @@ export function createTestApp(): express.Application {
   app.use("/api/v1/search", searchRoutes);
   app.use("/api/v1/saved-filters", savedFiltersRoutes);
   app.use("/api/v1/admin", adminRoutes);
+  app.use("/api/v1/ai", aiRoutes);
 
   // Error handler (must be last)
   app.use(errorHandler);

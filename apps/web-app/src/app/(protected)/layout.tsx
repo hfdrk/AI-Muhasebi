@@ -5,7 +5,8 @@ import { TenantSwitcher } from "../../components/tenant-switcher";
 import { NotificationBell } from "../../components/notification-bell";
 import { GlobalSearch } from "../../components/global-search";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { logout } from "@repo/api-client";
 import { colors, spacing, shadows, borderRadius, transitions, zIndex, typography } from "../../styles/design-system";
 
 interface NavItem {
@@ -21,6 +22,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
@@ -92,6 +94,16 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   const isActive = (href: string) => {
     if (href === "/anasayfa") return pathname === href;
     return pathname?.startsWith(href);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push("/auth/login");
+    } catch (error) {
+      // Even if logout fails, redirect to login
+      router.push("/auth/login");
+    }
   };
 
   const NavLink = ({ item, level = 0 }: { item: NavItem; level?: number }) => {
@@ -282,8 +294,23 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
             minHeight: "72px",
           }}
         >
-          {!sidebarCollapsed && (
-            <Link href="/anasayfa" style={{ textDecoration: "none", color: "inherit" }}>
+          <div
+            style={{
+              opacity: sidebarCollapsed ? 0 : 1,
+              width: sidebarCollapsed ? 0 : "auto",
+              overflow: "hidden",
+              transition: `opacity ${transitions.normal} ease`,
+              pointerEvents: sidebarCollapsed ? "none" : "auto",
+            }}
+          >
+            <Link 
+              href="/anasayfa" 
+              style={{ 
+                textDecoration: "none", 
+                color: "inherit",
+                display: "block",
+              }}
+            >
               <h1
                 style={{
                   margin: 0,
@@ -293,12 +320,13 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                   backgroundClip: "text",
+                  whiteSpace: "nowrap",
                 }}
               >
                 AI Muhasebi
               </h1>
             </Link>
-          )}
+          </div>
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             style={{
@@ -487,6 +515,37 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
             <GlobalSearch />
             <NotificationBell />
             <TenantSwitcher />
+            <button
+              onClick={handleLogout}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: spacing.xs,
+                padding: `${spacing.xs} ${spacing.md}`,
+                backgroundColor: "transparent",
+                border: `1px solid ${colors.border}`,
+                borderRadius: borderRadius.md,
+                color: colors.text.secondary,
+                fontSize: typography.fontSize.sm,
+                fontWeight: typography.fontWeight.medium,
+                cursor: "pointer",
+                transition: `all ${transitions.normal} ease`,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = colors.gray[100];
+                e.currentTarget.style.borderColor = colors.gray[300];
+                e.currentTarget.style.color = colors.text.primary;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.borderColor = colors.border;
+                e.currentTarget.style.color = colors.text.secondary;
+              }}
+              title="Çıkış Yap"
+            >
+              <span style={{ fontSize: "16px" }}>🚪</span>
+              <span>Çıkış</span>
+            </button>
           </div>
         </header>
 

@@ -13,6 +13,7 @@ import { requirePermission, requireRole } from "../middleware/rbac-middleware";
 import { TENANT_ROLES } from "@repo/core-domain";
 import { getStorageConfig } from "@repo/config";
 import type { AuthenticatedRequest } from "../types/request-context";
+import { enforceCustomerIsolation } from "../utils/customer-isolation";
 
 const router: ExpressRouter = Router();
 
@@ -115,16 +116,21 @@ router.get(
         pageSize: z.string().optional().transform((val) => (val ? parseInt(val, 10) : undefined)),
       });
 
-      const filters = schema.parse(req.query);
+      const parsedFilters = schema.parse(req.query);
+
+      // Enforce customer isolation for ReadOnly users
+      const isolationFilter = await enforceCustomerIsolation(req.context!, {
+        clientCompanyId: parsedFilters.clientCompanyId || undefined,
+      });
 
       const result = await documentService.listDocuments(req.context!.tenantId!, {
-        clientCompanyId: filters.clientCompanyId,
-        type: filters.type,
-        status: filters.status,
-        dateFrom: filters.dateFrom ? new Date(filters.dateFrom) : undefined,
-        dateTo: filters.dateTo ? new Date(filters.dateTo) : undefined,
-        page: filters.page,
-        pageSize: filters.pageSize,
+        clientCompanyId: isolationFilter.clientCompanyId || parsedFilters.clientCompanyId,
+        type: parsedFilters.type,
+        status: parsedFilters.status,
+        dateFrom: parsedFilters.dateFrom ? new Date(parsedFilters.dateFrom) : undefined,
+        dateTo: parsedFilters.dateTo ? new Date(parsedFilters.dateTo) : undefined,
+        page: parsedFilters.page,
+        pageSize: parsedFilters.pageSize,
       });
 
       res.json({ data: result });
@@ -266,7 +272,7 @@ router.post(
 // DELETE /api/v1/documents/:id
 router.delete(
   "/:id",
-  requireRole(TENANT_ROLES.TENANT_OWNER, TENANT_ROLES.ACCOUNTANT),
+  requireRole(TENANT_ROLES.TENANT_OWNER), // Only Accountant role can update
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     await documentService.deleteDocument(
       req.context!.tenantId!,

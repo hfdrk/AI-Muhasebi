@@ -70,14 +70,45 @@ export class TenantService {
       orderBy: { createdAt: "desc" },
     });
 
-    return users.map((m) => ({
-      id: m.user.id,
-      name: m.user.fullName,
-      email: m.user.email,
-      role: m.role,
-      status: m.status,
-      createdAt: m.createdAt,
-    }));
+    // For ReadOnly users, find their associated client company
+    const usersWithCompanies = await Promise.all(
+      users.map(async (m) => {
+        let companyName: string | null = null;
+        
+        // If user is ReadOnly, find their associated company by email match
+        if (m.role === "ReadOnly" && m.user.email) {
+          const company = await prisma.clientCompany.findFirst({
+            where: {
+              tenantId,
+              contactEmail: {
+                equals: m.user.email,
+                mode: "insensitive",
+              },
+              isActive: true,
+            },
+            select: {
+              name: true,
+            },
+          });
+          
+          if (company) {
+            companyName = company.name;
+          }
+        }
+
+        return {
+          id: m.user.id,
+          name: m.user.fullName,
+          email: m.user.email,
+          role: m.role,
+          status: m.status,
+          createdAt: m.createdAt,
+          companyName, // Add company name for customer users
+        };
+      })
+    );
+
+    return usersWithCompanies;
   }
 
   async inviteUser(

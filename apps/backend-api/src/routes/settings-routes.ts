@@ -51,7 +51,7 @@ tenantSettingsRouter.get("/", async (req: AuthenticatedRequest, res: Response) =
 // PUT /api/v1/settings/tenant
 tenantSettingsRouter.put(
   "/",
-  requireRole(TENANT_ROLES.TENANT_OWNER, TENANT_ROLES.ACCOUNTANT),
+  requireRole(TENANT_ROLES.TENANT_OWNER), // Only Accountant role can update
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       const tenantId = req.context!.tenantId!;
@@ -133,5 +133,6 @@ router.use("/tenant", tenantSettingsRouter);
 router.use("/user", userSettingsRouter);
 
 export default router;
+
 
 

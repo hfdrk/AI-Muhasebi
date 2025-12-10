@@ -11,12 +11,10 @@ interface Message {
   timestamp: Date;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3800";
-
 async function sendChatMessage(question: string, type?: "GENEL" | "RAPOR" | "RISK") {
   const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
 
-  const response = await fetch(`${API_URL}/api/v1/ai/chat`, {
+  const response = await fetch("/api/v1/ai/chat", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -28,7 +26,7 @@ async function sendChatMessage(question: string, type?: "GENEL" | "RAPOR" | "RIS
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: { message: "Bir hata oluştu." } }));
-    throw new Error(error.error?.message || "AI yanıtı oluşturulamadı.");
+    throw new Error(error.error?.message || "Şu anda AI servisine ulaşılamıyor. Lütfen daha sonra tekrar deneyin.");
   }
 
   return response.json();
@@ -217,4 +215,5 @@ export default function AIAsistanPage() {
     </div>
   );
 }
+
 

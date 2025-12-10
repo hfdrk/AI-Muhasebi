@@ -36,7 +36,7 @@ export interface UpdateSubscriptionInput {
 }
 
 async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3800";
+  const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "";
 
   const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
 
@@ -82,4 +82,5 @@ export async function updateSubscription(
     body: JSON.stringify(data),
   });
 }
+
 

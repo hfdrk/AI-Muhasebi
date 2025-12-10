@@ -28,3 +28,4 @@ ALTER TABLE "saved_filters" ADD CONSTRAINT "saved_filters_tenant_id_fkey" FOREIG
 -- AddForeignKey
 ALTER TABLE "saved_filters" ADD CONSTRAINT "saved_filters_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
+

@@ -10,10 +10,10 @@ export const TENANT_ROLES = {
 export type TenantRoleType = TenantRole;
 
 export const ROLE_LABELS_TR: Record<TenantRole, string> = {
-  TenantOwner: "Ofis Sahibi",
-  Accountant: "Muhasebeci",
-  Staff: "Personel",
-  ReadOnly: "Sadece Görüntüleme",
+  TenantOwner: "Muhasebeci", // Accountant role - full access
+  Accountant: "Muhasebeci", // Deprecated - use TenantOwner instead
+  Staff: "Personel", // Deprecated - not used
+  ReadOnly: "Müşteri", // Customer role - view-only access
 };
 
 export const PLATFORM_ROLES = {

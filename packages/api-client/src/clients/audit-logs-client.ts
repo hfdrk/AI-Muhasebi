@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3800";
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "";
 
 export interface AuditLogEntry {
   id: string;
@@ -95,5 +95,6 @@ export async function listAuditLogs(
     params: params as Record<string, string | number | undefined>,
   });
 }
+
 
 

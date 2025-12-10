@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function HomePage() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     // Check if user is authenticated
     const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
     
@@ -18,6 +20,11 @@ export default function HomePage() {
       router.push("/auth/login");
     }
   }, [router]);
+
+  // Return null during SSR to avoid hydration mismatch
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <main style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>

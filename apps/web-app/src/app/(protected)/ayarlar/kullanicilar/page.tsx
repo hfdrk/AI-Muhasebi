@@ -7,11 +7,14 @@ import { InviteUserModal } from "@/components/invite-user-modal";
 import { settings as settingsTranslations } from "@repo/i18n";
 
 const ROLE_LABELS: Record<string, string> = {
-  TenantOwner: "Ofis Sahibi",
-  Accountant: "Muhasebeci",
-  Staff: "Personel",
-  ReadOnly: "Sadece Görüntüleme",
+  TenantOwner: "Muhasebeci", // Accountant - full access
+  Accountant: "Muhasebeci", // Deprecated - shown for backward compatibility
+  Staff: "Personel", // Deprecated - shown for backward compatibility
+  ReadOnly: "Müşteri", // Customer - view-only access
 };
+
+// Only these two roles should be available for new users
+const AVAILABLE_ROLES = ["TenantOwner", "ReadOnly"] as const;
 
 const STATUS_LABELS: Record<string, string> = {
   active: "Aktif",
@@ -33,7 +36,7 @@ export default function UsersPage() {
   const tenantId = currentTenant?.id;
   const userRole = currentTenant?.role;
   
-  // Check if user can manage users (TenantOwner or Accountant)
+  // Check if user can manage users (only TenantOwner/Accountant role)
   const canManageUsers = userRole === "TenantOwner" || userRole === "Accountant";
 
   const { data, isLoading: isLoadingUsers } = useQuery({
@@ -168,6 +171,8 @@ export default function UsersPage() {
 
       {isLoading ? (
         <p>Yükleniyor...</p>
+      ) : users.length === 0 ? (
+        <p style={{ color: "#666", padding: "20px" }}>Henüz kullanıcı bulunmuyor.</p>
       ) : (
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
@@ -175,6 +180,7 @@ export default function UsersPage() {
               <th style={{ padding: "12px", textAlign: "left" }}>Ad Soyad</th>
               <th style={{ padding: "12px", textAlign: "left" }}>E-posta</th>
               <th style={{ padding: "12px", textAlign: "left" }}>Rol</th>
+              <th style={{ padding: "12px", textAlign: "left" }}>Şirket</th>
               <th style={{ padding: "12px", textAlign: "left" }}>Durum</th>
               <th style={{ padding: "12px", textAlign: "left" }}>Oluşturulma Tarihi</th>
               <th style={{ padding: "12px", textAlign: "left" }}>İşlemler</th>
@@ -195,16 +201,33 @@ export default function UsersPage() {
                         padding: "4px 8px",
                         border: "1px solid #ddd",
                         borderRadius: "4px",
+                        backgroundColor: user.role === "ReadOnly" ? "#e3f2fd" : "white",
                       }}
                     >
-                      {Object.entries(ROLE_LABELS).map(([value, label]) => (
+                      {AVAILABLE_ROLES.map((value) => (
                         <option key={value} value={value}>
-                          {label}
+                          {ROLE_LABELS[value]}
                         </option>
                       ))}
                     </select>
                   ) : (
-                    <span>{ROLE_LABELS[user.role] || user.role}</span>
+                    <span
+                      style={{
+                        padding: "4px 8px",
+                        borderRadius: "4px",
+                        backgroundColor: user.role === "ReadOnly" ? "#e3f2fd" : "transparent",
+                        fontWeight: user.role === "ReadOnly" ? 500 : 400,
+                      }}
+                    >
+                      {ROLE_LABELS[user.role] || user.role}
+                    </span>
+                  )}
+                </td>
+                <td style={{ padding: "12px" }}>
+                  {user.role === "ReadOnly" && user.companyName ? (
+                    <span style={{ color: "#666", fontSize: "14px" }}>{user.companyName}</span>
+                  ) : (
+                    <span style={{ color: "#999", fontStyle: "italic" }}>—</span>
                   )}
                 </td>
                 <td style={{ padding: "12px" }}>{STATUS_LABELS[user.status] || user.status}</td>

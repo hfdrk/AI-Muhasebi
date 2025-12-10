@@ -1,25 +1,6 @@
 import { prisma } from "../lib/prisma";
+import { createLLMClient, hasRealAIProvider } from "@repo/shared-utils";
 import { auditService } from "./audit-service";
-
-// Dynamic import to ensure module is loaded correctly
-let createLLMClient: typeof import("@repo/shared-utils").createLLMClient;
-let hasRealAIProvider: typeof import("@repo/shared-utils").hasRealAIProvider;
-
-// Lazy load the LLM client module
-function getLLMClientModule() {
-  if (!createLLMClient || !hasRealAIProvider) {
-    const llmModule = require("@repo/shared-utils");
-    createLLMClient = llmModule.createLLMClient;
-    hasRealAIProvider = llmModule.hasRealAIProvider;
-    
-    if (typeof createLLMClient !== "function") {
-      console.error("[AI Assistant] ERROR: createLLMClient is not a function after require. Type:", typeof createLLMClient);
-      console.error("[AI Assistant] Module exports:", Object.keys(llmModule));
-      throw new Error("createLLMClient is not a function. Check module exports.");
-    }
-  }
-  return { createLLMClient, hasRealAIProvider };
-}
 
 export type AIAssistantType = "CHAT" | "DAILY_RISK_SUMMARY" | "PORTFOLIO_OVERVIEW";
 
@@ -34,8 +15,7 @@ export class AIAssistantService {
   
   private get llmClient() {
     if (!this._llmClient) {
-      const { createLLMClient: createClient } = getLLMClientModule();
-      this._llmClient = createClient();
+      this._llmClient = createLLMClient();
       // Log which client is being used (without exposing API keys)
       const clientType = this._llmClient.constructor.name;
       console.log(`[AI Assistant] Using LLM client: ${clientType}`);
@@ -92,7 +72,7 @@ Yanıtlarını Türkçe, profesyonel ve yardımcı bir tonla ver.`;
           metadata: {
             type: type || "GENEL",
             filters: contextFilters || {},
-            hasRealAIProvider: getLLMClientModule().hasRealAIProvider(),
+            hasRealAIProvider: hasRealAIProvider(),
             questionLength: question.length,
           },
         });
@@ -124,7 +104,7 @@ Yanıtlarını Türkçe, profesyonel ve yardımcı bir tonla ver.`;
             type: type || "GENEL",
             error: "AI yanıtı oluşturulamadı",
             errorMessage: error.message?.substring(0, 100), // Log first 100 chars for debugging
-            hasRealAIProvider: getLLMClientModule().hasRealAIProvider(),
+            hasRealAIProvider: hasRealAIProvider(),
           },
         });
       } catch (auditError: any) {
@@ -217,7 +197,7 @@ Yanıtlarını Türkçe, profesyonel ve yardımcı bir tonla ver.`;
         metadata: {
           date: date.toISOString(),
           alertCount: riskAlerts.length,
-          hasRealAIProvider: typeof hasRealAIProvider === "function" ? hasRealAIProvider() : false,
+          hasRealAIProvider: hasRealAIProvider(),
         },
       });
 
@@ -236,7 +216,7 @@ Yanıtlarını Türkçe, profesyonel ve yardımcı bir tonla ver.`;
           date: date.toISOString(),
           error: error?.message || "Özet oluşturulamadı",
           errorType: error?.constructor?.name,
-          hasRealAIProvider: typeof hasRealAIProvider === "function" ? hasRealAIProvider() : false,
+          hasRealAIProvider: hasRealAIProvider(),
         },
       });
 
@@ -324,7 +304,7 @@ Yanıtlarını Türkçe, profesyonel ve yardımcı bir tonla ver.`;
         resourceId: null,
         metadata: {
           companyCount: companies.length,
-          hasRealAIProvider: typeof hasRealAIProvider === "function" ? hasRealAIProvider() : false,
+          hasRealAIProvider: hasRealAIProvider(),
         },
       });
 
@@ -342,7 +322,7 @@ Yanıtlarını Türkçe, profesyonel ve yardımcı bir tonla ver.`;
         metadata: {
           error: error?.message || "Özet oluşturulamadı",
           errorType: error?.constructor?.name,
-          hasRealAIProvider: typeof hasRealAIProvider === "function" ? hasRealAIProvider() : false,
+          hasRealAIProvider: hasRealAIProvider(),
         },
       });
 

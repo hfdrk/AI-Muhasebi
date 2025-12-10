@@ -8,6 +8,7 @@ import { requirePermission, requireRole } from "../middleware/rbac-middleware";
 import { TENANT_ROLES } from "@repo/core-domain";
 import type { AuthenticatedRequest } from "../types/request-context";
 import type { Response } from "express";
+import { enforceCustomerIsolation } from "../utils/customer-isolation";
 
 import { Router, type Router as ExpressRouter } from "express";
 const router: ExpressRouter = Router();
@@ -40,8 +41,13 @@ router.get(
   requirePermission("invoices:read"), // Using invoices:read for now, can add transactions:read later
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const filters = {
+      // Enforce customer isolation for ReadOnly users
+      const isolationFilter = await enforceCustomerIsolation(req.context!, {
         clientCompanyId: req.query.clientCompanyId as string | undefined,
+      });
+
+      const filters = {
+        clientCompanyId: isolationFilter.clientCompanyId || undefined,
         dateFrom: req.query.dateFrom ? new Date(req.query.dateFrom as string) : undefined,
         dateTo: req.query.dateTo ? new Date(req.query.dateTo as string) : undefined,
         referenceNo: req.query.referenceNo as string | undefined,
@@ -129,7 +135,7 @@ router.patch(
 
 router.delete(
   "/:id",
-  requireRole(TENANT_ROLES.TENANT_OWNER, TENANT_ROLES.ACCOUNTANT),
+  requireRole(TENANT_ROLES.TENANT_OWNER), // Only Accountant role can update
   async (req: AuthenticatedRequest, res: Response) => {
     await transactionService.deleteTransaction(
       req.context!.tenantId!,

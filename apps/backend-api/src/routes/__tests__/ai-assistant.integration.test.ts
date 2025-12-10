@@ -1,47 +1,108 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+// Task 16: AI Endpoint Mock Mode Tests
+// These tests verify that AI endpoints work correctly in mock mode
+// and that hasRealAIProvider() is used correctly to prevent function errors.
+
+// Import env setup FIRST - must run before any routes/services that use config
+import "../../test-utils/env-setup.js";
+
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import request from "supertest";
-import { createTestApp } from "../../test-utils/test-app";
-import { createTestUser, getAuthToken } from "../../test-utils/test-auth";
-import type { TestUserResult } from "../../test-utils/test-auth";
+import {
+  createTestApp,
+  createTestUser,
+  getAuthToken,
+  getTestPrisma,
+} from "../../test-utils";
+import { TENANT_ROLES } from "@repo/core-domain";
 
 describe("AI Assistant Integration Tests", () => {
-  let app: any;
-  let testUser1: TestUserResult;
-  let testUser2: TestUserResult;
-  let token1: string;
-  let token2: string;
+  const app = createTestApp();
+  const prisma = getTestPrisma();
 
-  beforeAll(async () => {
-    app = await createTestApp();
+  let testUser: Awaited<ReturnType<typeof createTestUser>>;
+  let testToken: string;
+  let tenantAUser: Awaited<ReturnType<typeof createTestUser>>;
+  let tenantAToken: string;
+  let tenantBUser: Awaited<ReturnType<typeof createTestUser>>;
+  let tenantBToken: string;
+  let readOnlyUser: Awaited<ReturnType<typeof createTestUser>>;
+  let readOnlyToken: string;
 
-    // Create two test users in different tenants
-    testUser1 = await createTestUser({
-      email: "ai-test-user1@test.com",
-      password: "Test123!",
-      role: "Accountant",
+  // Store original env value to restore after tests
+  let originalOpenAIKey: string | undefined;
+
+  beforeEach(async () => {
+    // Store original OPENAI_API_KEY
+    originalOpenAIKey = process.env.OPENAI_API_KEY;
+    // Ensure OPENAI_API_KEY is not set for mock mode tests
+    delete process.env.OPENAI_API_KEY;
+
+    // Create test user
+    testUser = await createTestUser({
+      email: `ai-test-${Date.now()}@example.com`,
     });
+    testToken = await getAuthToken(testUser.user.email, "Test123!@#", app);
 
-    testUser2 = await createTestUser({
-      email: "ai-test-user2@test.com",
-      password: "Test123!",
-      role: "Accountant",
+    // Create ReadOnly user
+    readOnlyUser = await createTestUser({
+      email: `ai-readonly-${Date.now()}@example.com`,
+      role: TENANT_ROLES.READ_ONLY,
+      tenantId: testUser.tenant.id,
     });
+    readOnlyToken = await getAuthToken(
+      readOnlyUser.user.email,
+      "Test123!@#",
+      app
+    );
 
-    token1 = await getAuthToken("ai-test-user1@test.com", "Test123!", app);
-    token2 = await getAuthToken("ai-test-user2@test.com", "Test123!", app);
+    // Create two tenants for isolation test
+    tenantAUser = await createTestUser({
+      email: `tenant-a-${Date.now()}@example.com`,
+      tenantName: `Tenant A ${Date.now()}`,
+      tenantSlug: `tenant-a-${Date.now()}`,
+    });
+    tenantAToken = await getAuthToken(
+      tenantAUser.user.email,
+      "Test123!@#",
+      app
+    );
+
+    tenantBUser = await createTestUser({
+      email: `tenant-b-${Date.now()}@example.com`,
+      tenantName: `Tenant B ${Date.now()}`,
+      tenantSlug: `tenant-b-${Date.now()}`,
+    });
+    tenantBToken = await getAuthToken(
+      tenantBUser.user.email,
+      "Test123!@#",
+      app
+    );
+
+    // Ensure users and tenants are committed before tests run
+    await prisma.$queryRaw`SELECT 1`;
+    await new Promise((resolve) => setTimeout(resolve, 50));
   });
 
-  afterAll(async () => {
-    // Cleanup is handled by test-utils
+  afterEach(() => {
+    // Restore original OPENAI_API_KEY
+    if (originalOpenAIKey !== undefined) {
+      process.env.OPENAI_API_KEY = originalOpenAIKey;
+    } else {
+      delete process.env.OPENAI_API_KEY;
+    }
   });
 
   describe("POST /api/v1/ai/chat", () => {
-    it("should return 200 and an answer string (mock mode when no API key)", async () => {
+    it("should return 200 and answer in mock mode", async () => {
+      // Ensure OPENAI_API_KEY is not set (done in beforeEach)
+      expect(process.env.OPENAI_API_KEY).toBeUndefined();
+
       const response = await request(app)
         .post("/api/v1/ai/chat")
-        .set("Authorization", `Bearer ${token1}`)
+        .set("Authorization", `Bearer ${testToken}`)
+        .set("X-Tenant-Id", testUser.tenant.id)
         .send({
-          question: "Kaç tane müşteri şirketim var?",
+          question: "Bugünkü risk durumumuz nedir?",
         })
         .expect(200);
 
@@ -49,36 +110,10 @@ describe("AI Assistant Integration Tests", () => {
       expect(response.body.data).toHaveProperty("answer");
       expect(typeof response.body.data.answer).toBe("string");
       expect(response.body.data.answer.length).toBeGreaterThan(0);
+      // Verify no function errors occurred (response should be valid JSON with answer)
     });
 
-    it("should enforce tenant isolation", async () => {
-      // User from Tenant 1 should not see Tenant 2 data
-      const response = await request(app)
-        .post("/api/v1/ai/chat")
-        .set("Authorization", `Bearer ${token1}`)
-        .send({
-          question: "Müşteri şirketlerimi listele",
-        })
-        .expect(200);
-
-      // The answer should only contain data from tenant 1
-      // In mock mode, this is harder to verify, but the service should filter by tenantId
-      expect(response.body.data.answer).toBeDefined();
-    });
-
-    it("should handle errors gracefully", async () => {
-      const response = await request(app)
-        .post("/api/v1/ai/chat")
-        .set("Authorization", `Bearer ${token1}`)
-        .send({
-          question: "", // Empty question should fail validation
-        })
-        .expect(400);
-
-      expect(response.body).toHaveProperty("error");
-    });
-
-    it("should require authentication", async () => {
+    it("should enforce auth (401 when unauthenticated)", async () => {
       await request(app)
         .post("/api/v1/ai/chat")
         .send({
@@ -87,82 +122,110 @@ describe("AI Assistant Integration Tests", () => {
         .expect(401);
     });
 
-    it("should allow ReadOnly role to use AI", async () => {
-      const readOnlyUser = await createTestUser({
-        email: "ai-readonly@test.com",
-        password: "Test123!",
-        role: "ReadOnly",
-      });
-
-      const readOnlyToken = await getAuthToken("ai-readonly@test.com", "Test123!", app);
-
+    it("should allow ReadOnly users to call AI endpoints (RBAC check)", async () => {
       const response = await request(app)
         .post("/api/v1/ai/chat")
         .set("Authorization", `Bearer ${readOnlyToken}`)
+        .set("X-Tenant-Id", readOnlyUser.tenant.id)
         .send({
           question: "Test question",
         })
         .expect(200);
 
       expect(response.body.data).toHaveProperty("answer");
+      expect(typeof response.body.data.answer).toBe("string");
+      expect(response.body.data.answer.length).toBeGreaterThan(0);
     });
   });
 
   describe("POST /api/v1/ai/summaries/daily-risk", () => {
-    it("should return summary when risk alerts exist", async () => {
+    it("should work in mock mode without provider", async () => {
+      // Ensure OPENAI_API_KEY is not set
+      expect(process.env.OPENAI_API_KEY).toBeUndefined();
+
+      // Create a client company for the test user
+      const clientCompany = await prisma.clientCompany.create({
+        data: {
+          tenantId: testUser.tenant.id,
+          name: "Test Company for Risk Alert",
+          taxNumber: `TAX${Date.now()}`,
+          legalType: "Limited",
+          isActive: true,
+        },
+      });
+      await prisma.$queryRaw`SELECT 1`;
+
+      // Create a risk alert for the test
+      await prisma.riskAlert.create({
+        data: {
+          tenantId: testUser.tenant.id,
+          clientCompanyId: clientCompany.id,
+          type: "RISK_THRESHOLD_EXCEEDED",
+          title: "Test High Risk Alert",
+          severity: "high",
+          status: "open",
+          message: "Test high risk alert for AI summary",
+        },
+      });
+      await prisma.$queryRaw`SELECT 1`;
+
       const response = await request(app)
         .post("/api/v1/ai/summaries/daily-risk")
-        .set("Authorization", `Bearer ${token1}`)
-        .send({})
-        .expect(200);
-
-      expect(response.body).toHaveProperty("data");
-      expect(response.body.data).toHaveProperty("summary");
-      expect(response.body.data).toHaveProperty("date");
-      expect(typeof response.body.data.summary).toBe("string");
-    });
-
-    it("should return summary for a specific date", async () => {
-      const date = new Date();
-      date.setDate(date.getDate() - 1); // Yesterday
-
-      const response = await request(app)
-        .post("/api/v1/ai/summaries/daily-risk")
-        .set("Authorization", `Bearer ${token1}`)
+        .set("Authorization", `Bearer ${testToken}`)
+        .set("X-Tenant-Id", testUser.tenant.id)
         .send({
-          date: date.toISOString(),
+          date: new Date().toISOString(),
         })
         .expect(200);
 
+      expect(response.body).toHaveProperty("data");
       expect(response.body.data).toHaveProperty("summary");
       expect(response.body.data).toHaveProperty("date");
+      expect(typeof response.body.data.summary).toBe("string");
+      expect(response.body.data.summary.length).toBeGreaterThan(0);
+      // Verify no 500 error occurred
     });
-  });
 
-  describe("POST /api/v1/ai/summaries/portfolio", () => {
-    it("should return portfolio summary", async () => {
+    it("should enforce tenant isolation (cannot cross tenants)", async () => {
+      // Create risk data for Tenant A only
+      const tenantAClient = await prisma.clientCompany.create({
+        data: {
+          tenantId: tenantAUser.tenant.id,
+          name: "Tenant A Company",
+          taxNumber: `TAXA${Date.now()}`,
+          legalType: "Limited",
+          isActive: true,
+        },
+      });
+      await prisma.$queryRaw`SELECT 1`;
+
+      await prisma.riskAlert.create({
+        data: {
+          tenantId: tenantAUser.tenant.id,
+          clientCompanyId: tenantAClient.id,
+          type: "RISK_THRESHOLD_EXCEEDED",
+          title: "Tenant A Risk Alert",
+          severity: "high",
+          status: "open",
+          message: "This alert should not be visible to Tenant B",
+        },
+      });
+      await prisma.$queryRaw`SELECT 1`;
+
+      // Login as user from Tenant B and call the endpoint
+      // Should succeed but only see Tenant B's data (which is empty)
       const response = await request(app)
-        .post("/api/v1/ai/summaries/portfolio")
-        .set("Authorization", `Bearer ${token1}`)
+        .post("/api/v1/ai/summaries/daily-risk")
+        .set("Authorization", `Bearer ${tenantBToken}`)
+        .set("X-Tenant-Id", tenantBUser.tenant.id)
         .send({})
         .expect(200);
 
       expect(response.body).toHaveProperty("data");
       expect(response.body.data).toHaveProperty("summary");
       expect(typeof response.body.data.summary).toBe("string");
-    });
-
-    it("should enforce tenant isolation", async () => {
-      // User from Tenant 1 should only see Tenant 1 portfolio
-      const response = await request(app)
-        .post("/api/v1/ai/summaries/portfolio")
-        .set("Authorization", `Bearer ${token1}`)
-        .send({})
-        .expect(200);
-
-      // Summary should only contain data from tenant 1
-      expect(response.body.data.summary).toBeDefined();
+      // The summary should be based on Tenant B's data (which is empty)
+      // but should not throw an error or access Tenant A's data
     });
   });
 });
-

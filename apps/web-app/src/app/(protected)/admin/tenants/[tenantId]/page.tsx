@@ -248,3 +248,4 @@ export default function AdminTenantDetailPage({ params }: { params: Promise<{ te
   );
 }
 
+

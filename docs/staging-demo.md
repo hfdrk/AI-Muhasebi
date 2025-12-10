@@ -35,20 +35,15 @@ The seed script includes safety checks to prevent accidental execution in produc
 
 #### Users
 
-1. **Ahmet Yılmaz** (Tenant Owner)
+1. **Ahmet Yılmaz** (Accountant)
    - Email: `yonetici@ornekofis1.com`
    - Password: `Demo123!`
-   - Role: TenantOwner
+   - Role: TenantOwner (Accountant - full access)
 
-2. **Ayşe Demir** (Accountant)
-   - Email: `muhasebeci@ornekofis1.com`
+2. **Ayşe Demir** (Customer)
+   - Email: `musteri@ornekofis1.com`
    - Password: `Demo123!`
-   - Role: Accountant
-
-3. **Mehmet Kaya** (Staff)
-   - Email: `personel@ornekofis1.com`
-   - Password: `Demo123!`
-   - Role: Staff
+   - Role: ReadOnly (Customer - view-only access)
 
 #### Client Companies
 
@@ -78,15 +73,15 @@ The seed script includes safety checks to prevent accidental execution in produc
 
 #### Users
 
-1. **Fatma Şahin** (Tenant Owner)
+1. **Fatma Şahin** (Accountant)
    - Email: `yonetici@ornekofis2.com`
    - Password: `Demo123!`
-   - Role: TenantOwner
+   - Role: TenantOwner (Accountant - full access)
 
-2. **Ali Öztürk** (Accountant)
-   - Email: `muhasebeci@ornekofis2.com`
+2. **Ali Öztürk** (Customer)
+   - Email: `musteri@ornekofis2.com`
    - Password: `Demo123!`
-   - Role: Accountant
+   - Role: ReadOnly (Customer - view-only access)
 
 #### Client Companies
 
@@ -114,7 +109,7 @@ Same data structure as Office 1:
 With this demo data, you can test:
 
 - ✅ **Multi-tenant isolation**: Switch between tenants and verify data isolation
-- ✅ **RBAC**: Test different user roles (TenantOwner, Accountant, Staff)
+- ✅ **RBAC**: Test different user roles (Accountant/TenantOwner and Customer/ReadOnly)
 - ✅ **Client Companies**: View and manage client companies
 - ✅ **Invoices**: View invoices with different statuses
 - ✅ **Documents**: Upload and process documents
@@ -143,5 +138,6 @@ To reset the demo data:
 ```
 
 The seed script is idempotent for tenants and users - it will skip creation if they already exist, but will create new data for companies, invoices, etc. each time it runs.
+
 
 

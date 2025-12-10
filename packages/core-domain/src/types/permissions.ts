@@ -32,6 +32,7 @@ export type Permission =
   | "integrations:manage";
 
 export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
+  // Accountant role (TenantOwner) - Full access
   TenantOwner: [
     "documents:create",
     "documents:read",
@@ -63,6 +64,7 @@ export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
     "integrations:read",
     "integrations:manage",
   ],
+  // Deprecated - use TenantOwner instead (mapped to same permissions)
   Accountant: [
     "documents:create",
     "documents:read",
@@ -92,6 +94,7 @@ export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
     "integrations:read",
     "integrations:manage",
   ],
+  // Deprecated - not used
   Staff: [
     "documents:create",
     "documents:read",
@@ -101,6 +104,7 @@ export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
     "users:read",
     "reports:view",
   ],
+  // Customer role (ReadOnly) - View-only access
   ReadOnly: [
     "documents:read",
     "invoices:read",

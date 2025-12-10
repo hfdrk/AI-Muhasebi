@@ -44,7 +44,7 @@ router.get(
 // PATCH /api/v1/risk/alerts/:id/status
 router.patch(
   "/:id/status",
-  requireRole(TENANT_ROLES.TENANT_OWNER, TENANT_ROLES.ACCOUNTANT, TENANT_ROLES.STAFF), // ReadOnly cannot update
+  requireRole(TENANT_ROLES.TENANT_OWNER), // Only Accountant role can update
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       const body = updateAlertStatusSchema.parse(req.body);

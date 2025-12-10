@@ -9,17 +9,15 @@ import { useState } from "react";
 
 const inviteSchema = z.object({
   email: z.string().email("Geçerli bir e-posta adresi giriniz."),
-  role: z.enum(["TenantOwner", "Accountant", "Staff", "ReadOnly"]),
+  role: z.enum(["TenantOwner", "ReadOnly"]),
   name: z.string().optional(),
 });
 
 type InviteForm = z.infer<typeof inviteSchema>;
 
 const ROLE_LABELS = {
-  TenantOwner: "Ofis Sahibi",
-  Accountant: "Muhasebeci",
-  Staff: "Personel",
-  ReadOnly: "Sadece Görüntüleme",
+  TenantOwner: "Muhasebeci", // Accountant - full access
+  ReadOnly: "Müşteri", // Customer - view-only access
 };
 
 interface InviteUserModalProps {
@@ -46,7 +44,7 @@ export function InviteUserModal({ tenantId, isOpen, onClose, onSuccess }: Invite
   } = useForm<InviteForm>({
     resolver: zodResolver(inviteSchema),
     defaultValues: {
-      role: "Staff",
+      role: "ReadOnly",
     },
   });
 

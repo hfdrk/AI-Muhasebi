@@ -42,6 +42,10 @@ export function createLLMClient(): LLMClient {
 /**
  * Check if a real AI provider is configured
  * 
+ * NOTE:
+ * Must remain a FUNCTION, not a boolean constant.
+ * Web and backend both call hasRealAIProvider() at runtime.
+ * 
  * @returns true if OpenAI or Anthropic API key is set
  * Note: In browser environments, this will always return false as
  * environment variables are not available client-side.
@@ -51,9 +55,19 @@ export function hasRealAIProvider(): boolean {
   if (typeof process === "undefined" || !process.env) {
     return false;
   }
+  
   // Safely access process.env
   try {
-    return !!(process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY);
+    const hasOpenAI =
+      !!process.env.OPENAI_API_KEY ||
+      !!process.env.OPENAI_ORG ||
+      !!process.env.OPENAI_BASE_URL;
+    
+    const hasAnthropic =
+      !!process.env.ANTHROPIC_API_KEY ||
+      !!process.env.ANTHROPIC_BASE_URL;
+    
+    return hasOpenAI || hasAnthropic;
   } catch {
     return false;
   }

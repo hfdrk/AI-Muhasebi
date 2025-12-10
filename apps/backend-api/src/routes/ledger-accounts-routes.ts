@@ -51,7 +51,7 @@ router.get("/:id", async (req: AuthenticatedRequest, res: Response, next: NextFu
 
 router.post(
   "/",
-  requireRole(TENANT_ROLES.TENANT_OWNER, TENANT_ROLES.ACCOUNTANT),
+  requireRole(TENANT_ROLES.TENANT_OWNER), // Only Accountant role can update
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const body = createLedgerAccountSchema.parse(req.body);
@@ -72,7 +72,7 @@ router.post(
 
 router.patch(
   "/:id",
-  requireRole(TENANT_ROLES.TENANT_OWNER, TENANT_ROLES.ACCOUNTANT),
+  requireRole(TENANT_ROLES.TENANT_OWNER), // Only Accountant role can update
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const body = updateLedgerAccountSchema.parse(req.body);

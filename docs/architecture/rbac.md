@@ -7,10 +7,18 @@
 
 ## Tenant-Level Roles
 
-- **TenantOwner**: Full control within tenant (billing, user management, all features)
-- **Accountant**: Full access to accounting features, cannot manage users or billing
-- **Staff**: Limited access (view clients, create invoices, view reports)
-- **ReadOnly**: View-only access to all tenant data
+The system uses a simplified two-role model:
+
+- **TenantOwner** (Accountant): Full control within tenant (billing, user management, all features)
+  - Label: "Muhasebeci" (Accountant)
+  - Full access to all features
+  
+- **ReadOnly** (Customer): View-only access to all tenant data
+  - Label: "Müşteri" (Customer)
+  - Can view documents, invoices, clients, reports, and risk information
+  - Cannot create, edit, or delete anything
+
+**Note**: The Accountant and Staff roles are deprecated and should not be used for new users.
 
 ## Permissions
 
@@ -40,10 +48,8 @@
 
 ## Role-to-Permission Mapping
 
-- **TenantOwner**: All permissions
-- **Accountant**: All document/invoice/client/report permissions, no user management or billing
-- **Staff**: `documents:create`, `documents:read`, `invoices:create`, `invoices:read`, `clients:read`, `reports:view`
-- **ReadOnly**: All `:read` permissions only
+- **TenantOwner** (Accountant): All permissions - full access to create, read, update, delete, and manage all features
+- **ReadOnly** (Customer): View-only permissions - can only read/view data, cannot modify anything
 
 ## Implementation
 

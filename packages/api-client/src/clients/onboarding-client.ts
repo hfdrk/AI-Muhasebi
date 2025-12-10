@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3800";
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "";
 
 export interface OnboardingState {
   hasClientCompanies: boolean;
@@ -50,4 +50,5 @@ export const onboardingClient = {
     });
   },
 };
+
 

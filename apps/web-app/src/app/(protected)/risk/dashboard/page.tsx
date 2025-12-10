@@ -94,7 +94,7 @@ export default function RiskDashboardPage() {
           )}
           {!isAuthError && !isTenantError && (
             <p style={{ fontSize: "12px", marginTop: "8px", color: "#7f1d1d" }}>
-              Backend API'nin çalıştığından emin olun: http://localhost:3800
+              Backend API'nin çalıştığından emin olun.
             </p>
           )}
         </div>

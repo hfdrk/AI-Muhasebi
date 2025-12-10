@@ -153,7 +153,19 @@ export class RiskService {
         }
       : null;
 
-    // Get document risk score breakdown
+    // Get all documents for this company first
+    const allDocuments = await prisma.document.findMany({
+      where: {
+        tenantId,
+        clientCompanyId,
+        isDeleted: false,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    // Get all document risk scores for this company to calculate breakdown
     const documentScores = await prisma.documentRiskScore.findMany({
       where: {
         tenantId,
@@ -162,12 +174,75 @@ export class RiskService {
           isDeleted: false,
         },
       },
+      select: {
+        id: true,
+        severity: true,
+        score: true,
+        triggeredRuleCodes: true,
+        documentId: true,
+      },
     });
 
+    // Count by severity - always calculate from score for consistency
+    let lowCount = 0;
+    let mediumCount = 0;
+    let highCount = 0;
+
+    documentScores.forEach((score) => {
+      // Always use score to determine severity for consistency
+      const scoreValue = Number(score.score);
+      if (scoreValue <= 30) {
+        lowCount++;
+      } else if (scoreValue <= 65) {
+        mediumCount++;
+      } else {
+        highCount++;
+      }
+    });
+
+    // If company has risk score but documents don't have individual scores,
+    // this is a data inconsistency - documents should have risk scores
+    if (riskScore && documentScores.length === 0 && allDocuments.length > 0) {
+      console.warn(
+        `[RiskService] Data inconsistency: Company ${clientCompanyId} has risk score ${riskScore.score} (${riskScore.severity}) ` +
+        `but ${allDocuments.length} documents don't have individual risk scores. ` +
+        `This suggests document risk scores need to be calculated.`
+      );
+      
+      // Note: We could trigger risk score calculation here, but that might be slow
+      // For now, we'll return 0s and let the frontend handle this case
+      // The frontend could show a message like "Risk scores are being calculated" or trigger calculation
+    }
+
+    // Debug logging
+    if (riskScore) {
+      console.log(
+        `[RiskService] Company ${clientCompanyId}: Total documents=${allDocuments.length}, ` +
+        `Documents with risk scores=${documentScores.length}, ` +
+        `Company risk score=${riskScore.score} (${riskScore.severity}), ` +
+        `Breakdown: low=${lowCount}, medium=${mediumCount}, high=${highCount}`
+      );
+      
+      // Log sample document scores for debugging
+      if (documentScores.length > 0) {
+        const sampleScores = documentScores.slice(0, 5).map(s => ({
+          score: Number(s.score),
+          severity: s.severity,
+          calculatedSeverity: Number(s.score) <= 30 ? 'low' : Number(s.score) <= 65 ? 'medium' : 'high'
+        }));
+        console.log(`[RiskService] Sample document scores:`, sampleScores);
+      } else if (allDocuments.length > 0) {
+        console.warn(
+          `[RiskService] No document risk scores found for ${allDocuments.length} documents. ` +
+          `Company risk score exists (${riskScore.score}), but document-level scores are missing.`
+        );
+      }
+    }
+
     const breakdown = {
-      low: documentScores.filter((s) => s.severity === "low").length,
-      medium: documentScores.filter((s) => s.severity === "medium").length,
-      high: documentScores.filter((s) => s.severity === "high").length,
+      low: lowCount,
+      medium: mediumCount,
+      high: highCount,
     };
 
     // Get top triggered rules

@@ -63,32 +63,26 @@ const DEMO_USERS = [
   {
     email: "yonetici@ornekofis1.com",
     fullName: "Ahmet Yılmaz",
-    role: TENANT_ROLES.TENANT_OWNER,
+    role: TENANT_ROLES.TENANT_OWNER, // Accountant - full access
     password: "Demo123!",
   },
   {
-    email: "muhasebeci@ornekofis1.com",
+    email: "musteri@ornekofis1.com",
     fullName: "Ayşe Demir",
-    role: TENANT_ROLES.ACCOUNTANT,
-    password: "Demo123!",
-  },
-  {
-    email: "personel@ornekofis1.com",
-    fullName: "Mehmet Kaya",
-    role: TENANT_ROLES.STAFF,
+    role: TENANT_ROLES.READ_ONLY, // Customer - view-only access
     password: "Demo123!",
   },
   // Office 2 users
   {
     email: "yonetici@ornekofis2.com",
     fullName: "Fatma Şahin",
-    role: TENANT_ROLES.TENANT_OWNER,
+    role: TENANT_ROLES.TENANT_OWNER, // Accountant - full access
     password: "Demo123!",
   },
   {
-    email: "muhasebeci@ornekofis2.com",
+    email: "musteri@ornekofis2.com",
     fullName: "Ali Öztürk",
-    role: TENANT_ROLES.ACCOUNTANT,
+    role: TENANT_ROLES.READ_ONLY, // Customer - view-only access
     password: "Demo123!",
   },
 ];

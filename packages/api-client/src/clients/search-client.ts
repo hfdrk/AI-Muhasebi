@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3800";
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "";
 
 export interface GlobalSearchResult {
   clients: Array<{
@@ -75,4 +75,5 @@ export async function globalSearch(query: string): Promise<GlobalSearchResponse>
     `/api/v1/search/global?${queryParams.toString()}`
   );
 }
+
 

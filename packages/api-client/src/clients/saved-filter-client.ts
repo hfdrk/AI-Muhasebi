@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3800";
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "";
 
 // Define SAVED_FILTER_TARGETS directly to avoid module resolution issues
 export const SAVED_FILTER_TARGETS = {

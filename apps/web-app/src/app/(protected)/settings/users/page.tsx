@@ -7,11 +7,14 @@ import { InviteUserModal } from "@/components/invite-user-modal";
 import { settings as settingsTranslations } from "@repo/i18n";
 
 const ROLE_LABELS: Record<string, string> = {
-  TenantOwner: "Ofis Sahibi",
-  Accountant: "Muhasebeci",
-  Staff: "Personel",
-  ReadOnly: "Sadece Görüntüleme",
+  TenantOwner: "Muhasebeci", // Accountant - full access
+  Accountant: "Muhasebeci", // Deprecated - shown for backward compatibility
+  Staff: "Personel", // Deprecated - shown for backward compatibility
+  ReadOnly: "Müşteri", // Customer - view-only access
 };
+
+// Only these two roles should be available for new users
+const AVAILABLE_ROLES = ["TenantOwner", "ReadOnly"] as const;
 
 const STATUS_LABELS: Record<string, string> = {
   active: "Aktif",
@@ -33,7 +36,7 @@ export default function UsersPage() {
   const tenantId = currentTenant?.id;
   const userRole = currentTenant?.role;
   
-  // Check if user can manage users (TenantOwner or Accountant)
+  // Check if user can manage users (only TenantOwner/Accountant role)
   const canManageUsers = userRole === "TenantOwner" || userRole === "Accountant";
 
   const { data, isLoading } = useQuery({
@@ -180,9 +183,9 @@ export default function UsersPage() {
                         borderRadius: "4px",
                       }}
                     >
-                      {Object.entries(ROLE_LABELS).map(([value, label]) => (
+                      {AVAILABLE_ROLES.map((value) => (
                         <option key={value} value={value}>
-                          {label}
+                          {ROLE_LABELS[value]}
                         </option>
                       ))}
                     </select>
