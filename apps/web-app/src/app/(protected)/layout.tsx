@@ -157,12 +157,13 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
             display: "flex",
             alignItems: "center",
             gap: spacing.sm,
-            padding: `${spacing.sm} ${spacing.md}`,
+            padding: `${spacing.md} ${spacing.md}`,
             marginLeft: level > 0 ? spacing.lg : 0,
+            marginBottom: spacing.xs,
             textDecoration: "none",
             color: active ? colors.primary : colors.text.secondary,
             backgroundColor: active ? colors.primaryLighter : "transparent",
-            borderRadius: borderRadius.md,
+            borderRadius: borderRadius.lg,
             fontWeight: active ? typography.fontWeight.semibold : typography.fontWeight.normal,
             fontSize: typography.fontSize.sm,
             transition: `all ${transitions.normal} ease`,
@@ -170,16 +171,33 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
           }}
           onMouseEnter={(e) => {
             if (!active) {
-              e.currentTarget.style.backgroundColor = colors.gray[100];
+              e.currentTarget.style.backgroundColor = colors.gray[50];
+              e.currentTarget.style.color = colors.text.primary;
+              e.currentTarget.style.transform = "translateX(4px)";
             }
           }}
           onMouseLeave={(e) => {
             if (!active) {
               e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.color = colors.text.secondary;
+              e.currentTarget.style.transform = "translateX(0)";
             }
           }}
+          title={sidebarCollapsed ? item.label : undefined}
         >
-          <span style={{ fontSize: "18px", lineHeight: 1 }}>{item.icon}</span>
+          <span
+            style={{
+              fontSize: "20px",
+              lineHeight: 1,
+              minWidth: "24px",
+              textAlign: "center",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {item.icon}
+          </span>
           {!sidebarCollapsed && (
             <>
               <span style={{ flex: 1 }}>{item.label}</span>
@@ -189,14 +207,19 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
                     backgroundColor: colors.danger,
                     color: colors.white,
                     borderRadius: borderRadius.full,
-                    padding: `2px ${spacing.xs}`,
+                    padding: `2px ${spacing.sm}`,
                     fontSize: typography.fontSize.xs,
-                    fontWeight: typography.fontWeight.semibold,
-                    minWidth: "20px",
+                    fontWeight: typography.fontWeight.bold,
+                    minWidth: "22px",
+                    height: "22px",
                     textAlign: "center",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: shadows.sm,
                   }}
                 >
-                  {item.badge}
+                  {item.badge > 99 ? "99+" : item.badge}
                 </span>
               )}
             </>
@@ -208,10 +231,11 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
                 left: 0,
                 top: "50%",
                 transform: "translateY(-50%)",
-                width: "3px",
-                height: "60%",
+                width: "4px",
+                height: "70%",
                 backgroundColor: colors.primary,
                 borderRadius: "0 2px 2px 0",
+                boxShadow: `0 0 8px ${colors.primary}40`,
               }}
             />
           )}
@@ -331,7 +355,8 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            minHeight: "72px",
+            minHeight: "80px",
+            background: `linear-gradient(135deg, ${colors.primaryLighter} 0%, ${colors.white} 100%)`,
           }}
         >
           <div
@@ -361,33 +386,55 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
                   WebkitTextFillColor: "transparent",
                   backgroundClip: "text",
                   whiteSpace: "nowrap",
+                  marginBottom: spacing.xs,
                 }}
               >
                 AI Muhasebi
               </h1>
+              {currentTenant && (
+                <div
+                  style={{
+                    fontSize: typography.fontSize.xs,
+                    color: colors.text.secondary,
+                    fontWeight: typography.fontWeight.normal,
+                  }}
+                >
+                  {currentTenant.name}
+                </div>
+              )}
             </Link>
           </div>
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             style={{
-              backgroundColor: colors.gray[100],
-              border: "none",
+              backgroundColor: colors.white,
+              border: `1px solid ${colors.border}`,
               borderRadius: borderRadius.md,
-              padding: spacing.xs,
+              padding: spacing.sm,
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               transition: `all ${transitions.normal} ease`,
+              minWidth: "36px",
+              minHeight: "36px",
+              boxShadow: shadows.sm,
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = colors.gray[200];
+              e.currentTarget.style.backgroundColor = colors.gray[50];
+              e.currentTarget.style.transform = "scale(1.05)";
+              e.currentTarget.style.boxShadow = shadows.md;
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = colors.gray[100];
+              e.currentTarget.style.backgroundColor = colors.white;
+              e.currentTarget.style.transform = "scale(1)";
+              e.currentTarget.style.boxShadow = shadows.sm;
             }}
+            title={sidebarCollapsed ? "Menüyü Genişlet" : "Menüyü Daralt"}
           >
-            <span style={{ fontSize: "18px" }}>{sidebarCollapsed ? "→" : "←"}</span>
+            <span style={{ fontSize: "16px", color: colors.text.secondary }}>
+              {sidebarCollapsed ? "→" : "←"}
+            </span>
           </button>
         </div>
 
@@ -529,7 +576,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
         {/* Enhanced Top Header */}
         <header
           style={{
-            padding: `${spacing.md} ${spacing.xxl}`,
+            padding: `${spacing.lg} ${spacing.xxl}`,
             borderBottom: `1px solid ${colors.border}`,
             backgroundColor: colors.white,
             boxShadow: shadows.sm,
@@ -539,10 +586,36 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
             position: "sticky",
             top: 0,
             zIndex: zIndex.sticky,
+            minHeight: "72px",
           }}
         >
-          {/* Breadcrumb or Page Title could go here */}
-          <div style={{ flex: 1 }} />
+          {/* Page Title / Breadcrumb */}
+          <div style={{ flex: 1 }}>
+            {currentUser && (
+              <div style={{ display: "flex", alignItems: "center", gap: spacing.sm }}>
+                <div>
+                  <div
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      color: colors.text.secondary,
+                      marginBottom: spacing.xs,
+                    }}
+                  >
+                    {currentTenant?.name || "Ofis"}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: typography.fontSize.base,
+                      fontWeight: typography.fontWeight.medium,
+                      color: colors.text.primary,
+                    }}
+                  >
+                    Hoş geldiniz, {currentUser.user?.fullName || "Kullanıcı"}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Right side actions */}
           <div
@@ -555,13 +628,74 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
             <GlobalSearch />
             <NotificationBell />
             <TenantSwitcher />
+            
+            {/* User Profile Dropdown */}
+            {currentUser && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: spacing.sm,
+                  padding: `${spacing.xs} ${spacing.sm}`,
+                  borderRadius: borderRadius.lg,
+                  cursor: "pointer",
+                  transition: `all ${transitions.normal} ease`,
+                  position: "relative",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = colors.gray[50];
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }}
+              >
+                <div
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: borderRadius.full,
+                    background: colors.gradients.primary,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: colors.white,
+                    fontWeight: typography.fontWeight.bold,
+                    fontSize: typography.fontSize.sm,
+                  }}
+                >
+                  {currentUser.user?.fullName?.charAt(0)?.toUpperCase() || "U"}
+                </div>
+                {!sidebarCollapsed && (
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                    <div
+                      style={{
+                        fontSize: typography.fontSize.sm,
+                        fontWeight: typography.fontWeight.medium,
+                        color: colors.text.primary,
+                      }}
+                    >
+                      {currentUser.user?.fullName || "Kullanıcı"}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: typography.fontSize.xs,
+                        color: colors.text.secondary,
+                      }}
+                    >
+                      {currentUser.user?.email}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            
             <button
               onClick={handleLogout}
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: spacing.xs,
-                padding: `${spacing.xs} ${spacing.md}`,
+                padding: `${spacing.sm} ${spacing.md}`,
                 backgroundColor: "transparent",
                 border: `1px solid ${colors.border}`,
                 borderRadius: borderRadius.md,
@@ -572,9 +706,9 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
                 transition: `all ${transitions.normal} ease`,
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = colors.gray[100];
-                e.currentTarget.style.borderColor = colors.gray[300];
-                e.currentTarget.style.color = colors.text.primary;
+                e.currentTarget.style.backgroundColor = colors.error;
+                e.currentTarget.style.borderColor = colors.error;
+                e.currentTarget.style.color = colors.white;
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = "transparent";

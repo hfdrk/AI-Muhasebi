@@ -275,9 +275,21 @@ export class RiskService {
   }
 
   /**
-   * Get tenant-level risk dashboard
+   * Get tenant-level risk dashboard with enhanced data
    */
-  async getTenantRiskDashboard(tenantId: string): Promise<TenantRiskDashboard> {
+  async getTenantRiskDashboard(tenantId: string): Promise<TenantRiskDashboard & {
+    comparisons?: {
+      previousPeriod: {
+        highRiskClientCount: number;
+        openCriticalAlertsCount: number;
+        highRiskDocumentsCount: number;
+      };
+    };
+    trends?: {
+      riskScoreTrend: "increasing" | "decreasing" | "stable";
+      alertTrend: "increasing" | "decreasing" | "stable";
+    };
+  }> {
     // Count high-risk client companies
     const highRiskCompanies = await prisma.clientCompanyRiskScore.findMany({
       where: {
@@ -328,12 +340,78 @@ export class RiskService {
       high: companyScores.filter((s) => s.severity === "high").length,
     };
 
+    // Calculate previous period comparisons (30 days ago)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const previousHighRiskCompanies = await prisma.clientCompanyRiskScore.findMany({
+      where: {
+        tenantId,
+        severity: "high",
+        generatedAt: {
+          lte: thirtyDaysAgo,
+        },
+      },
+      distinct: ["clientCompanyId"],
+    });
+
+    const previousCriticalAlerts = await prisma.riskAlert.count({
+      where: {
+        tenantId,
+        severity: "critical",
+        status: {
+          in: ["open", "in_progress"],
+        },
+        createdAt: {
+          lte: thirtyDaysAgo,
+        },
+      },
+    });
+
+    const previousHighRiskDocuments = await prisma.documentRiskScore.count({
+      where: {
+        tenantId,
+        severity: "high",
+        generatedAt: {
+          lte: thirtyDaysAgo,
+        },
+      },
+    });
+
+    // Calculate trends
+    const currentHighRiskCount = highRiskCompanies.length;
+    const previousHighRiskCount = previousHighRiskCompanies.length;
+    const riskTrend: "increasing" | "decreasing" | "stable" =
+      currentHighRiskCount > previousHighRiskCount
+        ? "increasing"
+        : currentHighRiskCount < previousHighRiskCount
+          ? "decreasing"
+          : "stable";
+
+    const alertTrend: "increasing" | "decreasing" | "stable" =
+      openCriticalAlerts > previousCriticalAlerts
+        ? "increasing"
+        : openCriticalAlerts < previousCriticalAlerts
+          ? "decreasing"
+          : "stable";
+
     return {
       highRiskClientCount: highRiskCompanies.length,
       openCriticalAlertsCount: openCriticalAlerts,
       totalDocuments,
       highRiskDocumentsCount: highRiskDocuments,
       clientRiskDistribution,
+      comparisons: {
+        previousPeriod: {
+          highRiskClientCount: previousHighRiskCompanies.length,
+          openCriticalAlertsCount: previousCriticalAlerts,
+          highRiskDocumentsCount: previousHighRiskDocuments,
+        },
+      },
+      trends: {
+        riskScoreTrend: riskTrend,
+        alertTrend,
+      },
     };
   }
 }

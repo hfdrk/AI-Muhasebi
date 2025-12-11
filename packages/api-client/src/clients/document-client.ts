@@ -67,11 +67,14 @@ export interface DocumentAIAnalysis {
 
 export interface DocumentWithRiskFlags extends Document {
   riskFlagCount?: number;
+  riskScore?: number | null;
+  riskSeverity?: "low" | "medium" | "high" | null;
 }
 
 export interface SearchByRiskParams {
   hasRiskFlags?: boolean;
   riskFlagCode?: string;
+  riskSeverity?: "low" | "medium" | "high";
   minRiskScore?: number;
   maxRiskScore?: number;
   clientCompanyId?: string;
@@ -303,6 +306,9 @@ export async function searchDocumentsByRisk(
   }
   if (params?.riskFlagCode) {
     queryParams.append("riskFlagCode", params.riskFlagCode);
+  }
+  if (params?.riskSeverity) {
+    queryParams.append("riskSeverity", params.riskSeverity);
   }
   if (params?.minRiskScore !== undefined) {
     queryParams.append("minRiskScore", params.minRiskScore.toString());

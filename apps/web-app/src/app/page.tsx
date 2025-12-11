@@ -18,15 +18,24 @@ export default function HomePage() {
         const payload = JSON.parse(atob(token.split(".")[1]));
         const roles = payload.roles || [];
         
+        console.log("[HomePage] Decoded token roles:", roles);
+        
+        // Check for both "ReadOnly" and case variations
+        const isReadOnly = roles.some((role: string) => 
+          role === "ReadOnly" || role === "READ_ONLY" || role.toLowerCase() === "readonly"
+        );
+        
         // Redirect ReadOnly users to client portal, others to accountant dashboard
-        if (roles.includes("ReadOnly")) {
+        if (isReadOnly) {
+          console.log("[HomePage] Redirecting ReadOnly user to client dashboard");
           router.push("/client/dashboard");
         } else {
+          console.log("[HomePage] Redirecting non-ReadOnly user to accountant dashboard");
           router.push("/anasayfa");
         }
       } catch (error) {
         // If token decoding fails, fallback to accountant dashboard
-        console.error("Failed to decode token:", error);
+        console.error("[HomePage] Failed to decode token:", error);
         router.push("/anasayfa");
       }
     } else {

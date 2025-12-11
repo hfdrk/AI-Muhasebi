@@ -52,11 +52,19 @@ async function apiRequest<T>(
     throw new Error(error.error?.message || "Şu anda servise ulaşılamıyor. Lütfen daha sonra tekrar deneyin.");
   }
 
+  // Check if response should be returned as blob
+  if (options?.responseType === "blob") {
+    return response.blob() as unknown as T;
+  }
+
   return response.json();
 }
 
 export const apiClient = {
-  async get<T>(endpoint: string, options?: { params?: Record<string, string | number | undefined> }): Promise<T> {
+  async get<T>(endpoint: string, options?: { 
+    params?: Record<string, string | number | undefined>;
+    responseType?: "json" | "blob";
+  }): Promise<T> {
     return apiRequest<T>(endpoint, { ...options, method: "GET" });
   },
 

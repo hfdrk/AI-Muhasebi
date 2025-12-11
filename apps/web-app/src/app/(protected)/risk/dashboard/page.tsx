@@ -1,34 +1,150 @@
 "use client";
 
 import { useRiskDashboard } from "@/hooks/use-risk";
+import { useQuery } from "@tanstack/react-query";
+import { riskClient } from "@repo/api-client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import RiskExplanationPanel from "@/components/risk-explanation-panel";
+import { Card } from "@/components/ui/Card";
+import { colors, spacing, borderRadius, shadows, transitions, typography } from "@/styles/design-system";
+import RiskTrendChart from "@/components/risk/RiskTrendChart";
+import AlertFrequencyChart from "@/components/risk/AlertFrequencyChart";
+import RiskDistributionChart from "@/components/risk/RiskDistributionChart";
+import RecommendationsWidget from "@/components/risk/RecommendationsWidget";
+import RiskBreakdownPanel from "@/components/risk/RiskBreakdownPanel";
+import RiskHeatMap from "@/components/risk/RiskHeatMap";
 
 export default function RiskDashboardPage() {
+  const router = useRouter();
   const { data, isLoading, error } = useRiskDashboard();
+  const [trendPeriod, setTrendPeriod] = useState<"7d" | "30d" | "90d" | "1y">("30d");
+
+  // Fetch recent alerts for widget
+  const { data: recentAlertsData } = useQuery({
+    queryKey: ["recent-risk-alerts"],
+    queryFn: () => riskClient.getRecentRiskAlerts(5),
+    enabled: !!data?.data,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  // Fetch trends
+  const { data: trendsData } = useQuery({
+    queryKey: ["risk-trends", trendPeriod],
+    queryFn: () => riskClient.getRiskTrends(trendPeriod),
+    enabled: !!data?.data,
+  });
+
+  // Fetch breakdown
+  const { data: breakdownData } = useQuery({
+    queryKey: ["risk-breakdown"],
+    queryFn: () => riskClient.getRiskBreakdown(),
+    enabled: !!data?.data,
+  });
+
+  // Fetch recommendations
+  const { data: recommendationsData } = useQuery({
+    queryKey: ["risk-recommendations"],
+    queryFn: () => riskClient.getRiskRecommendations(),
+    enabled: !!data?.data,
+  });
+
+  // Fetch heatmap
+  const { data: heatmapData } = useQuery({
+    queryKey: ["risk-heatmap"],
+    queryFn: () => riskClient.getRiskHeatMap(),
+    enabled: !!data?.data,
+  });
+
+  // Fetch forecast
+  const { data: forecastData } = useQuery({
+    queryKey: ["risk-forecast"],
+    queryFn: () => riskClient.getRiskForecast(30),
+    enabled: !!data?.data,
+  });
+
+  const recentAlerts = recentAlertsData?.data || [];
+  const trends = trendsData?.data;
+  const breakdown = breakdownData?.data;
+  const recommendations = recommendationsData?.data || [];
+  const heatmap = heatmapData?.data;
+  const forecast = forecastData?.data;
 
   if (isLoading) {
     return (
-      <div style={{ padding: "32px", maxWidth: "1400px", margin: "0 auto" }}>
-        <div style={{ marginBottom: "32px" }}>
-          <h1 style={{ fontSize: "32px", fontWeight: "700", marginBottom: "8px", color: "#111827" }}>
-            Risk Panosu
-          </h1>
-          <p style={{ color: "#6b7280", fontSize: "16px" }}>Genel risk durumu ve istatistikler</p>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "24px" }}>
-          {[1, 2, 3, 4].map((i) => (
+      <div>
+        {/* Loading Header */}
+        <div
+          style={{
+            marginBottom: spacing.xl,
+            padding: spacing.xxl,
+            background: colors.gradients.pastelHero,
+            borderRadius: borderRadius.xl,
+            border: `1px solid ${colors.border}`,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: spacing.md, marginBottom: spacing.md }}>
             <div
+              style={{
+                width: "64px",
+                height: "64px",
+                borderRadius: borderRadius.xl,
+                backgroundColor: colors.white,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "32px",
+                boxShadow: shadows.lg,
+                animation: "pulse 2s infinite",
+              }}
+            >
+              📊
+            </div>
+            <div style={{ flex: 1 }}>
+              <div
+                style={{
+                  height: "32px",
+                  width: "200px",
+                  backgroundColor: colors.white,
+                  borderRadius: borderRadius.md,
+                  marginBottom: spacing.xs,
+                  animation: "pulse 2s infinite",
+                }}
+              />
+              <div
+                style={{
+                  height: "16px",
+                  width: "300px",
+                  backgroundColor: colors.white,
+                  borderRadius: borderRadius.sm,
+                  opacity: 0.7,
+                  animation: "pulse 2s infinite",
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Loading Cards */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: spacing.lg }}>
+          {[1, 2, 3, 4].map((i) => (
+            <Card
               key={i}
               style={{
-                padding: "24px",
-                backgroundColor: "#f9fafb",
-                borderRadius: "12px",
-                border: "1px solid #e5e7eb",
-                minHeight: "120px",
+                padding: spacing.xl,
+                minHeight: "180px",
                 animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
               }}
-            />
+            >
+              <div
+                style={{
+                  height: "120px",
+                  backgroundColor: colors.gray[100],
+                  borderRadius: borderRadius.md,
+                }}
+              />
+            </Card>
           ))}
         </div>
       </div>
@@ -50,87 +166,136 @@ export default function RiskDashboardPage() {
     );
 
     return (
-      <div style={{ padding: "32px", maxWidth: "1400px", margin: "0 auto" }}>
-        <div style={{ marginBottom: "32px" }}>
-          <h1 style={{ fontSize: "32px", fontWeight: "700", marginBottom: "8px", color: "#111827" }}>
-            Risk Panosu
-          </h1>
-          <p style={{ color: "#6b7280", fontSize: "16px" }}>Genel risk durumu ve istatistikler</p>
-        </div>
+      <div>
+        {/* Error Header */}
         <div
           style={{
-            padding: "24px",
-            backgroundColor: isAuthError ? "#fef3c7" : isTenantError ? "#dbeafe" : "#fee2e2",
-            borderRadius: "12px",
-            border: `1px solid ${isAuthError ? "#fcd34d" : isTenantError ? "#93c5fd" : "#fca5a5"}`,
-            color: isAuthError ? "#92400e" : isTenantError ? "#1e40af" : "#991b1b",
+            marginBottom: spacing.xl,
+            padding: spacing.xxl,
+            background: `linear-gradient(135deg, ${colors.dangerLight} 0%, ${colors.warningLight} 50%, ${colors.primaryLighter} 100%)`,
+            borderRadius: borderRadius.xl,
+            border: `2px solid ${colors.border}`,
           }}
         >
-          <p style={{ fontWeight: "600", marginBottom: "8px", fontSize: "18px" }}>⚠️ Hata oluştu</p>
-          <p style={{ fontSize: "14px", marginBottom: "12px" }}>
-            {error instanceof Error ? error.message : "Risk verileri yüklenirken bir hata oluştu."}
-          </p>
-          {isTenantError && (
-            <div style={{ marginTop: "16px" }}>
-              <p style={{ fontSize: "14px", marginBottom: "8px" }}>
-                Risk panosunu görüntülemek için önce bir şirket/ofis seçmeniz gerekiyor.
-              </p>
-              <Link
-                href="/anasayfa"
-                style={{
-                  display: "inline-block",
-                  padding: "12px 24px",
-                  backgroundColor: "#2563eb",
-                  color: "#fff",
-                  borderRadius: "8px",
-                  textDecoration: "none",
-                  fontWeight: "500",
-                  transition: "all 0.2s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#1d4ed8";
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#2563eb";
-                  e.currentTarget.style.transform = "translateY(0)";
-                }}
-              >
-                Ana Sayfaya Dön
-              </Link>
-            </div>
-          )}
-          {isAuthError && !isTenantError && (
-            <div style={{ marginTop: "16px" }}>
-              <p style={{ fontSize: "14px", marginBottom: "8px" }}>
-                Risk panosunu görüntülemek için giriş yapmanız gerekiyor.
-              </p>
-              <Link
-                href="/auth/login"
-                style={{
-                  display: "inline-block",
-                  padding: "12px 24px",
-                  backgroundColor: "#2563eb",
-                  color: "#fff",
-                  borderRadius: "8px",
-                  textDecoration: "none",
-                  fontWeight: "500",
-                  transition: "all 0.2s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#1d4ed8";
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#2563eb";
-                  e.currentTarget.style.transform = "translateY(0)";
-                }}
-              >
-                Giriş Yap
-              </Link>
-            </div>
-          )}
+          <h1
+            style={{
+              margin: 0,
+              marginBottom: spacing.xs,
+              fontSize: typography.fontSize["4xl"],
+              fontWeight: typography.fontWeight.bold,
+              background: `linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)`,
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            Risk Panosu
+          </h1>
         </div>
+
+        {/* Error Card */}
+        <Card
+          style={{
+            padding: spacing.xxl,
+            backgroundColor: isAuthError ? colors.warningLight : isTenantError ? colors.primaryLighter : colors.dangerLight,
+            border: `2px solid ${isAuthError ? colors.warning : isTenantError ? colors.primary : colors.danger}`,
+          }}
+        >
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: "64px", marginBottom: spacing.lg }}>⚠️</div>
+            <h2
+              style={{
+                margin: 0,
+                marginBottom: spacing.md,
+                fontSize: typography.fontSize.xl,
+                fontWeight: typography.fontWeight.bold,
+                color: isAuthError ? colors.warning : isTenantError ? colors.primary : colors.danger,
+              }}
+            >
+              Hata Oluştu
+            </h2>
+            <p
+              style={{
+                margin: 0,
+                marginBottom: spacing.xl,
+                fontSize: typography.fontSize.base,
+                color: colors.text.secondary,
+              }}
+            >
+              {error instanceof Error ? error.message : "Risk verileri yüklenirken bir hata oluştu."}
+            </p>
+            {isTenantError && (
+              <div>
+                <p style={{ marginBottom: spacing.md, fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                  Risk panosunu görüntülemek için önce bir şirket/ofis seçmeniz gerekiyor.
+                </p>
+                <Link
+                  href="/anasayfa"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: spacing.sm,
+                    padding: `${spacing.md} ${spacing.xl}`,
+                    background: `linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%)`,
+                    color: colors.white,
+                    borderRadius: borderRadius.lg,
+                    textDecoration: "none",
+                    fontWeight: typography.fontWeight.semibold,
+                    fontSize: typography.fontSize.base,
+                    boxShadow: shadows.sm,
+                    transition: `all ${transitions.normal} ease`,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = shadows.md;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = shadows.sm;
+                  }}
+                >
+                  <span>Ana Sayfaya Dön</span>
+                  <span>→</span>
+                </Link>
+              </div>
+            )}
+            {isAuthError && !isTenantError && (
+              <div>
+                <p style={{ marginBottom: spacing.md, fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                  Risk panosunu görüntülemek için giriş yapmanız gerekiyor.
+                </p>
+                <Link
+                  href="/auth/login"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: spacing.sm,
+                    padding: `${spacing.md} ${spacing.xl}`,
+                    background: `linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%)`,
+                    color: colors.white,
+                    borderRadius: borderRadius.lg,
+                    textDecoration: "none",
+                    fontWeight: typography.fontWeight.semibold,
+                    fontSize: typography.fontSize.base,
+                    boxShadow: shadows.md,
+                    transition: `all ${transitions.normal} ease`,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = shadows.lg;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = shadows.md;
+                  }}
+                >
+                  <span>Giriş Yap</span>
+                  <span>→</span>
+                </Link>
+              </div>
+            )}
+          </div>
+        </Card>
       </div>
     );
   }
@@ -139,25 +304,63 @@ export default function RiskDashboardPage() {
 
   if (!dashboard) {
     return (
-      <div style={{ padding: "32px", maxWidth: "1400px", margin: "0 auto" }}>
-        <div style={{ marginBottom: "32px" }}>
-          <h1 style={{ fontSize: "32px", fontWeight: "700", marginBottom: "8px", color: "#111827" }}>
-            Risk Panosu
-          </h1>
-          <p style={{ color: "#6b7280", fontSize: "16px" }}>Genel risk durumu ve istatistikler</p>
-        </div>
+      <div>
+        {/* Empty State Header */}
         <div
           style={{
-            padding: "40px",
-            backgroundColor: "#f9fafb",
-            borderRadius: "12px",
-            border: "2px dashed #d1d5db",
-            textAlign: "center",
+            marginBottom: spacing.xl,
+            padding: spacing.xxl,
+            background: `linear-gradient(135deg, ${colors.dangerLight} 0%, ${colors.warningLight} 50%, ${colors.primaryLighter} 100%)`,
+            borderRadius: borderRadius.xl,
+            border: `2px solid ${colors.border}`,
           }}
         >
-          <div style={{ fontSize: "48px", marginBottom: "16px" }}>📊</div>
-          <p style={{ color: "#6b7280", fontSize: "16px" }}>Henüz risk verisi bulunmuyor.</p>
+          <h1
+            style={{
+              margin: 0,
+              marginBottom: spacing.xs,
+              fontSize: typography.fontSize["4xl"],
+              fontWeight: typography.fontWeight.bold,
+              background: `linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)`,
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            Risk Panosu
+          </h1>
         </div>
+
+        {/* Empty State Card */}
+        <Card
+          style={{
+            padding: spacing.xxl,
+            textAlign: "center",
+            background: `linear-gradient(135deg, ${colors.gray[50]} 0%, ${colors.white} 100%)`,
+          }}
+        >
+          <div style={{ fontSize: "80px", marginBottom: spacing.lg }}>📊</div>
+          <h2
+            style={{
+              margin: 0,
+              marginBottom: spacing.md,
+              fontSize: typography.fontSize.xl,
+              fontWeight: typography.fontWeight.bold,
+              color: colors.text.primary,
+            }}
+          >
+            Henüz Risk Verisi Bulunmuyor
+          </h2>
+          <p
+            style={{
+              margin: 0,
+              fontSize: typography.fontSize.base,
+              color: colors.text.secondary,
+            }}
+          >
+            Risk analizi için belgeler ve işlemler yüklendikten sonra burada görüntülenecektir.
+          </p>
+        </Card>
       </div>
     );
   }
@@ -168,308 +371,975 @@ export default function RiskDashboardPage() {
     dashboard.clientRiskDistribution.high;
 
   return (
-    <div style={{ padding: "32px", maxWidth: "1400px", margin: "0 auto" }}>
-      {/* Header */}
-      <div style={{ marginBottom: "32px" }}>
-        <h1 style={{ fontSize: "32px", fontWeight: "700", marginBottom: "8px", color: "#111827" }}>
-          Risk Panosu
-        </h1>
-        <p style={{ color: "#6b7280", fontSize: "16px" }}>Genel risk durumu ve istatistikler</p>
+    <div>
+      {/* Enhanced Header with Hero Section */}
+      <div
+        style={{
+          marginBottom: spacing.xl,
+          padding: spacing.xxl,
+          background: colors.gradients.pastelHero,
+          borderRadius: borderRadius.xl,
+          border: `1px solid ${colors.border}`,
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        {/* Decorative elements - softer */}
+        <div
+          style={{
+            position: "absolute",
+            top: "-50px",
+            right: "-50px",
+            width: "200px",
+            height: "200px",
+            borderRadius: "50%",
+            background: `radial-gradient(circle, rgba(99, 102, 241, 0.05) 0%, transparent 70%)`,
+            pointerEvents: "none",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            bottom: "-30px",
+            left: "-30px",
+            width: "150px",
+            height: "150px",
+            borderRadius: "50%",
+            background: `radial-gradient(circle, rgba(251, 191, 36, 0.05) 0%, transparent 70%)`,
+            pointerEvents: "none",
+          }}
+        />
+
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: spacing.md, marginBottom: spacing.md }}>
+            <div
+              style={{
+                width: "64px",
+                height: "64px",
+                borderRadius: borderRadius.xl,
+                background: colors.primaryPastel,
+                border: `1px solid ${colors.primaryLighter}`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "32px",
+                boxShadow: shadows.sm,
+              }}
+            >
+              📊
+            </div>
+            <div style={{ flex: 1 }}>
+              <h1
+                style={{
+                  margin: 0,
+                  marginBottom: spacing.xs,
+                  fontSize: typography.fontSize["4xl"],
+                  fontWeight: typography.fontWeight.bold,
+                  background: colors.gradients.primary,
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                Risk Panosu
+              </h1>
+              <p
+                style={{
+                  margin: 0,
+                  color: colors.text.secondary,
+                  fontSize: typography.fontSize.base,
+                  fontWeight: typography.fontWeight.medium,
+                }}
+              >
+                Genel risk durumu ve istatistikler
+              </p>
+            </div>
+          </div>
+
+          {/* Quick Stats in Header */}
+          {dashboard && (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+                gap: spacing.md,
+                marginTop: spacing.lg,
+              }}
+            >
+              <div
+                style={{
+                  padding: spacing.md,
+                  backgroundColor: colors.white,
+                  borderRadius: borderRadius.lg,
+                  boxShadow: shadows.sm,
+                  textAlign: "center",
+                  border: `1px solid ${colors.border}`,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: typography.fontSize["2xl"],
+                    fontWeight: typography.fontWeight.bold,
+                    color: "#c2410c",
+                    marginBottom: spacing.xs,
+                  }}
+                >
+                  {dashboard.highRiskClientCount}
+                </div>
+                <div style={{ fontSize: typography.fontSize.xs, color: colors.text.secondary }}>
+                  Yüksek Risk
+                </div>
+              </div>
+              <div
+                style={{
+                  padding: spacing.md,
+                  backgroundColor: colors.white,
+                  borderRadius: borderRadius.lg,
+                  boxShadow: shadows.sm,
+                  textAlign: "center",
+                  border: `1px solid ${colors.border}`,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: typography.fontSize["2xl"],
+                    fontWeight: typography.fontWeight.bold,
+                    color: "#d97706",
+                    marginBottom: spacing.xs,
+                  }}
+                >
+                  {dashboard.openCriticalAlertsCount}
+                </div>
+                <div style={{ fontSize: typography.fontSize.xs, color: colors.text.secondary }}>
+                  Kritik Uyarı
+                </div>
+              </div>
+              <div
+                style={{
+                  padding: spacing.md,
+                  backgroundColor: colors.white,
+                  borderRadius: borderRadius.lg,
+                  boxShadow: shadows.sm,
+                  textAlign: "center",
+                  border: `1px solid ${colors.border}`,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: typography.fontSize["2xl"],
+                    fontWeight: typography.fontWeight.bold,
+                    color: "#1e40af",
+                    marginBottom: spacing.xs,
+                  }}
+                >
+                  {dashboard.totalDocuments}
+                </div>
+                <div style={{ fontSize: typography.fontSize.xs, color: colors.text.secondary }}>
+                  Toplam Belge
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {dashboard && (
         <>
-          {/* Key Metrics */}
+          {/* Enhanced Key Metrics Cards */}
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-              gap: "24px",
-              marginBottom: "32px",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: spacing.lg,
+              marginBottom: spacing.xl,
             }}
           >
             {/* High Risk Clients */}
-            <div
+            <Card
+              hoverable
+              onClick={() => router.push("/musteriler?risk=high&severity=high")}
               style={{
-                padding: "24px",
-                backgroundColor: "white",
-                borderRadius: "12px",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                border: "1px solid #e5e7eb",
-                transition: "all 0.2s",
+                padding: spacing.xl,
+                background: colors.gradients.pastelDanger,
+                border: `1px solid ${colors.border}`,
                 position: "relative",
                 overflow: "hidden",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
-                e.currentTarget.style.transform = "translateY(-2px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
-                e.currentTarget.style.transform = "translateY(0)";
+                cursor: "pointer",
               }}
             >
               <div
                 style={{
                   position: "absolute",
-                  top: 0,
-                  right: 0,
-                  width: "80px",
-                  height: "80px",
-                  backgroundColor: "#fee2e2",
-                  borderRadius: "0 0 0 100%",
-                  opacity: 0.3,
+                  top: "-20px",
+                  right: "-20px",
+                  width: "120px",
+                  height: "120px",
+                  borderRadius: "50%",
+                  background: `radial-gradient(circle, rgba(239, 68, 68, 0.05) 0%, transparent 70%)`,
+                  pointerEvents: "none",
                 }}
               />
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: spacing.md, position: "relative", zIndex: 1 }}>
+                <div style={{ flex: 1 }}>
+                  <div
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      fontWeight: typography.fontWeight.medium,
+                      color: "#c2410c",
+                      marginBottom: spacing.sm,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: spacing.xs,
+                    }}
+                  >
+                    <span>⚠️</span>
+                    <span>Yüksek Riskli Müşteriler</span>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: typography.fontSize["4xl"],
+                      fontWeight: typography.fontWeight.bold,
+                      color: "#c2410c",
+                      marginBottom: spacing.xs,
+                    }}
+                  >
+                    {dashboard.highRiskClientCount}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: typography.fontSize.xs,
+                      color: colors.text.secondary,
+                    }}
+                  >
+                    Dikkat gerektiren müşteri sayısı
+                  </div>
+                </div>
                 <div
                   style={{
-                    width: "48px",
-                    height: "48px",
-                    borderRadius: "12px",
-                    backgroundColor: "#fee2e2",
+                    width: "64px",
+                    height: "64px",
+                    borderRadius: borderRadius.xl,
+                    backgroundColor: colors.dangerPastel,
+                    border: `1px solid ${colors.dangerLight}`,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: "24px",
+                    fontSize: "32px",
+                    boxShadow: shadows.sm,
                   }}
                 >
                   ⚠️
                 </div>
-                <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: "500" }}>
-                  Yüksek Riskli Müşteriler
+              </div>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: spacing.xs,
+                  color: "#c2410c",
+                  fontSize: typography.fontSize.sm,
+                  fontWeight: typography.fontWeight.medium,
+                  marginTop: spacing.sm,
+                }}
+              >
+                <span>Detayları Gör</span>
+                <span>→</span>
+              </div>
+              {dashboard.comparisons && (
+                <div
+                  style={{
+                    marginTop: spacing.xs,
+                    fontSize: typography.fontSize.xs,
+                    color: colors.text.secondary,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: spacing.xs,
+                  }}
+                >
+                  {dashboard.highRiskClientCount > dashboard.comparisons.previousPeriod.highRiskClientCount ? (
+                    <>
+                      <span style={{ color: colors.danger }}>↑</span>
+                      <span>
+                        +{dashboard.highRiskClientCount - dashboard.comparisons.previousPeriod.highRiskClientCount} önceki döneme göre
+                      </span>
+                    </>
+                  ) : dashboard.highRiskClientCount < dashboard.comparisons.previousPeriod.highRiskClientCount ? (
+                    <>
+                      <span style={{ color: colors.success }}>↓</span>
+                      <span>
+                        {dashboard.highRiskClientCount - dashboard.comparisons.previousPeriod.highRiskClientCount} önceki döneme göre
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span style={{ color: colors.text.secondary }}>→</span>
+                      <span>Değişiklik yok</span>
+                    </>
+                  )}
                 </div>
-              </div>
-              <div style={{ fontSize: "36px", fontWeight: "700", color: "#dc2626" }}>
-                {dashboard.highRiskClientCount}
-              </div>
-            </div>
+              )}
+            </Card>
 
             {/* Critical Alerts */}
-            <div
+            <Card
+              hoverable
+              onClick={() => router.push("/risk/alerts?severity=critical&status=open")}
               style={{
-                padding: "24px",
-                backgroundColor: "white",
-                borderRadius: "12px",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                border: "1px solid #e5e7eb",
-                transition: "all 0.2s",
+                padding: spacing.xl,
+                background: colors.gradients.pastelDanger,
+                border: `1px solid ${colors.border}`,
                 position: "relative",
                 overflow: "hidden",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
-                e.currentTarget.style.transform = "translateY(-2px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
-                e.currentTarget.style.transform = "translateY(0)";
+                cursor: "pointer",
               }}
             >
               <div
                 style={{
                   position: "absolute",
-                  top: 0,
-                  right: 0,
-                  width: "80px",
-                  height: "80px",
-                  backgroundColor: "#fee2e2",
-                  borderRadius: "0 0 0 100%",
-                  opacity: 0.3,
+                  top: "-20px",
+                  right: "-20px",
+                  width: "120px",
+                  height: "120px",
+                  borderRadius: "50%",
+                  background: `radial-gradient(circle, rgba(239, 68, 68, 0.05) 0%, transparent 70%)`,
+                  pointerEvents: "none",
                 }}
               />
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: spacing.md, position: "relative", zIndex: 1 }}>
+                <div style={{ flex: 1 }}>
+                  <div
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      fontWeight: typography.fontWeight.medium,
+                      color: "#c2410c",
+                      marginBottom: spacing.sm,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: spacing.xs,
+                    }}
+                  >
+                    <span>🚨</span>
+                    <span>Kritik Uyarılar</span>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: typography.fontSize["4xl"],
+                      fontWeight: typography.fontWeight.bold,
+                      color: "#c2410c",
+                      marginBottom: spacing.xs,
+                    }}
+                  >
+                    {dashboard.openCriticalAlertsCount}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: typography.fontSize.xs,
+                      color: colors.text.secondary,
+                    }}
+                  >
+                    Acil müdahale gerektiren uyarılar
+                  </div>
+                </div>
                 <div
                   style={{
-                    width: "48px",
-                    height: "48px",
-                    borderRadius: "12px",
-                    backgroundColor: "#fee2e2",
+                    width: "64px",
+                    height: "64px",
+                    borderRadius: borderRadius.xl,
+                    backgroundColor: colors.dangerPastel,
+                    border: `1px solid ${colors.dangerLight}`,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: "24px",
+                    fontSize: "32px",
+                    boxShadow: shadows.sm,
+                    animation: dashboard.openCriticalAlertsCount > 0 ? "pulse 2s infinite" : "none",
                   }}
                 >
                   🚨
                 </div>
-                <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: "500" }}>Kritik Uyarılar</div>
               </div>
-              <div style={{ fontSize: "36px", fontWeight: "700", color: "#dc2626" }}>
-                {dashboard.openCriticalAlertsCount}
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: spacing.xs,
+                  color: "#c2410c",
+                  fontSize: typography.fontSize.sm,
+                  fontWeight: typography.fontWeight.medium,
+                  marginTop: spacing.sm,
+                }}
+              >
+                <span>Uyarıları Görüntüle</span>
+                <span>→</span>
               </div>
-            </div>
+              {dashboard.comparisons && (
+                <div
+                  style={{
+                    marginTop: spacing.xs,
+                    fontSize: typography.fontSize.xs,
+                    color: colors.text.secondary,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: spacing.xs,
+                  }}
+                >
+                  {dashboard.openCriticalAlertsCount > dashboard.comparisons.previousPeriod.openCriticalAlertsCount ? (
+                    <>
+                      <span style={{ color: colors.danger }}>↑</span>
+                      <span>
+                        +{dashboard.openCriticalAlertsCount - dashboard.comparisons.previousPeriod.openCriticalAlertsCount} önceki döneme göre
+                      </span>
+                    </>
+                  ) : dashboard.openCriticalAlertsCount < dashboard.comparisons.previousPeriod.openCriticalAlertsCount ? (
+                    <>
+                      <span style={{ color: colors.success }}>↓</span>
+                      <span>
+                        {dashboard.openCriticalAlertsCount - dashboard.comparisons.previousPeriod.openCriticalAlertsCount} önceki döneme göre
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span style={{ color: colors.text.secondary }}>→</span>
+                      <span>Değişiklik yok</span>
+                    </>
+                  )}
+                </div>
+              )}
+            </Card>
 
             {/* Total Documents */}
-            <div
+            <Card
+              hoverable
+              onClick={() => router.push("/belgeler")}
               style={{
-                padding: "24px",
-                backgroundColor: "white",
-                borderRadius: "12px",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                border: "1px solid #e5e7eb",
-                transition: "all 0.2s",
+                padding: spacing.xl,
+                background: colors.gradients.pastelPrimary,
+                border: `1px solid ${colors.border}`,
                 position: "relative",
                 overflow: "hidden",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
-                e.currentTarget.style.transform = "translateY(-2px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
-                e.currentTarget.style.transform = "translateY(0)";
+                cursor: "pointer",
               }}
             >
               <div
                 style={{
                   position: "absolute",
-                  top: 0,
-                  right: 0,
-                  width: "80px",
-                  height: "80px",
-                  backgroundColor: "#dbeafe",
-                  borderRadius: "0 0 0 100%",
-                  opacity: 0.3,
+                  top: "-20px",
+                  right: "-20px",
+                  width: "120px",
+                  height: "120px",
+                  borderRadius: "50%",
+                  background: `radial-gradient(circle, rgba(37, 99, 235, 0.05) 0%, transparent 70%)`,
+                  pointerEvents: "none",
                 }}
               />
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: spacing.md, position: "relative", zIndex: 1 }}>
+                <div style={{ flex: 1 }}>
+                  <div
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      fontWeight: typography.fontWeight.medium,
+                      color: "#1e40af",
+                      marginBottom: spacing.sm,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: spacing.xs,
+                    }}
+                  >
+                    <span>📄</span>
+                    <span>Toplam Belge</span>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: typography.fontSize["4xl"],
+                      fontWeight: typography.fontWeight.bold,
+                      color: "#1e40af",
+                      marginBottom: spacing.xs,
+                    }}
+                  >
+                    {dashboard.totalDocuments}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: typography.fontSize.xs,
+                      color: colors.text.secondary,
+                    }}
+                  >
+                    Sistemdeki toplam belge sayısı
+                  </div>
+                </div>
                 <div
                   style={{
-                    width: "48px",
-                    height: "48px",
-                    borderRadius: "12px",
-                    backgroundColor: "#dbeafe",
+                    width: "64px",
+                    height: "64px",
+                    borderRadius: borderRadius.xl,
+                    backgroundColor: colors.primaryPastel,
+                    border: `1px solid ${colors.primaryLighter}`,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: "24px",
+                    fontSize: "32px",
+                    boxShadow: shadows.sm,
                   }}
                 >
                   📄
                 </div>
-                <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: "500" }}>Toplam Belge</div>
               </div>
-              <div style={{ fontSize: "36px", fontWeight: "700", color: "#2563eb" }}>
-                {dashboard.totalDocuments}
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: spacing.xs,
+                  color: "#1e40af",
+                  fontSize: typography.fontSize.sm,
+                  fontWeight: typography.fontWeight.medium,
+                  marginTop: spacing.sm,
+                }}
+              >
+                <span>Tüm Belgeler</span>
+                <span>→</span>
               </div>
-            </div>
+            </Card>
 
             {/* High Risk Documents */}
-            <div
+            <Card
+              hoverable
+              onClick={() => router.push("/belgeler?risk=high&severity=high")}
               style={{
-                padding: "24px",
-                backgroundColor: "white",
-                borderRadius: "12px",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                border: "1px solid #e5e7eb",
-                transition: "all 0.2s",
+                padding: spacing.xl,
+                background: colors.gradients.pastelWarning,
+                border: `1px solid ${colors.border}`,
                 position: "relative",
                 overflow: "hidden",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
-                e.currentTarget.style.transform = "translateY(-2px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
-                e.currentTarget.style.transform = "translateY(0)";
+                cursor: "pointer",
               }}
             >
               <div
                 style={{
                   position: "absolute",
-                  top: 0,
-                  right: 0,
-                  width: "80px",
-                  height: "80px",
-                  backgroundColor: "#fee2e2",
-                  borderRadius: "0 0 0 100%",
-                  opacity: 0.3,
+                  top: "-20px",
+                  right: "-20px",
+                  width: "120px",
+                  height: "120px",
+                  borderRadius: "50%",
+                  background: `radial-gradient(circle, rgba(245, 158, 11, 0.05) 0%, transparent 70%)`,
+                  pointerEvents: "none",
                 }}
               />
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: spacing.md, position: "relative", zIndex: 1 }}>
+                <div style={{ flex: 1 }}>
+                  <div
+                    style={{
+                      fontSize: typography.fontSize.sm,
+                      fontWeight: typography.fontWeight.medium,
+                      color: "#d97706",
+                      marginBottom: spacing.sm,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: spacing.xs,
+                    }}
+                  >
+                    <span>📋</span>
+                    <span>Yüksek Riskli Belgeler</span>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: typography.fontSize["4xl"],
+                      fontWeight: typography.fontWeight.bold,
+                      color: "#d97706",
+                      marginBottom: spacing.xs,
+                    }}
+                  >
+                    {dashboard.highRiskDocumentsCount}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: typography.fontSize.xs,
+                      color: colors.text.secondary,
+                    }}
+                  >
+                    İnceleme gerektiren belgeler
+                  </div>
+                </div>
                 <div
                   style={{
-                    width: "48px",
-                    height: "48px",
-                    borderRadius: "12px",
-                    backgroundColor: "#fee2e2",
+                    width: "64px",
+                    height: "64px",
+                    borderRadius: borderRadius.xl,
+                    backgroundColor: colors.warningPastel,
+                    border: `1px solid ${colors.warningLight}`,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: "24px",
+                    fontSize: "32px",
+                    boxShadow: shadows.sm,
                   }}
                 >
                   📋
                 </div>
-                <div style={{ fontSize: "14px", color: "#6b7280", fontWeight: "500" }}>
-                  Yüksek Riskli Belgeler
+              </div>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: spacing.xs,
+                  color: "#d97706",
+                  fontSize: typography.fontSize.sm,
+                  fontWeight: typography.fontWeight.medium,
+                  marginTop: spacing.sm,
+                }}
+              >
+                <span>Belgeleri İncele</span>
+                <span>→</span>
+              </div>
+              {dashboard.comparisons && (
+                <div
+                  style={{
+                    marginTop: spacing.xs,
+                    fontSize: typography.fontSize.xs,
+                    color: colors.text.secondary,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: spacing.xs,
+                  }}
+                >
+                  {dashboard.highRiskDocumentsCount > dashboard.comparisons.previousPeriod.highRiskDocumentsCount ? (
+                    <>
+                      <span style={{ color: colors.warning }}>↑</span>
+                      <span>
+                        +{dashboard.highRiskDocumentsCount - dashboard.comparisons.previousPeriod.highRiskDocumentsCount} önceki döneme göre
+                      </span>
+                    </>
+                  ) : dashboard.highRiskDocumentsCount < dashboard.comparisons.previousPeriod.highRiskDocumentsCount ? (
+                    <>
+                      <span style={{ color: colors.success }}>↓</span>
+                      <span>
+                        {dashboard.highRiskDocumentsCount - dashboard.comparisons.previousPeriod.highRiskDocumentsCount} önceki döneme göre
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span style={{ color: colors.text.secondary }}>→</span>
+                      <span>Değişiklik yok</span>
+                    </>
+                  )}
                 </div>
-              </div>
-              <div style={{ fontSize: "36px", fontWeight: "700", color: "#dc2626" }}>
-                {dashboard.highRiskDocumentsCount}
-              </div>
-            </div>
+              )}
+            </Card>
           </div>
 
-          {/* Client Risk Distribution */}
-          <div
+          {/* Recent Alerts Widget */}
+          {recentAlerts.length > 0 && (
+            <Card
+              style={{
+                marginBottom: spacing.xl,
+                padding: spacing.xl,
+                background: colors.gradients.pastelDanger,
+                border: `1px solid ${colors.border}`,
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.lg }}>
+                <div>
+                  <h3
+                    style={{
+                      margin: 0,
+                      marginBottom: spacing.xs,
+                      fontSize: typography.fontSize.xl,
+                      fontWeight: typography.fontWeight.bold,
+                      color: colors.text.primary,
+                    }}
+                  >
+                    Son Kritik Uyarılar
+                  </h3>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: typography.fontSize.sm,
+                      color: colors.text.secondary,
+                    }}
+                  >
+                    Acil müdahale gerektiren uyarılar
+                  </p>
+                </div>
+                <Link
+                  href="/risk/alerts?severity=critical&status=open"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: spacing.xs,
+                    padding: `${spacing.sm} ${spacing.md}`,
+                    background: `linear-gradient(135deg, #fca5a5 0%, #f87171 100%)`,
+                    color: colors.white,
+                    textDecoration: "none",
+                    borderRadius: borderRadius.md,
+                    fontSize: typography.fontSize.sm,
+                    fontWeight: typography.fontWeight.semibold,
+                    transition: `all ${transitions.normal} ease`,
+                    boxShadow: shadows.sm,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = shadows.md;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = shadows.sm;
+                  }}
+                >
+                  <span>Tümünü Gör</span>
+                  <span>→</span>
+                </Link>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: spacing.md }}>
+                {recentAlerts.map((alert: any) => {
+                  const timeAgo = new Date(alert.createdAt);
+                  const now = new Date();
+                  const diffMs = now.getTime() - timeAgo.getTime();
+                  const diffMins = Math.floor(diffMs / 60000);
+                  const diffHours = Math.floor(diffMs / 3600000);
+                  const diffDays = Math.floor(diffMs / 86400000);
+
+                  let timeAgoText = "";
+                  if (diffMins < 60) {
+                    timeAgoText = `${diffMins} dakika önce`;
+                  } else if (diffHours < 24) {
+                    timeAgoText = `${diffHours} saat önce`;
+                  } else {
+                    timeAgoText = `${diffDays} gün önce`;
+                  }
+
+                  return (
+                    <Link
+                      key={alert.id}
+                      href={`/risk/alerts?alertId=${alert.id}`}
+                      style={{
+                        display: "block",
+                        padding: spacing.md,
+                        backgroundColor: colors.white,
+                        borderRadius: borderRadius.lg,
+                        border: `1px solid ${colors.border}`,
+                        textDecoration: "none",
+                        color: "inherit",
+                        transition: `all ${transitions.normal} ease`,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = colors.danger;
+                        e.currentTarget.style.boxShadow = shadows.sm;
+                        e.currentTarget.style.transform = "translateX(4px)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = colors.border;
+                        e.currentTarget.style.boxShadow = "none";
+                        e.currentTarget.style.transform = "translateX(0)";
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: spacing.md }}>
+                        <div style={{ flex: 1 }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: spacing.sm,
+                              marginBottom: spacing.xs,
+                            }}
+                          >
+                            <span style={{ fontSize: "20px" }}>🚨</span>
+                            <span
+                              style={{
+                                fontSize: typography.fontSize.base,
+                                fontWeight: typography.fontWeight.semibold,
+                                color: colors.text.primary,
+                              }}
+                            >
+                              {alert.title}
+                            </span>
+                            <span
+                              style={{
+                                padding: `${spacing.xs} ${spacing.sm}`,
+                                backgroundColor: "#c2410c",
+                                color: colors.white,
+                                borderRadius: borderRadius.sm,
+                                fontSize: typography.fontSize.xs,
+                                fontWeight: typography.fontWeight.bold,
+                              }}
+                            >
+                              {alert.severity === "critical" ? "KRİTİK" : "YÜKSEK"}
+                            </span>
+                          </div>
+                          <p
+                            style={{
+                              margin: 0,
+                              fontSize: typography.fontSize.sm,
+                              color: colors.text.secondary,
+                              marginBottom: spacing.xs,
+                            }}
+                          >
+                            {alert.message}
+                          </p>
+                          <div
+                            style={{
+                              fontSize: typography.fontSize.xs,
+                              color: colors.text.muted,
+                            }}
+                          >
+                            {timeAgoText}
+                          </div>
+                        </div>
+                        <div
+                          style={{
+                            color: colors.primary,
+                            fontSize: typography.fontSize.lg,
+                            fontWeight: typography.fontWeight.bold,
+                          }}
+                        >
+                          →
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </Card>
+          )}
+
+          {/* Enhanced Client Risk Distribution */}
+          <Card
             style={{
-              padding: "32px",
-              backgroundColor: "white",
-              borderRadius: "12px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              border: "1px solid #e5e7eb",
-              marginBottom: "32px",
+              padding: spacing.xxl,
+              marginBottom: spacing.xl,
+              background: colors.gradients.subtle,
+              border: `1px solid ${colors.border}`,
             }}
           >
-            <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "24px", color: "#111827" }}>
-              Müşteri Risk Dağılımı
-            </h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-              {/* Low Risk */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.xl }}>
               <div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <h2
+                  style={{
+                    margin: 0,
+                    marginBottom: spacing.xs,
+                    fontSize: typography.fontSize["2xl"],
+                    fontWeight: typography.fontWeight.bold,
+                    color: colors.text.primary,
+                  }}
+                >
+                  Müşteri Risk Dağılımı
+                </h2>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: typography.fontSize.sm,
+                    color: colors.text.secondary,
+                  }}
+                >
+                  Müşterilerinizin risk seviyesi dağılımı
+                </p>
+              </div>
+              <div
+                style={{
+                  padding: `${spacing.sm} ${spacing.lg}`,
+                  backgroundColor: colors.primaryPastel,
+                  borderRadius: borderRadius.lg,
+                  fontSize: typography.fontSize.base,
+                  border: `1px solid ${colors.primaryLighter}`,
+                  fontWeight: typography.fontWeight.semibold,
+                  color: colors.primary,
+                }}
+              >
+                Toplam: {totalClients}
+              </div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: spacing.lg }}>
+              {/* Low Risk */}
+              <div
+                style={{
+                  padding: spacing.lg,
+                  backgroundColor: colors.white,
+                  borderRadius: borderRadius.lg,
+                  border: `1px solid ${colors.border}`,
+                  transition: `all ${transitions.normal} ease`,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "#10b981";
+                  e.currentTarget.style.boxShadow = shadows.sm;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = colors.border;
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.md }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: spacing.sm }}>
                     <div
                       style={{
-                        width: "12px",
-                        height: "12px",
+                        width: "16px",
+                        height: "16px",
                         borderRadius: "50%",
                         backgroundColor: "#10b981",
+                        boxShadow: `0 0 0 4px ${colors.successPastel}`,
                       }}
                     />
-                    <span style={{ color: "#374151", fontWeight: "500", fontSize: "14px" }}>Düşük</span>
+                    <span
+                      style={{
+                        color: colors.text.primary,
+                        fontWeight: typography.fontWeight.semibold,
+                        fontSize: typography.fontSize.base,
+                      }}
+                    >
+                      Düşük Risk
+                    </span>
                   </div>
-                  <span style={{ fontWeight: "700", fontSize: "18px", color: "#111827" }}>
-                    {dashboard.clientRiskDistribution.low}
-                  </span>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: spacing.xs }}>
+                    <span
+                      style={{
+                        fontWeight: typography.fontWeight.bold,
+                        fontSize: typography.fontSize["2xl"],
+                        color: "#059669",
+                      }}
+                    >
+                      {dashboard.clientRiskDistribution.low}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: typography.fontSize.sm,
+                        color: colors.text.secondary,
+                        fontWeight: typography.fontWeight.medium,
+                      }}
+                    >
+                      müşteri
+                    </span>
+                  </div>
                 </div>
                 <div
                   style={{
-                    height: "32px",
-                    backgroundColor: "#f3f4f6",
-                    borderRadius: "8px",
+                    height: "40px",
+                    backgroundColor: colors.successPastel,
+                    borderRadius: borderRadius.lg,
                     overflow: "hidden",
                     position: "relative",
+                    boxShadow: shadows.sm,
                   }}
                 >
                   <div
                     style={{
                       height: "100%",
                       width: `${totalClients > 0 ? (dashboard.clientRiskDistribution.low / totalClients) * 100 : 0}%`,
-                      backgroundColor: "#10b981",
-                      borderRadius: "8px",
-                      transition: "width 0.5s ease",
+                      background: `linear-gradient(135deg, #10b981 0%, #059669 100%)`,
+                      borderRadius: borderRadius.lg,
+                      transition: "width 0.8s cubic-bezier(0.4, 0, 0.2, 1)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "flex-end",
-                      paddingRight: "8px",
+                      paddingRight: spacing.md,
+                      boxShadow: shadows.sm,
                     }}
                   >
                     {dashboard.clientRiskDistribution.low > 0 && (
-                      <span style={{ color: "white", fontSize: "12px", fontWeight: "600" }}>
+                      <span
+                        style={{
+                          color: colors.white,
+                          fontSize: typography.fontSize.sm,
+                          fontWeight: typography.fontWeight.bold,
+                        }}
+                      >
                         {totalClients > 0
                           ? Math.round((dashboard.clientRiskDistribution.low / totalClients) * 100)
                           : 0}
@@ -481,47 +1351,97 @@ export default function RiskDashboardPage() {
               </div>
 
               {/* Medium Risk */}
-              <div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <div
+                style={{
+                  padding: spacing.lg,
+                  backgroundColor: colors.white,
+                  borderRadius: borderRadius.lg,
+                  border: `1px solid ${colors.border}`,
+                  transition: `all ${transitions.normal} ease`,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "#d97706";
+                  e.currentTarget.style.boxShadow = shadows.sm;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = colors.border;
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.md }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: spacing.sm }}>
                     <div
                       style={{
-                        width: "12px",
-                        height: "12px",
+                        width: "16px",
+                        height: "16px",
                         borderRadius: "50%",
-                        backgroundColor: "#f59e0b",
+                        backgroundColor: "#d97706",
+                        boxShadow: `0 0 0 4px ${colors.warningPastel}`,
                       }}
                     />
-                    <span style={{ color: "#374151", fontWeight: "500", fontSize: "14px" }}>Orta</span>
+                    <span
+                      style={{
+                        color: colors.text.primary,
+                        fontWeight: typography.fontWeight.semibold,
+                        fontSize: typography.fontSize.base,
+                      }}
+                    >
+                      Orta Risk
+                    </span>
                   </div>
-                  <span style={{ fontWeight: "700", fontSize: "18px", color: "#111827" }}>
-                    {dashboard.clientRiskDistribution.medium}
-                  </span>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: spacing.xs }}>
+                    <span
+                      style={{
+                        fontWeight: typography.fontWeight.bold,
+                        fontSize: typography.fontSize["2xl"],
+                        color: "#b45309",
+                      }}
+                    >
+                      {dashboard.clientRiskDistribution.medium}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: typography.fontSize.sm,
+                        color: colors.text.secondary,
+                        fontWeight: typography.fontWeight.medium,
+                      }}
+                    >
+                      müşteri
+                    </span>
+                  </div>
                 </div>
                 <div
                   style={{
-                    height: "32px",
-                    backgroundColor: "#f3f4f6",
-                    borderRadius: "8px",
+                    height: "40px",
+                    backgroundColor: colors.warningPastel,
+                    borderRadius: borderRadius.lg,
                     overflow: "hidden",
                     position: "relative",
+                    boxShadow: shadows.sm,
                   }}
                 >
                   <div
                     style={{
                       height: "100%",
                       width: `${totalClients > 0 ? (dashboard.clientRiskDistribution.medium / totalClients) * 100 : 0}%`,
-                      backgroundColor: "#f59e0b",
-                      borderRadius: "8px",
-                      transition: "width 0.5s ease",
+                      background: `linear-gradient(135deg, #f59e0b 0%, #d97706 100%)`,
+                      borderRadius: borderRadius.lg,
+                      transition: "width 0.8s cubic-bezier(0.4, 0, 0.2, 1)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "flex-end",
-                      paddingRight: "8px",
+                      paddingRight: spacing.md,
+                      boxShadow: shadows.sm,
                     }}
                   >
                     {dashboard.clientRiskDistribution.medium > 0 && (
-                      <span style={{ color: "white", fontSize: "12px", fontWeight: "600" }}>
+                      <span
+                        style={{
+                          color: colors.white,
+                          fontSize: typography.fontSize.sm,
+                          fontWeight: typography.fontWeight.bold,
+                        }}
+                      >
                         {totalClients > 0
                           ? Math.round((dashboard.clientRiskDistribution.medium / totalClients) * 100)
                           : 0}
@@ -533,47 +1453,97 @@ export default function RiskDashboardPage() {
               </div>
 
               {/* High Risk */}
-              <div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <div
+                style={{
+                  padding: spacing.lg,
+                  backgroundColor: colors.white,
+                  borderRadius: borderRadius.lg,
+                  border: `1px solid ${colors.border}`,
+                  transition: `all ${transitions.normal} ease`,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "#c2410c";
+                  e.currentTarget.style.boxShadow = shadows.sm;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = colors.border;
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.md }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: spacing.sm }}>
                     <div
                       style={{
-                        width: "12px",
-                        height: "12px",
+                        width: "16px",
+                        height: "16px",
                         borderRadius: "50%",
-                        backgroundColor: "#dc2626",
+                        backgroundColor: "#c2410c",
+                        boxShadow: `0 0 0 4px ${colors.dangerPastel}`,
                       }}
                     />
-                    <span style={{ color: "#374151", fontWeight: "500", fontSize: "14px" }}>Yüksek</span>
+                    <span
+                      style={{
+                        color: colors.text.primary,
+                        fontWeight: typography.fontWeight.semibold,
+                        fontSize: typography.fontSize.base,
+                      }}
+                    >
+                      Yüksek Risk
+                    </span>
                   </div>
-                  <span style={{ fontWeight: "700", fontSize: "18px", color: "#111827" }}>
-                    {dashboard.clientRiskDistribution.high}
-                  </span>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: spacing.xs }}>
+                    <span
+                      style={{
+                        fontWeight: typography.fontWeight.bold,
+                        fontSize: typography.fontSize["2xl"],
+                        color: "#991b1b",
+                      }}
+                    >
+                      {dashboard.clientRiskDistribution.high}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: typography.fontSize.sm,
+                        color: colors.text.secondary,
+                        fontWeight: typography.fontWeight.medium,
+                      }}
+                    >
+                      müşteri
+                    </span>
+                  </div>
                 </div>
                 <div
                   style={{
-                    height: "32px",
-                    backgroundColor: "#f3f4f6",
-                    borderRadius: "8px",
+                    height: "40px",
+                    backgroundColor: colors.dangerPastel,
+                    borderRadius: borderRadius.lg,
                     overflow: "hidden",
                     position: "relative",
+                    boxShadow: shadows.sm,
                   }}
                 >
                   <div
                     style={{
                       height: "100%",
                       width: `${totalClients > 0 ? (dashboard.clientRiskDistribution.high / totalClients) * 100 : 0}%`,
-                      backgroundColor: "#dc2626",
-                      borderRadius: "8px",
-                      transition: "width 0.5s ease",
+                      background: `linear-gradient(135deg, #ef4444 0%, #dc2626 100%)`,
+                      borderRadius: borderRadius.lg,
+                      transition: "width 0.8s cubic-bezier(0.4, 0, 0.2, 1)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "flex-end",
-                      paddingRight: "8px",
+                      paddingRight: spacing.md,
+                      boxShadow: shadows.sm,
                     }}
                   >
                     {dashboard.clientRiskDistribution.high > 0 && (
-                      <span style={{ color: "white", fontSize: "12px", fontWeight: "600" }}>
+                      <span
+                        style={{
+                          color: colors.white,
+                          fontSize: typography.fontSize.sm,
+                          fontWeight: typography.fontWeight.bold,
+                        }}
+                      >
                         {totalClients > 0
                           ? Math.round((dashboard.clientRiskDistribution.high / totalClients) * 100)
                           : 0}
@@ -584,78 +1554,427 @@ export default function RiskDashboardPage() {
                 </div>
               </div>
             </div>
-          </div>
+          </Card>
 
-          {/* Quick Actions */}
-          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+          {/* Enhanced Quick Actions */}
+          <div style={{ display: "flex", gap: spacing.md, flexWrap: "wrap", alignItems: "center" }}>
+            <button
+              onClick={async () => {
+                try {
+                  const blob = await riskClient.exportRiskDashboard("csv");
+                  if (!blob || blob.size === 0) {
+                    throw new Error("Empty export data");
+                  }
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `risk-dashboard-${new Date().toISOString().split("T")[0]}.csv`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  window.URL.revokeObjectURL(url);
+                } catch (error: any) {
+                  console.error("Export failed:", error);
+                  alert(`Dışa aktarma başarısız oldu: ${error.message || "Bilinmeyen hata"}`);
+                }
+              }}
+              style={{
+                padding: `${spacing.md} ${spacing.xl}`,
+                background: `linear-gradient(135deg, #6ee7b7 0%, #34d399 100%)`,
+                color: colors.white,
+                borderRadius: borderRadius.lg,
+                border: "none",
+                fontWeight: typography.fontWeight.semibold,
+                fontSize: typography.fontSize.base,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: spacing.sm,
+                boxShadow: shadows.sm,
+                transition: `all ${transitions.normal} ease`,
+                cursor: "pointer",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = shadows.md;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = shadows.sm;
+              }}
+            >
+              <span>📥</span>
+              <span>CSV Dışa Aktar</span>
+            </button>
             <Link
               href="/risk/alerts"
               style={{
-                padding: "12px 24px",
-                backgroundColor: "#2563eb",
-                color: "#fff",
-                borderRadius: "8px",
+                padding: `${spacing.md} ${spacing.xl}`,
+                background: `linear-gradient(135deg, #fca5a5 0%, #f87171 100%)`,
+                color: colors.white,
+                borderRadius: borderRadius.lg,
                 textDecoration: "none",
-                fontWeight: "500",
-                fontSize: "16px",
+                fontWeight: typography.fontWeight.semibold,
+                fontSize: typography.fontSize.base,
                 display: "inline-flex",
                 alignItems: "center",
-                gap: "8px",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                transition: "all 0.2s",
+                gap: spacing.sm,
+                boxShadow: shadows.md,
+                transition: `all ${transitions.normal} ease`,
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#1d4ed8";
-                e.currentTarget.style.transform = "translateY(-1px)";
-                e.currentTarget.style.boxShadow = "0 4px 6px rgba(0,0,0,0.15)";
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = shadows.lg;
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#2563eb";
                 e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
+                e.currentTarget.style.boxShadow = shadows.md;
               }}
             >
-              🚨 Uyarıları Görüntüle
+              <span style={{ fontSize: "20px" }}>🚨</span>
+              <span>Uyarıları Görüntüle</span>
+              {dashboard.openCriticalAlertsCount > 0 && (
+                <span
+                  style={{
+                    padding: `${spacing.xs} ${spacing.sm}`,
+                    backgroundColor: colors.white,
+                    color: "#c2410c",
+                    borderRadius: borderRadius.full,
+                    fontSize: typography.fontSize.xs,
+                    fontWeight: typography.fontWeight.bold,
+                    minWidth: "24px",
+                    textAlign: "center",
+                  }}
+                >
+                  {dashboard.openCriticalAlertsCount}
+                </span>
+              )}
             </Link>
             <Link
               href="/musteriler"
               style={{
-                padding: "12px 24px",
-                backgroundColor: "white",
-                color: "#2563eb",
-                borderRadius: "8px",
+                padding: `${spacing.md} ${spacing.xl}`,
+                backgroundColor: colors.white,
+                color: colors.primary,
+                borderRadius: borderRadius.lg,
                 textDecoration: "none",
-                fontWeight: "500",
-                fontSize: "16px",
+                fontWeight: typography.fontWeight.semibold,
+                fontSize: typography.fontSize.base,
                 display: "inline-flex",
                 alignItems: "center",
-                gap: "8px",
-                border: "1px solid #2563eb",
-                transition: "all 0.2s",
+                gap: spacing.sm,
+                border: `1px solid #93c5fd`,
+                transition: `all ${transitions.normal} ease`,
+                boxShadow: shadows.sm,
+                color: "#1e40af",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#eff6ff";
-                e.currentTarget.style.transform = "translateY(-1px)";
+                e.currentTarget.style.backgroundColor = colors.primaryPastel;
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = shadows.sm;
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.backgroundColor = colors.white;
                 e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = shadows.sm;
               }}
             >
-              👥 Müşterileri Görüntüle
+              <span style={{ fontSize: "20px" }}>👥</span>
+              <span>Müşterileri Görüntüle</span>
             </Link>
           </div>
         </>
       )}
 
-      {/* Add pulse animation for loading */}
-      <style jsx>{`
+      {/* Phase 2 & 3 Features */}
+      {dashboard && (
+        <>
+          {/* Recommendations Widget */}
+          {recommendations.length > 0 && <RecommendationsWidget recommendations={recommendations} />}
+
+          {/* Risk Breakdown Panel */}
+          {breakdown && <RiskBreakdownPanel breakdown={breakdown} />}
+
+          {/* Time-Series Charts */}
+          {trends && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))", gap: spacing.xl, marginBottom: spacing.xl }}>
+              <Card
+                style={{
+                  padding: spacing.xl,
+                  background: colors.gradients.pastelPrimary,
+                  border: `1px solid ${colors.border}`,
+                }}
+              >
+                <div style={{ marginBottom: spacing.md }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.sm }}>
+                    <h3
+                      style={{
+                        margin: 0,
+                        fontSize: typography.fontSize.xl,
+                        fontWeight: typography.fontWeight.bold,
+                      }}
+                    >
+                      Risk Skoru Trendi
+                    </h3>
+                    <div style={{ display: "flex", gap: spacing.xs }}>
+                      {(["7d", "30d", "90d", "1y"] as const).map((period) => (
+                        <button
+                          key={period}
+                          onClick={() => setTrendPeriod(period)}
+                          style={{
+                            padding: `${spacing.xs} ${spacing.sm}`,
+                            background: trendPeriod === period ? "#93c5fd" : colors.gray[200],
+                            color: trendPeriod === period ? colors.white : colors.text.primary,
+                            border: "none",
+                            borderRadius: borderRadius.sm,
+                            fontSize: typography.fontSize.xs,
+                            fontWeight: typography.fontWeight.semibold,
+                            cursor: "pointer",
+                          }}
+                        >
+                          {period}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <p style={{ margin: 0, fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                    Ortalama: {trends.riskScoreTrend.averageScore.toFixed(1)}
+                  </p>
+                </div>
+                <RiskTrendChart data={trends.riskScoreTrend} />
+              </Card>
+
+              <Card
+                style={{
+                  padding: spacing.xl,
+                  background: colors.gradients.pastelDanger,
+                  border: `1px solid ${colors.border}`,
+                }}
+              >
+                <div style={{ marginBottom: spacing.md }}>
+                  <h3
+                    style={{
+                      margin: 0,
+                      marginBottom: spacing.xs,
+                      fontSize: typography.fontSize.xl,
+                      fontWeight: typography.fontWeight.bold,
+                    }}
+                  >
+                    Uyarı Frekansı
+                  </h3>
+                  <p style={{ margin: 0, fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                    Toplam: {trends.alertFrequencyTrend.totalAlerts} uyarı
+                  </p>
+                </div>
+                <AlertFrequencyChart data={trends.alertFrequencyTrend} />
+              </Card>
+            </div>
+          )}
+
+          {/* Risk Distribution Chart */}
+          {trends && (
+            <Card
+              style={{
+                padding: spacing.xl,
+                marginBottom: spacing.xl,
+                background: colors.gradients.pastelSuccess,
+                border: `1px solid ${colors.border}`,
+              }}
+            >
+              <div style={{ marginBottom: spacing.md }}>
+                <h3
+                  style={{
+                    margin: 0,
+                    marginBottom: spacing.xs,
+                    fontSize: typography.fontSize.xl,
+                    fontWeight: typography.fontWeight.bold,
+                  }}
+                >
+                  Risk Dağılım Trendi
+                </h3>
+                <p style={{ margin: 0, fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                  Risk seviyelerinin zaman içindeki değişimi
+                </p>
+              </div>
+              <RiskDistributionChart data={trends.riskDistributionTrend} />
+            </Card>
+          )}
+
+          {/* Risk Heat Map */}
+          {heatmap && <RiskHeatMap heatmap={heatmap} />}
+
+          {/* Forecast Section */}
+          {forecast && (
+            <Card
+              style={{
+                padding: spacing.xl,
+                marginBottom: spacing.xl,
+                background: colors.gradients.pastelInfo,
+                border: `1px solid ${colors.border}`,
+              }}
+            >
+              <div style={{ marginBottom: spacing.lg }}>
+                <h3
+                  style={{
+                    margin: 0,
+                    marginBottom: spacing.xs,
+                    fontSize: typography.fontSize.xl,
+                    fontWeight: typography.fontWeight.bold,
+                  }}
+                >
+                  Risk Tahmini (30 Gün)
+                </h3>
+                <p style={{ margin: 0, fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                  Gelecek 30 gün için risk skoru tahmini
+                </p>
+              </div>
+
+              {forecast.earlyWarnings.length > 0 && (
+                <div style={{ marginBottom: spacing.lg }}>
+                  <h4
+                    style={{
+                      margin: 0,
+                      marginBottom: spacing.md,
+                      fontSize: typography.fontSize.base,
+                      fontWeight: typography.fontWeight.semibold,
+                    }}
+                  >
+                    Erken Uyarılar
+                  </h4>
+                  <div style={{ display: "flex", flexDirection: "column", gap: spacing.sm }}>
+                    {forecast.earlyWarnings.map((warning, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          padding: spacing.md,
+                          backgroundColor: colors.warningPastel,
+                          borderRadius: borderRadius.md,
+                          border: `1px solid ${colors.border}`,
+                        }}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <div>
+                            <div
+                              style={{
+                                fontSize: typography.fontSize.base,
+                                fontWeight: typography.fontWeight.semibold,
+                                marginBottom: spacing.xs,
+                                color: colors.text.primary,
+                              }}
+                            >
+                              {warning.message}
+                            </div>
+                            <div style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                              {warning.recommendedAction}
+                            </div>
+                          </div>
+                          <div
+                            style={{
+                              padding: `${spacing.sm} ${spacing.md}`,
+                              backgroundColor: "#fcd34d",
+                              color: "#78350f",
+                              borderRadius: borderRadius.md,
+                              fontSize: typography.fontSize.sm,
+                              fontWeight: typography.fontWeight.bold,
+                            }}
+                          >
+                            %{warning.probability}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: spacing.md }}>
+                <div
+                  style={{
+                    padding: spacing.md,
+                    backgroundColor: colors.gray[50],
+                    borderRadius: borderRadius.md,
+                    textAlign: "center",
+                  }}
+                >
+                  <div style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary, marginBottom: spacing.xs }}>
+                    Mevcut Hız
+                  </div>
+                  <div style={{ fontSize: typography.fontSize["2xl"], fontWeight: typography.fontWeight.bold }}>
+                    {forecast.riskVelocity.current > 0 ? "+" : ""}
+                    {forecast.riskVelocity.current.toFixed(2)}
+                  </div>
+                </div>
+                <div
+                  style={{
+                    padding: spacing.md,
+                    backgroundColor: colors.gray[50],
+                    borderRadius: borderRadius.md,
+                    textAlign: "center",
+                  }}
+                >
+                  <div style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary, marginBottom: spacing.xs }}>
+                    Tahmini Hız
+                  </div>
+                  <div style={{ fontSize: typography.fontSize["2xl"], fontWeight: typography.fontWeight.bold }}>
+                    {forecast.riskVelocity.predicted > 0 ? "+" : ""}
+                    {forecast.riskVelocity.predicted.toFixed(2)}
+                  </div>
+                </div>
+                <div
+                  style={{
+                    padding: spacing.md,
+                    backgroundColor: colors.gray[50],
+                    borderRadius: borderRadius.md,
+                    textAlign: "center",
+                  }}
+                >
+                  <div style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary, marginBottom: spacing.xs }}>
+                    Trend
+                  </div>
+                  <div
+                    style={{
+                      fontSize: typography.fontSize["2xl"],
+                      fontWeight: typography.fontWeight.bold,
+                      color:
+                        forecast.riskVelocity.trend === "accelerating"
+                          ? "#f87171"
+                          : forecast.riskVelocity.trend === "decelerating"
+                            ? "#6ee7b7"
+                            : "#fbbf24",
+                    }}
+                  >
+                    {forecast.riskVelocity.trend === "accelerating"
+                      ? "↑ Hızlanıyor"
+                      : forecast.riskVelocity.trend === "decelerating"
+                        ? "↓ Yavaşlıyor"
+                        : "→ Stabil"}
+                  </div>
+                </div>
+              </div>
+            </Card>
+          )}
+        </>
+      )}
+
+      {/* Enhanced Animations */}
+      <style jsx global>{`
         @keyframes pulse {
           0%, 100% {
             opacity: 1;
+            transform: scale(1);
           }
           50% {
-            opacity: 0.5;
+            opacity: 0.8;
+            transform: scale(1.05);
+          }
+        }
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
           }
         }
       `}</style>

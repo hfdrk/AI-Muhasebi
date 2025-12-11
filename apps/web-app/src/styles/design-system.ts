@@ -7,17 +7,23 @@ export const colors = {
   primaryDark: "#1d4ed8",
   primaryLight: "#3b82f6",
   primaryLighter: "#dbeafe",
+  // Pastel variants for softer UI
+  primaryPastel: "#e8f0fe",
   secondary: "#64748b",
   success: "#10b981",
   successLight: "#d1fae5",
+  successPastel: "#e6f7f0",
   successDark: "#059669",
   danger: "#ef4444",
   dangerLight: "#fee2e2",
+  dangerPastel: "#fce8e8",
   dangerDark: "#dc2626",
   warning: "#f59e0b",
   warningLight: "#fef3c7",
+  warningPastel: "#fef5e7",
   info: "#06b6d4",
   infoLight: "#cffafe",
+  infoPastel: "#e0f7fa",
   light: "#f8fafc",
   dark: "#0f172a",
   white: "#ffffff",
@@ -41,12 +47,19 @@ export const colors = {
     inverse: "#ffffff",
     link: "#2563eb",
   },
-  // Gradient colors
+  // Gradient colors - softer pastel versions
   gradients: {
     primary: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
     success: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
     danger: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
     subtle: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
+    // Pastel gradients for softer look
+    pastelPrimary: "linear-gradient(135deg, #e8f0fe 0%, #f0f5ff 100%)",
+    pastelSuccess: "linear-gradient(135deg, #e6f7f0 0%, #f0fdf4 100%)",
+    pastelDanger: "linear-gradient(135deg, #fce8e8 0%, #fef2f2 100%)",
+    pastelWarning: "linear-gradient(135deg, #fef5e7 0%, #fffbeb 100%)",
+    pastelInfo: "linear-gradient(135deg, #e0f7fa 0%, #f0fdfa 100%)",
+    pastelHero: "linear-gradient(135deg, #f5f3ff 0%, #fef3c7 50%, #e0f2fe 100%)",
   },
 };
 

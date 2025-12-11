@@ -20,6 +20,9 @@ export interface ListDocumentsFilters {
   dateTo?: Date;
   hasRiskFlags?: boolean;
   riskFlagCode?: string;
+  riskSeverity?: "low" | "medium" | "high";
+  minRiskScore?: number;
+  maxRiskScore?: number;
   page?: number;
   pageSize?: number;
 }
@@ -187,6 +190,22 @@ export class DocumentService {
     // Note: Complex JSON filtering will be done post-query for now
     // In production, consider using raw SQL or a more sophisticated approach
 
+    // If filtering by risk severity, add it to the where clause
+    if (filters.riskSeverity) {
+      where.riskScore = {
+        severity: filters.riskSeverity,
+      };
+    }
+
+    // If filtering by risk score range, add it to the where clause
+    if (filters.minRiskScore !== undefined || filters.maxRiskScore !== undefined) {
+      where.riskScore = {
+        ...where.riskScore,
+        ...(filters.minRiskScore !== undefined && { score: { gte: filters.minRiskScore } }),
+        ...(filters.maxRiskScore !== undefined && { score: { lte: filters.maxRiskScore } }),
+      };
+    }
+
     const [data, total] = await Promise.all([
       prisma.document.findMany({
         where,
@@ -206,6 +225,12 @@ export class DocumentService {
               riskFlags: true,
             },
           },
+          riskScore: {
+            select: {
+              score: true,
+              severity: true,
+            },
+          },
         },
       }),
       prisma.document.count({ where }),
@@ -215,10 +240,14 @@ export class DocumentService {
       const doc = this.mapToDocument(item);
       const riskFlags = item.riskFeatures?.riskFlags as any[] | undefined;
       const riskFlagCount = Array.isArray(riskFlags) ? riskFlags.length : 0;
+      const riskScore = item.riskScore?.score ? Number(item.riskScore.score) : null;
+      const riskSeverity = item.riskScore?.severity || null;
       
       return {
         ...doc,
         riskFlagCount,
+        riskScore,
+        riskSeverity,
       };
     });
 
@@ -233,18 +262,28 @@ export class DocumentService {
       });
     }
 
+    // Note: Risk severity and score range filtering is now done at the database level
+    // The post-query filtering below is kept for backward compatibility but should not be needed
+
     if (filters.riskFlagCode) {
       // Filter by risk flag code - would need to check actual flags
       // For now, we'll return all and let client filter
       // In production, implement proper JSON path filtering
     }
 
+    // Calculate total based on filters
+    let finalTotal = total;
+    if (filters.hasRiskFlags !== undefined || filters.riskSeverity || filters.minRiskScore !== undefined || filters.maxRiskScore !== undefined) {
+      // If we're filtering, use the filtered data length
+      finalTotal = mappedData.length;
+    }
+
     return {
       data: mappedData,
-      total: filters.hasRiskFlags !== undefined ? mappedData.length : total,
+      total: finalTotal,
       page,
       pageSize,
-      totalPages: Math.ceil((filters.hasRiskFlags !== undefined ? mappedData.length : total) / pageSize),
+      totalPages: Math.ceil(finalTotal / pageSize),
     };
   }
 

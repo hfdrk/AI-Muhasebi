@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { listInvoices, listTransactions, listClientCompanies, listDocuments, getCurrentUser, onboardingClient } from "@repo/api-client";
 import { dashboard as dashboardI18n } from "@repo/i18n";
+import { Card } from "@/components/ui/Card";
+import { colors, spacing, borderRadius, shadows, transitions, typography } from "@/styles/design-system";
 import Link from "next/link";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -200,13 +202,25 @@ export default function DashboardPage() {
   };
 
   return (
-    <div style={{ padding: "32px", maxWidth: "1600px", margin: "0 auto" }}>
+    <div>
       {/* Header */}
-      <div style={{ marginBottom: "32px" }}>
-        <h1 style={{ fontSize: "32px", fontWeight: "700", marginBottom: "8px", color: "#111827" }}>
+      <div style={{ marginBottom: spacing.xl }}>
+        <h1
+          style={{
+            fontSize: typography.fontSize["4xl"],
+            fontWeight: typography.fontWeight.bold,
+            marginBottom: spacing.sm,
+            background: colors.gradients.primary,
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+          }}
+        >
           Dashboard
         </h1>
-        <p style={{ color: "#6b7280", fontSize: "16px" }}>Genel bakış ve özet bilgiler</p>
+        <p style={{ color: colors.text.secondary, fontSize: typography.fontSize.base }}>
+          Genel bakış ve özet bilgiler
+        </p>
       </div>
 
       {/* Onboarding Card */}
@@ -338,248 +352,276 @@ export default function DashboardPage() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-          gap: "24px",
-          marginBottom: "32px",
+          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+          gap: spacing.lg,
+          marginBottom: spacing.xl,
         }}
       >
         {/* Total Invoices */}
-        <div
+        <Card
+          hoverable
           style={{
-            padding: "24px",
-            backgroundColor: "white",
-            borderRadius: "12px",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-            border: "1px solid #e5e7eb",
-            transition: "all 0.2s",
-            position: "relative",
-            overflow: "hidden",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
-            e.currentTarget.style.transform = "translateY(-2px)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
-            e.currentTarget.style.transform = "translateY(0)";
+            padding: spacing.xl,
+            background: `linear-gradient(135deg, ${colors.primaryLighter} 0%, ${colors.white} 100%)`,
+            border: `2px solid ${colors.primary}20`,
           }}
         >
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              right: 0,
-              width: "80px",
-              height: "80px",
-              backgroundColor: "#dbeafe",
-              borderRadius: "0 0 0 100%",
-              opacity: 0.3,
-            }}
-          />
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <p style={{ margin: 0, color: "#6b7280", fontSize: "14px", fontWeight: "500", marginBottom: "8px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: spacing.md }}>
+            <div style={{ flex: 1 }}>
+              <p
+                style={{
+                  margin: 0,
+                  color: colors.text.secondary,
+                  fontSize: typography.fontSize.sm,
+                  fontWeight: typography.fontWeight.medium,
+                  marginBottom: spacing.sm,
+                }}
+              >
                 Toplam Fatura
               </p>
-              <h2 style={{ margin: 0, fontSize: "36px", fontWeight: "700", color: "#111827" }}>
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: typography.fontSize["4xl"],
+                  fontWeight: typography.fontWeight.bold,
+                  color: colors.primary,
+                }}
+              >
                 {totalInvoices}
               </h2>
             </div>
             <div
               style={{
-                width: "56px",
-                height: "56px",
-                borderRadius: "12px",
-                backgroundColor: "#dbeafe",
+                width: "64px",
+                height: "64px",
+                borderRadius: borderRadius.lg,
+                backgroundColor: colors.primary,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "28px",
+                fontSize: "32px",
+                boxShadow: shadows.md,
               }}
             >
               📄
             </div>
           </div>
-        </div>
+          <Link
+            href="/faturalar"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: spacing.xs,
+              color: colors.primary,
+              textDecoration: "none",
+              fontSize: typography.fontSize.sm,
+              fontWeight: typography.fontWeight.medium,
+            }}
+          >
+            <span>Tümünü Gör</span>
+            <span>→</span>
+          </Link>
+        </Card>
 
         {/* Total Transactions */}
-        <div
+        <Card
+          hoverable
           style={{
-            padding: "24px",
-            backgroundColor: "white",
-            borderRadius: "12px",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-            border: "1px solid #e5e7eb",
-            transition: "all 0.2s",
-            position: "relative",
-            overflow: "hidden",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
-            e.currentTarget.style.transform = "translateY(-2px)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
-            e.currentTarget.style.transform = "translateY(0)";
+            padding: spacing.xl,
+            background: `linear-gradient(135deg, ${colors.successLight} 0%, ${colors.white} 100%)`,
+            border: `2px solid ${colors.success}20`,
           }}
         >
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              right: 0,
-              width: "80px",
-              height: "80px",
-              backgroundColor: "#d1fae5",
-              borderRadius: "0 0 0 100%",
-              opacity: 0.3,
-            }}
-          />
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <p style={{ margin: 0, color: "#6b7280", fontSize: "14px", fontWeight: "500", marginBottom: "8px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: spacing.md }}>
+            <div style={{ flex: 1 }}>
+              <p
+                style={{
+                  margin: 0,
+                  color: colors.text.secondary,
+                  fontSize: typography.fontSize.sm,
+                  fontWeight: typography.fontWeight.medium,
+                  marginBottom: spacing.sm,
+                }}
+              >
                 Toplam İşlem
               </p>
-              <h2 style={{ margin: 0, fontSize: "36px", fontWeight: "700", color: "#111827" }}>
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: typography.fontSize["4xl"],
+                  fontWeight: typography.fontWeight.bold,
+                  color: colors.success,
+                }}
+              >
                 {totalTransactions}
               </h2>
             </div>
             <div
               style={{
-                width: "56px",
-                height: "56px",
-                borderRadius: "12px",
-                backgroundColor: "#d1fae5",
+                width: "64px",
+                height: "64px",
+                borderRadius: borderRadius.lg,
+                backgroundColor: colors.success,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "28px",
+                fontSize: "32px",
+                boxShadow: shadows.md,
               }}
             >
               💰
             </div>
           </div>
-        </div>
+          <Link
+            href="/islemler"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: spacing.xs,
+              color: colors.success,
+              textDecoration: "none",
+              fontSize: typography.fontSize.sm,
+              fontWeight: typography.fontWeight.medium,
+            }}
+          >
+            <span>Tümünü Gör</span>
+            <span>→</span>
+          </Link>
+        </Card>
 
         {/* Total Customers - Hide for ReadOnly users */}
         {!isReadOnly && (
-          <div
+          <Card
+            hoverable
             style={{
-              padding: "24px",
-              backgroundColor: "white",
-              borderRadius: "12px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              border: "1px solid #e5e7eb",
-              transition: "all 0.2s",
-              position: "relative",
-              overflow: "hidden",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
-              e.currentTarget.style.transform = "translateY(-2px)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
-              e.currentTarget.style.transform = "translateY(0)";
+              padding: spacing.xl,
+              background: `linear-gradient(135deg, ${colors.warningLight} 0%, ${colors.white} 100%)`,
+              border: `2px solid ${colors.warning}20`,
             }}
           >
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                right: 0,
-                width: "80px",
-                height: "80px",
-                backgroundColor: "#fef3c7",
-                borderRadius: "0 0 0 100%",
-                opacity: 0.3,
-              }}
-            />
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <p style={{ margin: 0, color: "#6b7280", fontSize: "14px", fontWeight: "500", marginBottom: "8px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: spacing.md }}>
+              <div style={{ flex: 1 }}>
+                <p
+                  style={{
+                    margin: 0,
+                    color: colors.text.secondary,
+                    fontSize: typography.fontSize.sm,
+                    fontWeight: typography.fontWeight.medium,
+                    marginBottom: spacing.sm,
+                  }}
+                >
                   Toplam Müşteri
                 </p>
-                <h2 style={{ margin: 0, fontSize: "36px", fontWeight: "700", color: "#111827" }}>
+                <h2
+                  style={{
+                    margin: 0,
+                    fontSize: typography.fontSize["4xl"],
+                    fontWeight: typography.fontWeight.bold,
+                    color: colors.warning,
+                  }}
+                >
                   {totalCustomers}
                 </h2>
               </div>
               <div
                 style={{
-                  width: "56px",
-                  height: "56px",
-                  borderRadius: "12px",
-                  backgroundColor: "#fef3c7",
+                  width: "64px",
+                  height: "64px",
+                  borderRadius: borderRadius.lg,
+                  backgroundColor: colors.warning,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: "28px",
+                  fontSize: "32px",
+                  boxShadow: shadows.md,
                 }}
               >
                 👥
               </div>
             </div>
-          </div>
+            <Link
+              href="/musteriler"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: spacing.xs,
+                color: colors.warning,
+                textDecoration: "none",
+                fontSize: typography.fontSize.sm,
+                fontWeight: typography.fontWeight.medium,
+              }}
+            >
+              <span>Tümünü Gör</span>
+              <span>→</span>
+            </Link>
+          </Card>
         )}
 
         {/* Total Documents */}
-        <div
+        <Card
+          hoverable
           style={{
-            padding: "24px",
-            backgroundColor: "white",
-            borderRadius: "12px",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-            border: "1px solid #e5e7eb",
-            transition: "all 0.2s",
-            position: "relative",
-            overflow: "hidden",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
-            e.currentTarget.style.transform = "translateY(-2px)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
-            e.currentTarget.style.transform = "translateY(0)";
+            padding: spacing.xl,
+            background: `linear-gradient(135deg, ${colors.infoLight} 0%, ${colors.white} 100%)`,
+            border: `2px solid ${colors.info}20`,
           }}
         >
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              right: 0,
-              width: "80px",
-              height: "80px",
-              backgroundColor: "#e0e7ff",
-              borderRadius: "0 0 0 100%",
-              opacity: 0.3,
-            }}
-          />
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <p style={{ margin: 0, color: "#6b7280", fontSize: "14px", fontWeight: "500", marginBottom: "8px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: spacing.md }}>
+            <div style={{ flex: 1 }}>
+              <p
+                style={{
+                  margin: 0,
+                  color: colors.text.secondary,
+                  fontSize: typography.fontSize.sm,
+                  fontWeight: typography.fontWeight.medium,
+                  marginBottom: spacing.sm,
+                }}
+              >
                 Toplam Belge
               </p>
-              <h2 style={{ margin: 0, fontSize: "36px", fontWeight: "700", color: "#111827" }}>
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: typography.fontSize["4xl"],
+                  fontWeight: typography.fontWeight.bold,
+                  color: colors.info,
+                }}
+              >
                 {totalDocuments}
               </h2>
             </div>
             <div
               style={{
-                width: "56px",
-                height: "56px",
-                borderRadius: "12px",
-                backgroundColor: "#e0e7ff",
+                width: "64px",
+                height: "64px",
+                borderRadius: borderRadius.lg,
+                backgroundColor: colors.info,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "28px",
+                fontSize: "32px",
+                boxShadow: shadows.md,
               }}
             >
               📎
             </div>
           </div>
-        </div>
+          <Link
+            href="/belgeler"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: spacing.xs,
+              color: colors.info,
+              textDecoration: "none",
+              fontSize: typography.fontSize.sm,
+              fontWeight: typography.fontWeight.medium,
+            }}
+          >
+            <span>Tümünü Gör</span>
+            <span>→</span>
+          </Link>
+        </Card>
       </div>
 
       {/* Show message if customer company not found */}

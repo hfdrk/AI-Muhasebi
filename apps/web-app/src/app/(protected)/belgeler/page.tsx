@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { listDocuments, listClientCompanies } from "@repo/api-client";
+import { useSearchParams, useRouter } from "next/navigation";
+import { listDocuments, listClientCompanies, searchDocumentsByRisk } from "@repo/api-client";
 import { documents as documentsI18n, common as commonI18n } from "@repo/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/Button";
@@ -46,12 +47,27 @@ function formatFileSize(bytes: number | bigint): string {
 }
 
 export default function DocumentsPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [documentModalOpen, setDocumentModalOpen] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [riskFilter, setRiskFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
   const pageSize = 20;
+
+  // Read URL parameters for risk filtering
+  useEffect(() => {
+    const riskParam = searchParams.get("risk");
+    const severityParam = searchParams.get("severity");
+    
+    if (riskParam === "high" && severityParam === "high") {
+      setRiskFilter("high");
+    } else if (riskParam) {
+      setRiskFilter(riskParam);
+    }
+  }, [searchParams]);
 
   // Fetch companies for dropdown
   const { data: companiesData } = useQuery({
@@ -61,23 +77,36 @@ export default function DocumentsPage() {
 
   const companies = companiesData?.data.data || [];
 
-  // Fetch documents
+  // Fetch documents - use risk search if risk filter is active
   const { data, isLoading } = useQuery({
     queryKey: [
       "documents",
       selectedClientId !== "all" ? selectedClientId : undefined,
       typeFilter !== "all" ? typeFilter : undefined,
       statusFilter !== "all" ? statusFilter : undefined,
+      riskFilter !== "all" ? riskFilter : undefined,
       page,
     ],
-    queryFn: () =>
-      listDocuments({
+    queryFn: () => {
+      // If risk filter is active, use risk search API
+      if (riskFilter !== "all") {
+        return searchDocumentsByRisk({
+          riskSeverity: riskFilter as "low" | "medium" | "high",
+          clientCompanyId: selectedClientId !== "all" ? selectedClientId : undefined,
+          page,
+          pageSize,
+        });
+      }
+      
+      // Otherwise use regular documents list
+      return listDocuments({
         clientCompanyId: selectedClientId !== "all" ? selectedClientId : undefined,
         type: typeFilter !== "all" ? (typeFilter as any) : undefined,
         status: statusFilter !== "all" ? (statusFilter as any) : undefined,
         page,
         pageSize,
-      }),
+      });
+    },
   });
 
   const documents = data?.data.data || [];
@@ -157,6 +186,27 @@ export default function DocumentsPage() {
               { value: "FAILED", label: "Başarısız" },
             ]}
           />
+
+          <Select
+            label="Risk Seviyesi"
+            value={riskFilter}
+            onChange={(e) => {
+              setRiskFilter(e.target.value);
+              setPage(1);
+              // Update URL if high risk is selected
+              if (e.target.value === "high") {
+                router.push("/belgeler?risk=high&severity=high");
+              } else if (e.target.value === "all") {
+                router.push("/belgeler");
+              }
+            }}
+            options={[
+              { value: "all", label: "Tümü" },
+              { value: "low", label: "Düşük Risk" },
+              { value: "medium", label: "Orta Risk" },
+              { value: "high", label: "Yüksek Risk" },
+            ]}
+          />
         </div>
       </Card>
 
@@ -178,7 +228,7 @@ export default function DocumentsPage() {
         ) : (
           <>
             <Table
-              headers={["Dosya Adı", "Müşteri", "Tür", "Durum", "Boyut", "Yüklenme Tarihi", "İşlemler"]}
+              headers={["Dosya Adı", "Müşteri", "Tür", "Durum", "Risk", "Boyut", "Yüklenme Tarihi", "İşlemler"]}
             >
               {documents.map((doc) => (
                 <TableRow key={doc.id}>
@@ -229,6 +279,43 @@ export default function DocumentsPage() {
                     >
                       {STATUS_LABELS[doc.status] || doc.status}
                     </span>
+                  </TableCell>
+                  <TableCell>
+                    {(doc as any).riskSeverity ? (
+                      <span
+                        style={{
+                          padding: `${spacing.xs} ${spacing.sm}`,
+                          borderRadius: "4px",
+                          fontSize: "12px",
+                          fontWeight: 500,
+                          backgroundColor:
+                            (doc as any).riskSeverity === "high"
+                              ? "#fce8e8"
+                              : (doc as any).riskSeverity === "medium"
+                                ? "#fef5e7"
+                                : "#e6f7f0",
+                          color:
+                            (doc as any).riskSeverity === "high"
+                              ? "#c2410c"
+                              : (doc as any).riskSeverity === "medium"
+                                ? "#d97706"
+                                : "#059669",
+                        }}
+                      >
+                        {(doc as any).riskSeverity === "high"
+                          ? "Yüksek"
+                          : (doc as any).riskSeverity === "medium"
+                            ? "Orta"
+                            : "Düşük"}
+                        {typeof (doc as any).riskScore === "number" && (
+                          <span style={{ marginLeft: spacing.xs, opacity: 0.7 }}>
+                            ({(doc as any).riskScore.toFixed(0)})
+                          </span>
+                        )}
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: "12px", color: colors.text.muted }}>—</span>
+                    )}
                   </TableCell>
                   <TableCell>
                     <div style={{ fontSize: "14px", color: colors.text.secondary }}>

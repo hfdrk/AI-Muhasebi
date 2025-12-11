@@ -10,6 +10,7 @@ interface CardProps {
   style?: React.CSSProperties;
   hoverable?: boolean;
   variant?: "default" | "elevated" | "outlined";
+  onClick?: () => void;
 }
 
 export function Card({
@@ -19,6 +20,7 @@ export function Card({
   style,
   hoverable = false,
   variant = "default",
+  onClick,
 }: CardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -50,11 +52,13 @@ export function Card({
         padding: spacing.lg,
         transition: `all ${transitions.normal} ease`,
         transform: hoverable && isHovered ? "translateY(-2px)" : "translateY(0)",
+        cursor: onClick ? "pointer" : "default",
         ...getVariantStyles(),
         ...style,
       }}
       onMouseEnter={() => hoverable && setIsHovered(true)}
       onMouseLeave={() => hoverable && setIsHovered(false)}
+      onClick={onClick}
     >
       {(title || actions) && (
         <div
