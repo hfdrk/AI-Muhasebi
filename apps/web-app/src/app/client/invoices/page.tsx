@@ -3,8 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { listInvoices, getMyClientCompany } from "@repo/api-client";
 import { Card } from "@/components/ui/Card";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { colors, spacing } from "@/styles/design-system";
+import { colors, spacing, borderRadius, transitions, typography, shadows } from "@/styles/design-system";
 import Link from "next/link";
 
 function formatCurrency(amount: number, currency: string = "TRY"): string {
@@ -48,55 +47,146 @@ export default function ClientInvoicesPage() {
 
   return (
     <div>
-      <PageHeader title="Faturalarım" />
-
-      <div style={{ marginBottom: spacing.lg }}>
-        <p style={{ color: colors.text.secondary }}>
-          {invoices.length} fatura bulundu
+      <div style={{ marginBottom: spacing.xl }}>
+        <p
+          style={{
+            color: colors.text.secondary,
+            fontSize: typography.fontSize.base,
+            margin: 0,
+          }}
+        >
+          <strong style={{ color: colors.text.primary }}>{invoices.length}</strong> fatura bulundu
         </p>
       </div>
 
       {isLoading ? (
-        <div>Yükleniyor...</div>
+        <Card>
+          <div
+            style={{
+              padding: spacing.xxl,
+              textAlign: "center",
+              color: colors.text.secondary,
+            }}
+          >
+            <div style={{ fontSize: "48px", marginBottom: spacing.md }}>⏳</div>
+            <div style={{ fontSize: typography.fontSize.base }}>Faturalar yükleniyor...</div>
+          </div>
+        </Card>
       ) : invoices.length === 0 ? (
         <Card>
-          <div style={{ padding: spacing.xl, textAlign: "center", color: colors.text.secondary }}>
-            <div style={{ fontSize: "48px", marginBottom: spacing.md }}>📄</div>
-            <div>Henüz fatura bulunmuyor.</div>
+          <div
+            style={{
+              padding: spacing.xxl,
+              textAlign: "center",
+              color: colors.text.secondary,
+            }}
+          >
+            <div style={{ fontSize: "64px", marginBottom: spacing.lg }}>📄</div>
+            <div
+              style={{
+                fontSize: typography.fontSize.xl,
+                fontWeight: typography.fontWeight.semibold,
+                color: colors.text.primary,
+                marginBottom: spacing.sm,
+              }}
+            >
+              Henüz fatura bulunmuyor
+            </div>
+            <div style={{ fontSize: typography.fontSize.base }}>
+              Faturalarınız burada görüntülenecektir
+            </div>
           </div>
         </Card>
       ) : (
         <Card>
           <div>
-            {invoices.map((invoice: any) => (
+            {invoices.map((invoice: any, index: number) => (
               <Link
                 key={invoice.id}
                 href={`/client/invoices/${invoice.id}`}
                 style={{
                   display: "block",
-                  padding: spacing.md,
-                  borderBottom: `1px solid ${colors.gray[200]}`,
+                  padding: spacing.lg,
+                  borderBottom: index < invoices.length - 1 ? `1px solid ${colors.border}` : "none",
                   textDecoration: "none",
                   color: "inherit",
-                  transition: "background-color 0.2s ease",
+                  transition: `all ${transitions.normal} ease`,
+                  borderRadius: borderRadius.md,
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = colors.gray[50];
+                  e.currentTarget.style.transform = "translateX(4px)";
+                  e.currentTarget.style.boxShadow = shadows.sm;
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = "transparent";
+                  e.currentTarget.style.transform = "translateX(0)";
+                  e.currentTarget.style.boxShadow = "none";
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: "medium", marginBottom: spacing.xs, color: colors.text.primary }}>
-                      {TYPE_LABELS[invoice.type] || invoice.type} Faturası
+                  <div style={{ flex: 1, display: "flex", alignItems: "center", gap: spacing.md }}>
+                    <div
+                      style={{
+                        fontSize: "32px",
+                        padding: spacing.md,
+                        backgroundColor:
+                          invoice.type === "SATIŞ" ? colors.successLight : colors.infoLight,
+                        borderRadius: borderRadius.lg,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        minWidth: "56px",
+                        height: "56px",
+                      }}
+                    >
+                      {invoice.type === "SATIŞ" ? "📊" : "📥"}
                     </div>
-                    <div style={{ fontSize: "14px", color: colors.text.secondary }}>
-                      {formatDate(invoice.issueDate)} • {formatCurrency(Number(invoice.totalAmount), invoice.currency)}
+                    <div style={{ flex: 1 }}>
+                      <div
+                        style={{
+                          fontWeight: typography.fontWeight.semibold,
+                          marginBottom: spacing.xs,
+                          color: colors.text.primary,
+                          fontSize: typography.fontSize.base,
+                        }}
+                      >
+                        {TYPE_LABELS[invoice.type] || invoice.type} Faturası
+                      </div>
+                      <div
+                        style={{
+                          fontSize: typography.fontSize.sm,
+                          color: colors.text.secondary,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: spacing.sm,
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <span>{formatDate(invoice.issueDate)}</span>
+                        <span>•</span>
+                        <span
+                          style={{
+                            fontSize: typography.fontSize.base,
+                            fontWeight: typography.fontWeight.bold,
+                            color: invoice.type === "SATIŞ" ? colors.success : colors.info,
+                          }}
+                        >
+                          {formatCurrency(Number(invoice.totalAmount), invoice.currency)}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  <div style={{ color: colors.primary, fontSize: "14px" }}>→</div>
+                  <div
+                    style={{
+                      color: colors.primary,
+                      fontSize: typography.fontSize.xl,
+                      fontWeight: typography.fontWeight.bold,
+                      marginLeft: spacing.md,
+                    }}
+                  >
+                    →
+                  </div>
                 </div>
               </Link>
             ))}
