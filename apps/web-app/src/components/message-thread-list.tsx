@@ -40,12 +40,15 @@ interface MessageThreadListProps {
 }
 
 export function MessageThreadList({ clientCompanyId, onThreadSelect, selectedThreadId }: MessageThreadListProps) {
-  const { data: threadsData, isLoading } = useQuery({
+  const { data: threadsData, isLoading, error, refetch } = useQuery({
     queryKey: ["message-threads", clientCompanyId],
     queryFn: () => messagingClient.listThreads({ clientCompanyId, limit: 50 }),
+    staleTime: 30000, // Consider data fresh for 30 seconds
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
   });
 
-  const threads = threadsData?.data?.data || [];
+  // The API returns { data: MessageThread[], meta: {...} }
+  const threads = threadsData?.data || [];
 
   if (isLoading) {
     return (
@@ -57,12 +60,54 @@ export function MessageThreadList({ clientCompanyId, onThreadSelect, selectedThr
     );
   }
 
+  if (error) {
+    return (
+      <Card>
+        <div style={{ padding: spacing.xl, textAlign: "center", color: colors.error }}>
+          <div style={{ fontSize: "48px", marginBottom: spacing.md }}>⚠️</div>
+          <div>Mesajlar yüklenirken bir hata oluştu.</div>
+          <div style={{ marginTop: spacing.sm, fontSize: "14px" }}>
+            {(error as Error)?.message || "Bilinmeyen hata"}
+          </div>
+          <button
+            onClick={() => refetch()}
+            style={{
+              marginTop: spacing.md,
+              padding: `${spacing.sm} ${spacing.md}`,
+              backgroundColor: colors.primary,
+              color: colors.white,
+              border: "none",
+              borderRadius: "6px",
+              cursor: "pointer",
+            }}
+          >
+            Tekrar Dene
+          </button>
+        </div>
+      </Card>
+    );
+  }
+
   if (threads.length === 0) {
     return (
       <Card>
         <div style={{ padding: spacing.xl, textAlign: "center", color: colors.text.secondary }}>
           <div style={{ fontSize: "48px", marginBottom: spacing.md }}>💬</div>
           <div>Henüz mesaj konuşması bulunmuyor.</div>
+          <button
+            onClick={() => refetch()}
+            style={{
+              marginTop: spacing.md,
+              padding: `${spacing.sm} ${spacing.md}`,
+              backgroundColor: colors.gray[200],
+              color: colors.text.primary,
+              border: "none",
+              borderRadius: "6px",
+              cursor: "pointer",
+            }}
+          >
+            Yenile
+          </button>
         </div>
       </Card>
     );

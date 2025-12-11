@@ -20,8 +20,6 @@ export interface RiskTrendData {
 export class RiskTrendService {
   /**
    * Get risk score history for a document
-   * Note: Currently risk scores are overwritten, so we need to track history separately
-   * For now, we'll use the generatedAt timestamp to create a history
    */
   async getDocumentRiskTrend(
     tenantId: string,
@@ -40,25 +38,64 @@ export class RiskTrendService {
       throw new NotFoundError("Belge risk skoru bulunamadı.");
     }
 
-    // For now, we only have the current score
-    // In a real implementation, we'd have a RiskScoreHistory table
-    // For MVP, we'll create a simple history from the current score
-    const history: RiskScoreHistory[] = [
-      {
-        date: currentScore.generatedAt,
-        score: Number(currentScore.score),
-        severity: currentScore.severity as "low" | "medium" | "high",
+    // Get history from RiskScoreHistory table
+    const historyRecords = await prisma.riskScoreHistory.findMany({
+      where: {
+        tenantId,
+        entityType: "document",
+        entityId: documentId,
+        recordedAt: {
+          gte: cutoffDate,
+        },
       },
-    ];
+      orderBy: {
+        recordedAt: "asc",
+      },
+    });
+
+    // If no history, include current score as history
+    const history: RiskScoreHistory[] =
+      historyRecords.length > 0
+        ? historyRecords.map((record) => ({
+            date: record.recordedAt,
+            score: Number(record.score),
+            severity: record.severity as "low" | "medium" | "high",
+          }))
+        : [
+            {
+              date: currentScore.generatedAt,
+              score: Number(currentScore.score),
+              severity: currentScore.severity as "low" | "medium" | "high",
+            },
+          ];
+
+    const currentScoreValue = Number(currentScore.score);
+    const previousScore = history.length > 1 ? history[history.length - 2].score : null;
+
+    // Determine trend
+    let trend: "increasing" | "decreasing" | "stable" = "stable";
+    if (previousScore !== null) {
+      const diff = currentScoreValue - previousScore;
+      if (diff > 5) {
+        trend = "increasing";
+      } else if (diff < -5) {
+        trend = "decreasing";
+      }
+    }
+
+    const scores = history.map((h) => h.score);
+    const averageScore = scores.reduce((sum, s) => sum + s, 0) / scores.length;
+    const minScore = Math.min(...scores);
+    const maxScore = Math.max(...scores);
 
     return {
       history,
-      currentScore: Number(currentScore.score),
-      previousScore: null, // Would need history table
-      trend: "stable",
-      averageScore: Number(currentScore.score),
-      minScore: Number(currentScore.score),
-      maxScore: Number(currentScore.score),
+      currentScore: currentScoreValue,
+      previousScore,
+      trend,
+      averageScore,
+      minScore,
+      maxScore,
     };
   }
 
@@ -129,7 +166,6 @@ export class RiskTrendService {
 
   /**
    * Store risk score history (should be called when risk score is updated)
-   * For now, this is a placeholder - in production, you'd have a RiskScoreHistory table
    */
   async storeRiskScoreHistory(
     tenantId: string,
@@ -138,11 +174,24 @@ export class RiskTrendService {
     score: number,
     severity: "low" | "medium" | "high"
   ): Promise<void> {
-    // TODO: Implement RiskScoreHistory table and store history
-    // For now, we rely on the existing risk score tables with generatedAt timestamps
-    console.log(
-      `[RiskTrendService] Risk score history stored: ${entityType} ${entityId}, score: ${score}, severity: ${severity}`
-    );
+    try {
+      await prisma.riskScoreHistory.create({
+        data: {
+          tenantId,
+          entityType,
+          entityId,
+          score,
+          severity,
+          recordedAt: new Date(),
+        },
+      });
+    } catch (error) {
+      // Log error but don't throw - history storage shouldn't break risk calculation
+      console.error(
+        `[RiskTrendService] Error storing risk score history: ${entityType} ${entityId}, score: ${score}, severity: ${severity}`,
+        error
+      );
+    }
   }
 }
 

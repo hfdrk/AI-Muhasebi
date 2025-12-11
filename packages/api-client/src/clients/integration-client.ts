@@ -31,7 +31,7 @@ export interface IntegrationSyncJob {
   tenantId: string;
   clientCompanyId: string | null;
   tenantIntegrationId: string;
-  jobType: "pull_invoices" | "pull_bank_transactions";
+  jobType: "pull_invoices" | "pull_bank_transactions" | "push_invoices" | "push_bank_transactions";
   status: "pending" | "in_progress" | "success" | "failed";
   startedAt: Date | null;
   finishedAt: Date | null;
@@ -183,7 +183,7 @@ export async function testConnection(
 
 export async function triggerSync(
   id: string,
-  jobType: "pull_invoices" | "pull_bank_transactions"
+  jobType: "pull_invoices" | "pull_bank_transactions" | "push_invoices" | "push_bank_transactions"
 ): Promise<{ data: { id: string; message: string } }> {
   return apiRequest<{ data: { id: string; message: string } }>(`/api/v1/integrations/${id}/sync`, {
     method: "POST",

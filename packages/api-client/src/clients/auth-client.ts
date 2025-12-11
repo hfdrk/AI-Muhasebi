@@ -64,18 +64,39 @@ async function apiRequest<T>(
   endpoint: string,
   options?: RequestInit
 ): Promise<T> {
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
-    },
-    credentials: "include",
-  });
+  let response: Response;
+  
+  try {
+    response = await fetch(`${API_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+      },
+      credentials: "include",
+    });
+  } catch (networkError: any) {
+    // Handle network errors (connection refused, timeout, etc.)
+    const errorMessage = networkError.message || "Sunucuya bağlanılamadı.";
+    const detailedError = API_URL 
+      ? `${errorMessage} (API: ${API_URL})`
+      : `${errorMessage} (API URL yapılandırılmamış. NEXT_PUBLIC_API_BASE_URL kontrol edin.)`;
+    throw new Error(detailedError);
+  }
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: { message: "Bir hata oluştu." } }));
-    throw new Error(error.error?.message || "Bir hata oluştu.");
+    let errorMessage = "Bir hata oluştu.";
+    try {
+      const error = await response.json();
+      errorMessage = error.error?.message || error.message || errorMessage;
+    } catch {
+      // If response is not JSON (e.g., connection refused), use status text
+      errorMessage = response.statusText || `HTTP ${response.status} hatası`;
+      if (response.status === 0 || !response.status) {
+        errorMessage = "Sunucuya bağlanılamadı. Backend API'nin çalıştığından emin olun.";
+      }
+    }
+    throw new Error(errorMessage);
   }
 
   return response.json();

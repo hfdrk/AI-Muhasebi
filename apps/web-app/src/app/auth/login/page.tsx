@@ -35,8 +35,30 @@ export default function LoginPage() {
 
   const mutation = useMutation({
     mutationFn: (data: LoginForm) => login(data),
-    onSuccess: () => {
-      router.push("/anasayfa");
+    onSuccess: (response) => {
+      // Decode JWT token to get user role
+      try {
+        const token = response.data.accessToken;
+        if (token) {
+          // JWT tokens have 3 parts: header.payload.signature
+          const payload = JSON.parse(atob(token.split(".")[1]));
+          const roles = payload.roles || [];
+          
+          // Redirect ReadOnly users to client portal, others to accountant dashboard
+          if (roles.includes("ReadOnly")) {
+            router.push("/client/dashboard");
+          } else {
+            router.push("/anasayfa");
+          }
+        } else {
+          // Fallback to accountant dashboard if no token
+          router.push("/anasayfa");
+        }
+      } catch (error) {
+        // If token decoding fails, fallback to accountant dashboard
+        console.error("Failed to decode token:", error);
+        router.push("/anasayfa");
+      }
     },
     onError: (err: Error) => {
       setError(err.message || "Giriş yapılırken bir hata oluştu.");

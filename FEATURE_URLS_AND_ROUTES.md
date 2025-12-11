@@ -2,8 +2,8 @@
 
 This document lists all URLs and API routes where you can access the implemented features.
 
-**Last Updated:** 2025-01-15  
-**New Features Added:** Email System, Messaging API, Client Portal, Contract Parser, Push Sync, Real-time Sync Status Updates
+**Last Updated:** 2025-01-16  
+**New Features Added:** Email System, Messaging API, Client Portal, Contract Parser, Push Sync, Real-time Sync Status Updates, **Messaging Frontend UI**, **Email Template Management UI**, **Error Handling & Retry Queue**, **Contract Analysis Frontend UI**
 
 **⚠️ Important:** Sync jobs require the worker to be running. Start it with: `cd apps/worker-jobs && pnpm dev`
 
@@ -89,6 +89,33 @@ Base URL: `http://localhost:3000`
   1. Upload a PDF with "Sözleşme" or "Contract" in the text
   2. Document will be automatically detected as contract type
   3. View parsed fields in document details page
+
+#### 3b. Advanced Contract Analysis (NEW - 2025-01-16)
+- **Frontend Page**: `/sozlesmeler`
+  - View all contracts with expiration status
+  - Filter by: All, Expiring Soon, Expired
+  - Summary cards showing totals and statistics
+  - Manual expiration check button
+  - Link to view contract documents
+- **Automatic Expiration Monitoring**: Contract expiration checks run daily via worker
+- **Expiration Alerts**: Automatic notifications created for:
+  - Contracts expiring within 30 days (high priority)
+  - Contracts expiring within 60 days (medium priority)
+  - Contracts expiring within 90 days (low priority)
+  - Expired contracts (critical)
+- **API Endpoints** (Base: `/api/v1/contracts`):
+  - `GET /api/v1/contracts` - Get all contracts for tenant
+  - `GET /api/v1/contracts/expiring?days=90` - Get contracts expiring within specified days
+  - `GET /api/v1/contracts/expired` - Get expired contracts
+  - `GET /api/v1/contracts/summary` - Get contract analysis summary (total, expiring, expired, total value)
+  - `POST /api/v1/contracts/check-expirations` - Manually trigger expiration check
+- **Worker Job**: Contract expiration checker runs daily at midnight
+- **How to Test:**
+  1. Go to `/sozlesmeler` to view contracts UI
+  2. Upload contract documents (they will be parsed automatically)
+  3. View contracts, expiring contracts, and expired contracts in the UI
+  4. Check notifications for expiration alerts
+  5. Use "Süre Kontrolü Yap" button to manually trigger expiration check
 
 #### 4. Task Management
 - **Tasks Page**: `/gorevler`
@@ -241,6 +268,29 @@ Base URL: `http://localhost:3800`
   - `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
   - `AWS_REGION`
 
+#### 3a. Contract Analysis API (NEW - 2025-01-16)
+
+**Contract Management:**
+- `GET /api/v1/contracts` - Get all contracts for tenant
+  - Returns: Array of contract analysis results with expiration dates, values, etc.
+- `GET /api/v1/contracts/expiring?days=90` - Get contracts expiring within specified days
+  - Query parameter: `days` (optional, default: 90)
+  - Example: `/api/v1/contracts/expiring?days=30` for contracts expiring in 30 days
+- `GET /api/v1/contracts/expired` - Get expired contracts
+- `GET /api/v1/contracts/summary` - Get contract analysis summary
+  - Returns: `{ total, expiringSoon, expired, totalValue }`
+- `POST /api/v1/contracts/check-expirations` - Manually trigger expiration check
+  - Creates notifications for expiring/expired contracts
+  - Returns: `{ checked, expiringSoon, expired, alertsCreated }`
+
+**Automatic Features:**
+- Contract expiration checks run daily via worker (automatic)
+- Notifications created automatically for:
+  - Contracts expiring within 30 days (high priority alert)
+  - Contracts expiring within 60 days (medium priority alert)
+  - Contracts expiring within 90 days (low priority alert)
+  - Expired contracts (critical alert)
+
 #### 4. Task Management API
 
 **Tasks:**
@@ -345,7 +395,23 @@ Base URL: `http://localhost:3800`
 3. **Tasks**: `http://localhost:3000/gorevler`
    - View all 11 demo tasks
 
-4. **Integrations**: `http://localhost:3000/entegrasyonlar`
+4. **Messaging**: `http://localhost:3000/mesajlar`
+   - View all message threads
+   - Start new conversations
+   - Real-time message updates
+
+5. **Email Templates**: `http://localhost:3000/ayarlar/email-sablonlari`
+   - Edit email templates
+   - Preview templates
+   - Send test emails
+
+6. **Contracts**: `http://localhost:3000/sozlesmeler`
+   - View all contracts
+   - Filter expiring/expired contracts
+   - View contract summary
+   - Manual expiration check
+
+7. **Integrations**: `http://localhost:3000/entegrasyonlar`
    - View available providers (Mikro, Logo, ETA, İş Bankası, Garanti BBVA)
    - Create integrations
    - Configure field mappings
@@ -505,6 +571,40 @@ SMTP_FROM=noreply@example.com
 
 ## 🧪 Quick Test Guide for New Features
 
+### Messaging Frontend UI
+1. **Go to**: `http://localhost:3000/mesajlar`
+2. **Click**: "+ Yeni Konuşma Başlat"
+3. **Select**: A client company
+4. **Enter**: Subject (optional)
+5. **Click**: "Konuşmayı Başlat"
+6. **Send**: Messages in the conversation
+7. **Check**: Unread count badge in navigation updates automatically
+
+**Or from Client Page:**
+1. Go to `/musteriler` → Click any client
+2. Click "💬 Mesaj Gönder" button
+3. Client is pre-selected, start conversation
+
+### Email Template Management
+1. **Go to**: `http://localhost:3000/ayarlar/email-sablonlari`
+2. **Select**: A template (e.g., "Bildirim Şablonu")
+3. **Edit**: Template content using Handlebars syntax
+4. **Click**: "Önizle" to see preview
+5. **Enter**: Test email address
+6. **Click**: "Test Gönder" to send test email
+7. **Click**: "Kaydet" to save changes
+
+### Error Handling & Retry Queue
+1. **Trigger**: Send an email with invalid SMTP settings
+2. **Check**: Email fails after immediate retries
+3. **Verify**: Email is added to retry queue (check database)
+4. **Wait**: Worker processes queue every 5 minutes
+5. **Monitor**: Check retry queue status in database
+
+---
+
+## 🧪 Quick Test Guide for Previous Features
+
 ### 1. Client Portal
 ```bash
 # 1. Create or use existing ReadOnly user
@@ -516,49 +616,46 @@ SMTP_FROM=noreply@example.com
 # 7. View transactions: http://localhost:3000/client/transactions
 ```
 
-### 2. Messaging API
+### 2. Messaging Frontend UI
 ```bash
-# Using curl or Postman/Thunder Client:
+# 1. Go to: http://localhost:3000/mesajlar
+# 2. Click: "+ Yeni Konuşma Başlat"
+# 3. Select: A client company
+# 4. Enter: Subject (optional)
+# 5. Click: "Konuşmayı Başlat"
+# 6. Send: Messages in the conversation
+# 7. Check: Unread count badge in navigation updates automatically
 
-# List threads
-GET http://localhost:3800/api/v1/messaging/threads
-Headers: Authorization: Bearer YOUR_TOKEN
-
-# Create thread
-POST http://localhost:3800/api/v1/messaging/threads
-Headers: Authorization: Bearer YOUR_TOKEN, Content-Type: application/json
-Body: {
-  "clientCompanyId": "client-id",
-  "subject": "Test Conversation",
-  "participantUserIds": ["user-id-1", "user-id-2"]
-}
-
-# Send message
-POST http://localhost:3800/api/v1/messaging/threads/{threadId}/messages
-Headers: Authorization: Bearer YOUR_TOKEN, Content-Type: application/json
-Body: {
-  "content": "Hello, this is a test message"
-}
+# Or from Client Page:
+# 1. Go to /musteriler → Click any client
+# 2. Click "💬 Mesaj Gönder" button
+# 3. Client is pre-selected, start conversation
 ```
 
-### 3. Email Templates
+### 3. Email Template Management
 ```bash
-# View template files:
-# - apps/backend-api/templates/email/
-# - apps/worker-jobs/templates/email/
-
-# Templates are used automatically when:
-# - Risk alerts are created
-# - Scheduled reports are generated
-# - Notifications are sent
-
-# To test email sending:
-# 1. Configure SMTP in .env
-# 2. Trigger a notification or risk alert
-# 3. Check email inbox (or logs in stub mode)
+# 1. Go to: http://localhost:3000/ayarlar/email-sablonlari
+# 2. Select: A template (e.g., "Bildirim Şablonu")
+# 3. Edit: Template content using Handlebars syntax
+# 4. Click: "Önizle" to see preview
+# 5. Enter: Test email address
+# 6. Click: "Test Gönder" to send test email
+# 7. Click: "Kaydet" to save changes
 ```
 
-### 4. Push Sync
+### 4. Error Handling & Retry Queue
+```bash
+# 1. Trigger: Send an email with invalid SMTP settings
+# 2. Check: Email fails after immediate retries
+# 3. Verify: Email is added to retry queue (check database)
+# 4. Wait: Worker processes queue every 5 minutes
+# 5. Monitor: Check retry queue status in database
+
+# Database query to check retry queue:
+# SELECT status, COUNT(*) FROM retry_queue GROUP BY status;
+```
+
+### 5. Push Sync
 ```bash
 # 1. Go to: http://localhost:3000/entegrasyonlar
 # 2. Click on an integration
@@ -573,7 +670,7 @@ Body: {
 # 7. Check sync jobs tab for push_invoices or push_bank_transactions jobs
 ```
 
-### 5. Contract Parser
+### 6. Contract Parser
 ```bash
 # 1. Upload a PDF document containing "Sözleşme" or "Contract" in the text
 # 2. Go to: http://localhost:3000/belgeler/[document-id]
@@ -585,4 +682,44 @@ Body: {
 #    - value, currency
 #    - parties (array with names, roles, tax numbers)
 #    - contractType, terms, renewalTerms
+```
+
+---
+
+## 🔄 Error Handling & Retry Queue ✅
+
+**Status:** Fully Implemented
+
+**What It Does:**
+- Automatically retries failed operations (emails, jobs, syncs)
+- Exponential backoff (1 min → 2 min → 4 min, max 1 hour)
+- Max 3 retry attempts per item
+- Tracks status: pending, processing, failed, success
+
+**How It Works:**
+1. When an email fails after all immediate retries, it's added to the retry queue
+2. Worker processes retry queue every 5 minutes
+3. Failed items are retried with exponential backoff
+4. After max attempts, items are marked as "failed"
+
+**Database Model:**
+- `RetryQueue` table stores all retry items
+- Fields: `type` (email/job/sync), `payload`, `attempts`, `maxAttempts`, `nextRetryAt`, `status`, `error`
+
+**Currently Supported:**
+- ✅ Email retry (automatic)
+- ⏳ Job retry (planned)
+- ⏳ Sync retry (planned)
+
+**Monitoring:**
+- Check retry queue status via database:
+  ```sql
+  SELECT status, COUNT(*) FROM retry_queue GROUP BY status;
+  ```
+- Failed items can be manually reviewed and retried if needed
+
+**Note:** Requires database migration to add `RetryQueue` model:
+```bash
+cd apps/backend-api
+pnpm db:migrate
 ```

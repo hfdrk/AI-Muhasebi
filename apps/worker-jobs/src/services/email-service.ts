@@ -13,6 +13,7 @@ import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
 import { getConfig } from "@repo/config";
 import { emailTemplateService, type TemplateVariables } from "./email-template-service";
+import { emailLogService } from "../../backend-api/src/services/email-log-service";
 
 export interface SendEmailAttachment {
   filename: string;
@@ -28,6 +29,7 @@ export interface SendEmailParams {
   cc?: string[];
   bcc?: string[];
   attachments?: SendEmailAttachment[];
+  tenantId?: string | null; // Optional tenant ID for logging
 }
 
 export class EmailService {
@@ -137,6 +139,20 @@ export class EmailService {
           attempt,
         });
 
+        // Log email send
+        try {
+          await emailLogService.logEmail({
+            tenantId: params.tenantId || null,
+            to,
+            subject,
+            status: "sent",
+            messageId: info.messageId || null,
+          });
+        } catch (logError: any) {
+          // Don't fail email send if logging fails
+          console.error("[EmailService] Failed to log email:", logError.message);
+        }
+
         return; // Success, exit retry loop
       } catch (error: any) {
         lastError = error;
@@ -159,6 +175,19 @@ export class EmailService {
       }
     }
 
+    // Log failed email
+    try {
+      await emailLogService.logEmail({
+        tenantId: params.tenantId || null,
+        to,
+        subject,
+        status: "failed",
+        error: lastError?.message || "Unknown error",
+      });
+    } catch (logError: any) {
+      console.error("[EmailService] Failed to log failed email:", logError.message);
+    }
+
     // All retries failed - add to retry queue
     try {
       const { retryQueueService } = await import("./retry-queue-service");
@@ -171,6 +200,7 @@ export class EmailService {
           html,
           cc,
           bcc,
+          tenantId: params.tenantId,
           attachments: attachments?.map((a) => ({
             filename: a.filename,
             content: a.content.toString("base64"),
@@ -198,7 +228,8 @@ export class EmailService {
     templateName: string,
     to: string[],
     subject: string,
-    variables: TemplateVariables
+    variables: TemplateVariables,
+    tenantId?: string | null
   ): Promise<void> {
     try {
       const html = await emailTemplateService.renderTemplate(templateName, variables);
@@ -209,6 +240,7 @@ export class EmailService {
         subject,
         body,
         html,
+        tenantId,
       });
     } catch (error: any) {
       throw new Error(`Failed to send templated email: ${error.message}`);

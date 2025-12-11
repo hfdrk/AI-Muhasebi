@@ -66,7 +66,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     if (pathname?.startsWith("/risk")) {
       setExpandedSections((prev) => new Set(prev).add("risk"));
     }
-    if (pathname?.startsWith("/raporlar") || pathname?.startsWith("/entegrasyonlar") || pathname?.startsWith("/ai-asistan") || pathname?.startsWith("/mesajlar") || pathname?.startsWith("/bildirimler")) {
+    if (pathname?.startsWith("/raporlar") || pathname?.startsWith("/entegrasyonlar") || pathname?.startsWith("/ai-asistan") || pathname?.startsWith("/mesajlar") || pathname?.startsWith("/sozlesmeler") || pathname?.startsWith("/bildirimler")) {
       setExpandedSections((prev) => new Set(prev).add("other"));
     }
   }, [pathname]);
@@ -105,6 +105,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     { href: "/entegrasyonlar", label: "Entegrasyonlar", icon: "🔌" },
     { href: "/ai-asistan", label: "AI Asistan", icon: "🤖" },
     { href: "/mesajlar", label: "Mesajlar", icon: "💬", badge: unreadMessageCount },
+    { href: "/sozlesmeler", label: "Sözleşmeler", icon: "📄" },
     { href: "/bildirimler", label: "Bildirimler", icon: "🔔" },
   ];
 
@@ -113,6 +114,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     { href: "/ayarlar/profil", label: "Profil Ayarları", icon: "👤" },
     { href: "/ayarlar/kullanicilar", label: "Kullanıcı Yönetimi", icon: "👥" },
     { href: "/ayarlar/email-sablonlari", label: "E-posta Şablonları", icon: "📧" },
+    { href: "/ayarlar/email-loglari", label: "E-posta Logları", icon: "📋" },
     { href: "/ayarlar/abonelik", label: "Abonelik & Kullanım", icon: "💳" },
     { href: "/ayarlar/denetim-kayitlari", label: "Denetim Kayıtları", icon: "📋" },
   ];

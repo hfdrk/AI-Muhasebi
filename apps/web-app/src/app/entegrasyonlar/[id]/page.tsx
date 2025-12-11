@@ -29,6 +29,8 @@ const SYNC_STATUS_LABELS: Record<string, string> = {
 const JOB_TYPE_LABELS: Record<string, string> = {
   pull_invoices: "Fatura Çekme",
   pull_bank_transactions: "Banka İşlemi Çekme",
+  push_invoices: "Fatura Gönderme",
+  push_bank_transactions: "Banka İşlemi Gönderme",
 };
 
 const JOB_STATUS_LABELS: Record<string, string> = {
@@ -88,7 +90,7 @@ export default function IntegrationDetailPage() {
   } | null>(null);
 
   const syncMutation = useMutation({
-    mutationFn: (jobType: "pull_invoices" | "pull_bank_transactions") =>
+    mutationFn: (jobType: "pull_invoices" | "pull_bank_transactions" | "push_invoices" | "push_bank_transactions") =>
       triggerSync(integrationId, jobType),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["integration", integrationId] });
@@ -171,7 +173,7 @@ export default function IntegrationDetailPage() {
   const logs = logsData?.data.data || [];
   const provider = integration.provider;
 
-  const handleSync = (jobType: "pull_invoices" | "pull_bank_transactions") => {
+  const handleSync = (jobType: "pull_invoices" | "pull_bank_transactions" | "push_invoices" | "push_bank_transactions") => {
     syncMutation.mutate(jobType);
   };
 
@@ -405,68 +407,132 @@ export default function IntegrationDetailPage() {
         </h2>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
           {provider.type === "accounting" && (
-            <button
-              onClick={() => handleSync("pull_invoices")}
-              disabled={syncMutation.isPending}
-              style={{
-                padding: "12px 24px",
-                backgroundColor: syncMutation.isPending ? "#9ca3af" : "#2563eb",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                cursor: syncMutation.isPending ? "not-allowed" : "pointer",
-                fontSize: "16px",
-                fontWeight: "500",
-                transition: "all 0.2s",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              }}
-              onMouseEnter={(e) => {
-                if (!syncMutation.isPending) {
-                  e.currentTarget.style.backgroundColor = "#1d4ed8";
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!syncMutation.isPending) {
-                  e.currentTarget.style.backgroundColor = "#2563eb";
-                  e.currentTarget.style.transform = "translateY(0)";
-                }
-              }}
-            >
-              {syncMutation.isPending ? "⏳ Başlatılıyor..." : "🔄 Faturaları Senkronize Et"}
-            </button>
+            <>
+              <button
+                onClick={() => handleSync("pull_invoices")}
+                disabled={syncMutation.isPending}
+                style={{
+                  padding: "12px 24px",
+                  backgroundColor: syncMutation.isPending ? "#9ca3af" : "#2563eb",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  cursor: syncMutation.isPending ? "not-allowed" : "pointer",
+                  fontSize: "16px",
+                  fontWeight: "500",
+                  transition: "all 0.2s",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                }}
+                onMouseEnter={(e) => {
+                  if (!syncMutation.isPending) {
+                    e.currentTarget.style.backgroundColor = "#1d4ed8";
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!syncMutation.isPending) {
+                    e.currentTarget.style.backgroundColor = "#2563eb";
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }
+                }}
+              >
+                {syncMutation.isPending ? "⏳ Başlatılıyor..." : "⬇️ Faturaları Çek"}
+              </button>
+              <button
+                onClick={() => handleSync("push_invoices")}
+                disabled={syncMutation.isPending}
+                style={{
+                  padding: "12px 24px",
+                  backgroundColor: syncMutation.isPending ? "#9ca3af" : "#10b981",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  cursor: syncMutation.isPending ? "not-allowed" : "pointer",
+                  fontSize: "16px",
+                  fontWeight: "500",
+                  transition: "all 0.2s",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                }}
+                onMouseEnter={(e) => {
+                  if (!syncMutation.isPending) {
+                    e.currentTarget.style.backgroundColor = "#059669";
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!syncMutation.isPending) {
+                    e.currentTarget.style.backgroundColor = "#10b981";
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }
+                }}
+              >
+                {syncMutation.isPending ? "⏳ Başlatılıyor..." : "⬆️ Faturaları Gönder"}
+              </button>
+            </>
           )}
           {provider.type === "bank" && (
-            <button
-              onClick={() => handleSync("pull_bank_transactions")}
-              disabled={syncMutation.isPending}
-              style={{
-                padding: "12px 24px",
-                backgroundColor: syncMutation.isPending ? "#9ca3af" : "#2563eb",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                cursor: syncMutation.isPending ? "not-allowed" : "pointer",
-                fontSize: "16px",
-                fontWeight: "500",
-                transition: "all 0.2s",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              }}
-              onMouseEnter={(e) => {
-                if (!syncMutation.isPending) {
-                  e.currentTarget.style.backgroundColor = "#1d4ed8";
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!syncMutation.isPending) {
-                  e.currentTarget.style.backgroundColor = "#2563eb";
-                  e.currentTarget.style.transform = "translateY(0)";
-                }
-              }}
-            >
-              {syncMutation.isPending ? "⏳ Başlatılıyor..." : "🔄 Hesap Hareketlerini Senkronize Et"}
-            </button>
+            <>
+              <button
+                onClick={() => handleSync("pull_bank_transactions")}
+                disabled={syncMutation.isPending}
+                style={{
+                  padding: "12px 24px",
+                  backgroundColor: syncMutation.isPending ? "#9ca3af" : "#2563eb",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  cursor: syncMutation.isPending ? "not-allowed" : "pointer",
+                  fontSize: "16px",
+                  fontWeight: "500",
+                  transition: "all 0.2s",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                }}
+                onMouseEnter={(e) => {
+                  if (!syncMutation.isPending) {
+                    e.currentTarget.style.backgroundColor = "#1d4ed8";
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!syncMutation.isPending) {
+                    e.currentTarget.style.backgroundColor = "#2563eb";
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }
+                }}
+              >
+                {syncMutation.isPending ? "⏳ Başlatılıyor..." : "⬇️ Hesap Hareketlerini Çek"}
+              </button>
+              <button
+                onClick={() => handleSync("push_bank_transactions")}
+                disabled={syncMutation.isPending}
+                style={{
+                  padding: "12px 24px",
+                  backgroundColor: syncMutation.isPending ? "#9ca3af" : "#10b981",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  cursor: syncMutation.isPending ? "not-allowed" : "pointer",
+                  fontSize: "16px",
+                  fontWeight: "500",
+                  transition: "all 0.2s",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                }}
+                onMouseEnter={(e) => {
+                  if (!syncMutation.isPending) {
+                    e.currentTarget.style.backgroundColor = "#059669";
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!syncMutation.isPending) {
+                    e.currentTarget.style.backgroundColor = "#10b981";
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }
+                }}
+              >
+                {syncMutation.isPending ? "⏳ Başlatılıyor..." : "⬆️ Hesap Hareketlerini Gönder"}
+              </button>
+            </>
           )}
           <Link
             href={`/entegrasyonlar/${integrationId}/edit`}

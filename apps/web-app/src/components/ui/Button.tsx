@@ -42,7 +42,7 @@ export function Button({
     switch (variant) {
       case "primary":
         return {
-          background: isHovered ? colors.primaryDark : colors.primary,
+          backgroundColor: isHovered ? colors.primaryDark : colors.primary,
           color: colors.white,
           boxShadow: isHovered ? `0 4px 12px ${colors.primary}40` : "none",
         };

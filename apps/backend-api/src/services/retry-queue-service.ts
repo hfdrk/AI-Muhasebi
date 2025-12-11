@@ -185,19 +185,79 @@ export class RetryQueueService {
    * Retry job execution
    */
   private async retryJob(payload: Record<string, unknown>): Promise<boolean> {
-    // This would call the appropriate job processor
-    // For now, return false to indicate not implemented
-    console.warn("[RetryQueue] Job retry not yet implemented");
-    return false;
+    try {
+      const jobType = payload.jobType as string;
+      const tenantId = payload.tenantId as string;
+
+      if (!jobType || !tenantId) {
+        console.error("[RetryQueue] Invalid job payload: missing jobType or tenantId", payload);
+        return false;
+      }
+
+      // Import processors dynamically to avoid circular dependencies
+      switch (jobType) {
+        case "DOCUMENT_PROCESSING": {
+          const { documentProcessor } = await import("../../../worker-jobs/src/processors/document-processor");
+          const documentId = payload.documentId as string;
+          if (!documentId) {
+            console.error("[RetryQueue] Invalid document job payload: missing documentId", payload);
+            return false;
+          }
+          await documentProcessor.processDocument(tenantId, documentId);
+          return true;
+        }
+
+        case "RISK_CALCULATION": {
+          const { riskCalculationProcessor } = await import("../../../worker-jobs/src/processors/risk-calculation-processor");
+          const entityType = payload.entityType as string;
+          const entityId = payload.entityId as string;
+
+          if (!entityType || !entityId) {
+            console.error("[RetryQueue] Invalid risk calculation job payload: missing entityType or entityId", payload);
+            return false;
+          }
+
+          if (entityType === "document") {
+            await riskCalculationProcessor.processDocumentRiskCalculation(tenantId, entityId);
+          } else if (entityType === "company") {
+            await riskCalculationProcessor.processCompanyRiskCalculation(tenantId, entityId);
+          } else {
+            console.error("[RetryQueue] Unknown entity type for risk calculation", entityType);
+            return false;
+          }
+          return true;
+        }
+
+        default:
+          console.warn(`[RetryQueue] Unknown job type: ${jobType}`);
+          return false;
+      }
+    } catch (error: any) {
+      console.error("[RetryQueue] Job retry failed:", error);
+      return false;
+    }
   }
 
   /**
    * Retry sync operation
    */
   private async retrySync(payload: Record<string, unknown>): Promise<boolean> {
-    // This would retry integration sync
-    console.warn("[RetryQueue] Sync retry not yet implemented");
-    return false;
+    try {
+      const jobId = payload.jobId as string;
+
+      if (!jobId) {
+        console.error("[RetryQueue] Invalid sync payload: missing jobId", payload);
+        return false;
+      }
+
+      // Import integration sync processor dynamically
+      const { integrationSyncProcessor } = await import("../../../worker-jobs/src/processors/integration-sync-processor");
+      await integrationSyncProcessor.processSyncJob(jobId);
+      return true;
+    } catch (error: any) {
+      console.error("[RetryQueue] Sync retry failed:", error);
+      return false;
+    }
   }
 
   /**

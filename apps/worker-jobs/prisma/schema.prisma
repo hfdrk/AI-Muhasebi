@@ -66,6 +66,7 @@ model Tenant {
   riskRules RiskRule[]
   documentRiskScores DocumentRiskScore[]
   clientCompanyRiskScores ClientCompanyRiskScore[]
+  riskScoreHistory RiskScoreHistory[]
   riskAlerts RiskAlert[]
   tenantIntegrations TenantIntegration[]
   integrationSyncJobs IntegrationSyncJob[]
@@ -79,6 +80,7 @@ model Tenant {
   tasks Task[]
   documentRequirements DocumentRequirement[]
   retryQueueItems RetryQueue[]
+  emailLogs       EmailLog[]
 
   @@index([slug])
   @@map("tenants")
@@ -244,6 +246,7 @@ model Invoice {
   counterpartyTaxNumber String? @map("counterparty_tax_number") @db.VarChar(50)
   status              String    @default("taslak") @db.VarChar(50) // taslak, kesildi, iptal, muhasebeleştirilmiş
   source              String    @default("manual") @db.VarChar(50) // manual, import, integration
+  pushedAt            DateTime? @map("pushed_at") @db.Timestamptz(6) // Last time this invoice was pushed to external system
   createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -309,6 +312,7 @@ model Transaction {
   referenceNo   String?   @map("reference_no") @db.VarChar(100)
   description   String?   @db.Text
   source        String    @default("manual") @db.VarChar(50) // manual, import, integration
+  pushedAt      DateTime? @map("pushed_at") @db.Timestamptz(6) // Last time this transaction was pushed to external system
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -527,6 +531,26 @@ model ClientCompanyRiskScore {
   @@index([tenantId, severity])
   @@index([generatedAt])
   @@map("client_company_risk_scores")
+}
+
+model RiskScoreHistory {
+  id          String   @id @default(cuid())
+  tenantId    String   @map("tenant_id")
+  entityType  String   @map("entity_type") @db.VarChar(50) // "document" or "company"
+  entityId    String   @map("entity_id")
+  score       Decimal  @db.Decimal(5, 2) // 0-100
+  severity    String   @db.VarChar(50) // low, medium, high
+  recordedAt  DateTime @map("recorded_at") @db.Timestamptz(6)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([entityType, entityId])
+  @@index([tenantId, entityType, entityId])
+  @@index([recordedAt])
+  @@index([tenantId, recordedAt])
+  @@map("risk_score_history")
 }
 
 model RiskAlert {
@@ -860,5 +884,27 @@ model RetryQueue {
   @@index([nextRetryAt])
   @@index([type])
   @@map("retry_queue")
+}
+
+model EmailLog {
+  id          String    @id @default(cuid())
+  tenantId    String?   @map("tenant_id")
+  to          String[]  @db.VarChar(255)
+  subject     String    @db.VarChar(500)
+  status      String    @default("sent") @db.VarChar(50) // sent, delivered, bounced, failed
+  messageId   String?   @map("message_id") @db.VarChar(255)
+  error       String?   @db.Text
+  openedAt    DateTime? @map("opened_at") @db.Timestamptz(6)
+  clickedAt   DateTime? @map("clicked_at") @db.Timestamptz(6)
+  bouncedAt   DateTime? @map("bounced_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("email_logs")
 }
 

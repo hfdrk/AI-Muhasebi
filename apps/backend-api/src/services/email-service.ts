@@ -14,6 +14,7 @@ import type { Transporter } from "nodemailer";
 import { getConfig } from "@repo/config";
 import { emailTemplateService, type TemplateVariables } from "./email-template-service";
 import { retryQueueService } from "./retry-queue-service";
+import { emailLogService } from "./email-log-service";
 
 export interface SendEmailParams {
   to: string[];
@@ -22,6 +23,7 @@ export interface SendEmailParams {
   html?: string;
   cc?: string[];
   bcc?: string[];
+  tenantId?: string | null; // Optional tenant ID for logging
 }
 
 export class EmailService {
@@ -123,6 +125,20 @@ export class EmailService {
           attempt,
         });
 
+        // Log email send
+        try {
+          await emailLogService.logEmail({
+            tenantId: params.tenantId || null,
+            to,
+            subject,
+            status: "sent",
+            messageId: info.messageId || null,
+          });
+        } catch (logError: any) {
+          // Don't fail email send if logging fails
+          console.error("[EmailService] Failed to log email:", logError.message);
+        }
+
         return; // Success, exit retry loop
       } catch (error: any) {
         lastError = error;
@@ -145,6 +161,19 @@ export class EmailService {
       }
     }
 
+    // Log failed email
+    try {
+      await emailLogService.logEmail({
+        tenantId: params.tenantId || null,
+        to,
+        subject,
+        status: "failed",
+        error: lastError?.message || "Unknown error",
+      });
+    } catch (logError: any) {
+      console.error("[EmailService] Failed to log failed email:", logError.message);
+    }
+
     // All retries failed - add to retry queue
     try {
       await retryQueueService.enqueue(
@@ -156,6 +185,7 @@ export class EmailService {
           html,
           cc,
           bcc,
+          tenantId: params.tenantId,
         },
         3, // max attempts
         60000 // 1 minute delay
@@ -179,7 +209,8 @@ export class EmailService {
     notificationType: string,
     title: string,
     message: string,
-    details?: string
+    details?: string,
+    tenantId?: string | null
   ): Promise<void> {
     try {
       // Try to use template
@@ -201,6 +232,7 @@ export class EmailService {
         subject: `[Sistem] ${title}`,
         body,
         html,
+        tenantId,
       });
     } catch (error: any) {
       // Fallback to plain text if template fails
@@ -212,6 +244,7 @@ export class EmailService {
         to,
         subject,
         body,
+        tenantId,
       });
     }
   }
@@ -223,7 +256,8 @@ export class EmailService {
     templateName: string,
     to: string[],
     subject: string,
-    variables: TemplateVariables
+    variables: TemplateVariables,
+    tenantId?: string | null
   ): Promise<void> {
     try {
       const html = await emailTemplateService.renderTemplate(templateName, variables);
@@ -234,6 +268,7 @@ export class EmailService {
         subject,
         body,
         html,
+        tenantId,
       });
     } catch (error: any) {
       throw new Error(`Failed to send templated email: ${error.message}`);

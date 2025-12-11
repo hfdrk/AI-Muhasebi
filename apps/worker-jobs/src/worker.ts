@@ -7,6 +7,7 @@ import { integrationSyncProcessor } from "./processors/integration-sync-processo
 import { integrationSyncScheduler } from "./schedulers/integration-sync-scheduler";
 import { scheduledReportRunner } from "./workers/scheduled-report-runner";
 import { aiSummaryRunner } from "./workers/ai-summary-runner";
+import { processContractExpirationChecks } from "./workers/contract-expiration-checker";
 import { prisma } from "./lib/prisma";
 
 // Validate environment variables at startup
@@ -19,6 +20,7 @@ const INTEGRATION_SYNC_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 const INTEGRATION_SCHEDULER_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
 const SCHEDULED_REPORT_INTERVAL_MS = 60 * 1000; // 1 minute
 const AI_SUMMARY_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours (daily)
+const CONTRACT_EXPIRATION_CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours (daily)
 
 async function processPendingJobs(): Promise<void> {
   try {
@@ -302,6 +304,7 @@ async function startWorker(): Promise<void> {
     integrationSchedulerInterval: `${INTEGRATION_SCHEDULER_INTERVAL_MS / 1000}s`,
     scheduledReportInterval: `${SCHEDULED_REPORT_INTERVAL_MS / 1000}s`,
     aiSummaryInterval: `${AI_SUMMARY_INTERVAL_MS / (60 * 60 * 1000)}h`,
+    contractExpirationCheckInterval: `${CONTRACT_EXPIRATION_CHECK_INTERVAL_MS / (60 * 60 * 1000)}h`,
   });
 
   // Start document processing polling loop
@@ -334,6 +337,11 @@ async function startWorker(): Promise<void> {
     await processAISummaries();
   }, AI_SUMMARY_INTERVAL_MS);
 
+  // Start contract expiration check loop (daily)
+  setInterval(async () => {
+    await processContractExpirationChecks();
+  }, CONTRACT_EXPIRATION_CHECK_INTERVAL_MS);
+
   // Start retry queue processing loop (every 5 minutes)
   setInterval(async () => {
     await processRetryQueue();
@@ -346,6 +354,7 @@ async function startWorker(): Promise<void> {
   await scheduleIntegrationSyncs();
   await processScheduledReports();
   await processRetryQueue();
+  await processContractExpirationChecks();
 
   // Run risk calculations once on startup (optional - can be removed if not desired)
   // await processScheduledRiskCalculations();

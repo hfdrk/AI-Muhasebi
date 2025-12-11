@@ -103,7 +103,16 @@ export const prisma = new Proxy({} as PrismaClient, {
     }
     
     // Use direct property access - Prisma methods are already bound to the client instance
-    return (client as any)[prop];
+    const value = (client as any)[prop];
+    
+    // If the property is undefined, it might be a model that doesn't exist
+    // This can happen if Prisma client wasn't regenerated after schema changes
+    if (value === undefined && typeof prop === 'string' && prop[0] === prop[0].toLowerCase()) {
+      // It's likely a model name (camelCase), log a warning
+      console.warn(`Prisma model '${prop}' is undefined. Make sure Prisma client is regenerated.`);
+    }
+    
+    return value;
   },
   has(_target, prop) {
     return prop in getPrismaClient();

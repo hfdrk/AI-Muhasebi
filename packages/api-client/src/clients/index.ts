@@ -22,3 +22,5 @@ export * from "./task-client";
 export * from "./document-requirement-client";
 export * from "./messaging-client";
 export * from "./email-template-client";
+export * from "./contract-client";
+export * from "./email-log-client";

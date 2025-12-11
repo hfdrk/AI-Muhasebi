@@ -121,10 +121,10 @@ export default function ClientDashboardPage() {
           <div style={{ color: colors.text.secondary, fontSize: "14px" }}>Yüklenen Belgeler</div>
         </Card>
 
-        {riskScore && (
+        {riskScore && riskScore.riskScore && (
           <Card>
-            <div style={{ fontSize: "32px", fontWeight: "bold", color: riskScore.severity === "high" ? colors.error : colors.primary, marginBottom: spacing.xs }}>
-              {Number(riskScore.score).toFixed(0)}
+            <div style={{ fontSize: "32px", fontWeight: "bold", color: riskScore.riskScore.severity === "high" ? colors.error : colors.primary, marginBottom: spacing.xs }}>
+              {Number(riskScore.riskScore.score).toFixed(0)}
             </div>
             <div style={{ color: colors.text.secondary, fontSize: "14px" }}>Risk Skoru</div>
           </Card>

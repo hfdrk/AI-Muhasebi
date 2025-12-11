@@ -71,6 +71,7 @@ model Tenant {
   riskRules               RiskRule[]
   documentRiskScores      DocumentRiskScore[]
   clientCompanyRiskScores ClientCompanyRiskScore[]
+  riskScoreHistory        RiskScoreHistory[]
   riskAlerts              RiskAlert[]
   tenantIntegrations      TenantIntegration[]
   integrationSyncJobs     IntegrationSyncJob[]
@@ -85,6 +86,8 @@ model Tenant {
   tasks                   Task[]
   documentRequirements    DocumentRequirement[]
   retryQueueItems         RetryQueue[]
+  MessageThread           MessageThread[]
+  emailLogs               EmailLog[]
 
   @@index([slug])
   @@map("tenants")
@@ -132,17 +135,17 @@ model AuditLog {
 }
 
 model TenantSettings {
-  id                 String   @id @default(cuid())
-  tenantId           String   @unique @map("tenant_id")
-  displayName        String?  @map("display_name") @db.VarChar(255)
-  logoUrl            String?  @map("logo_url") @db.VarChar(500)
-  locale             String   @default("tr-TR") @db.VarChar(10)
-  timezone           String   @default("Europe/Istanbul") @db.VarChar(50)
-  emailFromName      String?  @map("email_from_name") @db.VarChar(255)
-  riskThresholds     Json     @default("{\"high\":70,\"critical\":90}") @map("risk_thresholds")
+  id                  String   @id @default(cuid())
+  tenantId            String   @unique @map("tenant_id")
+  displayName         String?  @map("display_name") @db.VarChar(255)
+  logoUrl             String?  @map("logo_url") @db.VarChar(500)
+  locale              String   @default("tr-TR") @db.VarChar(10)
+  timezone            String   @default("Europe/Istanbul") @db.VarChar(50)
+  emailFromName       String?  @map("email_from_name") @db.VarChar(255)
+  riskThresholds      Json     @default("{\"high\":70,\"critical\":90}") @map("risk_thresholds")
   defaultReportPeriod String   @default("LAST_30_DAYS") @map("default_report_period") @db.VarChar(50)
-  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
@@ -195,19 +198,19 @@ model ClientCompany {
   createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  tenant              Tenant                     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  bankAccounts        ClientCompanyBankAccount[]
-  invoices            Invoice[]
-  transactions        Transaction[]
-  documents           Document[]
-  riskScores          ClientCompanyRiskScore[]
-  riskAlerts          RiskAlert[]
-  tenantIntegrations  TenantIntegration[]
-  integrationSyncJobs IntegrationSyncJob[]
-  scheduledReports    ScheduledReport[]
-  tasks               Task[]
+  tenant               Tenant                     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  bankAccounts         ClientCompanyBankAccount[]
+  invoices             Invoice[]
+  transactions         Transaction[]
+  documents            Document[]
+  riskScores           ClientCompanyRiskScore[]
+  riskAlerts           RiskAlert[]
+  tenantIntegrations   TenantIntegration[]
+  integrationSyncJobs  IntegrationSyncJob[]
+  scheduledReports     ScheduledReport[]
+  tasks                Task[]
   documentRequirements DocumentRequirement[]
-  messageThreads      MessageThread[]
+  messageThreads       MessageThread[]
 
   @@unique([tenantId, taxNumber])
   @@index([tenantId])
@@ -251,6 +254,7 @@ model Invoice {
   counterpartyTaxNumber String?   @map("counterparty_tax_number") @db.VarChar(50)
   status                String    @default("taslak") @db.VarChar(50) // taslak, kesildi, iptal, muhasebeleştirilmiş
   source                String    @default("manual") @db.VarChar(50) // manual, import, integration
+  pushedAt              DateTime? @map("pushed_at") @db.Timestamptz(6) // Last time this invoice was pushed to external system
   createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt             DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -316,6 +320,7 @@ model Transaction {
   referenceNo     String?  @map("reference_no") @db.VarChar(100)
   description     String?  @db.Text
   source          String   @default("manual") @db.VarChar(50) // manual, import, integration
+  pushedAt        DateTime? @map("pushed_at") @db.Timestamptz(6) // Last time this transaction was pushed to external system
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -372,17 +377,17 @@ model Document {
   createdAt              DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt              DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  tenant             Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  clientCompany      ClientCompany          @relation(fields: [clientCompanyId], references: [id], onDelete: Cascade)
-  relatedInvoice     Invoice?               @relation(fields: [relatedInvoiceId], references: [id], onDelete: SetNull)
-  relatedTransaction Transaction?           @relation(fields: [relatedTransactionId], references: [id], onDelete: SetNull)
-  uploadUser         User                   @relation(fields: [uploadUserId], references: [id], onDelete: Restrict)
-  processingJob      DocumentProcessingJob?
-  ocrResult          DocumentOCRResult?
-  parsedData         DocumentParsedData?
-  riskFeatures       DocumentRiskFeatures?
-  riskScore          DocumentRiskScore?
-  riskAlerts         RiskAlert[]
+  tenant               Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientCompany        ClientCompany          @relation(fields: [clientCompanyId], references: [id], onDelete: Cascade)
+  relatedInvoice       Invoice?               @relation(fields: [relatedInvoiceId], references: [id], onDelete: SetNull)
+  relatedTransaction   Transaction?           @relation(fields: [relatedTransactionId], references: [id], onDelete: SetNull)
+  uploadUser           User                   @relation(fields: [uploadUserId], references: [id], onDelete: Restrict)
+  processingJob        DocumentProcessingJob?
+  ocrResult            DocumentOCRResult?
+  parsedData           DocumentParsedData?
+  riskFeatures         DocumentRiskFeatures?
+  riskScore            DocumentRiskScore?
+  riskAlerts           RiskAlert[]
   documentRequirements DocumentRequirement[]
 
   @@index([tenantId])
@@ -534,6 +539,26 @@ model ClientCompanyRiskScore {
   @@index([tenantId, severity])
   @@index([generatedAt])
   @@map("client_company_risk_scores")
+}
+
+model RiskScoreHistory {
+  id         String   @id @default(cuid())
+  tenantId   String   @map("tenant_id")
+  entityType String   @map("entity_type") @db.VarChar(50) // "document" or "company"
+  entityId   String   @map("entity_id")
+  score      Decimal  @db.Decimal(5, 2) // 0-100
+  severity   String   @db.VarChar(50) // low, medium, high
+  recordedAt DateTime @map("recorded_at") @db.Timestamptz(6)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([entityType, entityId])
+  @@index([tenantId, entityType, entityId])
+  @@index([recordedAt])
+  @@index([tenantId, recordedAt])
+  @@map("risk_score_history")
 }
 
 model RiskAlert {
@@ -742,13 +767,13 @@ model Notification {
 }
 
 model NotificationPreference {
-  id            String   @id @default(cuid())
-  tenantId      String   @map("tenant_id")
-  userId        String   @map("user_id")
-  email_enabled Boolean  @default(true) @map("email_enabled")
-  in_app_enabled Boolean @default(true) @map("in_app_enabled")
-  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id             String   @id @default(cuid())
+  tenantId       String   @map("tenant_id")
+  userId         String   @map("user_id")
+  email_enabled  Boolean  @default(true) @map("email_enabled")
+  in_app_enabled Boolean  @default(true) @map("in_app_enabled")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -760,18 +785,18 @@ model NotificationPreference {
 }
 
 model MessageThread {
-  id              String   @id @default(cuid())
-  tenantId        String   @map("tenant_id")
-  clientCompanyId String? @map("client_company_id")
-  subject         String?  @db.VarChar(255)
+  id              String    @id @default(cuid())
+  tenantId        String    @map("tenant_id")
+  clientCompanyId String?   @map("client_company_id")
+  subject         String?   @db.VarChar(255)
   lastMessageAt   DateTime? @map("last_message_at") @db.Timestamptz(6)
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  tenant          Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  clientCompany   ClientCompany?          @relation(fields: [clientCompanyId], references: [id], onDelete: SetNull)
-  participants    MessageThreadParticipant[]
-  messages        Message[]
+  tenant        Tenant                     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientCompany ClientCompany?             @relation(fields: [clientCompanyId], references: [id], onDelete: SetNull)
+  participants  MessageThreadParticipant[]
+  messages      Message[]
 
   @@index([tenantId])
   @@index([tenantId, clientCompanyId])
@@ -780,12 +805,12 @@ model MessageThread {
 }
 
 model MessageThreadParticipant {
-  id            String   @id @default(cuid())
-  threadId      String   @map("thread_id")
-  userId        String   @map("user_id")
-  lastReadAt    DateTime? @map("last_read_at") @db.Timestamptz(6)
-  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id         String    @id @default(cuid())
+  threadId   String    @map("thread_id")
+  userId     String    @map("user_id")
+  lastReadAt DateTime? @map("last_read_at") @db.Timestamptz(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   thread MessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
   user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -797,11 +822,11 @@ model MessageThreadParticipant {
 }
 
 model Message {
-  id        String   @id @default(cuid())
-  threadId String   @map("thread_id")
-  senderId String   @map("sender_id")
-  content  String   @db.Text
-  readAt   DateTime? @map("read_at") @db.Timestamptz(6)
+  id        String    @id @default(cuid())
+  threadId  String    @map("thread_id")
+  senderId  String    @map("sender_id")
+  content   String    @db.Text
+  readAt    DateTime? @map("read_at") @db.Timestamptz(6)
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -872,20 +897,20 @@ model SavedFilter {
 }
 
 model Task {
-  id              String    @id @default(cuid())
-  tenantId        String    @map("tenant_id")
-  clientCompanyId String?   @map("client_company_id")
-  assignedToUserId String?  @map("assigned_to_user_id")
-  title           String    @db.VarChar(255)
-  description     String?   @db.Text
-  status          String    @default("pending") @db.VarChar(50) // pending, in_progress, completed, cancelled
-  priority        String    @default("medium") @db.VarChar(50) // low, medium, high
-  dueDate         DateTime? @map("due_date") @db.Timestamptz(6)
-  completedAt     DateTime? @map("completed_at") @db.Timestamptz(6)
-  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id               String    @id @default(cuid())
+  tenantId         String    @map("tenant_id")
+  clientCompanyId  String?   @map("client_company_id")
+  assignedToUserId String?   @map("assigned_to_user_id")
+  title            String    @db.VarChar(255)
+  description      String?   @db.Text
+  status           String    @default("pending") @db.VarChar(50) // pending, in_progress, completed, cancelled
+  priority         String    @default("medium") @db.VarChar(50) // low, medium, high
+  dueDate          DateTime? @map("due_date") @db.Timestamptz(6)
+  completedAt      DateTime? @map("completed_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   clientCompany ClientCompany? @relation(fields: [clientCompanyId], references: [id], onDelete: SetNull)
   assignedTo    User?          @relation(fields: [assignedToUserId], references: [id], onDelete: SetNull)
 
@@ -899,20 +924,20 @@ model Task {
 }
 
 model DocumentRequirement {
-  id              String    @id @default(cuid())
-  tenantId        String    @map("tenant_id")
-  clientCompanyId String    @map("client_company_id")
-  documentType    String    @map("document_type") @db.VarChar(50) // INVOICE, BANK_STATEMENT, RECEIPT, CONTRACT, etc.
-  requiredByDate  DateTime  @map("required_by_date") @db.Timestamptz(6)
-  status          String    @default("pending") @db.VarChar(50) // pending, received, overdue
-  receivedDocumentId String? @map("received_document_id")
-  description     String?   @db.Text
-  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                 String   @id @default(cuid())
+  tenantId           String   @map("tenant_id")
+  clientCompanyId    String   @map("client_company_id")
+  documentType       String   @map("document_type") @db.VarChar(50) // INVOICE, BANK_STATEMENT, RECEIPT, CONTRACT, etc.
+  requiredByDate     DateTime @map("required_by_date") @db.Timestamptz(6)
+  status             String   @default("pending") @db.VarChar(50) // pending, received, overdue
+  receivedDocumentId String?  @map("received_document_id")
+  description        String?  @db.Text
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  clientCompany ClientCompany @relation(fields: [clientCompanyId], references: [id], onDelete: Cascade)
-  receivedDocument Document?  @relation(fields: [receivedDocumentId], references: [id], onDelete: SetNull)
+  tenant           Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientCompany    ClientCompany @relation(fields: [clientCompanyId], references: [id], onDelete: Cascade)
+  receivedDocument Document?     @relation(fields: [receivedDocumentId], references: [id], onDelete: SetNull)
 
   @@index([tenantId])
   @@index([tenantId, clientCompanyId])
@@ -941,4 +966,26 @@ model RetryQueue {
   @@index([nextRetryAt])
   @@index([type])
   @@map("retry_queue")
+}
+
+model EmailLog {
+  id          String    @id @default(cuid())
+  tenantId    String?   @map("tenant_id")
+  to          String[]  @db.VarChar(255)
+  subject     String    @db.VarChar(500)
+  status      String    @default("sent") @db.VarChar(50) // sent, delivered, bounced, failed
+  messageId   String?   @map("message_id") @db.VarChar(255)
+  error       String?   @db.Text
+  openedAt    DateTime? @map("opened_at") @db.Timestamptz(6)
+  clickedAt   DateTime? @map("clicked_at") @db.Timestamptz(6)
+  bouncedAt   DateTime? @map("bounced_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("email_logs")
 }

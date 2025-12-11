@@ -5,7 +5,7 @@ import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
 import { requirePermission } from "../middleware/rbac-middleware";
 import type { AuthenticatedRequest } from "../types/request-context";
-import type { Response } from "express";
+import type { Response, NextFunction } from "express";
 
 import { Router, type Router as ExpressRouter } from "express";
 const router: ExpressRouter = Router();
@@ -48,12 +48,12 @@ router.get(
 router.get(
   "/dashboard",
   requirePermission("documents:read"), // All roles can view risk dashboard
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const dashboard = await riskService.getTenantRiskDashboard(req.context!.tenantId!);
       res.json({ data: dashboard });
     } catch (error: any) {
-      throw error;
+      next(error);
     }
   }
 );

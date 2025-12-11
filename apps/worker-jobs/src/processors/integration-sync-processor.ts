@@ -194,6 +194,24 @@ export class IntegrationSyncProcessor {
           const successCount = pushResults.filter((r: any) => r.success).length;
           const failureCount = pushResults.filter((r: any) => !r.success).length;
 
+          // Update pushedAt timestamp for successfully pushed invoices
+          const now = new Date();
+          const successfulInvoiceIds = invoicesToPush
+            .filter((inv, index) => pushResults[index]?.success)
+            .map((inv) => inv.invoiceId);
+
+          if (successfulInvoiceIds.length > 0) {
+            await prisma.invoice.updateMany({
+              where: {
+                id: { in: successfulInvoiceIds },
+                tenantId: job.tenantId,
+              },
+              data: {
+                pushedAt: now,
+              },
+            });
+          }
+
           // Log push results
           await prisma.integrationSyncLog.create({
             data: {
@@ -236,6 +254,24 @@ export class IntegrationSyncProcessor {
 
           const successCount = pushResults.filter((r: any) => r.success).length;
           const failureCount = pushResults.filter((r: any) => !r.success).length;
+
+          // Update pushedAt timestamp for successfully pushed transactions
+          const now = new Date();
+          const successfulTransactionIds = transactionsToPush
+            .filter((txn, index) => pushResults[index]?.success)
+            .map((txn) => txn.transactionId);
+
+          if (successfulTransactionIds.length > 0) {
+            await prisma.transaction.updateMany({
+              where: {
+                id: { in: successfulTransactionIds },
+                tenantId: job.tenantId,
+              },
+              data: {
+                pushedAt: now,
+              },
+            });
+          }
 
           // Log push results
           await prisma.integrationSyncLog.create({
@@ -406,24 +442,28 @@ export class IntegrationSyncProcessor {
 
   /**
    * Get invoices to push to external system
-   * TODO: Implement logic to determine which invoices should be pushed
+   * Filters by status (only "kesildi" invoices), not already pushed, and date range
    */
   private async getInvoicesToPush(
     tenantId: string,
     clientCompanyId: string | null,
     sinceDate: Date
   ): Promise<any[]> {
-    // TODO: Query invoices that need to be pushed
-    // This should filter by:
-    // - Status (e.g., only "kesildi" invoices)
-    // - Not already pushed (track in a separate table or field)
-    // - Date range
+    // Query invoices that need to be pushed
+    // Filter by:
+    // - Status: only "kesildi" (issued) invoices should be pushed
+    // - Not already pushed (pushedAt is null or before sinceDate)
+    // - Date range: issueDate >= sinceDate
     // - Client company if specified
     
     const where: any = {
       tenantId,
+      status: "kesildi", // Only push issued invoices
       issueDate: { gte: sinceDate },
-      // Add more filters as needed
+      OR: [
+        { pushedAt: null }, // Never pushed
+        { pushedAt: { lt: sinceDate } }, // Pushed before sinceDate (needs re-push)
+      ],
     };
 
     if (clientCompanyId) {
@@ -434,55 +474,81 @@ export class IntegrationSyncProcessor {
       where,
       include: {
         lines: true,
-        clientCompany: true,
+        clientCompany: {
+          include: {
+            tenantIntegrations: {
+              where: { tenantId },
+              select: {
+                id: true,
+                externalId: true,
+              },
+            },
+          },
+        },
       },
       take: 100, // Limit batch size
+      orderBy: {
+        issueDate: "asc",
+      },
     });
 
     // Map to PushInvoiceInput format
-    return invoices.map((inv) => ({
-      invoiceId: inv.id,
-      externalId: inv.externalId,
-      clientCompanyExternalId: null, // TODO: Map from client company
-      clientCompanyName: inv.clientCompany?.name || null,
-      clientCompanyTaxNumber: inv.clientCompany?.taxNumber || null,
-      issueDate: inv.issueDate,
-      dueDate: inv.dueDate,
-      totalAmount: Number(inv.totalAmount),
-      currency: inv.currency,
-      taxAmount: Number(inv.taxAmount),
-      netAmount: inv.netAmount ? Number(inv.netAmount) : null,
-      counterpartyName: inv.counterpartyName,
-      counterpartyTaxNumber: inv.counterpartyTaxNumber,
-      status: inv.status,
-      type: inv.type,
-      lines: inv.lines.map((line) => ({
-        lineNumber: line.lineNumber,
-        description: line.description,
-        quantity: Number(line.quantity),
-        unitPrice: Number(line.unitPrice),
-        lineTotal: Number(line.lineTotal),
-        vatRate: Number(line.vatRate),
-        vatAmount: Number(line.vatAmount),
-      })),
-    }));
+    return invoices.map((inv) => {
+      // Try to find client company external ID from tenant integrations
+      // This is a simplified approach - in production, you might want a dedicated mapping table
+      const clientCompanyExternalId = inv.clientCompany?.tenantIntegrations?.[0]?.externalId || null;
+
+      return {
+        invoiceId: inv.id,
+        externalId: inv.externalId,
+        clientCompanyExternalId,
+        clientCompanyName: inv.clientCompany?.name || null,
+        clientCompanyTaxNumber: inv.clientCompany?.taxNumber || null,
+        issueDate: inv.issueDate,
+        dueDate: inv.dueDate,
+        totalAmount: Number(inv.totalAmount),
+        currency: inv.currency,
+        taxAmount: Number(inv.taxAmount),
+        netAmount: inv.netAmount ? Number(inv.netAmount) : null,
+        counterpartyName: inv.counterpartyName,
+        counterpartyTaxNumber: inv.counterpartyTaxNumber,
+        status: inv.status,
+        type: inv.type,
+        lines: inv.lines.map((line) => ({
+          lineNumber: line.lineNumber,
+          description: line.description,
+          quantity: Number(line.quantity),
+          unitPrice: Number(line.unitPrice),
+          lineTotal: Number(line.lineTotal),
+          vatRate: Number(line.vatRate),
+          vatAmount: Number(line.vatAmount),
+        })),
+      };
+    });
   }
 
   /**
    * Get transactions to push to external system
-   * TODO: Implement logic to determine which transactions should be pushed
+   * Filters by not already pushed and date range
    */
   private async getTransactionsToPush(
     tenantId: string,
     clientCompanyId: string | null,
     sinceDate: Date
   ): Promise<any[]> {
-    // TODO: Query transactions that need to be pushed
-    // Similar logic to getInvoicesToPush
+    // Query transactions that need to be pushed
+    // Filter by:
+    // - Not already pushed (pushedAt is null or before sinceDate)
+    // - Date range: date >= sinceDate
+    // - Client company if specified
     
     const where: any = {
       tenantId,
       date: { gte: sinceDate },
+      OR: [
+        { pushedAt: null }, // Never pushed
+        { pushedAt: { lt: sinceDate } }, // Pushed before sinceDate (needs re-push)
+      ],
     };
 
     if (clientCompanyId) {
@@ -497,23 +563,46 @@ export class IntegrationSyncProcessor {
             ledgerAccount: true,
           },
         },
+        clientCompany: {
+          include: {
+            bankAccounts: {
+              where: { isPrimary: true },
+              take: 1,
+            },
+          },
+        },
       },
       take: 100, // Limit batch size
+      orderBy: {
+        date: "asc",
+      },
     });
 
     // Map to PushTransactionInput format
-    // Note: This is a simplified mapping - adjust based on actual requirements
-    return transactions.map((txn) => ({
-      transactionId: txn.id,
-      externalId: txn.externalId,
-      accountIdentifier: txn.referenceNo || "", // TODO: Get actual account identifier
-      bookingDate: txn.date,
-      valueDate: txn.date,
-      description: txn.description || "",
-      amount: 0, // TODO: Calculate from transaction lines
-      currency: "TRY", // TODO: Get from transaction
-      balanceAfter: null,
-    }));
+    return transactions.map((txn) => {
+      // Calculate transaction amount from lines (sum of debit and credit amounts)
+      const amount = txn.lines.reduce((sum, line) => {
+        return sum + Number(line.debitAmount) + Number(line.creditAmount);
+      }, 0);
+
+      // Get currency from primary bank account or default to TRY
+      const currency = txn.clientCompany?.bankAccounts?.[0]?.currency || "TRY";
+
+      // Get account identifier from reference number or transaction ID
+      const accountIdentifier = txn.referenceNo || txn.externalId || txn.id.substring(0, 20);
+
+      return {
+        transactionId: txn.id,
+        externalId: txn.externalId,
+        accountIdentifier,
+        bookingDate: txn.date,
+        valueDate: txn.date,
+        description: txn.description || "",
+        amount,
+        currency,
+        balanceAfter: null, // Would need to calculate from account balance
+      };
+    });
   }
 }
 

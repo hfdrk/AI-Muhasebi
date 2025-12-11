@@ -43,6 +43,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     { href: "/client/invoices", label: "Faturalarım", icon: "📄" },
     { href: "/client/transactions", label: "İşlemlerim", icon: "💼" },
     { href: "/client/upload", label: "Belge Yükle", icon: "📤" },
+    { href: "/client/ayarlar", label: "Ayarlar", icon: "⚙️" },
   ];
 
   const isActive = (href: string) => {

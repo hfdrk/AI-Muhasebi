@@ -49,6 +49,9 @@ import aiRoutes from "./routes/ai-routes";
 import mobileRoutes from "./routes/mobile-routes";
 import taskRoutes from "./routes/task-routes";
 import documentRequirementRoutes from "./routes/document-requirement-routes";
+import contractAnalysisRoutes from "./routes/contract-analysis-routes";
+import eventsRoutes from "./routes/events-routes";
+import emailLogsRoutes from "./routes/email-logs-routes";
 
 // Resolve database URL asynchronously and update if needed
 resolveDatabaseUrl()
@@ -145,6 +148,9 @@ app.use("/api/v1/ai", aiRoutes);
 app.use("/api/v1/mobile", mobileRoutes);
 app.use("/api/v1/tasks", taskRoutes);
 app.use("/api/v1/document-requirements", documentRequirementRoutes);
+app.use("/api/v1/contracts", contractAnalysisRoutes);
+app.use("/api/v1/events", eventsRoutes);
+app.use("/api/v1/email-logs", emailLogsRoutes);
 
 // Error handler (must be last)
 app.use(errorHandler);

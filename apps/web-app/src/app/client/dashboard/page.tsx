@@ -146,15 +146,55 @@ export default function ClientDashboardPage() {
           <div style={{ color: colors.text.secondary, fontSize: "14px" }}>Yüklenen Belgeler</div>
         </Card>
 
-        {riskScore && (
+        {riskScore && riskScore.riskScore && (
           <Card>
-            <div style={{ fontSize: "32px", fontWeight: "bold", color: riskScore.severity === "high" ? colors.error : colors.primary, marginBottom: spacing.xs }}>
-              {Number(riskScore.score).toFixed(0)}
+            <div style={{ fontSize: "32px", fontWeight: "bold", color: riskScore.riskScore.severity === "high" ? colors.error : riskScore.riskScore.severity === "medium" ? "#FFA500" : colors.success, marginBottom: spacing.xs }}>
+              {Number(riskScore.riskScore.score).toFixed(0)}
             </div>
-            <div style={{ color: colors.text.secondary, fontSize: "14px" }}>Risk Skoru</div>
+            <div style={{ color: colors.text.secondary, fontSize: "14px", marginBottom: spacing.xs }}>Risk Skoru</div>
+            <div style={{ fontSize: "12px", color: colors.text.secondary }}>
+              {riskScore.riskScore.severity === "high" ? "Yüksek Risk" : riskScore.riskScore.severity === "medium" ? "Orta Risk" : "Düşük Risk"}
+            </div>
           </Card>
         )}
       </div>
+
+      {/* Risk Score Details */}
+      {riskScore && riskScore.riskScore && (
+        <Card style={{ marginBottom: spacing.lg }}>
+          <h3 style={{ fontSize: "18px", fontWeight: "semibold", marginBottom: spacing.md }}>Risk Analizi</h3>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: spacing.md }}>
+            <div>
+              <div style={{ fontSize: "24px", fontWeight: "bold", color: colors.success, marginBottom: spacing.xs }}>
+                {riskScore.breakdown?.low || 0}
+              </div>
+              <div style={{ color: colors.text.secondary, fontSize: "14px" }}>Düşük Risk</div>
+            </div>
+            <div>
+              <div style={{ fontSize: "24px", fontWeight: "bold", color: "#FFA500", marginBottom: spacing.xs }}>
+                {riskScore.breakdown?.medium || 0}
+              </div>
+              <div style={{ color: colors.text.secondary, fontSize: "14px" }}>Orta Risk</div>
+            </div>
+            <div>
+              <div style={{ fontSize: "24px", fontWeight: "bold", color: colors.error, marginBottom: spacing.xs }}>
+                {riskScore.breakdown?.high || 0}
+              </div>
+              <div style={{ color: colors.text.secondary, fontSize: "14px" }}>Yüksek Risk</div>
+            </div>
+          </div>
+          {riskScore.topTriggeredRules && riskScore.topTriggeredRules.length > 0 && (
+            <div style={{ marginTop: spacing.md, paddingTop: spacing.md, borderTop: `1px solid ${colors.gray[200]}` }}>
+              <div style={{ fontSize: "14px", fontWeight: "medium", marginBottom: spacing.sm }}>En Çok Tetiklenen Kurallar:</div>
+              {riskScore.topTriggeredRules.slice(0, 3).map((rule: any, index: number) => (
+                <div key={index} style={{ fontSize: "13px", color: colors.text.secondary, marginBottom: spacing.xs }}>
+                  • {rule.description} ({rule.count} kez)
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
 
       {/* Recent Invoices */}
       <Card style={{ marginBottom: spacing.lg }}>

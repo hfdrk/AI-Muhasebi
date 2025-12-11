@@ -134,6 +134,16 @@ export class RiskRuleEngine {
       riskScore = this.mapToDocumentRiskScore(created);
     }
 
+    // Store history
+    const { riskTrendService } = await import("./risk-trend-service");
+    await riskTrendService.storeRiskScoreHistory(
+      tenantId,
+      "document",
+      documentId,
+      Number(riskScore.score),
+      riskScore.severity as "low" | "medium" | "high"
+    );
+
     return riskScore;
   }
 
@@ -218,6 +228,16 @@ export class RiskRuleEngine {
       });
       riskScore = this.mapToClientCompanyRiskScore(created);
     }
+
+    // Store history
+    const { riskTrendService } = await import("./risk-trend-service");
+    await riskTrendService.storeRiskScoreHistory(
+      tenantId,
+      "company",
+      clientCompanyId,
+      Number(riskScore.score),
+      riskScore.severity as "low" | "medium" | "high"
+    );
 
     return riskScore;
   }

@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/Card";
 import { colors, spacing } from "@/styles/design-system";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
+import { useEventStream } from "@/hooks/useEventStream";
 
 function formatDate(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
@@ -32,6 +33,8 @@ export default function MessageThreadPage() {
   const { data: threadData, isLoading } = useQuery({
     queryKey: ["message-thread", threadId],
     queryFn: () => messagingClient.getThread(threadId),
+    staleTime: 30000, // Consider data fresh for 30 seconds
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes (formerly cacheTime)
   });
 
   const markAsReadMutation = useMutation({
@@ -57,16 +60,17 @@ export default function MessageThreadPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Poll for new messages every 5 seconds
-  useEffect(() => {
-    if (!threadId) return;
-
-    const interval = setInterval(() => {
-      queryClient.invalidateQueries({ queryKey: ["message-thread", threadId] });
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [threadId, queryClient]);
+  // Use SSE for real-time message updates
+  useEventStream({
+    enabled: !!threadId,
+    onMessage: (event) => {
+      // Invalidate queries when new message event is received
+      if (event.payload.threadId === threadId || event.payload.action === "new_message") {
+        queryClient.invalidateQueries({ queryKey: ["message-thread", threadId] });
+        queryClient.invalidateQueries({ queryKey: ["message-threads"] });
+      }
+    },
+  });
 
   if (isLoading) {
     return (

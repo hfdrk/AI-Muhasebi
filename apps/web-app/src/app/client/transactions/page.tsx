@@ -73,19 +73,40 @@ export default function ClientTransactionsPage() {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: "medium", marginBottom: spacing.xs, color: colors.text.primary }}>
-                      {transaction.description || "İşlem"}
+                      {transaction.description || transaction.referenceNo || "İşlem"}
                     </div>
                     <div style={{ fontSize: "14px", color: colors.text.secondary }}>
-                      {formatDate(transaction.bookingDate)} • {transaction.accountIdentifier}
+                      {formatDate(transaction.date)}
+                      {transaction.referenceNo && ` • ${transaction.referenceNo}`}
                     </div>
                   </div>
-                  <div
-                    style={{
-                      fontWeight: "semibold",
-                      color: Number(transaction.amount) >= 0 ? colors.success : colors.error,
-                    }}
-                  >
-                    {formatCurrency(Math.abs(Number(transaction.amount)), transaction.currency)}
+                  <div style={{ textAlign: "right" }}>
+                    {transaction.totalDebit > 0 && (
+                      <div
+                        style={{
+                          fontWeight: "semibold",
+                          color: colors.success,
+                          marginBottom: spacing.xs,
+                        }}
+                      >
+                        +{formatCurrency(transaction.totalDebit, "TRY")}
+                      </div>
+                    )}
+                    {transaction.totalCredit > 0 && (
+                      <div
+                        style={{
+                          fontWeight: "semibold",
+                          color: colors.error,
+                        }}
+                      >
+                        -{formatCurrency(transaction.totalCredit, "TRY")}
+                      </div>
+                    )}
+                    {transaction.totalDebit === 0 && transaction.totalCredit === 0 && (
+                      <div style={{ color: colors.text.secondary }}>
+                        {formatCurrency(0, "TRY")}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

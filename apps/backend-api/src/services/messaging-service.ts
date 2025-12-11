@@ -6,6 +6,7 @@
 
 import { prisma } from "../lib/prisma";
 import { NotFoundError, ForbiddenError } from "@repo/shared-utils";
+import { eventStreamService } from "./event-stream-service";
 
 export interface MessageThread {
   id: string;
@@ -134,7 +135,23 @@ export class MessagingService {
       },
     });
 
-    return this.mapToMessageThread(thread);
+    const mappedThread = this.mapToMessageThread(thread);
+
+    // Broadcast new thread event to all participants
+    eventStreamService.broadcastToUsers(
+      finalParticipantIds,
+      input.tenantId,
+      {
+        type: "message",
+        payload: {
+          thread: mappedThread,
+          action: "new_thread",
+        },
+        timestamp: new Date().toISOString(),
+      }
+    );
+
+    return mappedThread;
   }
 
   /**
@@ -191,26 +208,43 @@ export class MessagingService {
       prisma.messageThread.count({ where }),
     ]);
 
-    // Calculate unread counts for each thread
-    const threadsWithUnread = await Promise.all(
-      threads.map(async (thread) => {
-        const participant = thread.participants.find((p) => p.userId === userId);
-        const lastReadAt = participant?.lastReadAt;
+    // Optimize unread count calculation - batch query all unread counts at once
+    const threadIds = threads.map((t) => t.id);
+    const participants = await prisma.messageThreadParticipant.findMany({
+      where: {
+        threadId: { in: threadIds },
+        userId,
+      },
+      select: {
+        threadId: true,
+        lastReadAt: true,
+      },
+    });
 
-        const unreadCount = await prisma.message.count({
+    const participantMap = new Map(participants.map((p) => [p.threadId, p.lastReadAt]));
+
+    // Batch query unread counts for all threads
+    const unreadCounts = await Promise.all(
+      threads.map(async (thread) => {
+        const lastReadAt = participantMap.get(thread.id);
+        const count = await prisma.message.count({
           where: {
             threadId: thread.id,
             senderId: { not: userId },
             ...(lastReadAt ? { createdAt: { gt: lastReadAt } } : {}),
           },
         });
-
-        return {
-          ...this.mapToMessageThread(thread),
-          unreadCount,
-        };
+        return { threadId: thread.id, count };
       })
     );
+
+    const unreadCountMap = new Map(unreadCounts.map((uc) => [uc.threadId, uc.count]));
+
+    // Map threads with unread counts
+    const threadsWithUnread = threads.map((thread) => ({
+      ...this.mapToMessageThread(thread),
+      unreadCount: unreadCountMap.get(thread.id) || 0,
+    }));
 
     return {
       data: threadsWithUnread,
@@ -313,6 +347,32 @@ export class MessagingService {
         lastMessageAt: new Date(),
       },
     });
+
+    // Get thread with participants for broadcasting
+    const threadWithParticipants = await prisma.messageThread.findUnique({
+      where: { id: input.threadId },
+      include: {
+        participants: true,
+      },
+    });
+
+    // Broadcast message event to all thread participants
+    if (threadWithParticipants) {
+      const participantIds = threadWithParticipants.participants.map((p) => p.userId);
+      eventStreamService.broadcastToUsers(
+        participantIds,
+        threadWithParticipants.tenantId,
+        {
+          type: "message",
+          payload: {
+            threadId: input.threadId,
+            message: this.mapToMessage(message),
+            action: "new_message",
+          },
+          timestamp: new Date().toISOString(),
+        }
+      );
+    }
 
     return this.mapToMessage(message);
   }

@@ -125,7 +125,9 @@ export class RiskAlertService {
             recipientEmails,
             "RISK_ALERT",
             notification.title,
-            notification.message
+            notification.message,
+            undefined,
+            input.tenantId
           );
         }
       } catch (emailError: any) {

@@ -5,6 +5,7 @@ import type {
   CreateNotificationInput,
   NotificationType,
 } from "@repo/core-domain";
+import { eventStreamService } from "./event-stream-service";
 
 export class NotificationService {
   private mapToNotification(notification: any): Notification {
@@ -38,7 +39,32 @@ export class NotificationService {
       },
     });
 
-    return this.mapToNotification(notification);
+    const mappedNotification = this.mapToNotification(notification);
+
+    // Broadcast notification event via SSE
+    if (input.userId) {
+      // User-specific notification
+      eventStreamService.broadcastToUser(input.userId, {
+        type: "notification",
+        payload: {
+          notification: mappedNotification,
+          action: "new_notification",
+        },
+        timestamp: new Date().toISOString(),
+      });
+    } else {
+      // Tenant-wide notification - broadcast to all users in tenant
+      eventStreamService.broadcastToTenant(input.tenantId, {
+        type: "notification",
+        payload: {
+          notification: mappedNotification,
+          action: "new_notification",
+        },
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    return mappedNotification;
   }
 
   /**

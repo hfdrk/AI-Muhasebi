@@ -60,40 +60,47 @@ export interface PaginatedRiskAlerts {
   totalPages: number;
 }
 
+/**
+ * Get document risk score with triggered rules
+ */
+export async function getDocumentRiskScore(documentId: string): Promise<{ data: DocumentRiskScoreWithRules }> {
+  return apiClient.get(`/api/v1/risk/documents/${documentId}`);
+}
+
+/**
+ * Get client company risk overview
+ */
+export async function getClientCompanyRiskScore(clientCompanyId: string): Promise<{ data: ClientCompanyRiskOverview }> {
+  return apiClient.get(`/api/v1/risk/companies/${clientCompanyId}`);
+}
+
+/**
+ * Get tenant risk dashboard
+ */
+export async function getTenantRiskDashboard(): Promise<{ data: TenantRiskDashboard }> {
+  return apiClient.get("/api/v1/risk/dashboard");
+}
+
+/**
+ * List risk alerts
+ */
+export async function listRiskAlerts(params?: ListRiskAlertsParams): Promise<{ data: PaginatedRiskAlerts }> {
+  return apiClient.get("/api/v1/risk/alerts", { params });
+}
+
+/**
+ * Update alert status
+ */
+export async function updateAlertStatus(alertId: string, status: RiskAlertStatus): Promise<{ data: RiskAlert }> {
+  return apiClient.patch(`/api/v1/risk/alerts/${alertId}/status`, { status });
+}
+
+// Export as object for backward compatibility
 export const riskClient = {
-  /**
-   * Get document risk score with triggered rules
-   */
-  async getDocumentRiskScore(documentId: string): Promise<{ data: DocumentRiskScoreWithRules }> {
-    return apiClient.get(`/api/v1/risk/documents/${documentId}`);
-  },
-
-  /**
-   * Get client company risk overview
-   */
-  async getClientCompanyRiskScore(clientCompanyId: string): Promise<{ data: ClientCompanyRiskOverview }> {
-    return apiClient.get(`/api/v1/risk/companies/${clientCompanyId}`);
-  },
-
-  /**
-   * Get tenant risk dashboard
-   */
-  async getTenantRiskDashboard(): Promise<{ data: TenantRiskDashboard }> {
-    return apiClient.get("/api/v1/risk/dashboard");
-  },
-
-  /**
-   * List risk alerts
-   */
-  async listRiskAlerts(params?: ListRiskAlertsParams): Promise<{ data: PaginatedRiskAlerts }> {
-    return apiClient.get("/api/v1/risk/alerts", { params });
-  },
-
-  /**
-   * Update alert status
-   */
-  async updateAlertStatus(alertId: string, status: RiskAlertStatus): Promise<{ data: RiskAlert }> {
-    return apiClient.patch(`/api/v1/risk/alerts/${alertId}/status`, { status });
-  },
+  getDocumentRiskScore,
+  getClientCompanyRiskScore,
+  getTenantRiskDashboard,
+  listRiskAlerts,
+  updateAlertStatus,
 };
 

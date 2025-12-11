@@ -3,12 +3,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { messagingClient } from "@repo/api-client";
 import { colors } from "../styles/design-system";
+import { useEventStream } from "@/hooks/useEventStream";
 
 export function MessageCountBadge() {
+  // Use SSE for real-time updates instead of polling
+  useEventStream({
+    onMessage: () => {
+      // Queries will be invalidated automatically by the hook
+    },
+  });
+
   const { data: threadsData } = useQuery({
     queryKey: ["message-threads", "unread-count"],
     queryFn: () => messagingClient.listThreads({ limit: 100 }),
-    refetchInterval: 30000, // Poll every 30 seconds
+    staleTime: 30000, // Consider data fresh for 30 seconds
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
   });
 
   const threads = threadsData?.data?.data || [];

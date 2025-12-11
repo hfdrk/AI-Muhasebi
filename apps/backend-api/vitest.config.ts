@@ -79,6 +79,7 @@ export default defineConfig({
       "@repo/config",
       "@repo/shared-utils",
       "@repo/core-domain",
+      "zod",
     ],
     exclude: ["bcrypt"],
   },

@@ -16,7 +16,7 @@ router.use(authMiddleware);
 router.use(tenantMiddleware);
 
 // Only TenantOwner and Accountant can manage templates
-router.use(requirePermission("settings:write"));
+router.use(requirePermission("settings:update"));
 
 // GET /api/v1/email-templates - List all templates
 router.get("/", async (req: AuthenticatedRequest, res: Response) => {

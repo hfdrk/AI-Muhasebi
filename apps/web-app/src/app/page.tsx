@@ -13,8 +13,22 @@ export default function HomePage() {
     const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
     
     if (token) {
-      // Redirect to dashboard if logged in
-      router.push("/anasayfa");
+      // Decode JWT token to get user role and redirect accordingly
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        const roles = payload.roles || [];
+        
+        // Redirect ReadOnly users to client portal, others to accountant dashboard
+        if (roles.includes("ReadOnly")) {
+          router.push("/client/dashboard");
+        } else {
+          router.push("/anasayfa");
+        }
+      } catch (error) {
+        // If token decoding fails, fallback to accountant dashboard
+        console.error("Failed to decode token:", error);
+        router.push("/anasayfa");
+      }
     } else {
       // Redirect to login if not logged in
       router.push("/auth/login");
