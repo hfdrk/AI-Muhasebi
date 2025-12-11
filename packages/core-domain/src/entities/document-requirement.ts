@@ -28,3 +28,4 @@ export interface UpdateDocumentRequirementInput {
   receivedDocumentId?: string | null;
   description?: string | null;
 }
+

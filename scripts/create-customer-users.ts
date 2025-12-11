@@ -177,3 +177,4 @@ createCustomerUsers()
   .finally(async () => {
     await prisma.$disconnect();
   });
+

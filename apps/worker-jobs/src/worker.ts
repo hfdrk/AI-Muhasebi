@@ -243,7 +243,8 @@ async function scheduleIntegrationSyncs(): Promise<void> {
     logger.info("Running integration sync scheduler", undefined, {
       jobType: "INTEGRATION_SCHEDULER",
     });
-    await integrationSyncScheduler.scheduleRecurringSyncs();
+    // Schedule both pull and push syncs
+    await integrationSyncScheduler.scheduleAllSyncs();
     logger.info("Integration sync scheduler completed", undefined, {
       jobType: "INTEGRATION_SCHEDULER",
     });
@@ -264,6 +265,19 @@ async function processScheduledReports(): Promise<void> {
       error: error.message,
       stack: error.stack,
       jobType: "SCHEDULED_REPORT",
+    });
+  }
+}
+
+async function processRetryQueue(): Promise<void> {
+  try {
+    const { retryQueueService } = await import("./services/retry-queue-service");
+    await retryQueueService.processPendingItems();
+  } catch (error: any) {
+    logger.error("Error processing retry queue", undefined, {
+      error: error.message,
+      stack: error.stack,
+      jobType: "RETRY_QUEUE",
     });
   }
 }
@@ -320,12 +334,18 @@ async function startWorker(): Promise<void> {
     await processAISummaries();
   }, AI_SUMMARY_INTERVAL_MS);
 
+  // Start retry queue processing loop (every 5 minutes)
+  setInterval(async () => {
+    await processRetryQueue();
+  }, 5 * 60 * 1000); // 5 minutes
+
   // Process immediately on startup
   logger.info("Running initial job processing on startup");
   await processPendingJobs();
   await processIntegrationSyncJobs();
   await scheduleIntegrationSyncs();
   await processScheduledReports();
+  await processRetryQueue();
 
   // Run risk calculations once on startup (optional - can be removed if not desired)
   // await processScheduledRiskCalculations();

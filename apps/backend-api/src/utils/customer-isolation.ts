@@ -54,3 +54,4 @@ export async function enforceCustomerIsolation(
   // For non-ReadOnly users, use the provided filter
   return { clientCompanyId: filters.clientCompanyId || null };
 }
+

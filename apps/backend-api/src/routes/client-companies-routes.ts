@@ -42,6 +42,30 @@ const createBankAccountSchema = z.object({
 
 const updateBankAccountSchema = createBankAccountSchema.partial();
 
+// GET /api/v1/client-companies/my-company - Get current user's client company (for ReadOnly users)
+router.get(
+  "/my-company",
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const context = req.context!;
+      const clientCompanyId = await getCustomerCompanyId(context);
+
+      if (!clientCompanyId) {
+        return res.json({ data: null });
+      }
+
+      const company = await clientCompanyService.getClientCompanyById(
+        context.tenantId!,
+        clientCompanyId
+      );
+
+      res.json({ data: company });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 router.get(
   "/",
   requirePermission("clients:read"),

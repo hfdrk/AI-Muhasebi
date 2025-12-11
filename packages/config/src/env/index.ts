@@ -25,12 +25,28 @@ const envSchema = z.object({
   NEXT_PUBLIC_API_BASE_URL: z.string().url().default("http://localhost:3800"),
   // Email configuration
   EMAIL_FROM_DEFAULT: z.string().email().optional(),
-  EMAIL_TRANSPORT: z.enum(["stub", "smtp"]).default("stub"),
+  EMAIL_TRANSPORT: z.enum(["stub", "smtp", "sendgrid", "ses", "mailgun"]).default("stub"),
   SMTP_HOST: z.string().optional(),
-  SMTP_PORT: z.string().optional(),
+  SMTP_PORT: z
+    .string()
+    .optional()
+    .transform((val) => {
+      if (!val) return undefined;
+      const parsed = parseInt(val, 10);
+      if (isNaN(parsed)) return undefined;
+      return parsed;
+    })
+    .pipe(z.number().int().min(1).max(65535).optional()),
+  SMTP_SECURE: z.string().default("false").transform((val) => val === "true" || val === "1"),
   SMTP_USER: z.string().optional(),
   SMTP_PASSWORD: z.string().optional(),
-  SMTP_FROM: z.string().optional(),
+  SMTP_FROM: z.string().email().optional(),
+  SENDGRID_API_KEY: z.string().optional(),
+  AWS_SES_REGION: z.string().optional(),
+  AWS_SES_ACCESS_KEY_ID: z.string().optional(),
+  AWS_SES_SECRET_ACCESS_KEY: z.string().optional(),
+  MAILGUN_API_KEY: z.string().optional(),
+  MAILGUN_DOMAIN: z.string().optional(),
   // Error tracking
   SENTRY_DSN: z.string().optional(),
   // Storage configuration

@@ -62,3 +62,4 @@ export function validateOCRConfig(config: OCRConfig): void {
       throw new Error(`Unknown OCR provider: ${config.provider}`);
   }
 }
+

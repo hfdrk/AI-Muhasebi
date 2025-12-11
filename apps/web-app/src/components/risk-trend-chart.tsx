@@ -134,3 +134,4 @@ export default function RiskTrendChart({ type, id, days = 90 }: RiskTrendChartPr
     </div>
   );
 }
+

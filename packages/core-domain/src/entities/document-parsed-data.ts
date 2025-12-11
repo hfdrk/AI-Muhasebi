@@ -1,4 +1,4 @@
-export type DocumentParsedType = "invoice" | "bank_statement" | "receipt" | "unknown";
+export type DocumentParsedType = "invoice" | "bank_statement" | "receipt" | "contract" | "unknown";
 
 export interface ParsedInvoiceFields {
   invoiceNumber?: string | null;
@@ -37,7 +37,26 @@ export interface ParsedBankStatementFields {
   [key: string]: any;
 }
 
-export type ParsedDocumentFields = ParsedInvoiceFields | ParsedBankStatementFields | Record<string, any>;
+export interface ParsedContractFields {
+  contractNumber?: string | null;
+  contractDate?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  expirationDate?: string | null;
+  value?: number | null;
+  currency?: string | null;
+  parties?: Array<{
+    name?: string;
+    role?: string; // "lessor", "lessee", "buyer", "seller", "provider", "client", etc.
+    taxNumber?: string;
+  }>;
+  terms?: string | null;
+  renewalTerms?: string | null;
+  contractType?: string | null; // "lease", "service", "purchase", "employment", etc.
+  [key: string]: any;
+}
+
+export type ParsedDocumentFields = ParsedInvoiceFields | ParsedBankStatementFields | ParsedContractFields | Record<string, any>;
 
 // Result from parser (without database fields)
 export interface ParsedDocumentResult {

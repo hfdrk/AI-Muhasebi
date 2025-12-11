@@ -147,3 +147,4 @@ export class RiskTrendService {
 }
 
 export const riskTrendService = new RiskTrendService();
+

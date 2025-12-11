@@ -89,6 +89,22 @@ export class IntegrationSyncProcessor {
         throw new Error(`Connector not found for provider ${job.tenantIntegration.provider.code}`);
       }
 
+      // Log job start
+      const jobTypeLabels: Record<string, string> = {
+        pull_invoices: "Fatura Çekme",
+        pull_bank_transactions: "Banka İşlemi Çekme",
+        push_invoices: "Fatura Gönderme",
+        push_bank_transactions: "Banka İşlemi Gönderme",
+      };
+      await prisma.integrationSyncLog.create({
+        data: {
+          tenantId: job.tenantId,
+          tenantIntegrationId: job.tenantIntegrationId,
+          level: "info",
+          message: `${jobTypeLabels[job.jobType] || job.jobType} işlemi başlatıldı.`,
+        },
+      });
+
       // Calculate date range (since last sync or last 30 days)
       const untilDate = new Date();
       const sinceDate = job.tenantIntegration.lastSyncAt
@@ -251,15 +267,52 @@ export class IntegrationSyncProcessor {
       });
 
       // Update integration last sync
-      await prisma.tenantIntegration.update({
-        where: { id: job.tenantIntegrationId },
-        data: {
-          lastSyncAt: new Date(),
-          lastSyncStatus: "success",
-        },
-      });
+      const isPushJob = job.jobType === "push_invoices" || job.jobType === "push_bank_transactions";
+      const now = new Date();
+      
+      if (isPushJob) {
+        // For push jobs, update lastPushSyncAt in config
+        const currentConfig = (job.tenantIntegration.config as Record<string, unknown>) || {};
+        const updatedConfig = {
+          ...currentConfig,
+          lastPushSyncAt: now.toISOString(),
+        };
+
+        await prisma.tenantIntegration.update({
+          where: { id: job.tenantIntegrationId },
+          data: {
+            lastSyncAt: now,
+            lastSyncStatus: "success",
+            config: updatedConfig,
+          },
+        });
+      } else {
+        // For pull jobs, just update lastSyncAt
+        await prisma.tenantIntegration.update({
+          where: { id: job.tenantIntegrationId },
+          data: {
+            lastSyncAt: now,
+            lastSyncStatus: "success",
+          },
+        });
+      }
     } catch (error: any) {
       const errorMessage = error.message || "Bilinmeyen hata";
+
+      // Log error
+      await prisma.integrationSyncLog.create({
+        data: {
+          tenantId: job.tenantId,
+          tenantIntegrationId: job.tenantIntegrationId,
+          level: "error",
+          message: `Senkronizasyon hatası: ${errorMessage}`,
+          context: {
+            jobType: job.jobType,
+            error: errorMessage,
+            stack: error.stack,
+          },
+        },
+      });
 
       // Mark job as failed
       await prisma.integrationSyncJob.update({

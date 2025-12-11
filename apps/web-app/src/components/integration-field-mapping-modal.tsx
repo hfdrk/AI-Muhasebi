@@ -68,20 +68,51 @@ export default function IntegrationFieldMappingModal({
     clientCompanyMappings: [],
   });
 
+  // Reset mappings when modal opens/closes
+  useEffect(() => {
+    if (!isOpen) {
+      setMappings({
+        invoiceMappings: [],
+        transactionMappings: [],
+        clientCompanyMappings: [],
+      });
+    }
+  }, [isOpen]);
+
   const { data: mappingsData, isLoading } = useQuery({
     queryKey: ["integrationMappings", integrationId],
     queryFn: async () => {
-      const response = await fetch(`/api/v1/integrations/${integrationId}/mappings`);
+      const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "";
+      const response = await fetch(`${API_URL}/api/v1/integrations/${integrationId}/mappings`, {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        credentials: "include",
+      });
       if (!response.ok) throw new Error("Failed to fetch mappings");
-      return response.json();
+      const data = await response.json();
+      console.log("🔍 API Response:", data);
+      return data;
     },
     enabled: isOpen && !!integrationId,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   });
 
   const { data: suggestionsData } = useQuery({
     queryKey: ["integrationMappingSuggestions", integrationId],
     queryFn: async () => {
-      const response = await fetch(`/api/v1/integrations/${integrationId}/mappings/suggestions`);
+      const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "";
+      const response = await fetch(`${API_URL}/api/v1/integrations/${integrationId}/mappings/suggestions`, {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        credentials: "include",
+      });
       if (!response.ok) throw new Error("Failed to fetch suggestions");
       return response.json();
     },
@@ -90,15 +121,24 @@ export default function IntegrationFieldMappingModal({
 
   useEffect(() => {
     if (mappingsData?.data) {
+      console.log("📦 Loaded mappings from API:", mappingsData.data);
       setMappings(mappingsData.data);
+    } else if (mappingsData) {
+      console.log("⚠️ Mappings data structure:", mappingsData);
     }
   }, [mappingsData]);
 
   const saveMutation = useMutation({
     mutationFn: async (mappingsToSave: IntegrationMappingConfig) => {
-      const response = await fetch(`/api/v1/integrations/${integrationId}/mappings`, {
+      const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+      const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "";
+      const response = await fetch(`${API_URL}/api/v1/integrations/${integrationId}/mappings`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        credentials: "include",
         body: JSON.stringify(mappingsToSave),
       });
       if (!response.ok) throw new Error("Failed to save mappings");
@@ -176,6 +216,40 @@ export default function IntegrationFieldMappingModal({
   };
 
   if (!isOpen) return null;
+
+  if (isLoading) {
+    return createPortal(
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1000,
+        }}
+        onClick={onClose}
+      >
+        <div
+          style={{
+            backgroundColor: "white",
+            borderRadius: "8px",
+            padding: "24px",
+            maxWidth: "400px",
+            width: "90%",
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <p>Yükleniyor...</p>
+        </div>
+      </div>,
+      document.body
+    );
+  }
 
   return createPortal(
     <div
@@ -275,7 +349,12 @@ export default function IntegrationFieldMappingModal({
             <div></div>
           </div>
 
-          {getCurrentMappings().map((mapping, index) => (
+          {getCurrentMappings().length === 0 ? (
+            <div style={{ padding: "16px", textAlign: "center", color: "#666" }}>
+              Henüz eşleştirme yapılmamış. Aşağıdaki butona tıklayarak yeni eşleştirme ekleyebilirsiniz.
+            </div>
+          ) : (
+            getCurrentMappings().map((mapping, index) => (
             <div key={index} style={{ display: "grid", gridTemplateColumns: "2fr 2fr 1fr auto", gap: "8px", marginBottom: "8px" }}>
               <select
                 value={mapping.sourceField}
@@ -320,7 +399,8 @@ export default function IntegrationFieldMappingModal({
                 Sil
               </button>
             </div>
-          ))}
+          ))
+          )}
 
           <button
             onClick={() => addMapping(activeTab === "invoice" ? "invoiceMappings" : activeTab === "transaction" ? "transactionMappings" : "clientCompanyMappings")}
@@ -370,3 +450,4 @@ export default function IntegrationFieldMappingModal({
     document.body
   );
 }
+

@@ -2,6 +2,7 @@ import type {
   DocumentParsedType,
   ParsedInvoiceFields,
   ParsedBankStatementFields,
+  ParsedContractFields,
   ParsedDocumentFields,
   ParsedDocumentResult,
   CreateDocumentParsedDataInput,
@@ -54,6 +55,9 @@ export class DocumentParserService {
       case "receipt":
         fields = this.parseReceipt(rawText);
         break;
+      case "contract":
+        fields = this.parseContract(rawText);
+        break;
       default:
         fields = {};
     }
@@ -77,6 +81,14 @@ export class DocumentParserService {
     }
     if (upperHint.includes("RECEIPT") || upperText.includes("FİŞ") || upperText.includes("MAKBUZ")) {
       return "receipt";
+    }
+    if (
+      upperHint.includes("CONTRACT") ||
+      upperText.includes("SÖZLEŞME") ||
+      upperText.includes("MUKAVELE") ||
+      upperText.includes("ANLAŞMA")
+    ) {
+      return "contract";
     }
 
     return "unknown";
@@ -319,6 +331,158 @@ export class DocumentParserService {
     const dateMatch = text.match(/(\d{1,2}[.\/]\d{1,2}[.\/]\d{4})/);
     if (dateMatch) {
       fields.date = dateMatch[1];
+    }
+
+    return fields;
+  }
+
+  private parseContract(text: string): ParsedContractFields {
+    const fields: ParsedContractFields = {};
+
+    // Extract contract number
+    const contractNumberPatterns = [
+      /(?:Sözleşme\s*(?:No|No\.|Numarası|Numara)|Contract\s*(?:No|Number))[\s:]*([A-Z0-9\-]+)/i,
+      /(?:Sözleşme|Contract)[\s:]*([A-Z0-9\-]+)/i,
+    ];
+
+    for (const pattern of contractNumberPatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        fields.contractNumber = match[1].trim();
+        break;
+      }
+    }
+
+    // Extract contract date
+    const contractDatePatterns = [
+      /(?:Sözleşme\s*Tarihi|Contract\s*Date|İmza\s*Tarihi)[\s:]*(\d{1,2}[.\/]\d{1,2}[.\/]\d{4})/i,
+      /(\d{1,2}[.\/]\d{1,2}[.\/]\d{4})/g,
+    ];
+
+    for (const pattern of contractDatePatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        fields.contractDate = match[1];
+        break;
+      }
+    }
+
+    // Extract start date
+    const startDatePatterns = [
+      /(?:Başlangıç\s*Tarihi|Start\s*Date|Başlama\s*Tarihi)[\s:]*(\d{1,2}[.\/]\d{1,2}[.\/]\d{4})/i,
+      /(?:Geçerlilik\s*Başlangıcı|Valid\s*From)[\s:]*(\d{1,2}[.\/]\d{1,2}[.\/]\d{4})/i,
+    ];
+
+    for (const pattern of startDatePatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        fields.startDate = match[1];
+        break;
+      }
+    }
+
+    // Extract end date / expiration date
+    const endDatePatterns = [
+      /(?:Bitiş\s*Tarihi|End\s*Date|Bitiş\s*Tarihi)[\s:]*(\d{1,2}[.\/]\d{1,2}[.\/]\d{4})/i,
+      /(?:Geçerlilik\s*Bitişi|Valid\s*Until|Expiration\s*Date)[\s:]*(\d{1,2}[.\/]\d{1,2}[.\/]\d{4})/i,
+      /(?:Süre|Duration)[\s:]*(\d{1,2}[.\/]\d{1,2}[.\/]\d{4})/i,
+    ];
+
+    for (const pattern of endDatePatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        fields.endDate = match[1];
+        fields.expirationDate = match[1]; // Same as end date for contracts
+        break;
+      }
+    }
+
+    // Extract contract value
+    const valuePatterns = [
+      /(?:Sözleşme\s*Bedeli|Contract\s*Value|Tutar|Amount)[\s:]*([\d.,]+)/i,
+      /(?:Toplam\s*Tutar|Total\s*Amount)[\s:]*([\d.,]+)/i,
+    ];
+
+    for (const pattern of valuePatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        const valueStr = match[1].replace(/\./g, "").replace(",", ".");
+        const parsed = parseFloat(valueStr);
+        if (!isNaN(parsed) && parsed > 0) {
+          fields.value = parsed;
+          break;
+        }
+      }
+    }
+
+    // Extract currency
+    const currencyMatch = text.match(/(?:Para\s*Birimi|Currency)[\s:]*([A-Z]{3})/i);
+    if (currencyMatch) {
+      fields.currency = currencyMatch[1].toUpperCase();
+    } else if (text.includes("TRY") || text.includes("TL")) {
+      fields.currency = "TRY";
+    }
+
+    // Extract parties (contract parties)
+    const parties: Array<{ name?: string; role?: string; taxNumber?: string }> = [];
+
+    // Try to find party names and roles
+    const partyPatterns = [
+      /(?:Taraflar|Parties)[\s:]*([A-ZÇĞİÖŞÜ][A-Za-zÇĞİÖŞÜçğıöşü\s]+)/i,
+      /(?:Birinci\s*Taraf|First\s*Party)[\s:]*([A-ZÇĞİÖŞÜ][A-Za-zÇĞİÖŞÜçğıöşü\s]+)/i,
+      /(?:İkinci\s*Taraf|Second\s*Party)[\s:]*([A-ZÇĞİÖŞÜ][A-Za-zÇĞİÖŞÜçğıöşü\s]+)/i,
+    ];
+
+    for (const pattern of partyPatterns) {
+      const match = text.match(pattern);
+      if (match && match[1] && match[1].length > 3) {
+        parties.push({
+          name: match[1].trim(),
+        });
+      }
+    }
+
+    // Extract tax numbers for parties
+    const taxNumberMatches = text.matchAll(/(?:Vergi\s*No|VKN|TCKN)[\s:]*([\d]+)/gi);
+    for (const match of taxNumberMatches) {
+      if (parties.length > 0) {
+        const lastParty = parties[parties.length - 1];
+        if (!lastParty.taxNumber) {
+          lastParty.taxNumber = match[1].trim();
+        }
+      }
+    }
+
+    if (parties.length > 0) {
+      fields.parties = parties;
+    }
+
+    // Extract contract type
+    const contractTypePatterns = [
+      /(?:Sözleşme\s*Türü|Contract\s*Type)[\s:]*([A-ZÇĞİÖŞÜ][A-Za-zÇĞİÖŞÜçğıöşü\s]+)/i,
+    ];
+
+    const upperText = text.toUpperCase();
+    if (upperText.includes("KİRA") || upperText.includes("LEASE")) {
+      fields.contractType = "lease";
+    } else if (upperText.includes("HİZMET") || upperText.includes("SERVICE")) {
+      fields.contractType = "service";
+    } else if (upperText.includes("SATIN ALMA") || upperText.includes("PURCHASE")) {
+      fields.contractType = "purchase";
+    } else if (upperText.includes("İŞ") || upperText.includes("EMPLOYMENT")) {
+      fields.contractType = "employment";
+    }
+
+    // Extract terms (basic - would need more sophisticated parsing for full terms)
+    const termsMatch = text.match(/(?:Şartlar|Terms|Koşullar)[\s:]*([^\n]{50,500})/i);
+    if (termsMatch) {
+      fields.terms = termsMatch[1].trim().substring(0, 1000); // Limit length
+    }
+
+    // Extract renewal terms
+    const renewalMatch = text.match(/(?:Yenileme|Renewal)[\s:]*([^\n]{20,200})/i);
+    if (renewalMatch) {
+      fields.renewalTerms = renewalMatch[1].trim().substring(0, 500);
     }
 
     return fields;

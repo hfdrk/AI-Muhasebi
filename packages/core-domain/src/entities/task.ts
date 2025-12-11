@@ -37,3 +37,4 @@ export interface UpdateTaskInput {
   dueDate?: Date | null;
   completedAt?: Date | null;
 }
+

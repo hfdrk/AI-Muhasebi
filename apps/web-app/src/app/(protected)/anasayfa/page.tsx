@@ -4,11 +4,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { listInvoices, listTransactions, listClientCompanies, listDocuments, getCurrentUser, onboardingClient } from "@repo/api-client";
 import { dashboard as dashboardI18n } from "@repo/i18n";
-import { Card } from "@/components/ui/Card";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { Table, TableRow, TableCell } from "@/components/ui/Table";
-import { Button } from "@/components/ui/Button";
-import { colors, spacing } from "@/styles/design-system";
+import Link from "next/link";
 
 const STATUS_LABELS: Record<string, string> = {
   taslak: "Taslak",
@@ -188,90 +184,154 @@ export default function DashboardPage() {
   const totalCustomers = allCustomersData?.data.total || 0;
   const totalDocuments = allDocumentsData?.data.total || 0;
 
-  // Calculate total invoice amounts (reserved for future use)
-  // const totalInvoiceAmount = recentInvoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "kesildi":
+        return { bg: "#d1fae5", text: "#065f46", border: "#10b981" };
+      case "taslak":
+        return { bg: "#fef3c7", text: "#92400e", border: "#f59e0b" };
+      case "iptal":
+        return { bg: "#f3f4f6", text: "#6b7280", border: "#9ca3af" };
+      case "muhasebeleştirilmiş":
+        return { bg: "#dbeafe", text: "#1e40af", border: "#3b82f6" };
+      default:
+        return { bg: "#f3f4f6", text: "#6b7280", border: "#9ca3af" };
+    }
+  };
 
   return (
-    <div>
-      <PageHeader
-        title="Dashboard"
-        subtitle="Genel bakış ve özet bilgiler"
-      />
+    <div style={{ padding: "32px", maxWidth: "1600px", margin: "0 auto" }}>
+      {/* Header */}
+      <div style={{ marginBottom: "32px" }}>
+        <h1 style={{ fontSize: "32px", fontWeight: "700", marginBottom: "8px", color: "#111827" }}>
+          Dashboard
+        </h1>
+        <p style={{ color: "#6b7280", fontSize: "16px" }}>Genel bakış ve özet bilgiler</p>
+      </div>
 
       {/* Onboarding Card */}
       {shouldShowOnboarding && (
-        <Card
+        <div
           style={{
-            marginBottom: spacing.xl,
-            backgroundColor: colors.primaryLight,
-            border: `2px solid ${colors.primary}`,
+            padding: "24px",
+            backgroundColor: "#eff6ff",
+            borderRadius: "12px",
+            border: "2px solid #2563eb",
+            marginBottom: "32px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: spacing.md }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div style={{ flex: 1 }}>
-              <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: spacing.sm, color: colors.text.primary }}>
+              <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: "8px", color: "#111827" }}>
                 {dashboardI18n.onboarding.title}
               </h2>
-              <p style={{ color: colors.text.secondary, marginBottom: spacing.md }}>
+              <p style={{ color: "#4b5563", marginBottom: "16px", fontSize: "14px" }}>
                 {dashboardI18n.onboarding.description}
               </p>
-              <ul style={{ listStyle: "none", padding: 0, marginBottom: spacing.md }}>
-                <li style={{ marginBottom: spacing.xs, color: colors.text.primary }}>
-                  {dashboardI18n.onboarding.checklist.step1}
+              <ul style={{ listStyle: "none", padding: 0, marginBottom: "16px" }}>
+                <li style={{ marginBottom: "8px", color: "#111827", fontSize: "14px" }}>
+                  ✓ {dashboardI18n.onboarding.checklist.step1}
                 </li>
-                <li style={{ marginBottom: spacing.xs, color: colors.text.primary }}>
-                  {dashboardI18n.onboarding.checklist.step2}
+                <li style={{ marginBottom: "8px", color: "#111827", fontSize: "14px" }}>
+                  ✓ {dashboardI18n.onboarding.checklist.step2}
                 </li>
-                <li style={{ marginBottom: spacing.xs, color: colors.text.primary }}>
-                  {dashboardI18n.onboarding.checklist.step3}
+                <li style={{ marginBottom: "8px", color: "#111827", fontSize: "14px" }}>
+                  ✓ {dashboardI18n.onboarding.checklist.step3}
                 </li>
               </ul>
-              <div style={{ display: "flex", gap: spacing.sm, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
                 {!isReadOnly && (
                   <>
-                    <Button asLink href="/musteriler/new" variant="primary" size="sm">
+                    <Link
+                      href="/musteriler/new"
+                      style={{
+                        padding: "10px 20px",
+                        backgroundColor: "#2563eb",
+                        color: "white",
+                        borderRadius: "8px",
+                        textDecoration: "none",
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        transition: "all 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#1d4ed8";
+                        e.currentTarget.style.transform = "translateY(-1px)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#2563eb";
+                        e.currentTarget.style.transform = "translateY(0)";
+                      }}
+                    >
                       {dashboardI18n.onboarding.buttons.createClient}
-                    </Button>
-                    <Button asLink href="/belgeler" variant="primary" size="sm">
+                    </Link>
+                    <Link
+                      href="/belgeler"
+                      style={{
+                        padding: "10px 20px",
+                        backgroundColor: "#2563eb",
+                        color: "white",
+                        borderRadius: "8px",
+                        textDecoration: "none",
+                        fontWeight: "500",
+                        fontSize: "14px",
+                        transition: "all 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#1d4ed8";
+                        e.currentTarget.style.transform = "translateY(-1px)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#2563eb";
+                        e.currentTarget.style.transform = "translateY(0)";
+                      }}
+                    >
                       {dashboardI18n.onboarding.buttons.uploadDocument}
-                    </Button>
+                    </Link>
                   </>
                 )}
-                <Button asLink href="/raporlar" variant="outline" size="sm">
+                <Link
+                  href="/raporlar"
+                  style={{
+                    padding: "10px 20px",
+                    backgroundColor: "white",
+                    color: "#2563eb",
+                    borderRadius: "8px",
+                    textDecoration: "none",
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    border: "1px solid #2563eb",
+                    transition: "all 0.2s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#eff6ff";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "white";
+                  }}
+                >
                   {dashboardI18n.onboarding.buttons.goToReports}
-                </Button>
+                </Link>
               </div>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: spacing.xs }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               <button
                 onClick={() => handleDismissOnboarding(false)}
                 style={{
-                  padding: `${spacing.xs} ${spacing.sm}`,
+                  padding: "8px 12px",
                   backgroundColor: "transparent",
                   border: "none",
                   cursor: "pointer",
                   fontSize: "14px",
-                  color: colors.text.secondary,
+                  color: "#6b7280",
                 }}
               >
-                {dashboardI18n.onboarding.buttons.close}
-              </button>
-              <button
-                onClick={() => handleDismissOnboarding(true)}
-                style={{
-                  padding: `${spacing.xs} ${spacing.sm}`,
-                  backgroundColor: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: "12px",
-                  color: colors.text.secondary,
-                }}
-              >
-                {dashboardI18n.onboarding.buttons.dontShowAgain}
+                ✕
               </button>
             </div>
           </div>
-        </Card>
+        </div>
       )}
 
       {/* Statistics Cards */}
@@ -279,127 +339,265 @@ export default function DashboardPage() {
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-          gap: spacing.lg,
-          marginBottom: spacing.xl,
+          gap: "24px",
+          marginBottom: "32px",
         }}
       >
-        <Card>
+        {/* Total Invoices */}
+        <div
+          style={{
+            padding: "24px",
+            backgroundColor: "white",
+            borderRadius: "12px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            border: "1px solid #e5e7eb",
+            transition: "all 0.2s",
+            position: "relative",
+            overflow: "hidden",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+            e.currentTarget.style.transform = "translateY(-2px)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
+            e.currentTarget.style.transform = "translateY(0)";
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              right: 0,
+              width: "80px",
+              height: "80px",
+              backgroundColor: "#dbeafe",
+              borderRadius: "0 0 0 100%",
+              opacity: 0.3,
+            }}
+          />
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
-              <p style={{ margin: 0, color: colors.text.secondary, fontSize: "14px" }}>Toplam Fatura</p>
-              <h2 style={{ margin: `${spacing.xs} 0 0 0`, fontSize: "32px", fontWeight: 600 }}>
+              <p style={{ margin: 0, color: "#6b7280", fontSize: "14px", fontWeight: "500", marginBottom: "8px" }}>
+                Toplam Fatura
+              </p>
+              <h2 style={{ margin: 0, fontSize: "36px", fontWeight: "700", color: "#111827" }}>
                 {totalInvoices}
               </h2>
             </div>
             <div
               style={{
-                width: "48px",
-                height: "48px",
+                width: "56px",
+                height: "56px",
                 borderRadius: "12px",
-                backgroundColor: colors.primaryLight,
+                backgroundColor: "#dbeafe",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "24px",
+                fontSize: "28px",
               }}
             >
               📄
             </div>
           </div>
-        </Card>
+        </div>
 
-        <Card>
+        {/* Total Transactions */}
+        <div
+          style={{
+            padding: "24px",
+            backgroundColor: "white",
+            borderRadius: "12px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            border: "1px solid #e5e7eb",
+            transition: "all 0.2s",
+            position: "relative",
+            overflow: "hidden",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+            e.currentTarget.style.transform = "translateY(-2px)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
+            e.currentTarget.style.transform = "translateY(0)";
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              right: 0,
+              width: "80px",
+              height: "80px",
+              backgroundColor: "#d1fae5",
+              borderRadius: "0 0 0 100%",
+              opacity: 0.3,
+            }}
+          />
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
-              <p style={{ margin: 0, color: colors.text.secondary, fontSize: "14px" }}>Toplam İşlem</p>
-              <h2 style={{ margin: `${spacing.xs} 0 0 0`, fontSize: "32px", fontWeight: 600 }}>
+              <p style={{ margin: 0, color: "#6b7280", fontSize: "14px", fontWeight: "500", marginBottom: "8px" }}>
+                Toplam İşlem
+              </p>
+              <h2 style={{ margin: 0, fontSize: "36px", fontWeight: "700", color: "#111827" }}>
                 {totalTransactions}
               </h2>
             </div>
             <div
               style={{
-                width: "48px",
-                height: "48px",
+                width: "56px",
+                height: "56px",
                 borderRadius: "12px",
-                backgroundColor: colors.successLight,
+                backgroundColor: "#d1fae5",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "24px",
+                fontSize: "28px",
               }}
             >
               💰
             </div>
           </div>
-        </Card>
+        </div>
 
-        {/* Hide "Toplam Müşteri" card for ReadOnly users */}
+        {/* Total Customers - Hide for ReadOnly users */}
         {!isReadOnly && (
-          <Card>
+          <div
+            style={{
+              padding: "24px",
+              backgroundColor: "white",
+              borderRadius: "12px",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              border: "1px solid #e5e7eb",
+              transition: "all 0.2s",
+              position: "relative",
+              overflow: "hidden",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+              e.currentTarget.style.transform = "translateY(-2px)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
+              e.currentTarget.style.transform = "translateY(0)";
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                right: 0,
+                width: "80px",
+                height: "80px",
+                backgroundColor: "#fef3c7",
+                borderRadius: "0 0 0 100%",
+                opacity: 0.3,
+              }}
+            />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <p style={{ margin: 0, color: colors.text.secondary, fontSize: "14px" }}>Toplam Müşteri</p>
-                <h2 style={{ margin: `${spacing.xs} 0 0 0`, fontSize: "32px", fontWeight: 600 }}>
+                <p style={{ margin: 0, color: "#6b7280", fontSize: "14px", fontWeight: "500", marginBottom: "8px" }}>
+                  Toplam Müşteri
+                </p>
+                <h2 style={{ margin: 0, fontSize: "36px", fontWeight: "700", color: "#111827" }}>
                   {totalCustomers}
                 </h2>
               </div>
               <div
                 style={{
-                  width: "48px",
-                  height: "48px",
+                  width: "56px",
+                  height: "56px",
                   borderRadius: "12px",
-                  backgroundColor: colors.warning + "20",
+                  backgroundColor: "#fef3c7",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: "24px",
+                  fontSize: "28px",
                 }}
               >
                 👥
               </div>
             </div>
-          </Card>
+          </div>
         )}
 
-        <Card>
+        {/* Total Documents */}
+        <div
+          style={{
+            padding: "24px",
+            backgroundColor: "white",
+            borderRadius: "12px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            border: "1px solid #e5e7eb",
+            transition: "all 0.2s",
+            position: "relative",
+            overflow: "hidden",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+            e.currentTarget.style.transform = "translateY(-2px)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
+            e.currentTarget.style.transform = "translateY(0)";
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              right: 0,
+              width: "80px",
+              height: "80px",
+              backgroundColor: "#e0e7ff",
+              borderRadius: "0 0 0 100%",
+              opacity: 0.3,
+            }}
+          />
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
-              <p style={{ margin: 0, color: colors.text.secondary, fontSize: "14px" }}>Toplam Belge</p>
-              <h2 style={{ margin: `${spacing.xs} 0 0 0`, fontSize: "32px", fontWeight: 600 }}>
+              <p style={{ margin: 0, color: "#6b7280", fontSize: "14px", fontWeight: "500", marginBottom: "8px" }}>
+                Toplam Belge
+              </p>
+              <h2 style={{ margin: 0, fontSize: "36px", fontWeight: "700", color: "#111827" }}>
                 {totalDocuments}
               </h2>
             </div>
             <div
               style={{
-                width: "48px",
-                height: "48px",
+                width: "56px",
+                height: "56px",
                 borderRadius: "12px",
-                backgroundColor: colors.info + "20",
+                backgroundColor: "#e0e7ff",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "24px",
+                fontSize: "28px",
               }}
             >
               📎
             </div>
           </div>
-        </Card>
+        </div>
       </div>
 
       {/* Show message if customer company not found */}
       {isReadOnly && !customerCompany && (
-        <Card
+        <div
           style={{
-            marginBottom: spacing.lg,
-            backgroundColor: colors.warning + "20",
-            border: `1px solid ${colors.warning}`,
+            padding: "16px 20px",
+            backgroundColor: "#fef3c7",
+            borderRadius: "12px",
+            border: "1px solid #f59e0b",
+            marginBottom: "24px",
+            color: "#92400e",
           }}
         >
-          <p style={{ color: colors.text.primary, margin: 0 }}>
+          <p style={{ margin: 0, fontSize: "14px" }}>
             ⚠️ Müşteri şirketi bulunamadı. Lütfen yöneticinizle iletişime geçin.
           </p>
-        </Card>
+        </div>
       )}
 
       {/* Recent Data Grid */}
@@ -407,256 +605,460 @@ export default function DashboardPage() {
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
-          gap: spacing.lg,
+          gap: "24px",
         }}
       >
         {/* Recent Invoices */}
-        <Card
-          title="Son Faturalar"
-          actions={
-            <Button asLink href="/faturalar" variant="outline" size="sm">
-              Tümünü Gör
-            </Button>
-          }
+        <div
+          style={{
+            padding: "24px",
+            backgroundColor: "white",
+            borderRadius: "12px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            border: "1px solid #e5e7eb",
+          }}
         >
-          {invoicesLoading ? (
-            <p style={{ color: colors.text.secondary }}>Yükleniyor...</p>
-          ) : recentInvoices.length === 0 ? (
-            <p style={{ color: colors.text.secondary }}>Henüz fatura bulunmuyor.</p>
-          ) : (
-            <Table
-              headers={["Fatura No", "Müşteri", "Tutar", "Durum", "Tarih"]}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+            <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#111827" }}>Son Faturalar</h3>
+            <Link
+              href="/faturalar"
+              style={{
+                padding: "6px 12px",
+                color: "#2563eb",
+                textDecoration: "none",
+                fontSize: "14px",
+                fontWeight: "500",
+                borderRadius: "6px",
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#eff6ff";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+              }}
             >
-              {recentInvoices.map((invoice) => (
-                <TableRow
-                  key={invoice.id}
-                  onClick={() => window.location.href = `/faturalar/${invoice.id}`}
-                >
-                  <TableCell>
-                    <div>
-                      <div style={{ fontWeight: 500 }}>{invoice.externalId || "N/A"}</div>
-                      <div style={{ fontSize: "12px", color: colors.text.secondary }}>
-                        {TYPE_LABELS[invoice.type] || invoice.type}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div style={{ fontSize: "14px" }}>
-                      {invoice.clientCompanyName || "N/A"}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div style={{ fontWeight: 500 }}>
-                      {formatCurrency(invoice.totalAmount, invoice.currency)}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span
-                      style={{
-                        padding: `${spacing.xs} ${spacing.sm}`,
-                        borderRadius: "4px",
-                        fontSize: "12px",
-                        backgroundColor:
-                          invoice.status === "kesildi"
-                            ? colors.successLight
-                            : invoice.status === "taslak"
-                            ? colors.warning + "20"
-                            : colors.gray[200],
-                        color:
-                          invoice.status === "kesildi"
-                            ? colors.successDark
-                            : invoice.status === "taslak"
-                            ? colors.dark
-                            : colors.text.secondary,
-                      }}
-                    >
-                      {STATUS_LABELS[invoice.status] || invoice.status}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div style={{ fontSize: "12px", color: colors.text.secondary }}>
-                      {formatDate(invoice.issueDate)}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </Table>
+              Tümünü Gör →
+            </Link>
+          </div>
+          {invoicesLoading ? (
+            <div style={{ textAlign: "center", padding: "40px", color: "#6b7280" }}>Yükleniyor...</div>
+          ) : recentInvoices.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "40px", color: "#6b7280" }}>
+              <p style={{ margin: 0 }}>Henüz fatura bulunmuyor.</p>
+            </div>
+          ) : (
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ borderBottom: "2px solid #e5e7eb" }}>
+                    <th style={{ padding: "12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#6b7280" }}>
+                      Fatura No
+                    </th>
+                    <th style={{ padding: "12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#6b7280" }}>
+                      Müşteri
+                    </th>
+                    <th style={{ padding: "12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#6b7280" }}>
+                      Tutar
+                    </th>
+                    <th style={{ padding: "12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#6b7280" }}>
+                      Durum
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentInvoices.map((invoice) => {
+                    const statusColors = getStatusColor(invoice.status);
+                    return (
+                      <tr
+                        key={invoice.id}
+                        style={{
+                          borderBottom: "1px solid #e5e7eb",
+                          cursor: "pointer",
+                          transition: "background-color 0.2s",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = "#f9fafb";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                        }}
+                        onClick={() => (window.location.href = `/faturalar/${invoice.id}`)}
+                      >
+                        <td style={{ padding: "12px" }}>
+                          <div>
+                            <div style={{ fontWeight: "500", color: "#111827", fontSize: "14px" }}>
+                              {invoice.externalId || "N/A"}
+                            </div>
+                            <div style={{ fontSize: "12px", color: "#6b7280", marginTop: "2px" }}>
+                              {TYPE_LABELS[invoice.type] || invoice.type}
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ padding: "12px", color: "#374151", fontSize: "14px" }}>
+                          {invoice.clientCompanyName || "N/A"}
+                        </td>
+                        <td style={{ padding: "12px", fontWeight: "500", color: "#111827", fontSize: "14px" }}>
+                          {formatCurrency(invoice.totalAmount, invoice.currency)}
+                        </td>
+                        <td style={{ padding: "12px" }}>
+                          <span
+                            style={{
+                              padding: "4px 10px",
+                              borderRadius: "8px",
+                              fontSize: "12px",
+                              fontWeight: "500",
+                              backgroundColor: statusColors.bg,
+                              color: statusColors.text,
+                              border: `1px solid ${statusColors.border}`,
+                            }}
+                          >
+                            {STATUS_LABELS[invoice.status] || invoice.status}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
-        </Card>
+        </div>
 
         {/* Recent Transactions */}
-        <Card
-          title="Son İşlemler"
-          actions={
-            <Button asLink href="/islemler" variant="outline" size="sm">
-              Tümünü Gör
-            </Button>
-          }
+        <div
+          style={{
+            padding: "24px",
+            backgroundColor: "white",
+            borderRadius: "12px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            border: "1px solid #e5e7eb",
+          }}
         >
-          {transactionsLoading ? (
-            <p style={{ color: colors.text.secondary }}>Yükleniyor...</p>
-          ) : recentTransactions.length === 0 ? (
-            <p style={{ color: colors.text.secondary }}>Henüz işlem bulunmuyor.</p>
-          ) : (
-            <Table
-              headers={["Referans", "Açıklama", "Tarih"]}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+            <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#111827" }}>Son İşlemler</h3>
+            <Link
+              href="/islemler"
+              style={{
+                padding: "6px 12px",
+                color: "#2563eb",
+                textDecoration: "none",
+                fontSize: "14px",
+                fontWeight: "500",
+                borderRadius: "6px",
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#eff6ff";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+              }}
             >
-              {recentTransactions.map((transaction) => (
-                <TableRow
-                  key={transaction.id}
-                  onClick={() => window.location.href = `/islemler/${transaction.id}`}
-                >
-                  <TableCell>
-                    <div style={{ fontWeight: 500 }}>
-                      {transaction.referenceNo || "N/A"}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div style={{ fontSize: "14px", color: colors.text.secondary }}>
-                      {transaction.description || "Açıklama yok"}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div style={{ fontSize: "12px", color: colors.text.secondary }}>
-                      {formatDate(transaction.date)}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </Table>
+              Tümünü Gör →
+            </Link>
+          </div>
+          {transactionsLoading ? (
+            <div style={{ textAlign: "center", padding: "40px", color: "#6b7280" }}>Yükleniyor...</div>
+          ) : recentTransactions.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "40px", color: "#6b7280" }}>
+              <p style={{ margin: 0 }}>Henüz işlem bulunmuyor.</p>
+            </div>
+          ) : (
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ borderBottom: "2px solid #e5e7eb" }}>
+                    <th style={{ padding: "12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#6b7280" }}>
+                      Referans
+                    </th>
+                    <th style={{ padding: "12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#6b7280" }}>
+                      Açıklama
+                    </th>
+                    <th style={{ padding: "12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#6b7280" }}>
+                      Tarih
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentTransactions.map((transaction) => (
+                    <tr
+                      key={transaction.id}
+                      style={{
+                        borderBottom: "1px solid #e5e7eb",
+                        cursor: "pointer",
+                        transition: "background-color 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#f9fafb";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "transparent";
+                      }}
+                      onClick={() => (window.location.href = `/islemler/${transaction.id}`)}
+                    >
+                      <td style={{ padding: "12px", fontWeight: "500", color: "#111827", fontSize: "14px" }}>
+                        {transaction.referenceNo || "N/A"}
+                      </td>
+                      <td style={{ padding: "12px", color: "#6b7280", fontSize: "14px" }}>
+                        {transaction.description || "Açıklama yok"}
+                      </td>
+                      <td style={{ padding: "12px", color: "#6b7280", fontSize: "12px" }}>
+                        {formatDate(transaction.date)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
-        </Card>
+        </div>
 
         {/* Recent Customers - Hide for ReadOnly users */}
         {!isReadOnly && (
-          <Card
-            title="Son Müşteriler"
-            actions={
-              <Button asLink href="/musteriler" variant="outline" size="sm">
-                Tümünü Gör
-              </Button>
-            }
+          <div
+            style={{
+              padding: "24px",
+              backgroundColor: "white",
+              borderRadius: "12px",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              border: "1px solid #e5e7eb",
+            }}
           >
-            {customersLoading ? (
-              <p style={{ color: colors.text.secondary }}>Yükleniyor...</p>
-            ) : recentCustomers.length === 0 ? (
-              <p style={{ color: colors.text.secondary }}>Henüz müşteri bulunmuyor.</p>
-            ) : (
-              <Table
-                headers={["Müşteri Adı", "Vergi No", "Durum"]}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+              <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#111827" }}>Son Müşteriler</h3>
+              <Link
+                href="/musteriler"
+                style={{
+                  padding: "6px 12px",
+                  color: "#2563eb",
+                  textDecoration: "none",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  borderRadius: "6px",
+                  transition: "all 0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#eff6ff";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }}
               >
-                {recentCustomers.map((customer) => (
-                  <TableRow
-                    key={customer.id}
-                    onClick={() => window.location.href = `/musteriler/${customer.id}`}
-                  >
-                    <TableCell>
-                      <div style={{ fontWeight: 500 }}>{customer.name}</div>
-                      {customer.contactPersonName && (
-                        <div style={{ fontSize: "12px", color: colors.text.secondary }}>
-                          {customer.contactPersonName}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div style={{ fontSize: "14px", color: colors.text.secondary }}>
-                        {customer.taxNumber}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span
+                Tümünü Gör →
+              </Link>
+            </div>
+            {customersLoading ? (
+              <div style={{ textAlign: "center", padding: "40px", color: "#6b7280" }}>Yükleniyor...</div>
+            ) : recentCustomers.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "40px", color: "#6b7280" }}>
+                <p style={{ margin: 0 }}>Henüz müşteri bulunmuyor.</p>
+              </div>
+            ) : (
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ borderBottom: "2px solid #e5e7eb" }}>
+                      <th style={{ padding: "12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#6b7280" }}>
+                        Müşteri Adı
+                      </th>
+                      <th style={{ padding: "12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#6b7280" }}>
+                        Vergi No
+                      </th>
+                      <th style={{ padding: "12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#6b7280" }}>
+                        Durum
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentCustomers.map((customer) => (
+                      <tr
+                        key={customer.id}
                         style={{
-                          padding: `${spacing.xs} ${spacing.sm}`,
-                          borderRadius: "4px",
-                          fontSize: "12px",
-                          backgroundColor: customer.isActive ? colors.successLight : colors.gray[200],
-                          color: customer.isActive ? colors.successDark : colors.text.secondary,
+                          borderBottom: "1px solid #e5e7eb",
+                          cursor: "pointer",
+                          transition: "background-color 0.2s",
                         }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = "#f9fafb";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                        }}
+                        onClick={() => (window.location.href = `/musteriler/${customer.id}`)}
                       >
-                        {customer.isActive ? "Aktif" : "Pasif"}
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </Table>
+                        <td style={{ padding: "12px" }}>
+                          <div style={{ fontWeight: "500", color: "#111827", fontSize: "14px" }}>{customer.name}</div>
+                          {customer.contactPersonName && (
+                            <div style={{ fontSize: "12px", color: "#6b7280", marginTop: "2px" }}>
+                              {customer.contactPersonName}
+                            </div>
+                          )}
+                        </td>
+                        <td style={{ padding: "12px", color: "#6b7280", fontSize: "14px" }}>{customer.taxNumber}</td>
+                        <td style={{ padding: "12px" }}>
+                          <span
+                            style={{
+                              padding: "4px 10px",
+                              borderRadius: "8px",
+                              fontSize: "12px",
+                              fontWeight: "500",
+                              backgroundColor: customer.isActive ? "#d1fae5" : "#f3f4f6",
+                              color: customer.isActive ? "#065f46" : "#6b7280",
+                              border: `1px solid ${customer.isActive ? "#10b981" : "#9ca3af"}`,
+                            }}
+                          >
+                            {customer.isActive ? "Aktif" : "Pasif"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
-          </Card>
+          </div>
         )}
 
         {/* Recent Documents */}
-        <Card
-          title="Son Belgeler"
-          actions={
-            <Button asLink href="/belgeler" variant="outline" size="sm">
-              Tümünü Gör
-            </Button>
-          }
+        <div
+          style={{
+            padding: "24px",
+            backgroundColor: "white",
+            borderRadius: "12px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            border: "1px solid #e5e7eb",
+          }}
         >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+            <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#111827" }}>Son Belgeler</h3>
+            <Link
+              href="/belgeler"
+              style={{
+                padding: "6px 12px",
+                color: "#2563eb",
+                textDecoration: "none",
+                fontSize: "14px",
+                fontWeight: "500",
+                borderRadius: "6px",
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#eff6ff";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+              }}
+            >
+              Tümünü Gör →
+            </Link>
+          </div>
           {documentsLoading ? (
-            <p style={{ color: colors.text.secondary }}>Yükleniyor...</p>
+            <div style={{ textAlign: "center", padding: "40px", color: "#6b7280" }}>Yükleniyor...</div>
           ) : recentDocuments.length === 0 ? (
-            <div>
-              <p style={{ color: colors.text.secondary, marginBottom: spacing.md }}>
-                Henüz belge bulunmuyor.
-              </p>
-              <Button asLink href="/belgeler" variant="primary" size="sm">
+            <div style={{ textAlign: "center", padding: "40px" }}>
+              <p style={{ margin: "0 0 16px 0", color: "#6b7280" }}>Henüz belge bulunmuyor.</p>
+              <Link
+                href="/belgeler"
+                style={{
+                  display: "inline-block",
+                  padding: "10px 20px",
+                  backgroundColor: "#2563eb",
+                  color: "white",
+                  borderRadius: "8px",
+                  textDecoration: "none",
+                  fontWeight: "500",
+                  fontSize: "14px",
+                  transition: "all 0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#1d4ed8";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#2563eb";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
+              >
                 Belge Yükle
-              </Button>
+              </Link>
             </div>
           ) : (
-            <Table
-              headers={["Dosya Adı", "Tür", "Durum", "Tarih"]}
-            >
-              {recentDocuments.map((doc) => (
-                <TableRow
-                  key={doc.id}
-                  onClick={() => window.location.href = `/belgeler/${doc.id}`}
-                >
-                  <TableCell>
-                    <div style={{ fontWeight: 500 }}>{doc.originalFileName}</div>
-                  </TableCell>
-                  <TableCell>
-                    <div style={{ fontSize: "14px", color: colors.text.secondary }}>
-                      {doc.type === "INVOICE" ? "Fatura" : doc.type === "BANK_STATEMENT" ? "Banka Ekstresi" : doc.type === "RECEIPT" ? "Fiş" : "Diğer"}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span
-                      style={{
-                        padding: `${spacing.xs} ${spacing.sm}`,
-                        borderRadius: "4px",
-                        fontSize: "12px",
-                        backgroundColor:
-                          doc.status === "PROCESSED"
-                            ? colors.successLight
-                            : doc.status === "PROCESSING"
-                            ? colors.info + "20"
-                            : doc.status === "FAILED"
-                            ? colors.dangerLight
-                            : colors.gray[200],
-                        color:
-                          doc.status === "PROCESSED"
-                            ? colors.successDark
-                            : doc.status === "PROCESSING"
-                            ? colors.info
-                            : doc.status === "FAILED"
-                            ? colors.dangerDark
-                            : colors.text.secondary,
-                      }}
-                    >
-                      {doc.status === "PROCESSED" ? "İşlendi" : doc.status === "PROCESSING" ? "İşleniyor" : doc.status === "FAILED" ? "Başarısız" : "Yüklendi"}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div style={{ fontSize: "12px", color: colors.text.secondary }}>
-                      {formatDate(doc.createdAt)}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </Table>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ borderBottom: "2px solid #e5e7eb" }}>
+                    <th style={{ padding: "12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#6b7280" }}>
+                      Dosya Adı
+                    </th>
+                    <th style={{ padding: "12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#6b7280" }}>
+                      Tür
+                    </th>
+                    <th style={{ padding: "12px", textAlign: "left", fontSize: "12px", fontWeight: "600", color: "#6b7280" }}>
+                      Durum
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentDocuments.map((doc) => {
+                    const getDocStatusColor = (status: string) => {
+                      switch (status) {
+                        case "PROCESSED":
+                          return { bg: "#d1fae5", text: "#065f46", border: "#10b981" };
+                        case "PROCESSING":
+                          return { bg: "#dbeafe", text: "#1e40af", border: "#3b82f6" };
+                        case "FAILED":
+                          return { bg: "#fee2e2", text: "#991b1b", border: "#ef4444" };
+                        default:
+                          return { bg: "#f3f4f6", text: "#6b7280", border: "#9ca3af" };
+                      }
+                    };
+                    const docStatusColors = getDocStatusColor(doc.status);
+                    return (
+                      <tr
+                        key={doc.id}
+                        style={{
+                          borderBottom: "1px solid #e5e7eb",
+                          cursor: "pointer",
+                          transition: "background-color 0.2s",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = "#f9fafb";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                        }}
+                        onClick={() => (window.location.href = `/belgeler/${doc.id}`)}
+                      >
+                        <td style={{ padding: "12px", fontWeight: "500", color: "#111827", fontSize: "14px" }}>
+                          {doc.originalFileName}
+                        </td>
+                        <td style={{ padding: "12px", color: "#6b7280", fontSize: "14px" }}>
+                          {doc.type === "INVOICE" ? "Fatura" : doc.type === "BANK_STATEMENT" ? "Banka Ekstresi" : doc.type === "RECEIPT" ? "Fiş" : "Diğer"}
+                        </td>
+                        <td style={{ padding: "12px" }}>
+                          <span
+                            style={{
+                              padding: "4px 10px",
+                              borderRadius: "8px",
+                              fontSize: "12px",
+                              fontWeight: "500",
+                              backgroundColor: docStatusColors.bg,
+                              color: docStatusColors.text,
+                              border: `1px solid ${docStatusColors.border}`,
+                            }}
+                          >
+                            {doc.status === "PROCESSED" ? "İşlendi" : doc.status === "PROCESSING" ? "İşleniyor" : doc.status === "FAILED" ? "Başarısız" : "Yüklendi"}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
-        </Card>
+        </div>
       </div>
     </div>
   );

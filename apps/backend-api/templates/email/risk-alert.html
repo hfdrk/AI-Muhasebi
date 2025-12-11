@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Risk Uyarısı: {{alertTitle}}</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      background-color: {{severityColor}};
+      color: white;
+      padding: 20px;
+      text-align: center;
+      border-radius: 5px 5px 0 0;
+    }
+    .content {
+      background-color: #f9fafb;
+      padding: 30px;
+      border: 1px solid #e5e7eb;
+      border-top: none;
+    }
+    .alert-box {
+      background-color: white;
+      padding: 20px;
+      border-radius: 5px;
+      margin: 20px 0;
+      border-left: 4px solid {{severityColor}};
+    }
+    .severity-badge {
+      display: inline-block;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 12px;
+      text-transform: uppercase;
+      margin-bottom: 15px;
+    }
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: #6b7280;
+      font-size: 12px;
+      border-top: 1px solid #e5e7eb;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Risk Uyarısı</h1>
+  </div>
+  <div class="content">
+    <p>Merhaba,</p>
+    <p>Yeni bir risk uyarısı tespit edilmiştir:</p>
+    
+    <div class="alert-box">
+      <span class="severity-badge" style="background-color: {{severityColor}}; color: white;">
+        {{severity}}
+      </span>
+      <h2 style="margin-top: 0;">{{alertTitle}}</h2>
+      <p>{{alertMessage}}</p>
+      
+      {{#if clientCompanyName}}
+      <p><strong>Müşteri:</strong> {{clientCompanyName}}</p>
+      {{/if}}
+      
+      {{#if riskScore}}
+      <p><strong>Risk Skoru:</strong> {{riskScore}}</p>
+      {{/if}}
+      
+      {{#if detectedAt}}
+      <p><strong>Tespit Tarihi:</strong> {{detectedAt}}</p>
+      {{/if}}
+    </div>
+
+    {{#if recommendations}}
+    <div style="margin-top: 20px; padding: 15px; background-color: #fef3c7; border-radius: 5px;">
+      <strong>Öneriler:</strong>
+      <ul style="margin-top: 10px;">
+        {{#each recommendations}}
+        <li>{{this}}</li>
+        {{/each}}
+      </ul>
+    </div>
+    {{/if}}
+  </div>
+  <div class="footer">
+    <p>Bu bir otomatik bildirimdir. Lütfen bu e-postaya yanıt vermeyin.</p>
+    <p>&copy; {{year}} AI Muhasebi. Tüm hakları saklıdır.</p>
+  </div>
+</body>
+</html>
+

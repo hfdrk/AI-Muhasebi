@@ -68,6 +68,21 @@ export default function ClientDetailPage() {
         <h1>{clientData.name}</h1>
         <div style={{ display: "flex", gap: "8px" }}>
           <Link
+            href={`/mesajlar/yeni?clientCompanyId=${clientId}`}
+            style={{
+              padding: "8px 16px",
+              backgroundColor: "#7C3AED",
+              color: "white",
+              textDecoration: "none",
+              borderRadius: "4px",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+            }}
+          >
+            💬 Mesaj Gönder
+          </Link>
+          <Link
             href={`/clients/${clientId}/edit`}
             style={{
               padding: "8px 16px",

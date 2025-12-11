@@ -20,6 +20,7 @@
     "seed:demo": "tsx scripts/seed-demo.ts",
     "seed:users": "tsx prisma/seed-users.ts",
     "seed:tasks": "tsx prisma/seed-tasks.ts",
+    "seed:field-mappings": "tsx prisma/seed-field-mappings.ts",
     "update:test-user-role": "tsx prisma/update-test-user-role.ts",
     "perf:test": "tsx scripts/perf/load-test.ts",
     "test:smoke": "vitest run -- smoke.integration.test.ts"
@@ -43,8 +44,10 @@
     "@types/cookie-parser": "^1.4.6",
     "@types/cors": "^2.8.19",
     "@types/express": "^4.17.21",
+    "@types/handlebars": "^4.1.0",
     "@types/multer": "^1.4.11",
     "@types/node": "^20.11.0",
+    "@types/nodemailer": "^7.0.4",
     "@types/pdfkit": "^0.13.0",
     "@types/supertest": "^6.0.2",
     "@types/uuid": "^9.0.7",

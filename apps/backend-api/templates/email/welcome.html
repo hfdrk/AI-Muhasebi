@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hoş Geldiniz!</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      background-color: #4F46E5;
+      color: white;
+      padding: 30px;
+      text-align: center;
+      border-radius: 5px 5px 0 0;
+    }
+    .content {
+      background-color: #f9fafb;
+      padding: 30px;
+      border: 1px solid #e5e7eb;
+      border-top: none;
+    }
+    .welcome-box {
+      background-color: white;
+      padding: 30px;
+      border-radius: 5px;
+      margin: 20px 0;
+      text-align: center;
+    }
+    .button {
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: #4F46E5;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-top: 20px;
+    }
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: #6b7280;
+      font-size: 12px;
+      border-top: 1px solid #e5e7eb;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>AI Muhasebi'ye Hoş Geldiniz!</h1>
+  </div>
+  <div class="content">
+    <div class="welcome-box">
+      <h2>Merhaba {{userName}}!</h2>
+      <p>AI Muhasebi platformuna başarıyla kaydoldunuz.</p>
+      <p>Hesabınız hazır ve kullanıma açık.</p>
+    </div>
+
+    <div style="margin-top: 30px;">
+      <h3>Başlamak için:</h3>
+      <ul>
+        <li>Müşteri bilgilerinizi ekleyin</li>
+        <li>Belgelerinizi yükleyin</li>
+        <li>Entegrasyonlarınızı yapılandırın</li>
+        <li>Raporlarınızı oluşturun</li>
+      </ul>
+    </div>
+
+    {{#if loginUrl}}
+    <div style="text-align: center; margin-top: 30px;">
+      <a href="{{loginUrl}}" class="button">Hesabıma Git</a>
+    </div>
+    {{/if}}
+
+    <div style="margin-top: 30px; padding: 15px; background-color: #f3f4f6; border-radius: 5px;">
+      <p><strong>İhtiyacınız olursa:</strong></p>
+      <p>Herhangi bir sorunuz için destek ekibimizle iletişime geçebilirsiniz.</p>
+    </div>
+  </div>
+  <div class="footer">
+    <p>Bu bir otomatik e-postadır. Lütfen bu e-postaya yanıt vermeyin.</p>
+    <p>&copy; {{year}} AI Muhasebi. Tüm hakları saklıdır.</p>
+  </div>
+</body>
+</html>
+

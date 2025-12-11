@@ -20,3 +20,5 @@ export * from "./saved-filter-client";
 export * from "./admin-client";
 export * from "./task-client";
 export * from "./document-requirement-client";
+export * from "./messaging-client";
+export * from "./email-template-client";

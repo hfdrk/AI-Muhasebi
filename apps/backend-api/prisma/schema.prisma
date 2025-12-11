@@ -33,6 +33,8 @@ model User {
   notificationPreferences NotificationPreference[]
   savedFilters            SavedFilter[]
   assignedTasks           Task[]
+  messageThreads          MessageThreadParticipant[]
+  sentMessages            Message[]
 
   @@index([email])
   @@map("users")
@@ -82,6 +84,7 @@ model Tenant {
   savedFilters            SavedFilter[]
   tasks                   Task[]
   documentRequirements    DocumentRequirement[]
+  retryQueueItems         RetryQueue[]
 
   @@index([slug])
   @@map("tenants")
@@ -204,6 +207,7 @@ model ClientCompany {
   scheduledReports    ScheduledReport[]
   tasks               Task[]
   documentRequirements DocumentRequirement[]
+  messageThreads      MessageThread[]
 
   @@unique([tenantId, taxNumber])
   @@index([tenantId])
@@ -755,6 +759,61 @@ model NotificationPreference {
   @@map("notification_preferences")
 }
 
+model MessageThread {
+  id              String   @id @default(cuid())
+  tenantId        String   @map("tenant_id")
+  clientCompanyId String? @map("client_company_id")
+  subject         String?  @db.VarChar(255)
+  lastMessageAt   DateTime? @map("last_message_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant          Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientCompany   ClientCompany?          @relation(fields: [clientCompanyId], references: [id], onDelete: SetNull)
+  participants    MessageThreadParticipant[]
+  messages        Message[]
+
+  @@index([tenantId])
+  @@index([tenantId, clientCompanyId])
+  @@index([lastMessageAt])
+  @@map("message_threads")
+}
+
+model MessageThreadParticipant {
+  id            String   @id @default(cuid())
+  threadId      String   @map("thread_id")
+  userId        String   @map("user_id")
+  lastReadAt    DateTime? @map("last_read_at") @db.Timestamptz(6)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  thread MessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([threadId, userId])
+  @@index([threadId])
+  @@index([userId])
+  @@map("message_thread_participants")
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  threadId String   @map("thread_id")
+  senderId String   @map("sender_id")
+  content  String   @db.Text
+  readAt   DateTime? @map("read_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  thread MessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  sender User          @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([threadId])
+  @@index([senderId])
+  @@index([createdAt])
+  @@map("messages")
+}
+
 model TenantSubscription {
   id         String    @id @default(cuid())
   tenantId   String    @unique @map("tenant_id")
@@ -860,4 +919,26 @@ model DocumentRequirement {
   @@index([tenantId, status])
   @@index([requiredByDate])
   @@map("document_requirements")
+}
+
+model RetryQueue {
+  id          String   @id @default(cuid())
+  tenantId    String?  @map("tenant_id")
+  type        String   @db.VarChar(50) // email, job, sync
+  payload     Json     @default("{}")
+  attempts    Int      @default(0)
+  maxAttempts Int      @default(3) @map("max_attempts")
+  nextRetryAt DateTime @map("next_retry_at") @db.Timestamptz(6)
+  status      String   @default("pending") @db.VarChar(50) // pending, processing, failed, success
+  error       String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([nextRetryAt])
+  @@index([type])
+  @@map("retry_queue")
 }

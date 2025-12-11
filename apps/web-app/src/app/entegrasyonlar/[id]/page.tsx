@@ -12,6 +12,7 @@ import {
 } from "@repo/api-client";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import IntegrationFieldMappingModal from "@/components/integration-field-mapping-modal";
 
 const STATUS_LABELS: Record<string, string> = {
   connected: "Bağlı",
@@ -48,6 +49,7 @@ export default function IntegrationDetailPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const integrationId = params.id as string;
+  const [isMappingModalOpen, setIsMappingModalOpen] = useState(false);
 
   const { data: integrationData, isLoading } = useQuery({
     queryKey: ["integration", integrationId],
@@ -57,12 +59,33 @@ export default function IntegrationDetailPage() {
   const { data: jobsData } = useQuery({
     queryKey: ["integration-jobs", integrationId],
     queryFn: () => listSyncJobs(integrationId),
+    refetchInterval: (query) => {
+      // Auto-refetch every 3 seconds if there are pending/in_progress jobs
+      const jobs = query.state.data?.data?.data || [];
+      const hasActiveJobs = jobs.some(
+        (job: any) => job.status === "pending" || job.status === "in_progress"
+      );
+      return hasActiveJobs ? 3000 : false;
+    },
   });
 
   const { data: logsData } = useQuery({
     queryKey: ["integration-logs", integrationId],
     queryFn: () => listSyncLogs(integrationId),
+    refetchInterval: (query) => {
+      // Auto-refetch every 5 seconds if there are active jobs
+      const jobs = jobsData?.data?.data || [];
+      const hasActiveJobs = jobs.some(
+        (job: any) => job.status === "pending" || job.status === "in_progress"
+      );
+      return hasActiveJobs ? 5000 : false;
+    },
   });
+
+  const [syncNotification, setSyncNotification] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
 
   const syncMutation = useMutation({
     mutationFn: (jobType: "pull_invoices" | "pull_bank_transactions") =>
@@ -70,7 +93,23 @@ export default function IntegrationDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["integration", integrationId] });
       queryClient.invalidateQueries({ queryKey: ["integration-jobs", integrationId] });
-      alert("Senkronizasyon başlatıldı.");
+      setSyncNotification({
+        message: "Senkronizasyon başlatıldı. Durum tabloda güncellenecektir.",
+        type: "success",
+      });
+      // Auto-hide notification after 5 seconds
+      setTimeout(() => setSyncNotification(null), 5000);
+      // Start polling immediately to show status updates
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ["integration-jobs", integrationId] });
+      }, 1000);
+    },
+    onError: (error: any) => {
+      setSyncNotification({
+        message: error?.message || "Senkronizasyon başlatılamadı.",
+        type: "error",
+      });
+      setTimeout(() => setSyncNotification(null), 5000);
     },
   });
 
@@ -82,11 +121,49 @@ export default function IntegrationDetailPage() {
   });
 
   if (isLoading) {
-    return <div style={{ padding: "40px" }}>Yükleniyor...</div>;
+    return (
+      <div style={{ padding: "40px", maxWidth: "1400px", margin: "0 auto" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div
+            style={{
+              width: "24px",
+              height: "24px",
+              border: "3px solid #e5e7eb",
+              borderTopColor: "#2563eb",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+            }}
+          />
+          <span style={{ color: "#6b7280", fontSize: "16px" }}>Yükleniyor...</span>
+        </div>
+      </div>
+    );
   }
 
   if (!integrationData?.data) {
-    return <div style={{ padding: "40px" }}>Entegrasyon bulunamadı.</div>;
+    return (
+      <div style={{ padding: "40px", maxWidth: "1400px", margin: "0 auto", textAlign: "center" }}>
+        <div style={{ fontSize: "48px", marginBottom: "16px" }}>⚠️</div>
+        <h2 style={{ color: "#111827", marginBottom: "8px" }}>Entegrasyon bulunamadı</h2>
+        <p style={{ color: "#6b7280", marginBottom: "24px" }}>
+          Aradığınız entegrasyon mevcut değil veya silinmiş olabilir.
+        </p>
+        <Link
+          href="/entegrasyonlar"
+          style={{
+            display: "inline-block",
+            padding: "12px 24px",
+            backgroundColor: "#2563eb",
+            color: "white",
+            textDecoration: "none",
+            borderRadius: "8px",
+            fontWeight: "500",
+          }}
+        >
+          İntegrasyonlara Dön
+        </Link>
+      </div>
+    );
   }
 
   const integration = integrationData.data;
@@ -104,274 +181,640 @@ export default function IntegrationDetailPage() {
     }
   };
 
+  // Add CSS for animations
+  if (typeof document !== "undefined" && !document.getElementById("sync-animations-style")) {
+    const style = document.createElement("style");
+    style.id = "sync-animations-style";
+    style.textContent = `
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   return (
-    <div style={{ padding: "40px" }}>
-      <div style={{ marginBottom: "24px" }}>
+    <div style={{ padding: "32px", maxWidth: "1400px", margin: "0 auto" }}>
+      {syncNotification && (
+        <div
+          style={{
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+            padding: "16px 20px",
+            backgroundColor: syncNotification.type === "success" ? "#d1fae5" : "#fee2e2",
+            color: syncNotification.type === "success" ? "#065f46" : "#991b1b",
+            borderRadius: "8px",
+            boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+            zIndex: 1000,
+            maxWidth: "400px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "12px",
+          }}
+        >
+          <span>{syncNotification.message}</span>
+          <button
+            onClick={() => setSyncNotification(null)}
+            style={{
+              background: "none",
+              border: "none",
+              color: "inherit",
+              cursor: "pointer",
+              fontSize: "18px",
+              padding: "0",
+              lineHeight: "1",
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* Header */}
+      <div style={{ marginBottom: "32px" }}>
         <Link
           href="/entegrasyonlar"
-          style={{ color: "#0066cc", textDecoration: "none", marginBottom: "16px", display: "inline-block" }}
+          style={{
+            color: "#2563eb",
+            textDecoration: "none",
+            fontSize: "14px",
+            fontWeight: "500",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            marginBottom: "16px",
+            transition: "color 0.2s",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#1d4ed8")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#2563eb")}
         >
           ← İntegrasyonlara Dön
         </Link>
-        <h1 style={{ marginTop: "16px" }}>{integration.displayName}</h1>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <div>
+            <h1 style={{ margin: "0 0 8px 0", fontSize: "32px", fontWeight: "700", color: "#111827" }}>
+              {integration.displayName}
+            </h1>
+            <p style={{ margin: 0, color: "#6b7280", fontSize: "16px" }}>
+              {provider.name} • {provider.type === "accounting" ? "Muhasebe Sistemi" : "Banka Bağlantısı"}
+            </p>
+          </div>
+        </div>
       </div>
 
+      {/* Info Cards */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginBottom: "32px" }}>
-        <div style={{ padding: "16px", border: "1px solid #ddd", borderRadius: "4px" }}>
-          <h3 style={{ marginTop: 0 }}>Sağlayıcı Bilgileri</h3>
-          <p>
-            <strong>Ad:</strong> {provider.name}
-          </p>
-          <p>
-            <strong>Tür:</strong> {provider.type === "accounting" ? "Muhasebe" : "Banka"}
-          </p>
-          {provider.description && (
-            <p>
-              <strong>Açıklama:</strong> {provider.description}
-            </p>
-          )}
+        {/* Provider Info Card */}
+        <div
+          style={{
+            padding: "24px",
+            backgroundColor: "white",
+            border: "1px solid #e5e7eb",
+            borderRadius: "12px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+          }}
+        >
+          <h3 style={{ margin: "0 0 16px 0", fontSize: "18px", fontWeight: "600", color: "#111827" }}>
+            Sağlayıcı Bilgileri
+          </h3>
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            <div>
+              <span style={{ color: "#6b7280", fontSize: "14px", display: "block", marginBottom: "4px" }}>Ad</span>
+              <span style={{ color: "#111827", fontSize: "16px", fontWeight: "500" }}>{provider.name}</span>
+            </div>
+            <div>
+              <span style={{ color: "#6b7280", fontSize: "14px", display: "block", marginBottom: "4px" }}>Tür</span>
+              <span style={{ color: "#111827", fontSize: "16px", fontWeight: "500" }}>
+                {provider.type === "accounting" ? "Muhasebe" : "Banka"}
+              </span>
+            </div>
+            {provider.description && (
+              <div>
+                <span style={{ color: "#6b7280", fontSize: "14px", display: "block", marginBottom: "4px" }}>
+                  Açıklama
+                </span>
+                <span style={{ color: "#111827", fontSize: "16px" }}>{provider.description}</span>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div style={{ padding: "16px", border: "1px solid #ddd", borderRadius: "4px" }}>
-          <h3 style={{ marginTop: 0 }}>Durum</h3>
-          <p>
-            <strong>Bağlantı Durumu:</strong>{" "}
-            <span
-              style={{
-                padding: "4px 8px",
-                borderRadius: "4px",
-                backgroundColor:
-                  integration.status === "connected"
-                    ? "#d4edda"
-                    : integration.status === "error"
-                    ? "#f8d7da"
-                    : "#fff3cd",
-                color:
-                  integration.status === "connected"
-                    ? "#155724"
-                    : integration.status === "error"
-                    ? "#721c24"
-                    : "#856404",
-                fontSize: "14px",
-              }}
-            >
-              {STATUS_LABELS[integration.status] || integration.status}
-            </span>
-          </p>
-          <p>
-            <strong>Son Senkron:</strong>{" "}
-            {integration.lastSyncAt
-              ? new Date(integration.lastSyncAt).toLocaleString("tr-TR")
-              : "Henüz senkronize edilmedi"}
-          </p>
-          <p>
-            <strong>Son Senkron Durumu:</strong>{" "}
-            {integration.lastSyncStatus ? (
+        {/* Status Card */}
+        <div
+          style={{
+            padding: "24px",
+            backgroundColor: "white",
+            border: "1px solid #e5e7eb",
+            borderRadius: "12px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+          }}
+        >
+          <h3 style={{ margin: "0 0 16px 0", fontSize: "18px", fontWeight: "600", color: "#111827" }}>Durum</h3>
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            <div>
+              <span style={{ color: "#6b7280", fontSize: "14px", display: "block", marginBottom: "4px" }}>
+                Bağlantı Durumu
+              </span>
               <span
                 style={{
-                  padding: "4px 8px",
-                  borderRadius: "4px",
-                  backgroundColor:
-                    integration.lastSyncStatus === "success"
-                      ? "#d4edda"
-                      : integration.lastSyncStatus === "error"
-                      ? "#f8d7da"
-                      : "#d1ecf1",
-                  color:
-                    integration.lastSyncStatus === "success"
-                      ? "#155724"
-                      : integration.lastSyncStatus === "error"
-                      ? "#721c24"
-                      : "#0c5460",
+                  padding: "6px 12px",
+                  borderRadius: "8px",
                   fontSize: "14px",
+                  fontWeight: "500",
+                  display: "inline-block",
+                  backgroundColor:
+                    integration.status === "connected"
+                      ? "#d1fae5"
+                      : integration.status === "error"
+                      ? "#fee2e2"
+                      : "#fef3c7",
+                  color:
+                    integration.status === "connected"
+                      ? "#065f46"
+                      : integration.status === "error"
+                      ? "#991b1b"
+                      : "#92400e",
                 }}
               >
-                {SYNC_STATUS_LABELS[integration.lastSyncStatus] || integration.lastSyncStatus}
+                {STATUS_LABELS[integration.status] || integration.status}
               </span>
-            ) : (
-              "-"
+            </div>
+            <div>
+              <span style={{ color: "#6b7280", fontSize: "14px", display: "block", marginBottom: "4px" }}>
+                Son Senkron
+              </span>
+              <span style={{ color: "#111827", fontSize: "16px", fontWeight: "500" }}>
+                {integration.lastSyncAt
+                  ? new Date(integration.lastSyncAt).toLocaleString("tr-TR")
+                  : "Henüz senkronize edilmedi"}
+              </span>
+            </div>
+            {integration.lastSyncStatus && (
+              <div>
+                <span style={{ color: "#6b7280", fontSize: "14px", display: "block", marginBottom: "4px" }}>
+                  Son Senkron Durumu
+                </span>
+                <span
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    display: "inline-block",
+                    backgroundColor:
+                      integration.lastSyncStatus === "success"
+                        ? "#d1fae5"
+                        : integration.lastSyncStatus === "error"
+                        ? "#fee2e2"
+                        : "#dbeafe",
+                    color:
+                      integration.lastSyncStatus === "success"
+                        ? "#065f46"
+                        : integration.lastSyncStatus === "error"
+                        ? "#991b1b"
+                        : "#1e40af",
+                  }}
+                >
+                  {SYNC_STATUS_LABELS[integration.lastSyncStatus] || integration.lastSyncStatus}
+                </span>
+              </div>
             )}
-          </p>
+          </div>
         </div>
       </div>
 
-      <div style={{ marginBottom: "32px" }}>
-        <h2>Manuel Senkronizasyon</h2>
-        <div style={{ display: "flex", gap: "8px" }}>
+      {/* Actions Section */}
+      <div
+        style={{
+          marginBottom: "32px",
+          padding: "24px",
+          backgroundColor: "white",
+          border: "1px solid #e5e7eb",
+          borderRadius: "12px",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+        }}
+      >
+        <h2 style={{ margin: "0 0 16px 0", fontSize: "20px", fontWeight: "600", color: "#111827" }}>
+          İşlemler
+        </h2>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
           {provider.type === "accounting" && (
             <button
               onClick={() => handleSync("pull_invoices")}
+              disabled={syncMutation.isPending}
               style={{
-                padding: "8px 16px",
-                backgroundColor: "#0066cc",
+                padding: "12px 24px",
+                backgroundColor: syncMutation.isPending ? "#9ca3af" : "#2563eb",
                 color: "white",
                 border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
+                borderRadius: "8px",
+                cursor: syncMutation.isPending ? "not-allowed" : "pointer",
+                fontSize: "16px",
+                fontWeight: "500",
+                transition: "all 0.2s",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              }}
+              onMouseEnter={(e) => {
+                if (!syncMutation.isPending) {
+                  e.currentTarget.style.backgroundColor = "#1d4ed8";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!syncMutation.isPending) {
+                  e.currentTarget.style.backgroundColor = "#2563eb";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }
               }}
             >
-              Faturaları Senkronize Et
+              {syncMutation.isPending ? "⏳ Başlatılıyor..." : "🔄 Faturaları Senkronize Et"}
             </button>
           )}
           {provider.type === "bank" && (
             <button
               onClick={() => handleSync("pull_bank_transactions")}
+              disabled={syncMutation.isPending}
               style={{
-                padding: "8px 16px",
-                backgroundColor: "#0066cc",
+                padding: "12px 24px",
+                backgroundColor: syncMutation.isPending ? "#9ca3af" : "#2563eb",
                 color: "white",
                 border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
+                borderRadius: "8px",
+                cursor: syncMutation.isPending ? "not-allowed" : "pointer",
+                fontSize: "16px",
+                fontWeight: "500",
+                transition: "all 0.2s",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              }}
+              onMouseEnter={(e) => {
+                if (!syncMutation.isPending) {
+                  e.currentTarget.style.backgroundColor = "#1d4ed8";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!syncMutation.isPending) {
+                  e.currentTarget.style.backgroundColor = "#2563eb";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }
               }}
             >
-              Hesap Hareketlerini Senkronize Et
+              {syncMutation.isPending ? "⏳ Başlatılıyor..." : "🔄 Hesap Hareketlerini Senkronize Et"}
             </button>
           )}
           <Link
             href={`/entegrasyonlar/${integrationId}/edit`}
             style={{
-              padding: "8px 16px",
-              backgroundColor: "#28a745",
+              padding: "12px 24px",
+              backgroundColor: "#10b981",
               color: "white",
               textDecoration: "none",
-              borderRadius: "4px",
+              borderRadius: "8px",
+              fontSize: "16px",
+              fontWeight: "500",
               display: "inline-block",
+              transition: "all 0.2s",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#059669";
+              e.currentTarget.style.transform = "translateY(-1px)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#10b981";
+              e.currentTarget.style.transform = "translateY(0)";
             }}
           >
-            Düzenle
+            ✏️ Düzenle
           </Link>
+          <button
+            onClick={() => setIsMappingModalOpen(true)}
+            style={{
+              padding: "12px 24px",
+              backgroundColor: "#06b6d4",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontSize: "16px",
+              fontWeight: "500",
+              transition: "all 0.2s",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#0891b2";
+              e.currentTarget.style.transform = "translateY(-1px)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#06b6d4";
+              e.currentTarget.style.transform = "translateY(0)";
+            }}
+          >
+            🔗 Alan Eşleştirme
+          </button>
           <button
             onClick={handleDelete}
             style={{
-              padding: "8px 16px",
-              backgroundColor: "#dc3545",
+              padding: "12px 24px",
+              backgroundColor: "#ef4444",
               color: "white",
               border: "none",
-              borderRadius: "4px",
+              borderRadius: "8px",
               cursor: "pointer",
+              fontSize: "16px",
+              fontWeight: "500",
+              transition: "all 0.2s",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#dc2626";
+              e.currentTarget.style.transform = "translateY(-1px)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#ef4444";
+              e.currentTarget.style.transform = "translateY(0)";
             }}
           >
-            Bağlantıyı Kes
+            ✕ Bağlantıyı Kes
           </button>
         </div>
       </div>
 
-      <div style={{ marginBottom: "32px" }}>
-        <h2>Senkronizasyon Geçmişi</h2>
+      {/* Sync History */}
+      <div
+        style={{
+          marginBottom: "32px",
+          padding: "24px",
+          backgroundColor: "white",
+          border: "1px solid #e5e7eb",
+          borderRadius: "12px",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+        }}
+      >
+        <h2 style={{ margin: "0 0 20px 0", fontSize: "20px", fontWeight: "600", color: "#111827" }}>
+          Senkronizasyon Geçmişi
+        </h2>
         {jobs.length === 0 ? (
-          <p>Henüz senkronizasyon işi bulunmamaktadır.</p>
+          <div
+            style={{
+              textAlign: "center",
+              padding: "40px",
+              color: "#6b7280",
+              backgroundColor: "#f9fafb",
+              borderRadius: "8px",
+            }}
+          >
+            <p style={{ margin: 0 }}>Henüz senkronizasyon işi bulunmamaktadır.</p>
+          </div>
         ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ borderBottom: "2px solid #ddd" }}>
-                <th style={{ padding: "12px", textAlign: "left" }}>İşlem Tipi</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>Durum</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>Başlangıç</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>Bitiş</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>Detay / Mesaj</th>
-              </tr>
-            </thead>
-            <tbody>
-              {jobs.map((job: any) => (
-                <tr key={job.id} style={{ borderBottom: "1px solid #eee" }}>
-                  <td style={{ padding: "12px" }}>{JOB_TYPE_LABELS[job.jobType] || job.jobType}</td>
-                  <td style={{ padding: "12px" }}>
-                    <span
-                      style={{
-                        padding: "4px 8px",
-                        borderRadius: "4px",
-                        backgroundColor:
-                          job.status === "success"
-                            ? "#d4edda"
-                            : job.status === "failed"
-                            ? "#f8d7da"
-                            : job.status === "in_progress"
-                            ? "#d1ecf1"
-                            : "#fff3cd",
-                        color:
-                          job.status === "success"
-                            ? "#155724"
-                            : job.status === "failed"
-                            ? "#721c24"
-                            : job.status === "in_progress"
-                            ? "#0c5460"
-                            : "#856404",
-                        fontSize: "12px",
-                      }}
-                    >
-                      {JOB_STATUS_LABELS[job.status] || job.status}
-                    </span>
-                  </td>
-                  <td style={{ padding: "12px" }}>
-                    {job.startedAt ? new Date(job.startedAt).toLocaleString("tr-TR") : "-"}
-                  </td>
-                  <td style={{ padding: "12px" }}>
-                    {job.finishedAt ? new Date(job.finishedAt).toLocaleString("tr-TR") : "-"}
-                  </td>
-                  <td style={{ padding: "12px" }}>
-                    {job.errorMessage ? (
-                      <span style={{ color: "#dc3545" }}>{job.errorMessage}</span>
-                    ) : (
-                      "-"
-                    )}
-                  </td>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ borderBottom: "2px solid #e5e7eb" }}>
+                  <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: "#6b7280" }}>
+                    İşlem Tipi
+                  </th>
+                  <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: "#6b7280" }}>
+                    Durum
+                  </th>
+                  <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: "#6b7280" }}>
+                    Başlangıç
+                  </th>
+                  <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: "#6b7280" }}>
+                    Bitiş
+                  </th>
+                  <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: "#6b7280" }}>
+                    Detay / Mesaj
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+              </thead>
+              <tbody>
+                {jobs.map((job: any) => (
+                  <tr
+                    key={job.id}
+                    style={{
+                      borderBottom: "1px solid #e5e7eb",
+                      transition: "background-color 0.2s",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#f9fafb";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "transparent";
+                    }}
+                  >
+                    <td style={{ padding: "12px", color: "#111827", fontSize: "14px" }}>
+                      {JOB_TYPE_LABELS[job.jobType] || job.jobType}
+                    </td>
+                    <td style={{ padding: "12px" }}>
+                      <span
+                        style={{
+                          padding: "6px 12px",
+                          borderRadius: "8px",
+                          fontSize: "13px",
+                          fontWeight: "500",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          backgroundColor:
+                            job.status === "success"
+                              ? "#d1fae5"
+                              : job.status === "failed"
+                              ? "#fee2e2"
+                              : job.status === "in_progress"
+                              ? "#dbeafe"
+                              : "#fef3c7",
+                          color:
+                            job.status === "success"
+                              ? "#065f46"
+                              : job.status === "failed"
+                              ? "#991b1b"
+                              : job.status === "in_progress"
+                              ? "#1e40af"
+                              : "#92400e",
+                        }}
+                      >
+                        {(job.status === "pending" || job.status === "in_progress") && (
+                          <span
+                            style={{
+                              display: "inline-block",
+                              width: "8px",
+                              height: "8px",
+                              borderRadius: "50%",
+                              backgroundColor:
+                                job.status === "in_progress" ? "#1e40af" : "#92400e",
+                              animation: "pulse 1.5s ease-in-out infinite",
+                            }}
+                          />
+                        )}
+                        {JOB_STATUS_LABELS[job.status] || job.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: "12px", color: "#6b7280", fontSize: "14px" }}>
+                      {job.startedAt ? new Date(job.startedAt).toLocaleString("tr-TR") : "-"}
+                    </td>
+                    <td style={{ padding: "12px", color: "#6b7280", fontSize: "14px" }}>
+                      {job.finishedAt ? new Date(job.finishedAt).toLocaleString("tr-TR") : "-"}
+                    </td>
+                    <td style={{ padding: "12px" }}>
+                      {job.errorMessage ? (
+                        <span style={{ color: "#ef4444", fontSize: "14px" }}>{job.errorMessage}</span>
+                      ) : (
+                        <span style={{ color: "#9ca3af" }}>-</span>
+                      )}
+                    </td>
+                </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
 
-      <div>
-        <h2>Günlükler (Log)</h2>
-        {logs.length === 0 ? (
-          <p>Henüz günlük kaydı bulunmamaktadır.</p>
-        ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ borderBottom: "2px solid #ddd" }}>
-                <th style={{ padding: "12px", textAlign: "left" }}>Seviye</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>Mesaj</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>Tarih</th>
-              </tr>
-            </thead>
-            <tbody>
-              {logs.map((log: any) => (
-                <tr key={log.id} style={{ borderBottom: "1px solid #eee" }}>
-                  <td style={{ padding: "12px" }}>
-                    <span
+        {/* Logs Section */}
+        <div
+          style={{
+            padding: "24px",
+            backgroundColor: "white",
+            border: "1px solid #e5e7eb",
+            borderRadius: "12px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+          }}
+        >
+          <h2 style={{ margin: "0 0 20px 0", fontSize: "20px", fontWeight: "600", color: "#111827" }}>
+            Günlükler (Log)
+          </h2>
+          {logs.length === 0 ? (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "40px",
+                color: "#6b7280",
+                backgroundColor: "#f9fafb",
+                borderRadius: "8px",
+              }}
+            >
+              <p style={{ margin: 0 }}>Henüz günlük kaydı bulunmamaktadır.</p>
+              {jobs.some((job: any) => job.status === "pending" || job.status === "in_progress") && (
+                <p style={{ fontSize: "14px", color: "#6b7280", marginTop: "8px" }}>
+                  <em>Günlükler, senkronizasyon işlemleri tamamlandığında görünecektir.</em>
+                </p>
+              )}
+            </div>
+          ) : (
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ borderBottom: "2px solid #e5e7eb" }}>
+                    <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: "#6b7280" }}>
+                      Seviye
+                    </th>
+                    <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: "#6b7280" }}>
+                      Mesaj
+                    </th>
+                    <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: "#6b7280" }}>
+                      Tarih
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {logs.map((log: any) => (
+                    <tr
+                      key={log.id}
                       style={{
-                        padding: "4px 8px",
-                        borderRadius: "4px",
-                        backgroundColor:
-                          log.level === "error"
-                            ? "#f8d7da"
-                            : log.level === "warning"
-                            ? "#fff3cd"
-                            : "#d1ecf1",
-                        color:
-                          log.level === "error"
-                            ? "#721c24"
-                            : log.level === "warning"
-                            ? "#856404"
-                            : "#0c5460",
-                        fontSize: "12px",
+                        borderBottom: "1px solid #e5e7eb",
+                        transition: "background-color 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#f9fafb";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "transparent";
                       }}
                     >
-                      {LOG_LEVEL_LABELS[log.level] || log.level}
-                    </span>
-                  </td>
-                  <td style={{ padding: "12px" }}>{log.message}</td>
-                  <td style={{ padding: "12px" }}>
-                    {new Date(log.createdAt).toLocaleString("tr-TR")}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+                      <td style={{ padding: "12px" }}>
+                        <span
+                          style={{
+                            padding: "6px 12px",
+                            borderRadius: "8px",
+                            fontSize: "13px",
+                            fontWeight: "500",
+                            display: "inline-block",
+                            backgroundColor:
+                              log.level === "error"
+                                ? "#fee2e2"
+                                : log.level === "warning"
+                                ? "#fef3c7"
+                                : "#dbeafe",
+                            color:
+                              log.level === "error"
+                                ? "#991b1b"
+                                : log.level === "warning"
+                                ? "#92400e"
+                                : "#1e40af",
+                          }}
+                        >
+                          {LOG_LEVEL_LABELS[log.level] || log.level}
+                        </span>
+                      </td>
+                      <td style={{ padding: "12px" }}>
+                        <div style={{ color: "#111827", fontSize: "14px", marginBottom: log.context ? "4px" : "0" }}>
+                          {log.message}
+                        </div>
+                        {log.context && Object.keys(log.context).length > 0 && (
+                          <details style={{ marginTop: "4px" }}>
+                            <summary
+                              style={{
+                                cursor: "pointer",
+                                color: "#2563eb",
+                                fontSize: "13px",
+                                fontWeight: "500",
+                              }}
+                            >
+                              Detaylar
+                            </summary>
+                            <pre
+                              style={{
+                                marginTop: "8px",
+                                padding: "12px",
+                                backgroundColor: "#f9fafb",
+                                borderRadius: "6px",
+                                overflow: "auto",
+                                maxHeight: "200px",
+                                fontSize: "12px",
+                                border: "1px solid #e5e7eb",
+                              }}
+                            >
+                              {JSON.stringify(log.context, null, 2)}
+                            </pre>
+                          </details>
+                        )}
+                      </td>
+                      <td style={{ padding: "12px", color: "#6b7280", fontSize: "14px" }}>
+                        {new Date(log.createdAt).toLocaleString("tr-TR")}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+      {isMappingModalOpen && integration.tenantId && (
+        <IntegrationFieldMappingModal
+          isOpen={isMappingModalOpen}
+          onClose={() => setIsMappingModalOpen(false)}
+          integrationId={integrationId}
+          tenantId={integration.tenantId}
+        />
+      )}
     </div>
   );
 }

@@ -174,3 +174,8 @@ export async function deleteBankAccount(
   );
 }
 
+// Get current user's client company (for ReadOnly users)
+export async function getMyClientCompany(): Promise<{ data: ClientCompany | null }> {
+  return apiRequest<{ data: ClientCompany | null }>("/api/v1/client-companies/my-company");
+}
+

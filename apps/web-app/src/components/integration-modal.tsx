@@ -168,6 +168,26 @@ export default function IntegrationModal({
     }
   };
 
+  // Update state when initialData changes (for edit mode)
+  useEffect(() => {
+    if (initialData && integrationId) {
+      // Only update if we're in edit mode and have initial data
+      if (initialData.providerId) {
+        setSelectedProviderId(initialData.providerId);
+      }
+      if (initialData.displayName !== undefined) {
+        setDisplayName(initialData.displayName);
+      }
+      if (initialData.config) {
+        const configStrings = Object.fromEntries(
+          Object.entries(initialData.config).map(([k, v]) => [k, String(v)])
+        );
+        setConfig(configStrings);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [integrationId, initialData?.providerId, initialData?.displayName]);
+
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -200,22 +220,38 @@ export default function IntegrationModal({
       <div
         style={{
           backgroundColor: "white",
-          padding: "24px",
-          borderRadius: "8px",
-          maxWidth: "600px",
+          padding: "32px",
+          borderRadius: "12px",
+          maxWidth: "700px",
           width: "90%",
           maxHeight: "90vh",
           overflow: "auto",
+          boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 style={{ marginTop: 0 }}>
-          {integrationId ? "İntegrasyonu Düzenle" : "Yeni İntegrasyon Ekle"}
-        </h2>
+        <div style={{ marginBottom: "24px", borderBottom: "1px solid #e5e7eb", paddingBottom: "16px" }}>
+          <h2 style={{ margin: 0, fontSize: "24px", fontWeight: "700", color: "#111827" }}>
+            {integrationId ? "İntegrasyonu Düzenle" : "Yeni İntegrasyon Ekle"}
+          </h2>
+          <p style={{ margin: "8px 0 0 0", color: "#6b7280", fontSize: "14px" }}>
+            {integrationId
+              ? "Entegrasyon ayarlarını güncelleyin"
+              : "Yeni bir entegrasyon bağlantısı oluşturun"}
+          </p>
+        </div>
 
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: "16px" }}>
-            <label style={{ display: "block", marginBottom: "4px", fontWeight: "bold" }}>
+          <div style={{ marginBottom: "20px" }}>
+            <label
+              style={{
+                display: "block",
+                marginBottom: "8px",
+                fontWeight: "600",
+                fontSize: "14px",
+                color: "#374151",
+              }}
+            >
               Sağlayıcı
             </label>
             <select
@@ -225,10 +261,23 @@ export default function IntegrationModal({
               disabled={!!integrationId}
               style={{
                 width: "100%",
-                padding: "8px 12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
+                padding: "12px 16px",
+                border: "1px solid #d1d5db",
+                borderRadius: "8px",
                 fontSize: "16px",
+                backgroundColor: integrationId ? "#f9fafb" : "white",
+                color: "#111827",
+                transition: "all 0.2s",
+              }}
+              onFocus={(e) => {
+                if (!integrationId) {
+                  e.currentTarget.style.borderColor = "#2563eb";
+                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37, 99, 235, 0.1)";
+                }
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = "#d1d5db";
+                e.currentTarget.style.boxShadow = "none";
               }}
             >
               <option value="">Seçiniz...</option>
@@ -239,14 +288,22 @@ export default function IntegrationModal({
               ))}
             </select>
             {selectedProvider && selectedProvider.description && (
-              <p style={{ marginTop: "4px", fontSize: "14px", color: "#666" }}>
+              <p style={{ marginTop: "8px", fontSize: "13px", color: "#6b7280" }}>
                 {selectedProvider.description}
               </p>
             )}
           </div>
 
-          <div style={{ marginBottom: "16px" }}>
-            <label style={{ display: "block", marginBottom: "4px", fontWeight: "bold" }}>
+          <div style={{ marginBottom: "20px" }}>
+            <label
+              style={{
+                display: "block",
+                marginBottom: "8px",
+                fontWeight: "600",
+                fontSize: "14px",
+                color: "#374151",
+              }}
+            >
               Görünen Ad
             </label>
             <input
@@ -256,45 +313,82 @@ export default function IntegrationModal({
               placeholder={selectedProvider?.name || "Entegrasyon adı"}
               style={{
                 width: "100%",
-                padding: "8px 12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
+                padding: "12px 16px",
+                border: "1px solid #d1d5db",
+                borderRadius: "8px",
                 fontSize: "16px",
+                transition: "all 0.2s",
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = "#2563eb";
+                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37, 99, 235, 0.1)";
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = "#d1d5db";
+                e.currentTarget.style.boxShadow = "none";
               }}
             />
           </div>
 
           {selectedProvider && selectedProvider.configSchema && (
-            <div style={{ marginBottom: "16px" }}>
-              <label style={{ display: "block", marginBottom: "8px", fontWeight: "bold" }}>
+            <div style={{ marginBottom: "24px" }}>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "12px",
+                  fontWeight: "600",
+                  fontSize: "14px",
+                  color: "#374151",
+                }}
+              >
                 Yapılandırma
               </label>
-              {Object.entries(selectedProvider.configSchema).map(([key, schema]: [string, any]) => (
-                <div key={key} style={{ marginBottom: "12px" }}>
-                  <label style={{ display: "block", marginBottom: "4px", fontSize: "14px" }}>
-                    {schema.label || key}
-                  </label>
-                  <input
-                    type={schema.type === "password" ? "password" : "text"}
-                    value={config[key] || ""}
-                    onChange={(e) => setConfig({ ...config, [key]: e.target.value })}
-                    placeholder={schema.placeholder || ""}
-                    required={schema.required !== false}
-                    style={{
-                      width: "100%",
-                      padding: "8px 12px",
-                      border: "1px solid #ddd",
-                      borderRadius: "4px",
-                      fontSize: "16px",
-                    }}
-                  />
-                  {schema.description && (
-                    <p style={{ marginTop: "4px", fontSize: "12px", color: "#666" }}>
-                      {schema.description}
-                    </p>
-                  )}
-                </div>
-              ))}
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                {Object.entries(selectedProvider.configSchema).map(([key, schema]: [string, any]) => (
+                  <div key={key}>
+                    <label
+                      style={{
+                        display: "block",
+                        marginBottom: "8px",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        color: "#374151",
+                      }}
+                    >
+                      {schema.label || key}
+                      {schema.required !== false && <span style={{ color: "#ef4444", marginLeft: "4px" }}>*</span>}
+                    </label>
+                    <input
+                      type={schema.type === "password" ? "password" : "text"}
+                      value={config[key] || ""}
+                      onChange={(e) => setConfig({ ...config, [key]: e.target.value })}
+                      placeholder={schema.placeholder || ""}
+                      required={schema.required !== false}
+                      style={{
+                        width: "100%",
+                        padding: "12px 16px",
+                        border: "1px solid #d1d5db",
+                        borderRadius: "8px",
+                        fontSize: "16px",
+                        transition: "all 0.2s",
+                      }}
+                      onFocus={(e) => {
+                        e.currentTarget.style.borderColor = "#2563eb";
+                        e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37, 99, 235, 0.1)";
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.borderColor = "#d1d5db";
+                        e.currentTarget.style.boxShadow = "none";
+                      }}
+                    />
+                    {schema.description && (
+                      <p style={{ marginTop: "6px", fontSize: "13px", color: "#6b7280" }}>
+                        {schema.description}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -348,15 +442,35 @@ export default function IntegrationModal({
               type="submit"
               disabled={isSubmitting || createMutation.isPending || updateMutation.isPending}
               style={{
-                padding: "8px 16px",
-                border: "none",
-                borderRadius: "4px",
-                background: isSubmitting || createMutation.isPending || updateMutation.isPending ? "#999" : "#0066cc",
+                padding: "12px 24px",
+                backgroundColor: isSubmitting || createMutation.isPending || updateMutation.isPending ? "#9ca3af" : "#2563eb",
                 color: "white",
+                border: "none",
+                borderRadius: "8px",
                 cursor: isSubmitting || createMutation.isPending || updateMutation.isPending ? "not-allowed" : "pointer",
+                fontSize: "16px",
+                fontWeight: "500",
+                transition: "all 0.2s",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              }}
+              onMouseEnter={(e) => {
+                if (!isSubmitting && !createMutation.isPending && !updateMutation.isPending) {
+                  e.currentTarget.style.backgroundColor = "#1d4ed8";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isSubmitting && !createMutation.isPending && !updateMutation.isPending) {
+                  e.currentTarget.style.backgroundColor = "#2563eb";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }
               }}
             >
-              {isSubmitting || createMutation.isPending || updateMutation.isPending ? "Kaydediliyor..." : "Kaydet"}
+              {isSubmitting || createMutation.isPending || updateMutation.isPending
+                ? "⏳ Kaydediliyor..."
+                : integrationId
+                ? "💾 Güncelle"
+                : "✨ Oluştur"}
             </button>
           </div>
         </form>

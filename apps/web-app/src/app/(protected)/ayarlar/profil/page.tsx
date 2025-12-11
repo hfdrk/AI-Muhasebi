@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getUserSettings, updateUserSettings, getCurrentUser } from "@repo/api-client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { colors, spacing } from "@/styles/design-system";
 
 const userSettingsSchema = z.object({
@@ -52,14 +52,16 @@ export default function ProfilePage() {
   });
 
   // Reset form when settings data loads
-  if (effectiveSettings && !isLoading) {
-    reset({
-      locale: effectiveSettings.userSettings.locale ?? null,
-      timezone: effectiveSettings.userSettings.timezone ?? null,
-      emailNotificationsEnabled: effectiveSettings.userSettings.emailNotificationsEnabled ?? true,
-      inAppNotificationsEnabled: effectiveSettings.userSettings.inAppNotificationsEnabled ?? true,
-    });
-  }
+  useEffect(() => {
+    if (effectiveSettings && !isLoading) {
+      reset({
+        locale: effectiveSettings.userSettings.locale ?? null,
+        timezone: effectiveSettings.userSettings.timezone ?? null,
+        emailNotificationsEnabled: effectiveSettings.userSettings.emailNotificationsEnabled ?? true,
+        inAppNotificationsEnabled: effectiveSettings.userSettings.inAppNotificationsEnabled ?? true,
+      });
+    }
+  }, [effectiveSettings, isLoading, reset]);
 
   const updateMutation = useMutation({
     mutationFn: (data: UserSettingsForm) => updateUserSettings(data),

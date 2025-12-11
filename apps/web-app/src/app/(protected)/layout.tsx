@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import { TenantSwitcher } from "../../components/tenant-switcher";
 import { NotificationBell } from "../../components/notification-bell";
 import { GlobalSearch } from "../../components/global-search";
+import { MessageCountBadge } from "../../components/message-count-badge";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { logout } from "@repo/api-client";
+import { logout, getCurrentUser } from "@repo/api-client";
+import { useQuery } from "@tanstack/react-query";
 import { colors, spacing, shadows, borderRadius, transitions, zIndex, typography } from "../../styles/design-system";
 
 interface NavItem {
@@ -24,6 +26,18 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const router = useRouter();
 
+  // Check user role
+  const { data: userData } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: () => getCurrentUser(),
+    retry: false,
+  });
+
+  const currentUser = userData?.data;
+  const currentTenant = currentUser?.tenants?.find((t: any) => t.status === "active");
+  const userRole = currentTenant?.role;
+  const isUserReadOnly = userRole === "ReadOnly";
+
   useEffect(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
     if (token) {
@@ -37,6 +51,13 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     }
   }, []);
 
+  // Redirect ReadOnly users to client portal
+  useEffect(() => {
+    if (isUserReadOnly && pathname && !pathname.startsWith("/client")) {
+      router.push("/client/dashboard");
+    }
+  }, [isUserReadOnly, pathname, router]);
+
   // Auto-expand sections if current path matches
   useEffect(() => {
     if (pathname?.startsWith("/ayarlar")) {
@@ -45,7 +66,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     if (pathname?.startsWith("/risk")) {
       setExpandedSections((prev) => new Set(prev).add("risk"));
     }
-    if (pathname?.startsWith("/raporlar") || pathname?.startsWith("/entegrasyonlar") || pathname?.startsWith("/ai-asistan") || pathname?.startsWith("/bildirimler")) {
+    if (pathname?.startsWith("/raporlar") || pathname?.startsWith("/entegrasyonlar") || pathname?.startsWith("/ai-asistan") || pathname?.startsWith("/mesajlar") || pathname?.startsWith("/bildirimler")) {
       setExpandedSections((prev) => new Set(prev).add("other"));
     }
   }, [pathname]);
@@ -65,10 +86,25 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     { href: "/risk/alerts", label: "Risk Uyarıları", icon: "⚠️", badge: 0 },
   ];
 
+  // Get unread message count for badge
+  const { data: threadsData } = useQuery({
+    queryKey: ["message-threads", "unread-count"],
+    queryFn: async () => {
+      const { messagingClient } = await import("@repo/api-client");
+      return messagingClient.listThreads({ limit: 100 });
+    },
+    enabled: !isUserReadOnly && !!currentUser,
+    refetchInterval: 30000, // Poll every 30 seconds
+  });
+
+  const threads = threadsData?.data?.data || [];
+  const unreadMessageCount = threads.reduce((sum: number, thread: any) => sum + (thread.unreadCount || 0), 0);
+
   const otherNavItems: NavItem[] = [
     { href: "/raporlar", label: "Raporlar", icon: "📈" },
     { href: "/entegrasyonlar", label: "Entegrasyonlar", icon: "🔌" },
     { href: "/ai-asistan", label: "AI Asistan", icon: "🤖" },
+    { href: "/mesajlar", label: "Mesajlar", icon: "💬", badge: unreadMessageCount },
     { href: "/bildirimler", label: "Bildirimler", icon: "🔔" },
   ];
 
@@ -76,6 +112,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     { href: "/ayarlar/ofis", label: "Ofis Ayarları", icon: "🏢" },
     { href: "/ayarlar/profil", label: "Profil Ayarları", icon: "👤" },
     { href: "/ayarlar/kullanicilar", label: "Kullanıcı Yönetimi", icon: "👥" },
+    { href: "/ayarlar/email-sablonlari", label: "E-posta Şablonları", icon: "📧" },
     { href: "/ayarlar/abonelik", label: "Abonelik & Kullanım", icon: "💳" },
     { href: "/ayarlar/denetim-kayitlari", label: "Denetim Kayıtları", icon: "📋" },
   ];

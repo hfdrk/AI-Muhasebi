@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getTenantSettings, updateTenantSettings, getCurrentUser } from "@repo/api-client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { colors, spacing } from "@/styles/design-system";
 import Link from "next/link";
 
@@ -67,17 +67,19 @@ export default function OfficeSettingsPage() {
   });
 
   // Reset form when settings data loads
-  if (settingsData?.data && !isLoading) {
-    reset({
-      displayName: settingsData.data.displayName ?? null,
-      logoUrl: settingsData.data.logoUrl ?? null,
-      locale: settingsData.data.locale ?? "tr-TR",
-      timezone: settingsData.data.timezone ?? "Europe/Istanbul",
-      emailFromName: settingsData.data.emailFromName ?? null,
-      riskThresholds: settingsData.data.riskThresholds ?? { high: 70, critical: 90 },
-      defaultReportPeriod: (settingsData.data.defaultReportPeriod ?? "LAST_30_DAYS") as "LAST_7_DAYS" | "LAST_30_DAYS" | "THIS_MONTH" | "LAST_MONTH" | "THIS_YEAR" | "LAST_YEAR" | undefined,
-    });
-  }
+  useEffect(() => {
+    if (settingsData?.data && !isLoading) {
+      reset({
+        displayName: settingsData.data.displayName ?? null,
+        logoUrl: settingsData.data.logoUrl ?? null,
+        locale: settingsData.data.locale ?? "tr-TR",
+        timezone: settingsData.data.timezone ?? "Europe/Istanbul",
+        emailFromName: settingsData.data.emailFromName ?? null,
+        riskThresholds: settingsData.data.riskThresholds ?? { high: 70, critical: 90 },
+        defaultReportPeriod: (settingsData.data.defaultReportPeriod ?? "LAST_30_DAYS") as "LAST_7_DAYS" | "LAST_30_DAYS" | "THIS_MONTH" | "LAST_MONTH" | "THIS_YEAR" | "LAST_YEAR" | undefined,
+      });
+    }
+  }, [settingsData, isLoading, reset]);
 
   const updateMutation = useMutation({
     mutationFn: (data: TenantSettingsForm) => updateTenantSettings(data),

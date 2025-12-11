@@ -78,6 +78,7 @@ model Tenant {
   notificationPreferences NotificationPreference[]
   tasks Task[]
   documentRequirements DocumentRequirement[]
+  retryQueueItems RetryQueue[]
 
   @@index([slug])
   @@map("tenants")
@@ -837,5 +838,27 @@ model DocumentRequirement {
   @@index([tenantId, status])
   @@index([requiredByDate])
   @@map("document_requirements")
+}
+
+model RetryQueue {
+  id          String   @id @default(cuid())
+  tenantId    String?  @map("tenant_id")
+  type        String   @db.VarChar(50) // email, job, sync
+  payload     Json     @default("{}")
+  attempts    Int      @default(0)
+  maxAttempts Int      @default(3) @map("max_attempts")
+  nextRetryAt DateTime @map("next_retry_at") @db.Timestamptz(6)
+  status      String   @default("pending") @db.VarChar(50) // pending, processing, failed, success
+  error       String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([nextRetryAt])
+  @@index([type])
+  @@map("retry_queue")
 }
 
