@@ -15,6 +15,9 @@ export interface RiskFeatureMap {
   negativeAmount?: boolean;
   duplicateInvoiceNumber?: boolean;
   highAmount?: boolean;
+  vatRateInconsistency?: boolean;
+  amountDateInconsistency?: boolean;
+  chartMismatch?: boolean;
   [key: string]: boolean | number | string | undefined;
 }
 

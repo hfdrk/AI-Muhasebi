@@ -57,6 +57,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     { href: "/faturalar", label: "Faturalar", icon: "📄" },
     { href: "/islemler", label: "İşlemler", icon: "💼" },
     { href: "/belgeler", label: "Belgeler", icon: "📁" },
+    { href: "/gorevler", label: "Görevler", icon: "✅" },
   ];
 
   const riskNavItems: NavItem[] = [

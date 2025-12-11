@@ -19,6 +19,7 @@
     "seed:notifications": "tsx prisma/seed-notifications.ts",
     "seed:demo": "tsx scripts/seed-demo.ts",
     "seed:users": "tsx prisma/seed-users.ts",
+    "seed:tasks": "tsx prisma/seed-tasks.ts",
     "update:test-user-role": "tsx prisma/update-test-user-role.ts",
     "perf:test": "tsx scripts/perf/load-test.ts",
     "test:smoke": "vitest run -- smoke.integration.test.ts"

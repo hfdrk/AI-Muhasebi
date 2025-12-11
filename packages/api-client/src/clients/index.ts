@@ -18,3 +18,5 @@ export * from "./onboarding-client";
 export * from "./search-client";
 export * from "./saved-filter-client";
 export * from "./admin-client";
+export * from "./task-client";
+export * from "./document-requirement-client";

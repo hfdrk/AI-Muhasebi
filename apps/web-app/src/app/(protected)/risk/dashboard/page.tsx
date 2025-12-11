@@ -2,6 +2,7 @@
 
 import { useRiskDashboard } from "@/hooks/use-risk";
 import Link from "next/link";
+import RiskExplanationPanel from "@/components/risk-explanation-panel";
 
 export default function RiskDashboardPage() {
   const { data, isLoading, error } = useRiskDashboard();

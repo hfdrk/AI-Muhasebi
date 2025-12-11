@@ -1,4 +1,6 @@
 import { riskService } from "../services/risk-service";
+import { riskExplanationService } from "../services/risk-explanation-service";
+import { riskTrendService } from "../services/risk-trend-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
 import { requirePermission } from "../middleware/rbac-middleware";
@@ -52,6 +54,78 @@ router.get(
       res.json({ data: dashboard });
     } catch (error: any) {
       throw error;
+    }
+  }
+);
+
+// GET /api/v1/risk/documents/:id/explanation
+router.get(
+  "/documents/:id/explanation",
+  requirePermission("documents:read"),
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const explanation = await riskExplanationService.explainDocumentRisk(
+        req.context!.tenantId!,
+        req.params.id
+      );
+      res.json({ data: explanation });
+    } catch (error: any) {
+      res.status(error.statusCode || 500).json({ error: { message: error.message } });
+    }
+  }
+);
+
+// GET /api/v1/risk/companies/:id/explanation
+router.get(
+  "/companies/:id/explanation",
+  requirePermission("clients:read"),
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const explanation = await riskExplanationService.explainCompanyRisk(
+        req.context!.tenantId!,
+        req.params.id
+      );
+      res.json({ data: explanation });
+    } catch (error: any) {
+      res.status(error.statusCode || 500).json({ error: { message: error.message } });
+    }
+  }
+);
+
+// GET /api/v1/risk/documents/:id/trend
+router.get(
+  "/documents/:id/trend",
+  requirePermission("documents:read"),
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const days = req.query.days ? parseInt(req.query.days as string) : 90;
+      const trend = await riskTrendService.getDocumentRiskTrend(
+        req.context!.tenantId!,
+        req.params.id,
+        days
+      );
+      res.json({ data: trend });
+    } catch (error: any) {
+      res.status(error.statusCode || 500).json({ error: { message: error.message } });
+    }
+  }
+);
+
+// GET /api/v1/risk/companies/:id/trend
+router.get(
+  "/companies/:id/trend",
+  requirePermission("clients:read"),
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const days = req.query.days ? parseInt(req.query.days as string) : 90;
+      const trend = await riskTrendService.getCompanyRiskTrend(
+        req.context!.tenantId!,
+        req.params.id,
+        days
+      );
+      res.json({ data: trend });
+    } catch (error: any) {
+      res.status(error.statusCode || 500).json({ error: { message: error.message } });
     }
   }
 );

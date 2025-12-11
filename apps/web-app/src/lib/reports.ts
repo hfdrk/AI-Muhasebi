@@ -8,6 +8,7 @@ export function getReportTypeLabel(code: string): string {
     COMPANY_RISK_SUMMARY: "Müşteri Risk Özeti",
     TENANT_PORTFOLIO: "Portföy Özeti",
     DOCUMENT_ACTIVITY: "Belge ve Fatura Aktivitesi",
+    AUDIT_PREPARATION: "Denetim Hazırlık Raporu",
   };
   return labels[code] || code;
 }
@@ -34,7 +35,11 @@ export function formatReportDate(date: string | Date | null): string {
 }
 
 export function requiresClientCompany(code: string): boolean {
-  return code === "COMPANY_FINANCIAL_SUMMARY" || code === "COMPANY_RISK_SUMMARY";
+  return (
+    code === "COMPANY_FINANCIAL_SUMMARY" ||
+    code === "COMPANY_RISK_SUMMARY" ||
+    code === "AUDIT_PREPARATION"
+  );
 }
 
 export function getStatusLabel(status: string | null): string {

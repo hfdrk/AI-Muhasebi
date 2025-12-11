@@ -171,10 +171,79 @@ export class AnomalyDetectorService {
       }
     }
 
+    // Check for chart of accounts mismatches
+    for (const transaction of latestTransactions) {
+      for (const line of transaction.lines) {
+        const accountCode = line.ledgerAccount.code;
+        const amount = Number(line.debitAmount) + Number(line.creditAmount);
+        
+        // Determine transaction type from account code
+        const accountCategory = parseInt(accountCode.substring(0, 1));
+        let transactionType = "unknown";
+        
+        if (accountCategory === 5 || accountCategory === 6 || accountCategory === 8) {
+          transactionType = "expense";
+        } else if (accountCategory === 4 || accountCategory === 7) {
+          transactionType = "revenue";
+        }
+
+        // Check for chart mismatch
+        const mismatch = await this.checkChartMismatch(tenantId, transactionType, accountCode, amount);
+        if (mismatch.isMismatch) {
+          anomalies.push({
+            type: "CHART_MISMATCH",
+            description: mismatch.reason || `Hesap kodu uyumsuzluğu: ${accountCode}`,
+            severity: "medium",
+            value: amount,
+            threshold: 0,
+            accountCode,
+            accountName: line.ledgerAccount.name,
+          });
+        }
+      }
+    }
+
     return {
       anomalies,
       hasAnomalies: anomalies.length > 0,
     };
+  }
+
+  /**
+   * Check for chart of accounts mismatches
+   */
+  private async checkChartMismatch(
+    tenantId: string,
+    transactionType: string,
+    accountCode: string,
+    amount: number
+  ): Promise<{ isMismatch: boolean; reason?: string }> {
+    const accountCategory = parseInt(accountCode.substring(0, 1));
+
+    // Check for mismatches based on transaction type and account category
+    if (transactionType === "expense" && accountCategory !== 5 && accountCategory !== 6 && accountCategory !== 8) {
+      return {
+        isMismatch: true,
+        reason: `Gider işlemi için yanlış hesap kategorisi kullanılmış (${accountCode})`,
+      };
+    }
+
+    if (transactionType === "revenue" && accountCategory !== 4 && accountCategory !== 7) {
+      return {
+        isMismatch: true,
+        reason: `Gelir işlemi için yanlış hesap kategorisi kullanılmış (${accountCode})`,
+      };
+    }
+
+    // Check for unusual account usage
+    if (accountCategory === 8 && amount > 100000) {
+      return {
+        isMismatch: true,
+        reason: "Diğer giderler hesabında anormal derecede yüksek tutar",
+      };
+    }
+
+    return { isMismatch: false };
   }
 
   /**

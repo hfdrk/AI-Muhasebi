@@ -45,6 +45,8 @@ import onboardingRoutes from "./routes/onboarding-routes";
 import adminRoutes from "./routes/admin-routes";
 import aiRoutes from "./routes/ai-routes";
 import mobileRoutes from "./routes/mobile-routes";
+import taskRoutes from "./routes/task-routes";
+import documentRequirementRoutes from "./routes/document-requirement-routes";
 
 // Resolve database URL asynchronously and update if needed
 resolveDatabaseUrl()
@@ -137,6 +139,8 @@ app.use("/api/v1/saved-filters", savedFiltersRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/ai", aiRoutes);
 app.use("/api/v1/mobile", mobileRoutes);
+app.use("/api/v1/tasks", taskRoutes);
+app.use("/api/v1/document-requirements", documentRequirementRoutes);
 
 // Error handler (must be last)
 app.use(errorHandler);

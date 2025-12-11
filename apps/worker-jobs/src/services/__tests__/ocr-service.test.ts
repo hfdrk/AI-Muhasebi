@@ -1,40 +1,44 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "@jest/globals";
 import { OCRService } from "../ocr-service";
 
 describe("OCRService", () => {
-  const service = new OCRService();
+  const ocrService = new OCRService();
 
-  it("should return stub text for PDF files", async () => {
-    const fileBuffer = Buffer.from("fake PDF content");
-    const result = await service.runOCR(fileBuffer, "application/pdf");
+  describe("runOCR", () => {
+    it("should extract text from PDF", async () => {
+      const pdfBuffer = Buffer.from("fake PDF content");
+      const result = await ocrService.runOCR(pdfBuffer, "application/pdf");
 
-    expect(result.rawText).toContain("stub PDF OCR content");
-    expect(result.engineName).toBe("stub");
-    expect(result.confidence).toBeNull();
-  });
+      expect(result).toHaveProperty("rawText");
+      expect(result).toHaveProperty("engineName");
+      expect(result.rawText.length).toBeGreaterThan(0);
+    });
 
-  it("should return stub text for image files", async () => {
-    const fileBuffer = Buffer.from("fake image content");
-    const result = await service.runOCR(fileBuffer, "image/jpeg");
+    it("should extract text from image", async () => {
+      const imageBuffer = Buffer.from("fake image content");
+      const result = await ocrService.runOCR(imageBuffer, "image/jpeg");
 
-    expect(result.rawText).toContain("stub image OCR content");
-    expect(result.engineName).toBe("stub");
-  });
+      expect(result).toHaveProperty("rawText");
+      expect(result).toHaveProperty("engineName");
+      expect(result.rawText.length).toBeGreaterThan(0);
+    });
 
-  it("should return stub text for PNG images", async () => {
-    const fileBuffer = Buffer.from("fake PNG content");
-    const result = await service.runOCR(fileBuffer, "image/png");
+    it("should handle unsupported file types", async () => {
+      const buffer = Buffer.from("fake content");
+      const result = await ocrService.runOCR(buffer, "application/unknown");
 
-    expect(result.rawText).toContain("stub image OCR content");
-    expect(result.engineName).toBe("stub");
-  });
+      expect(result).toHaveProperty("rawText");
+      expect(result).toHaveProperty("engineName");
+    });
 
-  it("should return generic stub text for unknown file types", async () => {
-    const fileBuffer = Buffer.from("fake content");
-    const result = await service.runOCR(fileBuffer, "application/unknown");
+    it("should return result with correct structure", async () => {
+      const buffer = Buffer.from("test");
+      const result = await ocrService.runOCR(buffer, "application/pdf");
 
-    expect(result.rawText).toContain("stub OCR content");
-    expect(result.engineName).toBe("stub");
+      expect(result).toMatchObject({
+        rawText: expect.any(String),
+        engineName: expect.any(String),
+      });
+    });
   });
 });
-

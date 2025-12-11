@@ -9,6 +9,8 @@ import { BankAccountModal } from "../../../../components/bank-account-modal";
 import { DocumentList } from "../../../../components/document-list";
 import { DocumentUploadModal } from "../../../../components/document-upload-modal";
 import { useClientCompanyRiskScore } from "@/hooks/use-risk";
+import RiskExplanationPanel from "@/components/risk-explanation-panel";
+import RiskTrendChart from "@/components/risk-trend-chart";
 
 export default function ClientDetailPage() {
   const params = useParams();
@@ -460,6 +462,16 @@ export default function ClientDetailPage() {
                         <div style={{ fontSize: "14px", color: "#666" }}>Yüksek Risk</div>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Risk Explanation */}
+                  <div style={{ marginBottom: "20px" }}>
+                    <RiskExplanationPanel type="company" id={clientId} />
+                  </div>
+
+                  {/* Risk Trend Chart */}
+                  <div style={{ marginBottom: "20px" }}>
+                    <RiskTrendChart type="company" id={clientId} days={90} />
                   </div>
 
                   {riskScoreData.data.topTriggeredRules.length > 0 && (

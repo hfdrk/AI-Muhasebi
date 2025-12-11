@@ -4,6 +4,7 @@ import { z } from "zod";
 import { integrationProviderService } from "../services/integration-provider-service";
 import { tenantIntegrationService } from "../services/tenant-integration-service";
 import { integrationSyncService } from "../services/integration-sync-service";
+import { integrationMappingService } from "../services/integration-mapping-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
 import { requirePermission } from "../middleware/rbac-middleware";
@@ -27,7 +28,7 @@ const updateIntegrationSchema = z.object({
 });
 
 const triggerSyncSchema = z.object({
-  jobType: z.enum(["pull_invoices", "pull_bank_transactions"]),
+  jobType: z.enum(["pull_invoices", "pull_bank_transactions", "push_invoices", "push_bank_transactions"]),
 });
 
 // List available providers
@@ -254,6 +255,58 @@ router.get(
     );
 
     res.json({ data: result });
+  }
+);
+
+// Get field mappings
+router.get(
+  "/:id/mappings",
+  requirePermission("integrations:read"),
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const mappings = await integrationMappingService.getMappings(
+        req.context!.tenantId!,
+        req.params.id
+      );
+      res.json({ data: mappings });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// Update field mappings
+router.put(
+  "/:id/mappings",
+  requirePermission("integrations:manage"),
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const mappings = await integrationMappingService.updateMappings(
+        req.context!.tenantId!,
+        req.params.id,
+        req.body
+      );
+      res.json({ data: mappings });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// Get suggested field mappings
+router.get(
+  "/:id/mappings/suggestions",
+  requirePermission("integrations:read"),
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const suggestions = await integrationMappingService.getSuggestedMappings(
+        req.context!.tenantId!,
+        req.params.id
+      );
+      res.json({ data: suggestions });
+    } catch (error) {
+      next(error);
+    }
   }
 );
 

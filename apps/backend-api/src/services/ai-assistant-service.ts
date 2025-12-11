@@ -558,6 +558,23 @@ Yanıtlarını Türkçe, profesyonel ve yardımcı bir tonla ver.`;
 
     return prompt;
   }
+
+  /**
+   * Generate text using LLM (simple wrapper)
+   */
+  async generateText(prompt: string, systemPrompt?: string): Promise<string> {
+    try {
+      const answer = await this.llmClient.generateText({
+        systemPrompt: systemPrompt || "Sen bir muhasebe asistanısın. Türkçe yanıt ver.",
+        userPrompt: prompt,
+        maxTokens: 1000,
+      });
+      return answer;
+    } catch (error: any) {
+      console.error("[AI Assistant] Error generating text:", error);
+      throw error;
+    }
+  }
 }
 
 export const aiAssistantService = new AIAssistantService();

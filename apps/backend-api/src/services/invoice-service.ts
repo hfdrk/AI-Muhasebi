@@ -8,6 +8,8 @@ import type {
   InvoiceStatus,
 } from "@repo/core-domain";
 import type { PaginatedResult } from "./client-company-service";
+import { riskAlertService } from "./risk-alert-service";
+import { counterpartyAnalysisService } from "./counterparty-analysis-service";
 
 export interface ListInvoicesFilters {
   clientCompanyId?: string;
@@ -201,6 +203,46 @@ export class InvoiceService {
       },
     });
 
+    // Check for invoice-level duplicates after creation
+    if (invoice.externalId) {
+      try {
+        const duplicates = await this.checkInvoiceLevelDuplicates(tenantId, invoice.id);
+        if (duplicates.length > 0) {
+          await riskAlertService.createAlert({
+            tenantId,
+            clientCompanyId: invoice.clientCompanyId,
+            documentId: null,
+            type: "INVOICE_DUPLICATE",
+            title: "Yinelenen Fatura Tespit Edildi",
+            message: `Fatura numarası ${invoice.externalId} ile aynı numara, tutar ve tarihe sahip ${duplicates.length} fatura daha bulundu.`,
+            severity: "high",
+            status: "open",
+          });
+        }
+      } catch (error) {
+        // Don't fail invoice creation if duplicate check fails
+        console.error("[InvoiceService] Error checking for duplicates:", error);
+      }
+    }
+
+    // Check for unusual counterparty
+    if (invoice.counterpartyName) {
+      try {
+        await counterpartyAnalysisService.checkAndAlertUnusualCounterparty(
+          tenantId,
+          invoice.clientCompanyId,
+          invoice.counterpartyName,
+          invoice.counterpartyTaxNumber,
+          Number(invoice.totalAmount),
+          invoice.issueDate,
+          invoice.id
+        );
+      } catch (error) {
+        // Don't fail invoice creation if counterparty check fails
+        console.error("[InvoiceService] Error checking for unusual counterparty:", error);
+      }
+    }
+
     return {
       id: invoice.id,
       tenantId: invoice.tenantId,
@@ -295,6 +337,28 @@ export class InvoiceService {
       return updated;
     });
 
+    // Check for invoice-level duplicates after update
+    if (invoice.externalId) {
+      try {
+        const duplicates = await this.checkInvoiceLevelDuplicates(tenantId, invoice.id);
+        if (duplicates.length > 0) {
+          await riskAlertService.createAlert({
+            tenantId,
+            clientCompanyId: invoice.clientCompanyId,
+            documentId: null,
+            type: "INVOICE_DUPLICATE",
+            title: "Yinelenen Fatura Tespit Edildi",
+            message: `Fatura numarası ${invoice.externalId} ile aynı numara, tutar ve tarihe sahip ${duplicates.length} fatura daha bulundu.`,
+            severity: "high",
+            status: "open",
+          });
+        }
+      } catch (error) {
+        // Don't fail invoice update if duplicate check fails
+        console.error("[InvoiceService] Error checking for duplicates:", error);
+      }
+    }
+
     return {
       id: invoice.id,
       tenantId: invoice.tenantId,
@@ -372,6 +436,174 @@ export class InvoiceService {
     await prisma.invoice.delete({
       where: { id },
     });
+  }
+
+  /**
+   * Check for invoice-level duplicates
+   * Detects invoices with the same invoice number + amount + date combination
+   */
+  async checkInvoiceLevelDuplicates(
+    tenantId: string,
+    invoiceId: string
+  ): Promise<Array<{ invoiceId: string; invoiceNumber: string; issueDate: Date; totalAmount: number }>> {
+    const invoice = await prisma.invoice.findFirst({
+      where: { id: invoiceId, tenantId },
+    });
+
+    if (!invoice || !invoice.externalId) {
+      return [];
+    }
+
+    // Find invoices with same externalId (invoice number), amount, and date
+    // Allow small tolerance for amount (0.01) due to rounding differences
+    const duplicates = await prisma.invoice.findMany({
+      where: {
+        tenantId,
+        id: { not: invoiceId },
+        externalId: invoice.externalId,
+        issueDate: invoice.issueDate,
+        totalAmount: {
+          gte: invoice.totalAmount - 0.01,
+          lte: invoice.totalAmount + 0.01,
+        },
+      },
+      select: {
+        id: true,
+        externalId: true,
+        issueDate: true,
+        totalAmount: true,
+      },
+    });
+
+    return duplicates.map((dup) => ({
+      invoiceId: dup.id,
+      invoiceNumber: dup.externalId,
+      issueDate: dup.issueDate,
+      totalAmount: Number(dup.totalAmount),
+    }));
+  }
+
+  /**
+   * Check for similar invoices (fuzzy matching)
+   * Detects invoices with similar invoice numbers, amounts, and dates
+   */
+  async checkSimilarInvoices(
+    tenantId: string,
+    invoiceId: string,
+    similarityThreshold: number = 0.8
+  ): Promise<Array<{ invoiceId: string; invoiceNumber: string; similarity: number }>> {
+    const invoice = await prisma.invoice.findFirst({
+      where: { id: invoiceId, tenantId },
+    });
+
+    if (!invoice || !invoice.externalId) {
+      return [];
+    }
+
+    // Get all invoices for the tenant
+    const allInvoices = await prisma.invoice.findMany({
+      where: {
+        tenantId,
+        id: { not: invoiceId },
+      },
+      select: {
+        id: true,
+        externalId: true,
+        totalAmount: true,
+        issueDate: true,
+      },
+    });
+
+    const similar: Array<{ invoiceId: string; invoiceNumber: string; similarity: number }> = [];
+
+    for (const otherInvoice of allInvoices) {
+      if (!otherInvoice.externalId) continue;
+
+      // Calculate similarity score
+      let similarity = 0;
+      let factors = 0;
+
+      // Invoice number similarity (simple string similarity)
+      if (invoice.externalId && otherInvoice.externalId) {
+        const similarityScore = this.calculateStringSimilarity(
+          invoice.externalId,
+          otherInvoice.externalId
+        );
+        similarity += similarityScore * 0.5; // 50% weight
+        factors += 0.5;
+      }
+
+      // Amount similarity (within 10% = high similarity)
+      const amountDiff = Math.abs(Number(invoice.totalAmount) - Number(otherInvoice.totalAmount));
+      const amountSimilarity = Math.max(0, 1 - amountDiff / Number(invoice.totalAmount) / 0.1);
+      similarity += amountSimilarity * 0.3; // 30% weight
+      factors += 0.3;
+
+      // Date similarity (same month = high similarity)
+      const dateDiff = Math.abs(
+        invoice.issueDate.getTime() - otherInvoice.issueDate.getTime()
+      );
+      const daysDiff = dateDiff / (1000 * 60 * 60 * 24);
+      const dateSimilarity = daysDiff <= 30 ? 1 - daysDiff / 30 : 0;
+      similarity += dateSimilarity * 0.2; // 20% weight
+      factors += 0.2;
+
+      const finalSimilarity = factors > 0 ? similarity / factors : 0;
+
+      if (finalSimilarity >= similarityThreshold) {
+        similar.push({
+          invoiceId: otherInvoice.id,
+          invoiceNumber: otherInvoice.externalId,
+          similarity: finalSimilarity,
+        });
+      }
+    }
+
+    return similar.sort((a, b) => b.similarity - a.similarity);
+  }
+
+  /**
+   * Calculate simple string similarity (Levenshtein distance based)
+   */
+  private calculateStringSimilarity(str1: string, str2: string): number {
+    const longer = str1.length > str2.length ? str1 : str2;
+    const shorter = str1.length > str2.length ? str2 : str1;
+
+    if (longer.length === 0) return 1.0;
+
+    const distance = this.levenshteinDistance(longer, shorter);
+    return (longer.length - distance) / longer.length;
+  }
+
+  /**
+   * Calculate Levenshtein distance between two strings
+   */
+  private levenshteinDistance(str1: string, str2: string): number {
+    const matrix: number[][] = [];
+
+    for (let i = 0; i <= str2.length; i++) {
+      matrix[i] = [i];
+    }
+
+    for (let j = 0; j <= str1.length; j++) {
+      matrix[0][j] = j;
+    }
+
+    for (let i = 1; i <= str2.length; i++) {
+      for (let j = 1; j <= str1.length; j++) {
+        if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1, // substitution
+            matrix[i][j - 1] + 1, // insertion
+            matrix[i - 1][j] + 1 // deletion
+          );
+        }
+      }
+    }
+
+    return matrix[str2.length][str1.length];
   }
 }
 

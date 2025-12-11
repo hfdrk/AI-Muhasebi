@@ -1,4 +1,8 @@
-export type IntegrationSyncJobType = "pull_invoices" | "pull_bank_transactions";
+export type IntegrationSyncJobType = 
+  | "pull_invoices" 
+  | "pull_bank_transactions"
+  | "push_invoices"
+  | "push_bank_transactions";
 export type IntegrationSyncJobStatus = "pending" | "in_progress" | "success" | "failed";
 export interface IntegrationSyncJob {
     id: string;

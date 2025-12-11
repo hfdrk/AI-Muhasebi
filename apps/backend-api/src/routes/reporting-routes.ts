@@ -147,6 +147,17 @@ router.post(
           );
           break;
 
+        case "AUDIT_PREPARATION":
+          if (!body.client_company_id) {
+            throw new ValidationError("Bu rapor için müşteri şirket seçilmesi zorunludur.");
+          }
+          result = await reportingService.generateAuditPreparationReport(
+            tenantId,
+            body.client_company_id,
+            body.filters
+          );
+          break;
+
         default:
           throw new ValidationError("Geçersiz rapor türü.");
       }

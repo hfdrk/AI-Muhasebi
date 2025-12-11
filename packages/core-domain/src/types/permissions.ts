@@ -29,7 +29,11 @@ export type Permission =
   | "settings:update"
   | "settings:billing"
   | "integrations:read"
-  | "integrations:manage";
+  | "integrations:manage"
+  | "tasks:create"
+  | "tasks:read"
+  | "tasks:update"
+  | "tasks:delete";
 
 export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
   // Accountant role (TenantOwner) - Full access
@@ -63,6 +67,10 @@ export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
     "settings:billing",
     "integrations:read",
     "integrations:manage",
+    "tasks:create",
+    "tasks:read",
+    "tasks:update",
+    "tasks:delete",
   ],
   // Deprecated - use TenantOwner instead (mapped to same permissions)
   Accountant: [
@@ -93,6 +101,10 @@ export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
     "settings:billing",
     "integrations:read",
     "integrations:manage",
+    "tasks:create",
+    "tasks:read",
+    "tasks:update",
+    "tasks:delete",
   ],
   // Deprecated - not used
   Staff: [
@@ -103,6 +115,7 @@ export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
     "clients:read",
     "users:read",
     "reports:view",
+    "tasks:read",
   ],
   // Customer role (ReadOnly) - View-only access
   ReadOnly: [
@@ -113,6 +126,7 @@ export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
     "reports:view",
     "users:read",
     "integrations:read",
+    "tasks:read",
   ],
 };
 

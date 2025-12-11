@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma";
 import { NotFoundError, ValidationError } from "@repo/shared-utils";
+import { aiAssistantService } from "./ai-assistant-service";
 
 export interface ReportPeriod {
   start_date: string; // ISO date string
@@ -16,6 +17,7 @@ export interface BaseReportResult<Row = any, Totals = any> {
     row_count: number;
     row_limit_applied: boolean;
   };
+  suggestions?: string[]; // AI-based improvement suggestions
 }
 
 export class ReportingService {
@@ -191,6 +193,11 @@ export class ReportingService {
           netIncome: totalIncome - totalExpense,
         },
       },
+      suggestions: await this.generateImprovementSuggestions(tenantId, clientCompanyId, {
+        totalSales,
+        totalPurchases,
+        invoiceCountsByStatus,
+      }),
     };
   }
 
@@ -302,6 +309,18 @@ export class ReportingService {
       }
     }
 
+    // Generate improvement suggestions
+    const suggestions = await this.generateRiskImprovementSuggestions(
+      tenantId,
+      clientCompanyId,
+      {
+        latestRiskScore: latestRiskScore ? Number(latestRiskScore.score) : null,
+        highRiskDocumentCount: highRiskDocuments.length,
+        triggeredRules,
+        openAlertsBySeverity,
+      }
+    );
+
     return {
       title: "Müşteri Risk Özeti",
       period: {
@@ -317,6 +336,7 @@ export class ReportingService {
         triggeredRules,
         openAlertsBySeverity,
       },
+      suggestions,
     };
   }
 
@@ -617,6 +637,273 @@ export class ReportingService {
         row_count: rows.length,
         row_limit_applied: limitApplied,
       },
+    };
+  }
+
+  /**
+   * Generate AI-based improvement suggestions for financial reports
+   */
+  private async generateImprovementSuggestions(
+    tenantId: string,
+    clientCompanyId: string,
+    data: {
+      totalSales: number;
+      totalPurchases: number;
+      invoiceCountsByStatus: Record<string, number>;
+    }
+  ): Promise<string[]> {
+    try {
+      const prompt = `Aşağıdaki finansal verilere dayanarak iyileştirme önerileri sun:
+
+Satış Toplamı: ${data.totalSales.toFixed(2)} TRY
+Alış Toplamı: ${data.totalPurchases.toFixed(2)} TRY
+Net Tutar: ${(data.totalSales - data.totalPurchases).toFixed(2)} TRY
+
+Fatura Durumları:
+- Taslak: ${data.invoiceCountsByStatus.taslak || 0}
+- Kesildi: ${data.invoiceCountsByStatus.kesildi || 0}
+- İptal: ${data.invoiceCountsByStatus.iptal || 0}
+- Muhasebeleştirilmiş: ${data.invoiceCountsByStatus.muhasebeleştirilmiş || 0}
+
+Lütfen 3-5 adet kısa ve öz iyileştirme önerisi sun. Her öneri bir satır olmalı.`;
+
+      const response = await aiAssistantService.generateText(prompt);
+      
+      // Parse suggestions (assuming they're separated by newlines or bullets)
+      const suggestions = response
+        .split(/\n|•|[-*]/)
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0 && !s.match(/^(Lütfen|Aşağıdaki|Satış|Alış|Fatura)/i))
+        .slice(0, 5);
+
+      return suggestions.length > 0 ? suggestions : [
+        "Düzenli fatura takibi yapın",
+        "Eksik belgeleri tamamlayın",
+        "Risk skorlarını düzenli kontrol edin",
+      ];
+    } catch (error) {
+      console.error("[ReportingService] Error generating suggestions:", error);
+      // Return default suggestions on error
+      return [
+        "Düzenli fatura takibi yapın",
+        "Eksik belgeleri tamamlayın",
+        "Risk skorlarını düzenli kontrol edin",
+      ];
+    }
+  }
+
+  /**
+   * Generate AI-based improvement suggestions for risk reports
+   */
+  private async generateRiskImprovementSuggestions(
+    tenantId: string,
+    clientCompanyId: string,
+    data: {
+      latestRiskScore: number | null;
+      highRiskDocumentCount: number;
+      triggeredRules: string[];
+      openAlertsBySeverity: Record<string, number>;
+    }
+  ): Promise<string[]> {
+    try {
+      const prompt = `Aşağıdaki risk verilerine dayanarak risk azaltma önerileri sun:
+
+Mevcut Risk Skoru: ${data.latestRiskScore?.toFixed(1) || "N/A"}/100
+Yüksek Riskli Belge Sayısı: ${data.highRiskDocumentCount}
+Tetiklenen Risk Kuralları: ${data.triggeredRules.join(", ") || "Yok"}
+
+Açık Uyarılar:
+- Yüksek: ${data.openAlertsBySeverity.high || 0}
+- Orta: ${data.openAlertsBySeverity.medium || 0}
+- Düşük: ${data.openAlertsBySeverity.low || 0}
+
+Lütfen 3-5 adet kısa ve öz risk azaltma önerisi sun. Her öneri bir satır olmalı.`;
+
+      const response = await aiAssistantService.generateText(prompt);
+      
+      // Parse suggestions
+      const suggestions = response
+        .split(/\n|•|[-*]/)
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0 && !s.match(/^(Lütfen|Aşağıdaki|Mevcut|Yüksek|Tetiklenen|Açık)/i))
+        .slice(0, 5);
+
+      return suggestions.length > 0 ? suggestions : [
+        "Yüksek riskli belgeleri inceleyin",
+        "Tetiklenen risk kurallarını gözden geçirin",
+        "Açık uyarıları çözün",
+      ];
+    } catch (error) {
+      console.error("[ReportingService] Error generating risk suggestions:", error);
+      // Return default suggestions on error
+      return [
+        "Yüksek riskli belgeleri inceleyin",
+        "Tetiklenen risk kurallarını gözden geçirin",
+        "Açık uyarıları çözün",
+      ];
+    }
+  }
+
+  /**
+   * Generate audit preparation report
+   * Includes missing documents list, compliance check, and risk summary
+   */
+  async generateAuditPreparationReport(
+    tenantId: string,
+    clientCompanyId: string,
+    filters: { start_date: string; end_date: string }
+  ): Promise<BaseReportResult> {
+    await this.validateClientCompany(tenantId, clientCompanyId);
+
+    const startDate = new Date(filters.start_date);
+    const endDate = new Date(filters.end_date);
+
+    // Get missing documents
+    const missingDocuments = await prisma.documentRequirement.findMany({
+      where: {
+        tenantId,
+        clientCompanyId,
+        status: {
+          in: ["pending", "overdue"],
+        },
+        requiredByDate: {
+          lte: endDate,
+        },
+      },
+      include: {
+        clientCompany: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        requiredByDate: "asc",
+      },
+    });
+
+    // Get high-risk documents
+    const highRiskDocuments = await prisma.document.findMany({
+      where: {
+        tenantId,
+        clientCompanyId,
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+        riskScore: {
+          severity: "high",
+        },
+      },
+      include: {
+        riskScore: {
+          select: {
+            score: true,
+            severity: true,
+            triggeredRuleCodes: true,
+          },
+        },
+      },
+    });
+
+    // Get open risk alerts
+    const openAlerts = await prisma.riskAlert.findMany({
+      where: {
+        tenantId,
+        clientCompanyId,
+        status: "open",
+      },
+      orderBy: {
+        severity: "desc",
+      },
+    });
+
+    // Get latest risk score
+    const latestRiskScore = await prisma.clientCompanyRiskScore.findFirst({
+      where: {
+        tenantId,
+        clientCompanyId,
+      },
+      orderBy: {
+        generatedAt: "desc",
+      },
+    });
+
+    // Build rows
+    const rows: Array<{
+      category: string;
+      item: string;
+      status: string;
+      priority: string;
+      description: string;
+    }> = [];
+
+    // Add missing documents
+    for (const req of missingDocuments) {
+      rows.push({
+        category: "Eksik Belgeler",
+        item: req.documentType,
+        status: req.status === "overdue" ? "Vadesi Geçti" : "Beklemede",
+        priority: req.status === "overdue" ? "Yüksek" : "Orta",
+        description: `Gerekli tarih: ${new Date(req.requiredByDate).toLocaleDateString("tr-TR")}`,
+      });
+    }
+
+    // Add high-risk documents
+    for (const doc of highRiskDocuments) {
+      rows.push({
+        category: "Yüksek Riskli Belgeler",
+        item: doc.originalFileName,
+        status: "Yüksek Risk",
+        priority: "Yüksek",
+        description: `Risk skoru: ${doc.riskScore?.score || "N/A"}`,
+      });
+    }
+
+    // Add open alerts
+    for (const alert of openAlerts) {
+      rows.push({
+        category: "Risk Uyarıları",
+        item: alert.title,
+        status: alert.severity === "high" ? "Yüksek" : alert.severity === "medium" ? "Orta" : "Düşük",
+        priority: alert.severity === "high" ? "Yüksek" : alert.severity === "medium" ? "Orta" : "Düşük",
+        description: alert.message,
+      });
+    }
+
+    // Compliance check summary
+    const complianceIssues = {
+      missingDocuments: missingDocuments.length,
+      overdueDocuments: missingDocuments.filter((r) => r.status === "overdue").length,
+      highRiskDocuments: highRiskDocuments.length,
+      openAlerts: openAlerts.length,
+      highSeverityAlerts: openAlerts.filter((a) => a.severity === "high").length,
+    };
+
+    return {
+      title: "Denetim Hazırlık Raporu",
+      period: {
+        start_date: filters.start_date,
+        end_date: filters.end_date,
+      },
+      generated_at: new Date().toISOString(),
+      rows,
+      totals: {
+        latestRiskScore: latestRiskScore ? Number(latestRiskScore.score) : null,
+        latestSeverity: latestRiskScore?.severity || null,
+        complianceIssues,
+        summary: {
+          totalIssues: rows.length,
+          criticalIssues: rows.filter((r) => r.priority === "Yüksek").length,
+          requiresAttention: complianceIssues.overdueDocuments > 0 || complianceIssues.highSeverityAlerts > 0,
+        },
+      },
+      suggestions: [
+        "Eksik belgeleri tamamlayın",
+        "Yüksek riskli belgeleri inceleyin",
+        "Açık risk uyarılarını çözün",
+        "Denetim öncesi tüm belgelerin eksiksiz olduğundan emin olun",
+      ],
     };
   }
 }

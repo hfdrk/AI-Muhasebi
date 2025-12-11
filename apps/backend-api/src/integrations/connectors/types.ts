@@ -50,6 +50,37 @@ export interface FetchTransactionsOptions {
   [key: string]: unknown;
 }
 
+export interface PushInvoiceInput {
+  invoiceId: string;
+  externalId?: string;
+  clientCompanyExternalId?: string;
+  clientCompanyName?: string;
+  clientCompanyTaxNumber?: string;
+  issueDate: Date;
+  dueDate: Date | null;
+  totalAmount: number;
+  currency: string;
+  taxAmount: number;
+  netAmount?: number | null;
+  counterpartyName?: string | null;
+  counterpartyTaxNumber?: string | null;
+  status?: string;
+  type?: "SATIŞ" | "ALIŞ";
+  lines: NormalizedInvoiceLine[];
+}
+
+export interface PushTransactionInput {
+  transactionId: string;
+  externalId?: string;
+  accountIdentifier: string;
+  bookingDate: Date;
+  valueDate?: Date | null;
+  description: string;
+  amount: number;
+  currency: string;
+  balanceAfter?: number | null;
+}
+
 export interface AccountingIntegrationConnector {
   testConnection(config: Record<string, unknown>): Promise<{ success: boolean; message?: string }>;
   fetchInvoices(
@@ -57,6 +88,10 @@ export interface AccountingIntegrationConnector {
     untilDate: Date,
     options?: FetchInvoicesOptions
   ): Promise<NormalizedInvoice[]>;
+  pushInvoices?(
+    invoices: PushInvoiceInput[],
+    config: Record<string, unknown>
+  ): Promise<Array<{ success: boolean; externalId?: string; message?: string }>>;
 }
 
 export interface BankIntegrationConnector {
@@ -66,6 +101,10 @@ export interface BankIntegrationConnector {
     untilDate: Date,
     options?: FetchTransactionsOptions
   ): Promise<NormalizedBankTransaction[]>;
+  pushTransactions?(
+    transactions: PushTransactionInput[],
+    config: Record<string, unknown>
+  ): Promise<Array<{ success: boolean; externalId?: string; message?: string }>>;
 }
 
 

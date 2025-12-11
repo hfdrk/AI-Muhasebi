@@ -4,6 +4,11 @@ import type {
 } from "./types";
 import { MockAccountingConnector } from "./mock-accounting-connector";
 import { MockBankConnector } from "./mock-bank-connector";
+import { MikroAccountingConnector } from "./mikro-accounting-connector";
+import { LogoAccountingConnector } from "./logo-accounting-connector";
+import { ETAConnector } from "./eta-connector";
+import { IsBankasiConnector } from "./is-bankasi-connector";
+import { GarantiConnector } from "./garanti-connector";
 
 export class ConnectorRegistry {
   private accountingConnectors: Map<string, AccountingIntegrationConnector> = new Map();
@@ -12,6 +17,15 @@ export class ConnectorRegistry {
   constructor() {
     this.registerAccountingConnector("MOCK_ACCOUNTING", new MockAccountingConnector());
     this.registerBankConnector("MOCK_BANK", new MockBankConnector());
+    
+    // Register real integrations
+    this.registerAccountingConnector("MIKRO_ACCOUNTING", new MikroAccountingConnector());
+    this.registerAccountingConnector("LOGO_ACCOUNTING", new LogoAccountingConnector());
+    this.registerAccountingConnector("ETA", new ETAConnector());
+    
+    // Register bank integrations
+    this.registerBankConnector("IS_BANKASI", new IsBankasiConnector());
+    this.registerBankConnector("GARANTI_BBVA", new GarantiConnector());
   }
 
   registerAccountingConnector(code: string, connector: AccountingIntegrationConnector): void {

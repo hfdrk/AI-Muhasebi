@@ -2,6 +2,7 @@ import type {
   BankIntegrationConnector,
   NormalizedBankTransaction,
   FetchTransactionsOptions,
+  PushTransactionInput,
 } from "./types";
 
 export class MockBankConnector implements BankIntegrationConnector {
@@ -89,6 +90,17 @@ export class MockBankConnector implements BankIntegrationConnector {
     }
 
     return filtered;
+  }
+
+  async pushTransactions(
+    transactions: PushTransactionInput[],
+    config: Record<string, unknown>
+  ): Promise<Array<{ success: boolean; externalId?: string; message?: string }>> {
+    return transactions.map((transaction) => ({
+      success: true,
+      externalId: transaction.externalId || `MOCK-${transaction.transactionId}`,
+      message: "İşlem başarıyla gönderildi (mock).",
+    }));
   }
 }
 

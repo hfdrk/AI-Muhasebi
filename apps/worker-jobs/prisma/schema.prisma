@@ -30,6 +30,7 @@ model User {
   createdReportExecutions ReportExecutionLog[]
   notifications           Notification[]
   notificationPreferences NotificationPreference[]
+  assignedTasks           Task[]
 
   @@index([email])
   @@map("users")
@@ -75,6 +76,8 @@ model Tenant {
   reportExecutionLogs ReportExecutionLog[]
   notifications Notification[]
   notificationPreferences NotificationPreference[]
+  tasks Task[]
+  documentRequirements DocumentRequirement[]
 
   @@index([slug])
   @@map("tenants")
@@ -195,6 +198,8 @@ model ClientCompany {
   tenantIntegrations TenantIntegration[]
   integrationSyncJobs IntegrationSyncJob[]
   scheduledReports ScheduledReport[]
+  tasks Task[]
+  documentRequirements DocumentRequirement[]
 
   @@unique([tenantId, taxNumber])
   @@index([tenantId])
@@ -370,6 +375,7 @@ model Document {
   riskFeatures  DocumentRiskFeatures?
   riskScore     DocumentRiskScore?
   riskAlerts    RiskAlert[]
+  documentRequirements DocumentRequirement[]
 
   @@index([tenantId])
   @@index([clientCompanyId])
@@ -781,5 +787,55 @@ model NotificationPreference {
   @@index([tenantId])
   @@index([userId])
   @@map("notification_preferences")
+}
+
+model Task {
+  id              String    @id @default(cuid())
+  tenantId        String    @map("tenant_id")
+  clientCompanyId String?   @map("client_company_id")
+  assignedToUserId String?  @map("assigned_to_user_id")
+  title           String    @db.VarChar(255)
+  description     String?   @db.Text
+  status          String    @default("pending") @db.VarChar(50) // pending, in_progress, completed, cancelled
+  priority        String    @default("medium") @db.VarChar(50) // low, medium, high
+  dueDate         DateTime? @map("due_date") @db.Timestamptz(6)
+  completedAt     DateTime? @map("completed_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientCompany ClientCompany? @relation(fields: [clientCompanyId], references: [id], onDelete: SetNull)
+  assignedTo    User?          @relation(fields: [assignedToUserId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([tenantId, clientCompanyId])
+  @@index([tenantId, assignedToUserId])
+  @@index([tenantId, status])
+  @@index([tenantId, priority])
+  @@index([dueDate])
+  @@map("tasks")
+}
+
+model DocumentRequirement {
+  id              String    @id @default(cuid())
+  tenantId        String    @map("tenant_id")
+  clientCompanyId String    @map("client_company_id")
+  documentType    String    @map("document_type") @db.VarChar(50) // INVOICE, BANK_STATEMENT, RECEIPT, CONTRACT, etc.
+  requiredByDate  DateTime  @map("required_by_date") @db.Timestamptz(6)
+  status          String    @default("pending") @db.VarChar(50) // pending, received, overdue
+  receivedDocumentId String? @map("received_document_id")
+  description     String?   @db.Text
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientCompany ClientCompany @relation(fields: [clientCompanyId], references: [id], onDelete: Cascade)
+  receivedDocument Document?  @relation(fields: [receivedDocumentId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([tenantId, clientCompanyId])
+  @@index([tenantId, status])
+  @@index([requiredByDate])
+  @@map("document_requirements")
 }
 

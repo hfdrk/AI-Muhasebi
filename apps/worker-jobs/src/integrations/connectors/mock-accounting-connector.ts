@@ -2,6 +2,7 @@ import type {
   AccountingIntegrationConnector,
   NormalizedInvoice,
   FetchInvoicesOptions,
+  PushInvoiceInput,
 } from "./types";
 
 export class MockAccountingConnector implements AccountingIntegrationConnector {
@@ -153,6 +154,17 @@ export class MockAccountingConnector implements AccountingIntegrationConnector {
     return mockInvoices.filter(
       (inv) => inv.issueDate >= sinceDate && inv.issueDate <= untilDate
     );
+  }
+
+  async pushInvoices(
+    invoices: PushInvoiceInput[],
+    config: Record<string, unknown>
+  ): Promise<Array<{ success: boolean; externalId?: string; message?: string }>> {
+    return invoices.map((invoice) => ({
+      success: true,
+      externalId: invoice.externalId || `MOCK-${invoice.invoiceId}`,
+      message: "Fatura başarıyla gönderildi (mock).",
+    }));
   }
 }
 

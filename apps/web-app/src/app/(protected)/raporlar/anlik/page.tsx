@@ -18,6 +18,7 @@ const REPORT_TYPES = [
   { code: "COMPANY_RISK_SUMMARY", label: "Müşteri Risk Özeti" },
   { code: "TENANT_PORTFOLIO", label: "Portföy Özeti" },
   { code: "DOCUMENT_ACTIVITY", label: "Belge ve Fatura Aktivitesi" },
+  { code: "AUDIT_PREPARATION", label: "Denetim Hazırlık Raporu" },
 ] as const;
 
 export default function OnDemandReportsPage() {
@@ -479,6 +480,21 @@ export default function OnDemandReportsPage() {
               <pre style={{ fontSize: "14px", color: colors.text.secondary, margin: 0 }}>
                 {JSON.stringify(reportResult.totals, null, 2)}
               </pre>
+            </div>
+          )}
+
+          {reportResult.suggestions && reportResult.suggestions.length > 0 && (
+            <div style={{ marginTop: spacing.xl, padding: spacing.md, backgroundColor: "#f0f9ff", borderRadius: "4px", border: "1px solid #bae6fd" }}>
+              <h3 style={{ fontSize: "16px", fontWeight: 600, marginBottom: spacing.sm, color: "#0369a1" }}>
+                İyileştirme Önerileri
+              </h3>
+              <ul style={{ margin: 0, paddingLeft: spacing.lg, color: "#0c4a6e" }}>
+                {reportResult.suggestions.map((suggestion, index) => (
+                  <li key={index} style={{ marginBottom: spacing.xs, fontSize: "14px" }}>
+                    {suggestion}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>

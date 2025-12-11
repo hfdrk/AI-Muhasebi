@@ -151,6 +151,92 @@ export class IntegrationSyncProcessor {
             },
           },
         });
+      } else if (job.jobType === "push_invoices") {
+        if (!("pushInvoices" in connector) || typeof (connector as any).pushInvoices !== "function") {
+          throw new Error("Connector does not support push invoices");
+        }
+
+        // Get invoices to push (invoices created/updated since last push, or all if first push)
+        // TODO: Add logic to determine which invoices to push based on sync configuration
+        const invoicesToPush = await this.getInvoicesToPush(job.tenantId, job.clientCompanyId, sinceDate);
+        
+        if (invoicesToPush.length === 0) {
+          await prisma.integrationSyncLog.create({
+            data: {
+              tenantId: job.tenantId,
+              tenantIntegrationId: job.tenantIntegrationId,
+              level: "info",
+              message: "Gönderilecek fatura bulunamadı.",
+            },
+          });
+        } else {
+          const pushResults = await (connector as any).pushInvoices(
+            invoicesToPush,
+            job.tenantIntegration.config as Record<string, unknown>
+          );
+
+          const successCount = pushResults.filter((r: any) => r.success).length;
+          const failureCount = pushResults.filter((r: any) => !r.success).length;
+
+          // Log push results
+          await prisma.integrationSyncLog.create({
+            data: {
+              tenantId: job.tenantId,
+              tenantIntegrationId: job.tenantIntegrationId,
+              level: failureCount > 0 ? "warning" : "info",
+              message: `Fatura gönderimi tamamlandı: ${successCount} başarılı, ${failureCount} başarısız`,
+              context: {
+                total: invoicesToPush.length,
+                success: successCount,
+                failed: failureCount,
+                results: pushResults,
+              },
+            },
+          });
+        }
+      } else if (job.jobType === "push_bank_transactions") {
+        if (!("pushTransactions" in connector) || typeof (connector as any).pushTransactions !== "function") {
+          throw new Error("Connector does not support push transactions");
+        }
+
+        // Get transactions to push
+        // TODO: Add logic to determine which transactions to push
+        const transactionsToPush = await this.getTransactionsToPush(job.tenantId, job.clientCompanyId, sinceDate);
+        
+        if (transactionsToPush.length === 0) {
+          await prisma.integrationSyncLog.create({
+            data: {
+              tenantId: job.tenantId,
+              tenantIntegrationId: job.tenantIntegrationId,
+              level: "info",
+              message: "Gönderilecek işlem bulunamadı.",
+            },
+          });
+        } else {
+          const pushResults = await (connector as any).pushTransactions(
+            transactionsToPush,
+            job.tenantIntegration.config as Record<string, unknown>
+          );
+
+          const successCount = pushResults.filter((r: any) => r.success).length;
+          const failureCount = pushResults.filter((r: any) => !r.success).length;
+
+          // Log push results
+          await prisma.integrationSyncLog.create({
+            data: {
+              tenantId: job.tenantId,
+              tenantIntegrationId: job.tenantIntegrationId,
+              level: failureCount > 0 ? "warning" : "info",
+              message: `İşlem gönderimi tamamlandı: ${successCount} başarılı, ${failureCount} başarısız`,
+              context: {
+                total: transactionsToPush.length,
+                success: successCount,
+                failed: failureCount,
+                results: pushResults,
+              },
+            },
+          });
+        }
       } else {
         throw new Error(`Unknown job type: ${job.jobType}`);
       }
@@ -263,6 +349,118 @@ export class IntegrationSyncProcessor {
 
       throw error;
     }
+  }
+
+  /**
+   * Get invoices to push to external system
+   * TODO: Implement logic to determine which invoices should be pushed
+   */
+  private async getInvoicesToPush(
+    tenantId: string,
+    clientCompanyId: string | null,
+    sinceDate: Date
+  ): Promise<any[]> {
+    // TODO: Query invoices that need to be pushed
+    // This should filter by:
+    // - Status (e.g., only "kesildi" invoices)
+    // - Not already pushed (track in a separate table or field)
+    // - Date range
+    // - Client company if specified
+    
+    const where: any = {
+      tenantId,
+      issueDate: { gte: sinceDate },
+      // Add more filters as needed
+    };
+
+    if (clientCompanyId) {
+      where.clientCompanyId = clientCompanyId;
+    }
+
+    const invoices = await prisma.invoice.findMany({
+      where,
+      include: {
+        lines: true,
+        clientCompany: true,
+      },
+      take: 100, // Limit batch size
+    });
+
+    // Map to PushInvoiceInput format
+    return invoices.map((inv) => ({
+      invoiceId: inv.id,
+      externalId: inv.externalId,
+      clientCompanyExternalId: null, // TODO: Map from client company
+      clientCompanyName: inv.clientCompany?.name || null,
+      clientCompanyTaxNumber: inv.clientCompany?.taxNumber || null,
+      issueDate: inv.issueDate,
+      dueDate: inv.dueDate,
+      totalAmount: Number(inv.totalAmount),
+      currency: inv.currency,
+      taxAmount: Number(inv.taxAmount),
+      netAmount: inv.netAmount ? Number(inv.netAmount) : null,
+      counterpartyName: inv.counterpartyName,
+      counterpartyTaxNumber: inv.counterpartyTaxNumber,
+      status: inv.status,
+      type: inv.type,
+      lines: inv.lines.map((line) => ({
+        lineNumber: line.lineNumber,
+        description: line.description,
+        quantity: Number(line.quantity),
+        unitPrice: Number(line.unitPrice),
+        lineTotal: Number(line.lineTotal),
+        vatRate: Number(line.vatRate),
+        vatAmount: Number(line.vatAmount),
+      })),
+    }));
+  }
+
+  /**
+   * Get transactions to push to external system
+   * TODO: Implement logic to determine which transactions should be pushed
+   */
+  private async getTransactionsToPush(
+    tenantId: string,
+    clientCompanyId: string | null,
+    sinceDate: Date
+  ): Promise<any[]> {
+    // TODO: Query transactions that need to be pushed
+    // Similar logic to getInvoicesToPush
+    
+    const where: any = {
+      tenantId,
+      date: { gte: sinceDate },
+    };
+
+    if (clientCompanyId) {
+      where.clientCompanyId = clientCompanyId;
+    }
+
+    const transactions = await prisma.transaction.findMany({
+      where,
+      include: {
+        lines: {
+          include: {
+            ledgerAccount: true,
+          },
+        },
+      },
+      take: 100, // Limit batch size
+    });
+
+    // Map to PushTransactionInput format
+    // Note: This is a simplified mapping - adjust based on actual requirements
+    return transactions.map((txn) => ({
+      transactionId: txn.id,
+      externalId: txn.externalId,
+      accountIdentifier: txn.referenceNo || "", // TODO: Get actual account identifier
+      bookingDate: txn.date,
+      valueDate: txn.date,
+      description: txn.description || "",
+      amount: 0, // TODO: Calculate from transaction lines
+      currency: "TRY", // TODO: Get from transaction
+      balanceAfter: null,
+    }));
   }
 }
 

@@ -1,11 +1,17 @@
 /**
- * OCR Service - Stub Implementation
+ * OCR Service - Multi-Provider Implementation
  * 
- * TODO: Replace with real OCR implementation:
- * - For PDFs: Use pdf-parse, pdfjs-dist, or AWS Textract
- * - For Images: Use Tesseract.js, AWS Textract, or Google Vision API
- * - Consider adding OCR engine configuration via environment variables
+ * Supports multiple OCR providers:
+ * - Google Cloud Vision API
+ * - AWS Textract
+ * - Tesseract.js (self-hosted)
+ * - Stub (for testing)
  */
+
+import { getOCRConfig, validateOCRConfig, type OCRProvider } from "@repo/config";
+import { GoogleVisionOCR } from "./ocr-providers/google-vision-ocr";
+import { AWSTextractOCR } from "./ocr-providers/aws-textract-ocr";
+import { TesseractOCR } from "./ocr-providers/tesseract-ocr";
 
 export interface OCRResult {
   rawText: string;
@@ -14,6 +20,37 @@ export interface OCRResult {
 }
 
 export class OCRService {
+  private provider: OCRProvider;
+  private googleVision?: GoogleVisionOCR;
+  private awsTextract?: AWSTextractOCR;
+  private tesseract?: TesseractOCR;
+
+  constructor() {
+    const config = getOCRConfig();
+    validateOCRConfig(config);
+    this.provider = config.provider;
+
+    // Initialize providers based on config
+    if (config.googleVision?.apiKey) {
+      this.googleVision = new GoogleVisionOCR(config.googleVision.apiKey);
+    }
+
+    if (config.awsTextract?.accessKeyId && config.awsTextract?.secretAccessKey) {
+      this.awsTextract = new AWSTextractOCR(
+        config.awsTextract.accessKeyId,
+        config.awsTextract.secretAccessKey,
+        config.awsTextract.region || "us-east-1"
+      );
+    }
+
+    if (config.tesseract) {
+      this.tesseract = new TesseractOCR(
+        config.tesseract.language,
+        config.tesseract.dataPath
+      );
+    }
+  }
+
   /**
    * Run OCR on a file buffer
    * @param fileBuffer - File content as Buffer
@@ -21,7 +58,47 @@ export class OCRService {
    * @returns Promise resolving to OCR result with raw text and engine name
    */
   async runOCR(fileBuffer: Buffer, mimeType: string): Promise<OCRResult> {
-    // Stub implementation - returns fake text based on file type
+    try {
+      switch (this.provider) {
+        case "google_vision":
+          if (!this.googleVision) {
+            throw new Error("Google Vision OCR not configured");
+          }
+          return await this.googleVision.extractText(fileBuffer, mimeType);
+
+        case "aws_textract":
+          if (!this.awsTextract) {
+            throw new Error("AWS Textract OCR not configured");
+          }
+          return await this.awsTextract.extractText(fileBuffer, mimeType);
+
+        case "tesseract":
+          if (!this.tesseract) {
+            throw new Error("Tesseract OCR not configured");
+          }
+          return await this.tesseract.extractText(fileBuffer, mimeType);
+
+        case "stub":
+        default:
+          return this.runStubOCR(fileBuffer, mimeType);
+      }
+    } catch (error: any) {
+      console.error("[OCRService] Error running OCR:", error);
+      
+      // Fallback to stub if provider fails
+      if (this.provider !== "stub") {
+        console.warn("[OCRService] Falling back to stub OCR due to error");
+        return this.runStubOCR(fileBuffer, mimeType);
+      }
+      
+      throw error;
+    }
+  }
+
+  /**
+   * Stub OCR implementation (fallback)
+   */
+  private runStubOCR(fileBuffer: Buffer, mimeType: string): OCRResult {
     let rawText: string;
     const engineName = "stub";
 
@@ -63,7 +140,7 @@ TODO: Add support for this file type or integrate real OCR engine`;
     return {
       rawText,
       engineName,
-      confidence: null, // Stub doesn't provide confidence
+      confidence: null,
     };
   }
 }

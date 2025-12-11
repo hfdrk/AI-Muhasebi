@@ -131,6 +131,20 @@ export class DocumentService {
     const { usageService } = await import("./usage-service");
     await usageService.incrementUsage(tenantId, "DOCUMENTS" as any, 1);
 
+    // Check if this document fulfills any requirements
+    try {
+      const { documentRequirementService } = await import("./document-requirement-service");
+      await documentRequirementService.checkDocumentFulfillsRequirements(
+        tenantId,
+        input.clientCompanyId,
+        document.type,
+        document.id
+      );
+    } catch (error) {
+      // Don't fail document upload if requirement check fails
+      console.error("[DocumentService] Error checking document requirements:", error);
+    }
+
     return this.mapToDocument(document);
   }
 

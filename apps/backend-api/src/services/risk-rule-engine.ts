@@ -240,8 +240,33 @@ export class RiskRuleEngine {
       case "INV_TOTAL_MISMATCH":
         return features.amountMismatch === true;
 
+      case "VAT_RATE_INCONSISTENCY":
+        return features.vatRateInconsistency === true;
+
+      case "AMOUNT_DATE_INCONSISTENCY":
+        return features.amountDateInconsistency === true;
+
+      case "CHART_MISMATCH":
+        return features.chartMismatch === true;
+
       case "INV_DUPLICATE_NUMBER":
         return features.duplicateInvoiceNumber === true;
+
+      case "INV_DUPLICATE_INVOICE":
+        // Invoice-level duplicate detection (checked separately, not from document features)
+        // This is handled in evaluateDocument with a special check
+        return false; // Will be overridden in evaluateDocument
+
+      case "UNUSUAL_COUNTERPARTY":
+      case "NEW_COUNTERPARTY":
+        // Counterparty analysis is handled separately in invoice/transaction services
+        return false;
+
+      case "BENFORDS_LAW_VIOLATION":
+      case "ROUND_NUMBER_SUSPICIOUS":
+      case "UNUSUAL_TIMING":
+        // Fraud pattern detection is handled separately
+        return false;
 
       case "INV_MISSING_TAX_NUMBER":
         return features.hasMissingFields === true && features.duplicateInvoiceNumber !== true;

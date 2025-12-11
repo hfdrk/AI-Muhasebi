@@ -155,6 +155,12 @@ export class RiskFeatureService {
         description: "Karşı taraf bilgileri eksik",
       });
     }
+
+    // Check for VAT rate inconsistencies
+    await this.checkVATRateInconsistency(tenantId, fields, features, flags);
+
+    // Check for amount-date inconsistencies
+    this.checkAmountDateInconsistency(fields, features, flags);
   }
 
   private checkBankStatementRisks(
@@ -243,6 +249,160 @@ export class RiskFeatureService {
       // If query fails, skip duplicate check
       // In production, might want to log this
     }
+  }
+
+  /**
+   * Check for VAT rate inconsistencies
+   * Flags unusual VAT rates for expense types
+   */
+  private async checkVATRateInconsistency(
+    tenantId: string,
+    fields: ParsedInvoiceFields,
+    features: RiskFeatureMap,
+    flags: RiskFlag[]
+  ): Promise<void> {
+    if (!fields.lineItems || fields.lineItems.length === 0) {
+      return;
+    }
+
+    // Expected VAT rates in Turkey: 0%, 1%, 10%, 20% (most common: 18% or 20%)
+    const expectedVATRates = [0, 0.01, 0.1, 0.18, 0.2];
+    const tolerance = 0.001; // Small tolerance for floating point
+
+    for (const lineItem of fields.lineItems) {
+      if (lineItem.vatRate !== null && lineItem.vatRate !== undefined) {
+        const vatRate = lineItem.vatRate;
+        const isExpected = expectedVATRates.some(
+          (expected) => Math.abs(vatRate - expected) < tolerance
+        );
+
+        if (!isExpected) {
+          features.vatRateInconsistency = true;
+          flags.push({
+            code: "VAT_RATE_INCONSISTENCY",
+            severity: "medium",
+            description: `Satır ${lineItem.lineNumber || "?"} için alışılmadık KDV oranı: ${(vatRate * 100).toFixed(2)}%`,
+            value: vatRate,
+          });
+        }
+      }
+    }
+
+    // Check for inconsistent VAT rates within same invoice
+    const vatRates = fields.lineItems
+      .map((item) => item.vatRate)
+      .filter((rate) => rate !== null && rate !== undefined) as number[];
+    
+    if (vatRates.length > 1) {
+      const uniqueVATRates = new Set(vatRates.map((r) => Math.round(r * 100) / 100));
+      if (uniqueVATRates.size > 2) {
+        // More than 2 different VAT rates in one invoice is unusual
+        features.vatRateInconsistency = true;
+        flags.push({
+          code: "VAT_RATE_INCONSISTENCY",
+          severity: "low",
+          description: `Faturada ${uniqueVATRates.size} farklı KDV oranı kullanılmış`,
+        });
+      }
+    }
+  }
+
+  /**
+   * Check for amount-date inconsistencies
+   * Flags amounts that don't match expected patterns based on date
+   */
+  private checkAmountDateInconsistency(
+    fields: ParsedInvoiceFields,
+    features: RiskFeatureMap,
+    flags: RiskFlag[]
+  ): void {
+    if (!fields.issueDate || !fields.totalAmount) {
+      return;
+    }
+
+    try {
+      const issueDate = this.parseTurkishDate(fields.issueDate);
+      const now = new Date();
+      const daysDiff = Math.floor((now.getTime() - issueDate.getTime()) / (1000 * 60 * 60 * 24));
+
+      // Check for future-dated invoices with very high amounts (potential fraud)
+      if (daysDiff < 0 && fields.totalAmount > 100000) {
+        features.amountDateInconsistency = true;
+        flags.push({
+          code: "AMOUNT_DATE_INCONSISTENCY",
+          severity: "high",
+          description: `Gelecek tarihli fatura (${Math.abs(daysDiff)} gün sonra) yüksek tutarlı`,
+          value: fields.totalAmount,
+        });
+      }
+
+      // Check for very old invoices with high amounts (potential backdating)
+      if (daysDiff > 365 && fields.totalAmount > 50000) {
+        features.amountDateInconsistency = true;
+        flags.push({
+          code: "AMOUNT_DATE_INCONSISTENCY",
+          severity: "medium",
+          description: `Eski tarihli fatura (${daysDiff} gün önce) yüksek tutarlı`,
+          value: fields.totalAmount,
+        });
+      }
+
+      // Check for weekend/holiday invoices (unusual for B2B)
+      const dayOfWeek = issueDate.getDay();
+      if ((dayOfWeek === 0 || dayOfWeek === 6) && fields.totalAmount > 10000) {
+        // Weekend invoice with significant amount
+        features.amountDateInconsistency = true;
+        flags.push({
+          code: "AMOUNT_DATE_INCONSISTENCY",
+          severity: "low",
+          description: "Hafta sonu tarihli fatura",
+        });
+      }
+    } catch (error) {
+      // Date parsing failed, skip this check
+    }
+  }
+
+  /**
+   * Check for chart of accounts mismatches
+   * This would need to be called from transaction processing
+   */
+  async checkChartMismatch(
+    tenantId: string,
+    transactionType: string,
+    accountCode: string,
+    amount: number
+  ): Promise<{ isMismatch: boolean; reason?: string }> {
+    // Common account code patterns in Turkish chart of accounts
+    // 1xx: Assets, 2xx: Liabilities, 3xx: Equity, 4xx: Revenue, 5xx: Expenses, 6xx: Cost of Sales, 7xx: Other Income, 8xx: Other Expenses
+    
+    const accountCategory = parseInt(accountCode.substring(0, 1));
+
+    // Check for mismatches based on transaction type and account category
+    if (transactionType === "expense" && accountCategory !== 5 && accountCategory !== 6 && accountCategory !== 8) {
+      return {
+        isMismatch: true,
+        reason: `Gider işlemi için yanlış hesap kategorisi kullanılmış (${accountCode})`,
+      };
+    }
+
+    if (transactionType === "revenue" && accountCategory !== 4 && accountCategory !== 7) {
+      return {
+        isMismatch: true,
+        reason: `Gelir işlemi için yanlış hesap kategorisi kullanılmış (${accountCode})`,
+      };
+    }
+
+    // Check for unusual account usage (e.g., very high amounts in unusual accounts)
+    if (accountCategory === 8 && amount > 100000) {
+      // Other expenses with very high amount
+      return {
+        isMismatch: true,
+        reason: "Diğer giderler hesabında anormal derecede yüksek tutar",
+      };
+    }
+
+    return { isMismatch: false };
   }
 
   private parseTurkishDate(dateStr: string): Date {

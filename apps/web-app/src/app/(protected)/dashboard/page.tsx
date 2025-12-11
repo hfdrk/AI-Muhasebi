@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { listInvoices, listTransactions, listClientCompanies, listDocuments, getCurrentUser, onboardingClient } from "@repo/api-client";
+import { listInvoices, listTransactions, listClientCompanies, listDocuments, getCurrentUser, onboardingClient, getTaskStatistics, listTasks, listDocumentRequirements } from "@repo/api-client";
+import TaskDashboardWidget from "@/components/task-dashboard-widget";
 import { dashboard as dashboardI18n } from "@repo/i18n";
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -128,6 +129,24 @@ export default function DashboardPage() {
   const { data: allDocumentsData } = useQuery({
     queryKey: ["dashboard-documents-total"],
     queryFn: () => listDocuments({ page: 1, pageSize: 1 }),
+  });
+
+  // Fetch task statistics
+  const { data: taskStatsData } = useQuery({
+    queryKey: ["task-statistics"],
+    queryFn: () => getTaskStatistics(),
+  });
+
+  // Fetch recent tasks
+  const { data: tasksData } = useQuery({
+    queryKey: ["dashboard-tasks"],
+    queryFn: () => listTasks({ page: 1, pageSize: 5 }),
+  });
+
+  // Fetch missing documents
+  const { data: missingDocsData } = useQuery({
+    queryKey: ["dashboard-missing-documents"],
+    queryFn: () => listDocumentRequirements({ overdue: true, page: 1, pageSize: 5 }),
   });
 
   const recentInvoices = invoicesData?.data.data || [];
@@ -335,6 +354,32 @@ export default function DashboardPage() {
           </div>
         </Card>
       </div>
+
+      {/* Task Statistics Widget */}
+      {taskStatsData?.data && (
+        <div style={{ marginBottom: spacing.xl }}>
+          <TaskDashboardWidget statistics={taskStatsData.data} />
+        </div>
+      )}
+
+      {/* Missing Documents Summary */}
+      {missingDocsData?.data?.data && missingDocsData.data.data.length > 0 && (
+        <Card style={{ marginBottom: spacing.xl, backgroundColor: "#fee2e2", border: "1px solid #dc2626" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <p style={{ margin: 0, color: "#dc2626", fontSize: "14px", fontWeight: "bold" }}>
+                Vadesi Geçen Belgeler
+              </p>
+              <h3 style={{ margin: `${spacing.xs} 0 0 0`, fontSize: "24px", fontWeight: 600, color: "#dc2626" }}>
+                {missingDocsData.data.data.length}
+              </h3>
+            </div>
+            <Button asLink href="/eksik-belgeler" variant="primary" size="sm">
+              Detayları Gör
+            </Button>
+          </div>
+        </Card>
+      )}
 
       {/* Recent Data Grid */}
       <div
