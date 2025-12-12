@@ -246,7 +246,28 @@ router.post(
         body.startDate,
         body.endDate
       );
-      res.json({ data: validation });
+      
+      // Transform backend response to match frontend interface
+      const violations = validation.issues.filter(i => i.severity === "high" || i.severity === "medium");
+      const recommendations = validation.issues
+        .filter(i => i.severity === "low")
+        .map(i => ({
+          type: i.type,
+          description: i.recommendation || i.description,
+          priority: i.severity === "low" ? "low" : i.severity === "medium" ? "medium" : "high" as "low" | "medium" | "high",
+        }));
+      
+      res.json({ 
+        data: {
+          isCompliant: validation.compliant,
+          violations: violations.map(v => ({
+            type: v.type,
+            description: v.description,
+            severity: v.severity,
+          })),
+          recommendations,
+        }
+      });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         res.status(400).json({

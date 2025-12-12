@@ -352,7 +352,7 @@ export default function DashboardPage() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(260px, 100%), 1fr))",
           gap: spacing.lg,
           marginBottom: spacing.xl,
         }}
@@ -646,7 +646,7 @@ export default function DashboardPage() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(400px, 100%), 1fr))",
           gap: "24px",
         }}
       >

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { taxClient, listClientCompanies } from "@repo/api-client";
 import Link from "next/link";
@@ -95,14 +95,27 @@ export default function TMSCompliancePage() {
     }
   };
 
+  // Responsive state
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
   return (
     <div
       style={{
-        padding: spacing.xxl,
+        padding: isMobile ? spacing.md : spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
         backgroundColor: colors.gray[50],
         minHeight: "100vh",
+        boxSizing: "border-box",
       }}
     >
       {/* Header */}
@@ -118,7 +131,7 @@ export default function TMSCompliancePage() {
         </div>
         <h1
           style={{
-            fontSize: typography.fontSize["3xl"],
+            fontSize: isMobile ? typography.fontSize.xl : typography.fontSize["3xl"],
             fontWeight: typography.fontWeight.bold,
             color: colors.text.primary,
             marginBottom: spacing.sm,
@@ -185,6 +198,8 @@ export default function TMSCompliancePage() {
               gap: spacing.sm,
               marginBottom: spacing.lg,
               borderBottom: `2px solid ${colors.border}`,
+              overflowX: isMobile ? "auto" : "visible",
+              WebkitOverflowScrolling: "touch",
             }}
           >
             <button
@@ -259,7 +274,9 @@ export default function TMSCompliancePage() {
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                    gridTemplateColumns: isMobile 
+                      ? "1fr"
+                      : "repeat(auto-fit, minmax(min(200px, 100%), 1fr))",
                     gap: spacing.md,
                     marginBottom: spacing.md,
                   }}
@@ -352,11 +369,17 @@ export default function TMSCompliancePage() {
                       }`,
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: spacing.md }}>
+                    <div style={{ 
+                      display: "flex", 
+                      alignItems: "center", 
+                      gap: spacing.md,
+                      flexDirection: isMobile ? "column" : "row",
+                      textAlign: isMobile ? "center" : "left",
+                    }}>
                       <div
                         style={{
-                          width: "64px",
-                          height: "64px",
+                          width: isMobile ? "48px" : "64px",
+                          height: isMobile ? "48px" : "64px",
                           borderRadius: "50%",
                           backgroundColor: validation.isCompliant
                             ? colors.success
@@ -364,13 +387,13 @@ export default function TMSCompliancePage() {
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          fontSize: "32px",
+                          fontSize: isMobile ? "24px" : "32px",
                           flexShrink: 0,
                         }}
                       >
                         {validation.isCompliant ? "✅" : "⚠️"}
                       </div>
-                      <div style={{ flex: 1 }}>
+                      <div style={{ flex: 1, width: "100%" }}>
                         <h2
                           style={{
                             margin: 0,
@@ -581,7 +604,9 @@ export default function TMSCompliancePage() {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                  gridTemplateColumns: isMobile 
+                    ? "1fr"
+                    : "repeat(auto-fit, minmax(min(200px, 100%), 1fr))",
                   gap: spacing.md,
                   marginBottom: spacing.md,
                 }}

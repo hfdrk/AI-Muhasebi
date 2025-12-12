@@ -1,3 +1,6 @@
+// Import env setup FIRST
+import "../../test-utils/env-setup.js";
+
 import { describe, it, expect, beforeEach } from "vitest";
 import { securityService } from "../security-service";
 import { getTestPrisma, createTestUser } from "../../test-utils";

@@ -277,9 +277,37 @@ function UserProfileDropdown({
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const pathname = usePathname();
   const router = useRouter();
+  
+  // Responsive breakpoints
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+  
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setIsTablet(width >= 768 && width < 1024);
+      // Auto-collapse sidebar on mobile
+      if (width < 768) {
+        setSidebarCollapsed(true);
+      }
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+  
+  // Close mobile menu when route changes
+  useEffect(() => {
+    if (isMobile) {
+      setMobileMenuOpen(false);
+    }
+  }, [pathname, isMobile]);
 
   // Check user role
   const { data: userData } = useQuery({
@@ -592,22 +620,46 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
         minHeight: "100vh",
         backgroundColor: colors.gray[50],
         display: "flex",
+        position: "relative",
       }}
     >
+      {/* Mobile Menu Overlay */}
+      {isMobile && mobileMenuOpen && (
+        <div
+          onClick={() => setMobileMenuOpen(false)}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            zIndex: zIndex.modal - 1,
+          }}
+        />
+      )}
+      
       {/* Enhanced Sidebar */}
       <aside
         style={{
-          width: sidebarCollapsed ? "80px" : "280px",
+          width: isMobile 
+            ? (mobileMenuOpen ? "280px" : "0")
+            : (sidebarCollapsed ? "80px" : "280px"),
           backgroundColor: colors.white,
           borderRight: `1px solid ${colors.border}`,
           minHeight: "100vh",
           display: "flex",
           flexDirection: "column",
-          transition: `width ${transitions.slow} ease`,
-          position: "sticky",
+          transition: isMobile 
+            ? `transform ${transitions.slow} ease`
+            : `width ${transitions.slow} ease`,
+          position: isMobile ? "fixed" : "sticky",
           top: 0,
-          zIndex: zIndex.sticky,
+          left: 0,
+          zIndex: isMobile ? zIndex.modal : zIndex.sticky,
           boxShadow: shadows.md,
+          transform: isMobile && !mobileMenuOpen ? "translateX(-100%)" : "translateX(0)",
+          overflow: isMobile ? "auto" : "visible",
         }}
       >
         {/* Logo/Header */}
@@ -667,38 +719,60 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
               )}
             </Link>
           </div>
-          <button
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            style={{
-              backgroundColor: colors.white,
-              border: `1px solid ${colors.border}`,
-              borderRadius: borderRadius.md,
-              padding: spacing.sm,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              transition: `all ${transitions.normal} ease`,
-              minWidth: "36px",
-              minHeight: "36px",
-              boxShadow: shadows.sm,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = colors.gray[50];
-              e.currentTarget.style.transform = "scale(1.05)";
-              e.currentTarget.style.boxShadow = shadows.md;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = colors.white;
-              e.currentTarget.style.transform = "scale(1)";
-              e.currentTarget.style.boxShadow = shadows.sm;
-            }}
-            title={sidebarCollapsed ? "Menüyü Genişlet" : "Menüyü Daralt"}
-          >
-            <span style={{ fontSize: "16px", color: colors.text.secondary }}>
-              {sidebarCollapsed ? "→" : "←"}
-            </span>
-          </button>
+          {!isMobile && (
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              style={{
+                backgroundColor: colors.white,
+                border: `1px solid ${colors.border}`,
+                borderRadius: borderRadius.md,
+                padding: spacing.sm,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: `all ${transitions.normal} ease`,
+                minWidth: "36px",
+                minHeight: "36px",
+                boxShadow: shadows.sm,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = colors.gray[50];
+                e.currentTarget.style.transform = "scale(1.05)";
+                e.currentTarget.style.boxShadow = shadows.md;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = colors.white;
+                e.currentTarget.style.transform = "scale(1)";
+                e.currentTarget.style.boxShadow = shadows.sm;
+              }}
+              title={sidebarCollapsed ? "Menüyü Genişlet" : "Menüyü Daralt"}
+            >
+              <span style={{ fontSize: "16px", color: colors.text.secondary }}>
+                {sidebarCollapsed ? "→" : "←"}
+              </span>
+            </button>
+          )}
+          {isMobile && (
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              style={{
+                backgroundColor: colors.white,
+                border: `1px solid ${colors.border}`,
+                borderRadius: borderRadius.md,
+                padding: spacing.sm,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                minWidth: "36px",
+                minHeight: "36px",
+              }}
+              aria-label="Close menu"
+            >
+              <span style={{ fontSize: "16px", color: colors.text.secondary }}>✕</span>
+            </button>
+          )}
         </div>
 
         {/* Navigation */}
@@ -834,12 +908,16 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
         </nav>
       </aside>
 
-      {/* Main Content Area */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+        {/* Main Content Area */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, width: "100%" }}>
         {/* Enhanced Top Header */}
         <header
           style={{
-            padding: `${spacing.md} ${spacing.xxl}`,
+            padding: isMobile 
+              ? `${spacing.sm} ${spacing.md}`
+              : isTablet
+              ? `${spacing.md} ${spacing.lg}`
+              : `${spacing.md} ${spacing.xxl}`,
             borderBottom: `1px solid ${colors.border}`,
             backgroundColor: colors.white,
             boxShadow: shadows.sm,
@@ -849,38 +927,69 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
             position: "sticky",
             top: 0,
             zIndex: zIndex.sticky,
-            minHeight: "80px",
+            minHeight: isMobile ? "64px" : "80px",
             backdropFilter: "blur(10px)",
             background: colors.white,
             borderBottom: `2px solid ${colors.border}`,
+            gap: spacing.sm,
           }}
         >
+          {/* Mobile Menu Toggle */}
+          {isMobile && (
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              style={{
+                backgroundColor: "transparent",
+                border: `1px solid ${colors.border}`,
+                borderRadius: borderRadius.md,
+                padding: spacing.sm,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                minWidth: "40px",
+                minHeight: "40px",
+              }}
+              aria-label="Toggle menu"
+            >
+              <span style={{ fontSize: "20px" }}>☰</span>
+            </button>
+          )}
+          
           {/* Page Title / Welcome Section */}
-          <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
             {currentUser && (
               <div style={{ display: "flex", alignItems: "center", gap: spacing.md }}>
                 <div style={{ minWidth: 0, flex: 1 }}>
+                  {!isMobile && (
+                    <div
+                      style={{
+                        fontSize: typography.fontSize.xs,
+                        color: colors.text.muted,
+                        marginBottom: spacing.xs / 2,
+                        fontWeight: typography.fontWeight.medium,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                      }}
+                    >
+                      {currentTenant?.name || "Ofis"}
+                    </div>
+                  )}
                   <div
                     style={{
-                      fontSize: typography.fontSize.xs,
-                      color: colors.text.muted,
-                      marginBottom: spacing.xs / 2,
-                      fontWeight: typography.fontWeight.medium,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.05em",
-                    }}
-                  >
-                    {currentTenant?.name || "Ofis"}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: typography.fontSize.lg,
+                      fontSize: isMobile ? typography.fontSize.base : typography.fontSize.lg,
                       fontWeight: typography.fontWeight.semibold,
                       color: colors.text.primary,
                       lineHeight: typography.lineHeight.tight,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
                     }}
                   >
-                    Hoş geldiniz, {currentUser.user?.fullName || "Kullanıcı"}
+                    {isMobile 
+                      ? (currentUser.user?.fullName || "Kullanıcı")
+                      : `Hoş geldiniz, ${currentUser.user?.fullName || "Kullanıcı"}`
+                    }
                   </div>
                 </div>
               </div>
@@ -892,19 +1001,20 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
             style={{
               display: "flex",
               alignItems: "center",
-              gap: spacing.sm,
+              gap: isMobile ? spacing.xs : spacing.sm,
+              flexShrink: 0,
             }}
           >
-            <GlobalSearch />
+            {!isMobile && <GlobalSearch />}
             <NotificationBell />
-            <TenantSwitcher />
+            {!isMobile && <TenantSwitcher />}
             
             {/* User Profile Dropdown */}
             {currentUser && (
               <UserProfileDropdown 
                 currentUser={currentUser}
                 onLogout={handleLogout}
-                sidebarCollapsed={sidebarCollapsed}
+                sidebarCollapsed={isMobile ? false : sidebarCollapsed}
               />
             )}
           </div>
@@ -914,11 +1024,16 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
         <main
           style={{
             flex: 1,
-            padding: spacing.xxl,
+            padding: isMobile 
+              ? spacing.md
+              : isTablet
+              ? spacing.lg
+              : spacing.xxl,
             maxWidth: "1600px",
             margin: "0 auto",
             width: "100%",
             transition: `padding ${transitions.normal} ease`,
+            boxSizing: "border-box",
           }}
         >
           <div

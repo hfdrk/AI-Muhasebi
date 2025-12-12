@@ -1,22 +1,29 @@
+// Import env setup FIRST
+import "../../test-utils/env-setup.js";
+
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { eFaturaService } from "../e-fatura-service";
 import { getTestPrisma, createTestUser, createTestClientCompany, createTestInvoice } from "../../test-utils";
 
-// Mock ETA connector
-vi.mock("../../integrations/connectors/eta-connector", () => ({
-  ETAConnector: vi.fn().mockImplementation(() => ({
-    testConnection: vi.fn().mockResolvedValue({ success: true }),
-    submitInvoice: vi.fn().mockResolvedValue({
-      success: true,
-      externalId: "GIB-12345",
-      status: "submitted",
-    }),
-    checkInvoiceStatus: vi.fn().mockResolvedValue({
-      status: "accepted",
-      externalId: "GIB-12345",
-    }),
-  })),
-}));
+// Mock ETA connector - use vi.mock with factory
+vi.mock("../../integrations/connectors/eta-connector", async () => {
+  const actual = await vi.importActual("../../integrations/connectors/eta-connector");
+  return {
+    ...actual,
+    ETAConnector: vi.fn().mockImplementation(() => ({
+      testConnection: vi.fn().mockResolvedValue({ success: true }),
+      submitInvoice: vi.fn().mockResolvedValue({
+        success: true,
+        externalId: "GIB-12345",
+        status: "submitted",
+      }),
+      checkInvoiceStatus: vi.fn().mockResolvedValue({
+        status: "accepted",
+        externalId: "GIB-12345",
+      }),
+    })),
+  };
+});
 
 describe("EFaturaService", () => {
   let testUser: Awaited<ReturnType<typeof createTestUser>>;
