@@ -17,7 +17,7 @@ describe("KVKK Routes Integration Tests", () => {
 
   beforeEach(async () => {
     testUser = await createTestUser();
-    authToken = await getAuthToken(testUser.user.id, testUser.tenant.id);
+    authToken = await getAuthToken(testUser.user.email, "Test123!@#", app);
   });
 
   describe("POST /api/v1/kvkk/consent", () => {

@@ -326,40 +326,45 @@ export class TMSComplianceService {
     periodStart: Date,
     periodEnd: Date
   ): Promise<{ valid: boolean; message?: string }> {
-    const transactions = await prisma.transaction.findMany({
-      where: {
-        tenantId,
-        clientCompanyId,
-        date: {
-          gte: periodStart,
-          lte: periodEnd,
+    try {
+      const transactions = await prisma.transaction.findMany({
+        where: {
+          tenantId,
+          clientCompanyId,
+          date: {
+            gte: periodStart,
+            lte: periodEnd,
+          },
         },
-      },
-      include: {
-        lines: true,
-      },
-    });
+        include: {
+          lines: true,
+        },
+      });
 
-    for (const transaction of transactions) {
-      const totalDebit = transaction.lines.reduce(
-        (sum, line) => sum + Number(line.debitAmount || 0),
-        0
-      );
-      const totalCredit = transaction.lines.reduce(
-        (sum, line) => sum + Number(line.creditAmount || 0),
-        0
-      );
+      for (const transaction of transactions) {
+        const totalDebit = transaction.lines.reduce(
+          (sum, line) => sum + Number(line.debitAmount || 0),
+          0
+        );
+        const totalCredit = transaction.lines.reduce(
+          (sum, line) => sum + Number(line.creditAmount || 0),
+          0
+        );
 
-      const difference = Math.abs(totalDebit - totalCredit);
-      if (difference > 0.01) {
-        return {
-          valid: false,
-          message: `İşlem ${transaction.id} çift taraflı kayıt kuralına uymuyor. Borç: ${totalDebit.toFixed(2)}, Alacak: ${totalCredit.toFixed(2)}`,
-        };
+        const difference = Math.abs(totalDebit - totalCredit);
+        if (difference > 0.01) {
+          return {
+            valid: false,
+            message: `İşlem ${transaction.id} çift taraflı kayıt kuralına uymuyor. Borç: ${totalDebit.toFixed(2)}, Alacak: ${totalCredit.toFixed(2)}`,
+          };
+        }
       }
-    }
 
-    return { valid: true };
+      return { valid: true };
+    } catch (error) {
+      logger.error("Error in validateDoubleEntry:", error);
+      return { valid: false, message: "Çift taraflı kayıt doğrulaması sırasında hata oluştu." };
+    }
   }
 
   /**
@@ -385,7 +390,23 @@ export class TMSComplianceService {
       });
 
       // Check if invoices have corresponding transactions
-      // For now, assume valid if invoices exist (simplified validation)
+      for (const invoice of invoices) {
+        const hasTransaction = await prisma.transaction.findFirst({
+          where: {
+            tenantId,
+            clientCompanyId,
+            invoiceId: invoice.id,
+          },
+        });
+
+        if (!hasTransaction && invoice.status === "kesildi") {
+          return {
+            valid: false,
+            message: `Fatura ${invoice.externalId || invoice.id} muhasebeleştirilmemiş. Tahakkuk esası gereği kaydedilmelidir.`,
+          };
+        }
+      }
+
       return { valid: true };
     } catch (error) {
       logger.error("Error in validateAccrualBasis:", error);
@@ -414,94 +435,45 @@ export class TMSComplianceService {
             },
           },
         },
-        take: 100, // Limit to avoid performance issues
+        take: 1000, // Sample check
       });
 
-      // Check if accounts follow TMS structure (simplified validation)
-      // For now, assume valid if transactions exist
+      // Check if accounts follow TMS structure
+      const accountCodes = new Set<string>();
+      for (const transaction of transactions) {
+        for (const line of transaction.lines) {
+          if (line.ledgerAccount?.code) {
+            accountCodes.add(line.ledgerAccount.code);
+          }
+        }
+      }
+
+      // TMS requires specific account code ranges:
+      // 1xxx: Assets, 2xxx: Liabilities, 3xxx: Equity
+      // 4xxx: Revenue, 5xxx: Cost of Sales
+      // 6xxx: Operating Expenses, 7xxx: Other Income/Expenses
+      // 8xxx: Financial Income/Expenses
+
+      const invalidCodes: string[] = [];
+      for (const code of accountCodes) {
+        const firstDigit = parseInt(code.charAt(0), 10);
+        if (isNaN(firstDigit) || firstDigit < 1 || firstDigit > 8) {
+          invalidCodes.push(code);
+        }
+      }
+
+      if (invalidCodes.length > 0) {
+        return {
+          valid: false,
+          message: `TMS uyumlu olmayan hesap kodları tespit edildi: ${invalidCodes.join(", ")}`,
+        };
+      }
+
       return { valid: true };
     } catch (error) {
       logger.error("Error in validateChartOfAccounts:", error);
       return { valid: false, message: "Hesap planı doğrulaması sırasında hata oluştu." };
     }
-  }
-      const hasTransaction = await prisma.transaction.findFirst({
-        where: {
-          tenantId,
-          clientCompanyId,
-          invoiceId: invoice.id,
-        },
-      });
-
-      if (!hasTransaction && invoice.status === "kesildi") {
-        return {
-          valid: false,
-          message: `Fatura ${invoice.invoiceNumber || invoice.id} muhasebeleştirilmemiş. Tahakkuk esası gereği kaydedilmelidir.`,
-        };
-      }
-    }
-
-    return { valid: true };
-  }
-
-  /**
-   * Validate chart of accounts compliance with TMS
-   */
-  private async validateChartOfAccounts(
-    tenantId: string,
-    clientCompanyId: string
-  ): Promise<{ valid: boolean; message?: string }> {
-    // Get all ledger accounts used by the company
-    const transactions = await prisma.transaction.findMany({
-      where: {
-        tenantId,
-        clientCompanyId,
-      },
-      include: {
-        lines: {
-          include: {
-            ledgerAccount: true,
-          },
-        },
-      },
-      take: 1000, // Sample check
-    });
-
-    const accountCodes = new Set<string>();
-    for (const transaction of transactions) {
-      for (const line of transaction.lines) {
-        if (line.ledgerAccount?.code) {
-          accountCodes.add(line.ledgerAccount.code);
-        }
-      }
-    }
-
-    // TMS requires specific account code ranges:
-    // 1xxx: Assets
-    // 2xxx: Liabilities
-    // 3xxx: Equity
-    // 4xxx: Revenue
-    // 5xxx: Cost of Sales
-    // 6xxx: Operating Expenses
-    // 7xxx: Other Income/Expenses
-    // 8xxx: Financial Income/Expenses
-
-    const invalidCodes: string[] = [];
-    for (const code of accountCodes) {
-      const firstDigit = parseInt(code.charAt(0), 10);
-      if (isNaN(firstDigit) || firstDigit < 1 || firstDigit > 8) {
-        invalidCodes.push(code);
-      }
-    }
-
-    if (invalidCodes.length > 0) {
-      return {
-        valid: false,
-        message: `TMS uyumlu olmayan hesap kodları tespit edildi: ${invalidCodes.join(", ")}`,
-      };
-    }
-
-    return { valid: true };
   }
 
   /**

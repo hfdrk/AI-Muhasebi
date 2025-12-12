@@ -28,6 +28,7 @@ export type Permission =
   | "users:read"
   | "users:update"
   | "users:delete"
+  | "users:manage"
   | "settings:read"
   | "settings:update"
   | "settings:billing"
@@ -68,6 +69,7 @@ export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
     "users:read",
     "users:update",
     "users:delete",
+    "users:manage",
     "settings:read",
     "settings:update",
     "settings:billing",

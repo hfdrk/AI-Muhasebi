@@ -80,10 +80,11 @@ export default defineConfig({
       "@repo/shared-utils",
       "@repo/core-domain",
       "zod",
+      "zod/lib",
     ],
     exclude: ["bcrypt"],
   },
   ssr: {
-    noExternal: ["@repo/config", "@repo/shared-utils", "@repo/core-domain"],
+    noExternal: ["@repo/config", "@repo/shared-utils", "@repo/core-domain", "zod"],
   },
 });

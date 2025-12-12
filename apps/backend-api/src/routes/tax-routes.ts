@@ -34,7 +34,23 @@ router.post(
         body.startDate,
         body.endDate
       );
-      res.json({ data: analysis });
+      
+      // Transform backend response to match frontend interface
+      res.json({ 
+        data: {
+          totalVAT: analysis.totalInputVAT + analysis.totalOutputVAT,
+          inputVAT: analysis.totalInputVAT,
+          outputVAT: analysis.totalOutputVAT,
+          netVAT: analysis.netVAT,
+          inconsistencies: analysis.suggestions
+            .filter(s => s.type === "compliance" || s.type === "warning")
+            .map(s => ({
+              type: s.type,
+              description: s.description,
+              severity: s.type === "warning" ? "high" : "medium" as "low" | "medium" | "high",
+            })),
+        }
+      });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         res.status(400).json({

@@ -172,6 +172,9 @@ importers:
       vitest:
         specifier: ^1.2.0
         version: 1.6.1(@types/node@20.19.25)
+      zod:
+        specifier: ^3.22.4
+        version: 3.25.76
 
   apps/mobile-app:
     dependencies:
@@ -12853,4 +12856,3 @@ packages:
 
   /zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
-    dev: false

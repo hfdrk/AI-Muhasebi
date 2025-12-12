@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { taxClient, listClientCompanies } from "@repo/api-client";
 import Link from "next/link";
@@ -61,6 +61,18 @@ export default function VATOptimizationPage() {
     },
   });
 
+  // Responsive state
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case "high":
@@ -77,11 +89,12 @@ export default function VATOptimizationPage() {
   return (
     <div
       style={{
-        padding: spacing.xxl,
+        padding: isMobile ? spacing.md : spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
         backgroundColor: colors.gray[50],
         minHeight: "100vh",
+        boxSizing: "border-box",
       }}
     >
       {/* Header */}
@@ -106,7 +119,7 @@ export default function VATOptimizationPage() {
           </div>
           <h1
             style={{
-              fontSize: typography.fontSize["3xl"],
+              fontSize: isMobile ? typography.fontSize.xl : typography.fontSize["3xl"],
               fontWeight: typography.fontWeight.bold,
               color: colors.text.primary,
               marginBottom: spacing.sm,
@@ -132,7 +145,9 @@ export default function VATOptimizationPage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+            gridTemplateColumns: isMobile 
+              ? "1fr"
+              : "repeat(auto-fit, minmax(min(250px, 100%), 1fr))",
             gap: spacing.md,
           }}
         >
@@ -251,7 +266,9 @@ export default function VATOptimizationPage() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+                gridTemplateColumns: isMobile 
+                  ? "1fr"
+                  : "repeat(auto-fit, minmax(min(250px, 100%), 1fr))",
                 gap: spacing.lg,
                 marginBottom: spacing.lg,
               }}
@@ -276,7 +293,7 @@ export default function VATOptimizationPage() {
                       color: colors.text.primary,
                     }}
                   >
-                    {vatAnalysis.totalVAT.toLocaleString("tr-TR", {
+                    {(vatAnalysis.totalVAT ?? 0).toLocaleString("tr-TR", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}{" "}
@@ -305,7 +322,7 @@ export default function VATOptimizationPage() {
                       color: colors.successDark,
                     }}
                   >
-                    {vatAnalysis.inputVAT.toLocaleString("tr-TR", {
+                    {(vatAnalysis.inputVAT ?? 0).toLocaleString("tr-TR", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}{" "}
@@ -334,7 +351,7 @@ export default function VATOptimizationPage() {
                       color: colors.dangerDark,
                     }}
                   >
-                    {vatAnalysis.outputVAT.toLocaleString("tr-TR", {
+                    {(vatAnalysis.outputVAT ?? 0).toLocaleString("tr-TR", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}{" "}
@@ -361,10 +378,10 @@ export default function VATOptimizationPage() {
                       fontSize: typography.fontSize["2xl"],
                       fontWeight: typography.fontWeight.bold,
                       color:
-                        vatAnalysis.netVAT >= 0 ? colors.successDark : colors.dangerDark,
+                        (vatAnalysis.netVAT ?? 0) >= 0 ? colors.successDark : colors.dangerDark,
                     }}
                   >
-                    {vatAnalysis.netVAT.toLocaleString("tr-TR", {
+                    {(vatAnalysis.netVAT ?? 0).toLocaleString("tr-TR", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}{" "}
