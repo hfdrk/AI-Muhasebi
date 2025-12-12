@@ -360,3 +360,4 @@ export class FraudPatternDetectorService {
 
 export const fraudPatternDetectorService = new FraudPatternDetectorService();
 
+

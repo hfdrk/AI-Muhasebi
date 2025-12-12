@@ -97,3 +97,4 @@ verifyContracts()
   .finally(async () => {
     await prisma.$disconnect();
   });
+

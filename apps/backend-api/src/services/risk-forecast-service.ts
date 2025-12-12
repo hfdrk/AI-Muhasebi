@@ -189,3 +189,4 @@ export class RiskForecastService {
 }
 
 export const riskForecastService = new RiskForecastService();
+

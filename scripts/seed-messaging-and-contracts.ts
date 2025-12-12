@@ -125,9 +125,18 @@ async function seedMessagingAndContracts() {
 
   // Create ReadOnly users for clients (for messaging)
   const readonlyUsers = [];
-  for (const clientCompany of clientCompanies) {
+  const clientEmails = [
+    "info@abcteknoloji.com",
+    "iletisim@xyzinşaat.com",
+    "info@defticaret.com",
+  ];
+  
+  for (let i = 0; i < clientCompanies.length; i++) {
+    const clientCompany = clientCompanies[i];
+    const email = clientEmails[i] || `client${i + 1}@example.com`;
+    
     let readonlyUser = await prisma.user.findFirst({
-      where: { email: clientCompany.contactEmail },
+      where: { email },
     });
 
     if (!readonlyUser) {
@@ -135,7 +144,7 @@ async function seedMessagingAndContracts() {
       
       readonlyUser = await prisma.user.create({
         data: {
-          email: clientCompany.contactEmail,
+          email,
           hashedPassword,
           fullName: clientCompany.name + " Kullanıcısı",
           locale: "tr-TR",
@@ -414,3 +423,4 @@ seedMessagingAndContracts()
   .finally(async () => {
     await prisma.$disconnect();
   });
+

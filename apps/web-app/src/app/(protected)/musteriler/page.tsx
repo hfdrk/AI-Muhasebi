@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { listClientCompanies, listSavedFilters, SAVED_FILTER_TARGETS } from "@repo/api-client";
+import { listClientCompanies, listSavedFilters, SAVED_FILTER_TARGETS, getCurrentUser } from "@repo/api-client";
 import { clients as clientsI18n, common as commonI18n } from "@repo/i18n";
 import { SavedFiltersDropdown } from "../../../components/saved-filters-dropdown";
 // import { useRouter } from "next/navigation"; // Reserved for future use
@@ -14,6 +14,16 @@ export default function ClientsPage() {
   const [isActiveFilter, setIsActiveFilter] = useState<boolean | undefined>(undefined);
   const [page, setPage] = useState(1);
   const pageSize = 20;
+
+  // Check if user is ReadOnly (customer)
+  const { data: userData } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: () => getCurrentUser(),
+  });
+
+  const currentUser = userData?.data;
+  const userRole = currentUser?.tenants?.find((t: any) => t.status === "active")?.role;
+  const isReadOnly = userRole === "ReadOnly";
 
   // Load saved filters
   const { data: savedFiltersData } = useQuery({
@@ -70,18 +80,20 @@ export default function ClientsPage() {
     <div style={{ padding: "40px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
         <h1>{clientsI18n.title}</h1>
-        <Link
-          href="/musteriler/new"
-          style={{
-            padding: "8px 16px",
-            backgroundColor: "#0066cc",
-            color: "white",
-            textDecoration: "none",
-            borderRadius: "4px",
-          }}
-        >
-          {clientsI18n.list.addNew}
-        </Link>
+        {!isReadOnly && (
+          <Link
+            href="/musteriler/new"
+            style={{
+              padding: "8px 16px",
+              backgroundColor: "#0066cc",
+              color: "white",
+              textDecoration: "none",
+              borderRadius: "4px",
+            }}
+          >
+            {clientsI18n.list.addNew}
+          </Link>
+        )}
       </div>
 
       <div style={{ display: "flex", gap: "16px", marginBottom: "24px", alignItems: "flex-start" }}>
@@ -133,20 +145,22 @@ export default function ClientsPage() {
       ) : clients.length === 0 ? (
         <div style={{ textAlign: "center", padding: "40px" }}>
           <p>{clientsI18n.list.emptyState}</p>
-          <Link
-            href="/musteriler/new"
-            style={{
-              display: "inline-block",
-              marginTop: "16px",
-              padding: "8px 16px",
-              backgroundColor: "#0066cc",
-              color: "white",
-              textDecoration: "none",
-              borderRadius: "4px",
-            }}
-          >
-            {clientsI18n.list.emptyStateAction}
-          </Link>
+          {!isReadOnly && (
+            <Link
+              href="/musteriler/new"
+              style={{
+                display: "inline-block",
+                marginTop: "16px",
+                padding: "8px 16px",
+                backgroundColor: "#0066cc",
+                color: "white",
+                textDecoration: "none",
+                borderRadius: "4px",
+              }}
+            >
+              {clientsI18n.list.emptyStateAction}
+            </Link>
+          )}
         </div>
       ) : (
         <>
@@ -191,17 +205,20 @@ export default function ClientsPage() {
                     {new Date(client.createdAt).toLocaleDateString("tr-TR")}
                   </td>
                   <td style={{ padding: "12px" }}>
-                    <Link
-                      href={`/musteriler/${client.id}/edit`}
-                      style={{
-                        padding: "4px 8px",
-                        color: "#0066cc",
-                        textDecoration: "none",
-                        fontSize: "14px",
-                      }}
-                    >
-                      {commonI18n.buttons.edit}
-                    </Link>
+                    {!isReadOnly && (
+                      <Link
+                        href={`/musteriler/${client.id}/edit`}
+                        style={{
+                          padding: "4px 8px",
+                          color: "#0066cc",
+                          textDecoration: "none",
+                          fontSize: "14px",
+                        }}
+                      >
+                        {commonI18n.buttons.edit}
+                      </Link>
+                    )}
+                    {isReadOnly && <span style={{ color: "#999" }}>-</span>}
                   </td>
                 </tr>
               ))}

@@ -21,7 +21,7 @@ function checkPortOpen(port: number): boolean {
 function detectPostgresCredentials(): { user: string; password: string } {
   // Check if port is open first
   if (!checkPortOpen(5432)) {
-    return { user: "postgres", password: "ai_muhasebi_dev" };
+    return { user: "ai_muhasebi", password: "ai_muhasebi_dev" };
   }
 
   try {
@@ -70,9 +70,9 @@ function detectPostgresCredentials(): { user: string; password: string } {
     // Fall through to defaults
   }
   
-  // Default credentials (postgres user with container password)
+  // Default credentials (ai_muhasebi user with container password)
   return {
-    user: "postgres",
+    user: "ai_muhasebi",
     password: "ai_muhasebi_dev",
   };
 }
@@ -242,18 +242,11 @@ export function getDatabaseUrlSync(): string {
     // If it uses ai_muhasebi user, override it with postgres (correct for Docker)
     if (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes("${")) {
       const currentUrl = process.env.DATABASE_URL;
-      // If URL uses ai_muhasebi user, replace with postgres (Docker uses postgres user)
+      // Keep ai_muhasebi user (Docker container uses ai_muhasebi user)
       if (currentUrl.includes("ai_muhasebi:ai_muhasebi_dev@") || currentUrl.includes("://ai_muhasebi@")) {
-        console.log("⚠️  Detected ai_muhasebi user in DATABASE_URL, updating to postgres user");
-        const correctedUrl = currentUrl.replace(
-          /postgresql:\/\/ai_muhasebi:([^@]+)@/,
-          "postgresql://postgres:$1@"
-        ).replace(
-          /postgresql:\/\/ai_muhasebi@/,
-          "postgresql://postgres:ai_muhasebi_dev@"
-        );
-        resolvedUrl = correctedUrl;
-        process.env.DATABASE_URL = correctedUrl;
+        // URL already correct, use as-is
+        resolvedUrl = currentUrl;
+        process.env.DATABASE_URL = currentUrl;
         return resolvedUrl;
       }
       resolvedUrl = currentUrl;
@@ -263,16 +256,16 @@ export function getDatabaseUrlSync(): string {
     // Try to detect from Docker container first
     const detected = detectPostgresCredentials();
     
-    // Prioritize postgres:ai_muhasebi_dev (matches container POSTGRES_PASSWORD)
+    // Prioritize ai_muhasebi:ai_muhasebi_dev (matches container POSTGRES_USER)
     // This matches what the Docker container uses
     const likelyCredentials = [
-      { user: "postgres", password: "ai_muhasebi_dev" },
-      detected,
-      { user: "postgres", password: "postgres" },
       { user: "ai_muhasebi", password: "ai_muhasebi_dev" },
+      detected,
+      { user: "postgres", password: "ai_muhasebi_dev" },
+      { user: "postgres", password: "postgres" },
     ];
     
-    // Use the first likely credential (postgres:ai_muhasebi_dev matches container)
+    // Use the first likely credential (ai_muhasebi:ai_muhasebi_dev matches container)
     const creds = likelyCredentials[0];
     resolvedUrl = `postgresql://${creds.user}:${creds.password}@localhost:5432/${MAIN_DB_NAME}`;
     process.env.DATABASE_URL = resolvedUrl;
@@ -283,7 +276,7 @@ export function getDatabaseUrlSync(): string {
     return resolvedUrl;
   } catch (error: any) {
     // If detection fails, use postgres/postgres as fallback (most common)
-    const fallbackUrl = `postgresql://postgres:ai_muhasebi_dev@localhost:5432/${MAIN_DB_NAME}`;
+    const fallbackUrl = `postgresql://ai_muhasebi:ai_muhasebi_dev@localhost:5432/${MAIN_DB_NAME}`;
     if (!process.env.DATABASE_URL) {
       process.env.DATABASE_URL = fallbackUrl;
       console.warn(`⚠️  Using fallback DATABASE_URL: postgres@localhost:5432/${MAIN_DB_NAME}`);

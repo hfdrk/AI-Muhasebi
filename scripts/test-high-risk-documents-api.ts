@@ -162,3 +162,4 @@ testHighRiskDocuments()
   .finally(async () => {
     await prisma.$disconnect();
   });
+

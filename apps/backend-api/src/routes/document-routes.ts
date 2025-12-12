@@ -237,6 +237,70 @@ router.post(
   }
 );
 
+// GET /api/v1/documents/search-by-risk
+// IMPORTANT: This route must be defined BEFORE /:id to avoid route conflicts
+router.get(
+  "/search-by-risk",
+  requirePermission("documents:read"),
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const schema = z.object({
+        hasRiskFlags: z
+          .string()
+          .optional()
+          .transform((val) => (val === "true" ? true : val === "false" ? false : undefined)),
+        riskFlagCode: z.string().optional(),
+        riskSeverity: z.enum(["low", "medium", "high"]).optional(),
+        minRiskScore: z
+          .string()
+          .optional()
+          .transform((val) => (val ? parseFloat(val) : undefined)),
+        maxRiskScore: z
+          .string()
+          .optional()
+          .transform((val) => (val ? parseFloat(val) : undefined)),
+        clientCompanyId: z.string().optional(),
+        page: z.string().optional().transform((val) => (val ? parseInt(val, 10) : undefined)),
+        pageSize: z.string().optional().transform((val) => (val ? parseInt(val, 10) : undefined)),
+      });
+
+      const filters = schema.parse(req.query);
+
+      console.log(`[Document Routes] /search-by-risk called with filters:`, filters);
+
+      // Enforce customer isolation for ReadOnly users
+      const isolationFilter = await enforceCustomerIsolation(req.context!, {
+        clientCompanyId: filters.clientCompanyId || undefined,
+      });
+
+      const result = await documentService.listDocuments(req.context!.tenantId!, {
+        clientCompanyId: isolationFilter.clientCompanyId || filters.clientCompanyId,
+        hasRiskFlags: filters.hasRiskFlags,
+        riskFlagCode: filters.riskFlagCode,
+        riskSeverity: filters.riskSeverity,
+        minRiskScore: filters.minRiskScore,
+        maxRiskScore: filters.maxRiskScore,
+        page: filters.page,
+        pageSize: filters.pageSize,
+      });
+
+      console.log(`[Document Routes] /search-by-risk result:`, {
+        documentsCount: result.data.length,
+        total: result.total,
+        page: result.page,
+        totalPages: result.totalPages,
+      });
+
+      res.json({ data: result });
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return next(new ValidationError(error.issues[0]?.message || "Geçersiz bilgiler."));
+      }
+      next(error);
+    }
+  }
+);
+
 // GET /api/v1/documents
 router.get(
   "/",

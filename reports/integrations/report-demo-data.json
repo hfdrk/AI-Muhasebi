@@ -1,0 +1,279 @@
+{
+  "description": "Demo data for reports - ScheduledReport and ReportExecutionLog examples",
+  "scheduledReports": [
+    {
+      "id": "scheduled-report-1",
+      "tenantId": "demo-tenant-1",
+      "reportCode": "COMPANY_FINANCIAL_SUMMARY",
+      "clientCompanyId": "demo-company-1",
+      "name": "ABC Teknoloji A.Ş. - Aylık Finansal Özet",
+      "format": "pdf",
+      "scheduleCron": "0 0 1 * *",
+      "filters": {
+        "start_date": "2025-01-01T00:00:00Z",
+        "end_date": "2025-01-31T23:59:59Z"
+      },
+      "recipients": [
+        "yonetici@ornekofis1.com",
+        "muhasebeci@ornekofis1.com"
+      ],
+      "isActive": true,
+      "lastRunAt": "2025-01-01T00:00:00Z",
+      "lastRunStatus": "success",
+      "createdAt": "2024-12-15T10:00:00Z",
+      "updatedAt": "2025-01-01T00:05:00Z"
+    },
+    {
+      "id": "scheduled-report-2",
+      "tenantId": "demo-tenant-1",
+      "reportCode": "COMPANY_RISK_SUMMARY",
+      "clientCompanyId": "demo-company-2",
+      "name": "XYZ İnşaat Ltd. - Haftalık Risk Özeti",
+      "format": "excel",
+      "scheduleCron": "0 0 * * 1",
+      "filters": {
+        "start_date": "2025-01-13T00:00:00Z",
+        "end_date": "2025-01-19T23:59:59Z"
+      },
+      "recipients": [
+        "yonetici@ornekofis1.com"
+      ],
+      "isActive": true,
+      "lastRunAt": "2025-01-13T00:00:00Z",
+      "lastRunStatus": "success",
+      "createdAt": "2024-12-20T14:30:00Z",
+      "updatedAt": "2025-01-13T00:03:00Z"
+    },
+    {
+      "id": "scheduled-report-3",
+      "tenantId": "demo-tenant-1",
+      "reportCode": "TENANT_PORTFOLIO",
+      "clientCompanyId": null,
+      "name": "Portföy Özet Raporu - Aylık",
+      "format": "pdf",
+      "scheduleCron": "0 0 1 * *",
+      "filters": {
+        "start_date": "2025-01-01T00:00:00Z",
+        "end_date": "2025-01-31T23:59:59Z"
+      },
+      "recipients": [
+        "yonetici@ornekofis1.com",
+        "muhasebeci@ornekofis1.com",
+        "musteri@ornekofis1.com"
+      ],
+      "isActive": true,
+      "lastRunAt": "2025-01-01T00:00:00Z",
+      "lastRunStatus": "success",
+      "createdAt": "2024-12-01T09:00:00Z",
+      "updatedAt": "2025-01-01T00:10:00Z"
+    },
+    {
+      "id": "scheduled-report-4",
+      "tenantId": "demo-tenant-1",
+      "reportCode": "DOCUMENT_ACTIVITY",
+      "clientCompanyId": "demo-company-3",
+      "name": "DEF Ticaret A.Ş. - Belge Aktivite Raporu",
+      "format": "excel",
+      "scheduleCron": "0 0 * * 0",
+      "filters": {
+        "start_date": "2025-01-12T00:00:00Z",
+        "end_date": "2025-01-18T23:59:59Z"
+      },
+      "recipients": [
+        "yonetici@ornekofis1.com"
+      ],
+      "isActive": true,
+      "lastRunAt": "2025-01-12T00:00:00Z",
+      "lastRunStatus": "failed",
+      "createdAt": "2024-12-25T11:00:00Z",
+      "updatedAt": "2025-01-12T00:02:00Z"
+    },
+    {
+      "id": "scheduled-report-5",
+      "tenantId": "demo-tenant-2",
+      "reportCode": "COMPANY_FINANCIAL_SUMMARY",
+      "clientCompanyId": "demo-company-5",
+      "name": "GHI Gıda San. Tic. Ltd. - Finansal Özet",
+      "format": "pdf",
+      "scheduleCron": "0 0 1 * *",
+      "filters": {
+        "start_date": "2025-01-01T00:00:00Z",
+        "end_date": "2025-01-31T23:59:59Z"
+      },
+      "recipients": [
+        "yonetici@ornekofis2.com"
+      ],
+      "isActive": true,
+      "lastRunAt": "2025-01-01T00:00:00Z",
+      "lastRunStatus": "success",
+      "createdAt": "2024-12-10T08:00:00Z",
+      "updatedAt": "2025-01-01T00:04:00Z"
+    },
+    {
+      "id": "scheduled-report-6",
+      "tenantId": "demo-tenant-1",
+      "reportCode": "COMPANY_RISK_SUMMARY",
+      "clientCompanyId": null,
+      "name": "Tüm Müşteriler - Risk Özeti",
+      "format": "pdf",
+      "scheduleCron": "0 0 * * 1",
+      "filters": {
+        "start_date": "2025-01-13T00:00:00Z",
+        "end_date": "2025-01-19T23:59:59Z"
+      },
+      "recipients": [
+        "yonetici@ornekofis1.com"
+      ],
+      "isActive": false,
+      "lastRunAt": "2025-01-06T00:00:00Z",
+      "lastRunStatus": "success",
+      "createdAt": "2024-11-15T10:00:00Z",
+      "updatedAt": "2025-01-10T12:00:00Z"
+    }
+  ],
+  "reportExecutionLogs": [
+    {
+      "id": "exec-log-1",
+      "tenantId": "demo-tenant-1",
+      "scheduledReportId": "scheduled-report-1",
+      "reportCode": "COMPANY_FINANCIAL_SUMMARY",
+      "startedAt": "2025-01-01T00:00:00Z",
+      "finishedAt": "2025-01-01T00:05:00Z",
+      "status": "success",
+      "message": "Rapor başarıyla oluşturuldu ve e-posta ile gönderildi",
+      "createdByUserId": "user-1",
+      "createdAt": "2025-01-01T00:00:00Z"
+    },
+    {
+      "id": "exec-log-2",
+      "tenantId": "demo-tenant-1",
+      "scheduledReportId": "scheduled-report-2",
+      "reportCode": "COMPANY_RISK_SUMMARY",
+      "startedAt": "2025-01-13T00:00:00Z",
+      "finishedAt": "2025-01-13T00:03:00Z",
+      "status": "success",
+      "message": "Rapor başarıyla oluşturuldu ve e-posta ile gönderildi",
+      "createdByUserId": null,
+      "createdAt": "2025-01-13T00:00:00Z"
+    },
+    {
+      "id": "exec-log-3",
+      "tenantId": "demo-tenant-1",
+      "scheduledReportId": "scheduled-report-3",
+      "reportCode": "TENANT_PORTFOLIO",
+      "startedAt": "2025-01-01T00:00:00Z",
+      "finishedAt": "2025-01-01T00:10:00Z",
+      "status": "success",
+      "message": "Rapor başarıyla oluşturuldu ve e-posta ile gönderildi",
+      "createdByUserId": null,
+      "createdAt": "2025-01-01T00:00:00Z"
+    },
+    {
+      "id": "exec-log-4",
+      "tenantId": "demo-tenant-1",
+      "scheduledReportId": "scheduled-report-4",
+      "reportCode": "DOCUMENT_ACTIVITY",
+      "startedAt": "2025-01-12T00:00:00Z",
+      "finishedAt": "2025-01-12T00:02:00Z",
+      "status": "failed",
+      "message": "Rapor oluşturulurken hata oluştu: Müşteri şirketi bulunamadı",
+      "createdByUserId": null,
+      "createdAt": "2025-01-12T00:00:00Z"
+    },
+    {
+      "id": "exec-log-5",
+      "tenantId": "demo-tenant-2",
+      "scheduledReportId": "scheduled-report-5",
+      "reportCode": "COMPANY_FINANCIAL_SUMMARY",
+      "startedAt": "2025-01-01T00:00:00Z",
+      "finishedAt": "2025-01-01T00:04:00Z",
+      "status": "success",
+      "message": "Rapor başarıyla oluşturuldu ve e-posta ile gönderildi",
+      "createdByUserId": null,
+      "createdAt": "2025-01-01T00:00:00Z"
+    },
+    {
+      "id": "exec-log-6",
+      "tenantId": "demo-tenant-1",
+      "scheduledReportId": null,
+      "reportCode": "COMPANY_FINANCIAL_SUMMARY",
+      "startedAt": "2025-01-15T14:30:00Z",
+      "finishedAt": "2025-01-15T14:32:00Z",
+      "status": "success",
+      "message": "Anlık rapor başarıyla oluşturuldu",
+      "createdByUserId": "user-1",
+      "createdAt": "2025-01-15T14:30:00Z"
+    },
+    {
+      "id": "exec-log-7",
+      "tenantId": "demo-tenant-1",
+      "scheduledReportId": null,
+      "reportCode": "COMPANY_RISK_SUMMARY",
+      "startedAt": "2025-01-15T15:00:00Z",
+      "finishedAt": "2025-01-15T15:01:30Z",
+      "status": "success",
+      "message": "Anlık rapor başarıyla oluşturuldu",
+      "createdByUserId": "user-2",
+      "createdAt": "2025-01-15T15:00:00Z"
+    },
+    {
+      "id": "exec-log-8",
+      "tenantId": "demo-tenant-1",
+      "scheduledReportId": "scheduled-report-1",
+      "reportCode": "COMPANY_FINANCIAL_SUMMARY",
+      "startedAt": "2024-12-01T00:00:00Z",
+      "finishedAt": "2024-12-01T00:05:00Z",
+      "status": "success",
+      "message": "Rapor başarıyla oluşturuldu ve e-posta ile gönderildi",
+      "createdByUserId": null,
+      "createdAt": "2024-12-01T00:00:00Z"
+    },
+    {
+      "id": "exec-log-9",
+      "tenantId": "demo-tenant-1",
+      "scheduledReportId": "scheduled-report-2",
+      "reportCode": "COMPANY_RISK_SUMMARY",
+      "startedAt": "2025-01-06T00:00:00Z",
+      "finishedAt": "2025-01-06T00:03:00Z",
+      "status": "success",
+      "message": "Rapor başarıyla oluşturuldu ve e-posta ile gönderildi",
+      "createdByUserId": null,
+      "createdAt": "2025-01-06T00:00:00Z"
+    },
+    {
+      "id": "exec-log-10",
+      "tenantId": "demo-tenant-1",
+      "scheduledReportId": "scheduled-report-3",
+      "reportCode": "TENANT_PORTFOLIO",
+      "startedAt": "2024-12-01T00:00:00Z",
+      "finishedAt": "2024-12-01T00:10:00Z",
+      "status": "success",
+      "message": "Rapor başarıyla oluşturuldu ve e-posta ile gönderildi",
+      "createdByUserId": null,
+      "createdAt": "2024-12-01T00:00:00Z"
+    }
+  ],
+  "reportDefinitions": [
+    {
+      "code": "COMPANY_FINANCIAL_SUMMARY",
+      "name": "Müşteri Finansal Özeti",
+      "description": "Seçili müşteri için belirli tarih aralığında finansal özet raporu (gelir, gider, faturalar, işlemler)"
+    },
+    {
+      "code": "COMPANY_RISK_SUMMARY",
+      "name": "Müşteri Risk Özeti",
+      "description": "Seçili müşteri için risk skorları, uyarılar ve risk göstergeleri özeti"
+    },
+    {
+      "code": "TENANT_PORTFOLIO",
+      "name": "Portföy Özeti",
+      "description": "Tüm müşteriler için portföy seviyesinde özet rapor (toplam gelir, risk dağılımı, istatistikler)"
+    },
+    {
+      "code": "DOCUMENT_ACTIVITY",
+      "name": "Belge Aktivite Raporu",
+      "description": "Belge yükleme, işleme ve aktivite istatistikleri raporu"
+    }
+  ]
+}
+

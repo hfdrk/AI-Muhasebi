@@ -6,9 +6,10 @@ import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import { forgotPassword } from "@repo/api-client";
 import { useState } from "react";
+import { emailValidator } from "@/utils/email-validation";
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email("Geçerli bir e-posta adresi giriniz."),
+  email: emailValidator,
 });
 
 type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;

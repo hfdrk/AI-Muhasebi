@@ -42,6 +42,8 @@ router.get(
     try {
       const filters = schema.parse(req.query);
 
+      console.log(`[DocumentAI Routes] /search-by-risk called with filters:`, filters);
+
       const result = await documentService.listDocuments(req.context!.tenantId!, {
         clientCompanyId: filters.clientCompanyId,
         hasRiskFlags: filters.hasRiskFlags,
@@ -51,6 +53,13 @@ router.get(
         maxRiskScore: filters.maxRiskScore,
         page: filters.page,
         pageSize: filters.pageSize,
+      });
+
+      console.log(`[DocumentAI Routes] /search-by-risk result:`, {
+        documentsCount: result.data.length,
+        total: result.total,
+        page: result.page,
+        totalPages: result.totalPages,
       });
 
       res.json({ data: result });

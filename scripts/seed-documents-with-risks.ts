@@ -202,3 +202,4 @@ seedDocumentsWithRisks()
   .finally(async () => {
     await prisma.$disconnect();
   });
+

@@ -43,3 +43,4 @@ export default function AlertFrequencyChart({ data }: AlertFrequencyChartProps) 
     </div>
   );
 }
+

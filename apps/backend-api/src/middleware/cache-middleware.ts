@@ -71,3 +71,4 @@ export function invalidateTenantCache(tenantId: string): void {
   // For now, we'll use a simple approach
   cacheService.clear();
 }
+

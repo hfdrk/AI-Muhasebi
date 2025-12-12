@@ -152,3 +152,4 @@ calculateMissingRiskScores(clientCompanyId, tenantId).catch((error) => {
   process.exit(1);
 });
 
+

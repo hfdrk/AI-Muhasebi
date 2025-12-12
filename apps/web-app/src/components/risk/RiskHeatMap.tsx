@@ -314,3 +314,4 @@ export default function RiskHeatMap({ heatmap }: RiskHeatMapProps) {
     </Card>
   );
 }
+

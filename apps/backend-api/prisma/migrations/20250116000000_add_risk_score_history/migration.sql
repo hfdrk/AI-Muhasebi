@@ -29,3 +29,4 @@ CREATE INDEX "risk_score_history_tenant_id_recorded_at_idx" ON "risk_score_histo
 
 -- AddForeignKey
 ALTER TABLE "risk_score_history" ADD CONSTRAINT "risk_score_history_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+

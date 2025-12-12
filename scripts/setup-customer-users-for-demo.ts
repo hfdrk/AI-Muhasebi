@@ -186,3 +186,4 @@ setupCustomerUsers()
     await prisma.$disconnect();
   });
 
+

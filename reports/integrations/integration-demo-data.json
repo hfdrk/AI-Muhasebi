@@ -1,0 +1,314 @@
+{
+  "description": "Demo data for integrations - TenantIntegration, IntegrationSyncJob, and IntegrationSyncLog examples",
+  "tenantIntegrations": [
+    {
+      "id": "demo-integration-1",
+      "tenantId": "demo-tenant-1",
+      "clientCompanyId": "demo-company-1",
+      "providerId": "provider-mikro",
+      "status": "connected",
+      "displayName": "Mikro Muhasebe - ABC Teknoloji A.Ş.",
+      "config": {
+        "apiKey": "mikro_api_key_12345",
+        "apiSecret": "mikro_secret_67890",
+        "companyId": "MIKRO_COMP_001"
+      },
+      "lastSyncAt": "2025-01-15T10:30:00Z",
+      "lastSyncStatus": "success",
+      "createdAt": "2025-01-10T08:00:00Z",
+      "updatedAt": "2025-01-15T10:30:00Z"
+    },
+    {
+      "id": "demo-integration-2",
+      "tenantId": "demo-tenant-1",
+      "clientCompanyId": "demo-company-2",
+      "providerId": "provider-logo",
+      "status": "connected",
+      "displayName": "Logo Muhasebe - XYZ İnşaat Ltd.",
+      "config": {
+        "apiKey": "logo_api_key_abcde",
+        "apiSecret": "logo_secret_fghij",
+        "firmNumber": "LOGO_FIRM_123"
+      },
+      "lastSyncAt": "2025-01-15T09:15:00Z",
+      "lastSyncStatus": "success",
+      "createdAt": "2025-01-08T14:20:00Z",
+      "updatedAt": "2025-01-15T09:15:00Z"
+    },
+    {
+      "id": "demo-integration-3",
+      "tenantId": "demo-tenant-1",
+      "clientCompanyId": null,
+      "providerId": "provider-is-bankasi",
+      "status": "connected",
+      "displayName": "İş Bankası - Ana Hesap",
+      "config": {
+        "clientId": "is_bankasi_client_123",
+        "clientSecret": "is_bankasi_secret_456",
+        "accountNumber": "1234567890"
+      },
+      "lastSyncAt": "2025-01-15T11:00:00Z",
+      "lastSyncStatus": "success",
+      "createdAt": "2025-01-12T10:00:00Z",
+      "updatedAt": "2025-01-15T11:00:00Z"
+    },
+    {
+      "id": "demo-integration-4",
+      "tenantId": "demo-tenant-1",
+      "clientCompanyId": "demo-company-3",
+      "providerId": "provider-eta",
+      "status": "error",
+      "displayName": "E-Fatura (ETA) - DEF Ticaret A.Ş.",
+      "config": {
+        "username": "eta_user_123",
+        "password": "eta_password_encrypted",
+        "vkn": "1234567890"
+      },
+      "lastSyncAt": "2025-01-14T16:45:00Z",
+      "lastSyncStatus": "error",
+      "createdAt": "2025-01-05T12:00:00Z",
+      "updatedAt": "2025-01-14T16:45:00Z"
+    },
+    {
+      "id": "demo-integration-5",
+      "tenantId": "demo-tenant-2",
+      "clientCompanyId": "demo-company-5",
+      "providerId": "provider-garanti",
+      "status": "connected",
+      "displayName": "Garanti BBVA - GHI Gıda San. Tic. Ltd.",
+      "config": {
+        "apiKey": "garanti_api_key_xyz",
+        "apiSecret": "garanti_secret_abc",
+        "customerNumber": "GARANTI_CUST_789"
+      },
+      "lastSyncAt": "2025-01-15T08:00:00Z",
+      "lastSyncStatus": "success",
+      "createdAt": "2025-01-01T09:00:00Z",
+      "updatedAt": "2025-01-15T08:00:00Z"
+    }
+  ],
+  "integrationSyncJobs": [
+    {
+      "id": "sync-job-1",
+      "tenantId": "demo-tenant-1",
+      "clientCompanyId": "demo-company-1",
+      "tenantIntegrationId": "demo-integration-1",
+      "jobType": "pull_invoices",
+      "status": "success",
+      "startedAt": "2025-01-15T10:30:00Z",
+      "finishedAt": "2025-01-15T10:32:15Z",
+      "errorMessage": null,
+      "createdAt": "2025-01-15T10:30:00Z",
+      "updatedAt": "2025-01-15T10:32:15Z"
+    },
+    {
+      "id": "sync-job-2",
+      "tenantId": "demo-tenant-1",
+      "clientCompanyId": "demo-company-2",
+      "tenantIntegrationId": "demo-integration-2",
+      "jobType": "pull_invoices",
+      "status": "success",
+      "startedAt": "2025-01-15T09:15:00Z",
+      "finishedAt": "2025-01-15T09:17:30Z",
+      "errorMessage": null,
+      "createdAt": "2025-01-15T09:15:00Z",
+      "updatedAt": "2025-01-15T09:17:30Z"
+    },
+    {
+      "id": "sync-job-3",
+      "tenantId": "demo-tenant-1",
+      "clientCompanyId": null,
+      "tenantIntegrationId": "demo-integration-3",
+      "jobType": "pull_bank_transactions",
+      "status": "success",
+      "startedAt": "2025-01-15T11:00:00Z",
+      "finishedAt": "2025-01-15T11:01:45Z",
+      "errorMessage": null,
+      "createdAt": "2025-01-15T11:00:00Z",
+      "updatedAt": "2025-01-15T11:01:45Z"
+    },
+    {
+      "id": "sync-job-4",
+      "tenantId": "demo-tenant-1",
+      "clientCompanyId": "demo-company-3",
+      "tenantIntegrationId": "demo-integration-4",
+      "jobType": "pull_invoices",
+      "status": "failed",
+      "startedAt": "2025-01-14T16:45:00Z",
+      "finishedAt": "2025-01-14T16:45:30Z",
+      "errorMessage": "ETA API bağlantı hatası: Geçersiz kullanıcı adı veya şifre",
+      "createdAt": "2025-01-14T16:45:00Z",
+      "updatedAt": "2025-01-14T16:45:30Z"
+    },
+    {
+      "id": "sync-job-5",
+      "tenantId": "demo-tenant-1",
+      "clientCompanyId": "demo-company-1",
+      "tenantIntegrationId": "demo-integration-1",
+      "jobType": "pull_invoices",
+      "status": "in_progress",
+      "startedAt": "2025-01-15T14:00:00Z",
+      "finishedAt": null,
+      "errorMessage": null,
+      "createdAt": "2025-01-15T14:00:00Z",
+      "updatedAt": "2025-01-15T14:00:00Z"
+    },
+    {
+      "id": "sync-job-6",
+      "tenantId": "demo-tenant-2",
+      "clientCompanyId": "demo-company-5",
+      "tenantIntegrationId": "demo-integration-5",
+      "jobType": "pull_bank_transactions",
+      "status": "success",
+      "startedAt": "2025-01-15T08:00:00Z",
+      "finishedAt": "2025-01-15T08:02:10Z",
+      "errorMessage": null,
+      "createdAt": "2025-01-15T08:00:00Z",
+      "updatedAt": "2025-01-15T08:02:10Z"
+    }
+  ],
+  "integrationSyncLogs": [
+    {
+      "id": "sync-log-1",
+      "tenantId": "demo-tenant-1",
+      "tenantIntegrationId": "demo-integration-1",
+      "level": "info",
+      "message": "Senkronizasyon başlatıldı",
+      "context": {
+        "jobId": "sync-job-1",
+        "jobType": "pull_invoices",
+        "startedAt": "2025-01-15T10:30:00Z"
+      },
+      "createdAt": "2025-01-15T10:30:00Z"
+    },
+    {
+      "id": "sync-log-2",
+      "tenantId": "demo-tenant-1",
+      "tenantIntegrationId": "demo-integration-1",
+      "level": "info",
+      "message": "Faturalar başarıyla çekildi",
+      "context": {
+        "jobId": "sync-job-1",
+        "recordsCreated": 15,
+        "recordsUpdated": 3,
+        "totalRecords": 18
+      },
+      "createdAt": "2025-01-15T10:32:15Z"
+    },
+    {
+      "id": "sync-log-3",
+      "tenantId": "demo-tenant-1",
+      "tenantIntegrationId": "demo-integration-2",
+      "level": "info",
+      "message": "Senkronizasyon başlatıldı",
+      "context": {
+        "jobId": "sync-job-2",
+        "jobType": "pull_invoices",
+        "startedAt": "2025-01-15T09:15:00Z"
+      },
+      "createdAt": "2025-01-15T09:15:00Z"
+    },
+    {
+      "id": "sync-log-4",
+      "tenantId": "demo-tenant-1",
+      "tenantIntegrationId": "demo-integration-2",
+      "level": "info",
+      "message": "Faturalar başarıyla çekildi",
+      "context": {
+        "jobId": "sync-job-2",
+        "recordsCreated": 8,
+        "recordsUpdated": 2,
+        "totalRecords": 10
+      },
+      "createdAt": "2025-01-15T09:17:30Z"
+    },
+    {
+      "id": "sync-log-5",
+      "tenantId": "demo-tenant-1",
+      "tenantIntegrationId": "demo-integration-3",
+      "level": "info",
+      "message": "Banka işlemleri senkronizasyonu başlatıldı",
+      "context": {
+        "jobId": "sync-job-3",
+        "jobType": "pull_bank_transactions",
+        "startedAt": "2025-01-15T11:00:00Z"
+      },
+      "createdAt": "2025-01-15T11:00:00Z"
+    },
+    {
+      "id": "sync-log-6",
+      "tenantId": "demo-tenant-1",
+      "tenantIntegrationId": "demo-integration-3",
+      "level": "info",
+      "message": "Banka işlemleri başarıyla çekildi",
+      "context": {
+        "jobId": "sync-job-3",
+        "recordsCreated": 25,
+        "recordsUpdated": 5,
+        "totalRecords": 30
+      },
+      "createdAt": "2025-01-15T11:01:45Z"
+    },
+    {
+      "id": "sync-log-7",
+      "tenantId": "demo-tenant-1",
+      "tenantIntegrationId": "demo-integration-4",
+      "level": "error",
+      "message": "ETA API bağlantı hatası",
+      "context": {
+        "jobId": "sync-job-4",
+        "jobType": "pull_invoices",
+        "error": "Geçersiz kullanıcı adı veya şifre",
+        "errorCode": "AUTH_FAILED",
+        "startedAt": "2025-01-14T16:45:00Z"
+      },
+      "createdAt": "2025-01-14T16:45:30Z"
+    },
+    {
+      "id": "sync-log-8",
+      "tenantId": "demo-tenant-1",
+      "tenantIntegrationId": "demo-integration-1",
+      "level": "warning",
+      "message": "Bazı faturalar güncellenemedi",
+      "context": {
+        "jobId": "sync-job-1",
+        "recordsCreated": 15,
+        "recordsUpdated": 3,
+        "recordsFailed": 2,
+        "errors": [
+          "Fatura #INV-001: Duplicate invoice number",
+          "Fatura #INV-002: Invalid date format"
+        ]
+      },
+      "createdAt": "2025-01-15T10:32:10Z"
+    },
+    {
+      "id": "sync-log-9",
+      "tenantId": "demo-tenant-2",
+      "tenantIntegrationId": "demo-integration-5",
+      "level": "info",
+      "message": "Banka işlemleri senkronizasyonu başlatıldı",
+      "context": {
+        "jobId": "sync-job-6",
+        "jobType": "pull_bank_transactions",
+        "startedAt": "2025-01-15T08:00:00Z"
+      },
+      "createdAt": "2025-01-15T08:00:00Z"
+    },
+    {
+      "id": "sync-log-10",
+      "tenantId": "demo-tenant-2",
+      "tenantIntegrationId": "demo-integration-5",
+      "level": "info",
+      "message": "Banka işlemleri başarıyla çekildi",
+      "context": {
+        "jobId": "sync-job-6",
+        "recordsCreated": 42,
+        "recordsUpdated": 8,
+        "totalRecords": 50
+      },
+      "createdAt": "2025-01-15T08:02:10Z"
+    }
+  ]
+}
+

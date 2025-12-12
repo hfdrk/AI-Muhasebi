@@ -7,10 +7,11 @@ import { useMutation } from "@tanstack/react-query";
 import { register } from "@repo/api-client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { emailValidator } from "@/utils/email-validation";
 
 const registerSchema = z.object({
   user: z.object({
-    email: z.string().email("Geçerli bir e-posta adresi giriniz."),
+    email: emailValidator,
     password: z.string().min(12, "Şifre en az 12 karakter olmalıdır."),
     fullName: z.string().min(1, "Ad soyad gerekli."),
   }),
@@ -19,7 +20,7 @@ const registerSchema = z.object({
     slug: z.string().min(1, "Ofis kısa adı gerekli.").regex(/^[a-z0-9-]+$/, "Sadece küçük harf, rakam ve tire kullanılabilir."),
     taxNumber: z.string().optional(),
     phone: z.string().optional(),
-    email: z.string().email("Geçerli bir e-posta adresi giriniz.").optional().or(z.literal("")),
+    email: emailValidator.optional().or(z.literal("")),
     address: z.string().optional(),
   }),
 });

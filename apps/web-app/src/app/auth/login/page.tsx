@@ -9,9 +9,10 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { colors, spacing, borderRadius, shadows, transitions, typography } from "@/styles/design-system";
+import { emailValidator } from "@/utils/email-validation";
 
 const loginSchema = z.object({
-  email: z.string().email("Geçerli bir e-posta adresi giriniz."),
+  email: emailValidator,
   password: z.string().min(1, "Şifre gerekli."),
 });
 

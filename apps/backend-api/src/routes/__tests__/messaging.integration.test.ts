@@ -124,3 +124,4 @@ describe("Messaging API Integration Tests", () => {
     expect(Array.isArray(getResponse.body.data.messages)).toBe(true);
   });
 });
+

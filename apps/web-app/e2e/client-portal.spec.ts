@@ -58,3 +58,4 @@ test.describe("Client Portal E2E Tests", () => {
     await expect(page.locator("text=Bildirim Tercihleri")).toBeVisible();
   });
 });
+

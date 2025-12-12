@@ -82,3 +82,4 @@ After restarting backend:
 1. `/api/v1/documents/search-by-risk?riskSeverity=high` should return documents
 2. Frontend filter should show 62 high-risk documents
 3. Risk dashboard should show 62 in "Yüksek Riskli Belgeler" card
+

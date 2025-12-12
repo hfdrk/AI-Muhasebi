@@ -299,3 +299,4 @@ ${highRiskCount > 0 ? `⚠️ ${highRiskCount} yüksek riskli belge bulundu. Det
 
 export const batchAIAnalysisService = new BatchAIAnalysisService();
 
+

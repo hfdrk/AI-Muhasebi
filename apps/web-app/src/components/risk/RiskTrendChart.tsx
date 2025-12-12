@@ -59,3 +59,4 @@ export default function RiskTrendChart({ data }: RiskTrendChartProps) {
     </div>
   );
 }
+

@@ -71,3 +71,4 @@ describe("EventStreamService", () => {
     expect(service.getConnectionCount()).toBe(2);
   });
 });
+

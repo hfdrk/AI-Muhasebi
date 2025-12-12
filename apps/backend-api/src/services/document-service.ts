@@ -206,6 +206,12 @@ export class DocumentService {
       };
     }
 
+    // Debug logging for risk severity filtering
+    if (filters.riskSeverity) {
+      console.log(`[DocumentService] Filtering by riskSeverity: ${filters.riskSeverity}`);
+      console.log(`[DocumentService] Where clause:`, JSON.stringify(where, null, 2));
+    }
+
     const [data, total] = await Promise.all([
       prisma.document.findMany({
         where,
@@ -235,6 +241,11 @@ export class DocumentService {
       }),
       prisma.document.count({ where }),
     ]);
+
+    // Debug logging for results
+    if (filters.riskSeverity) {
+      console.log(`[DocumentService] Found ${data.length} documents, total: ${total}`);
+    }
 
     let mappedData = data.map((item) => {
       const doc = this.mapToDocument(item);
@@ -272,11 +283,50 @@ export class DocumentService {
     }
 
     // Calculate total based on filters
+    // Note: For riskSeverity, minRiskScore, maxRiskScore - filtering is done at DB level,
+    // so `total` from prisma.count() is already correct and should be used.
+    // Only for hasRiskFlags (post-query filter) do we need to recalculate.
     let finalTotal = total;
-    if (filters.hasRiskFlags !== undefined || filters.riskSeverity || filters.minRiskScore !== undefined || filters.maxRiskScore !== undefined) {
-      // If we're filtering, use the filtered data length
-      finalTotal = mappedData.length;
+    if (filters.hasRiskFlags !== undefined) {
+      // hasRiskFlags is filtered post-query, so we need to count all matching documents
+      // This requires fetching all documents to check their risk flags
+      // For performance, we could optimize this with a separate count query in production
+      const allMatchingDocs = await prisma.document.findMany({
+        where: {
+          tenantId,
+          isDeleted: false,
+          ...(filters.clientCompanyId && { clientCompanyId: filters.clientCompanyId }),
+          ...(filters.type && { type: filters.type }),
+          ...(filters.status && { status: filters.status }),
+          ...(filters.riskSeverity && {
+            riskScore: {
+              severity: filters.riskSeverity,
+            },
+          }),
+        },
+        include: {
+          riskFeatures: {
+            select: {
+              riskFlags: true,
+            },
+          },
+        },
+      });
+      
+      const filteredByFlags = allMatchingDocs.filter((doc: any) => {
+        const riskFlags = doc.riskFeatures?.riskFlags as any[] | undefined;
+        const riskFlagCount = Array.isArray(riskFlags) ? riskFlags.length : 0;
+        if (filters.hasRiskFlags) {
+          return riskFlagCount > 0;
+        } else {
+          return riskFlagCount === 0;
+        }
+      });
+      
+      finalTotal = filteredByFlags.length;
     }
+    // For riskSeverity, minRiskScore, maxRiskScore - the total from prisma.count() is correct
+    // and should NOT be overridden with mappedData.length (which is only the current page)
 
     return {
       data: mappedData,

@@ -4,17 +4,18 @@ import type { Request, Response, NextFunction } from "express";
 import { authService } from "../services/auth-service";
 import { AuthenticationError, ValidationError } from "@repo/shared-utils";
 import type { AuthenticatedRequest } from "../types/request-context";
+import { emailValidator } from "../utils/email-validation";
 
 const router: ExpressRouter = Router();
 
 const loginSchema = z.object({
-  email: z.string().email("Geçerli bir e-posta adresi giriniz."),
+  email: emailValidator,
   password: z.string().min(1, "Şifre gerekli."),
 });
 
 const registerSchema = z.object({
   user: z.object({
-    email: z.string().email("Geçerli bir e-posta adresi giriniz."),
+    email: emailValidator,
     password: z.string().min(1, "Şifre gerekli."),
     fullName: z.string().min(1, "Ad soyad gerekli."),
   }),
@@ -23,13 +24,13 @@ const registerSchema = z.object({
     slug: z.string().min(1, "Ofis kısa adı gerekli.").regex(/^[a-z0-9-]+$/, "Kısa ad sadece küçük harf, rakam ve tire içerebilir."),
     taxNumber: z.string().optional(),
     phone: z.string().optional(),
-    email: z.string().email("Geçerli bir e-posta adresi giriniz.").optional().or(z.literal("")),
+    email: emailValidator.optional().or(z.literal("")),
     address: z.string().optional(),
   }),
 });
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email("Geçerli bir e-posta adresi giriniz."),
+  email: emailValidator,
 });
 
 const resetPasswordSchema = z.object({

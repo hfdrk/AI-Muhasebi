@@ -21,6 +21,7 @@
     "seed:users": "tsx prisma/seed-users.ts",
     "seed:tasks": "tsx prisma/seed-tasks.ts",
     "seed:field-mappings": "tsx prisma/seed-field-mappings.ts",
+    "seed:integration-providers": "tsx prisma/seed-integration-providers.ts",
     "update:test-user-role": "tsx prisma/update-test-user-role.ts",
     "perf:test": "tsx scripts/perf/load-test.ts",
     "test:smoke": "vitest run -- smoke.integration.test.ts"

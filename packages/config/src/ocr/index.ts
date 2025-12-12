@@ -63,3 +63,4 @@ export function validateOCRConfig(config: OCRConfig): void {
   }
 }
 
+
