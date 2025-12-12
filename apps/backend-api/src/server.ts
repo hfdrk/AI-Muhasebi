@@ -52,6 +52,14 @@ import documentRequirementRoutes from "./routes/document-requirement-routes";
 import contractAnalysisRoutes from "./routes/contract-analysis-routes";
 import eventsRoutes from "./routes/events-routes";
 import emailLogsRoutes from "./routes/email-logs-routes";
+import eFaturaRoutes from "./routes/e-fatura-routes";
+import eArsivRoutes from "./routes/e-arsiv-routes";
+import eDefterRoutes from "./routes/e-defter-routes";
+import taxRoutes from "./routes/tax-routes";
+import kvkkRoutes from "./routes/kvkk-routes";
+import securityRoutes from "./routes/security-routes";
+import databaseOptimizationRoutes from "./routes/database-optimization-routes";
+import analyticsRoutes from "./routes/analytics-routes";
 
 // Resolve database URL asynchronously and update if needed
 resolveDatabaseUrl()
@@ -151,6 +159,14 @@ app.use("/api/v1/document-requirements", documentRequirementRoutes);
 app.use("/api/v1/contracts", contractAnalysisRoutes);
 app.use("/api/v1/events", eventsRoutes);
 app.use("/api/v1/email-logs", emailLogsRoutes);
+app.use("/api/v1/e-fatura", eFaturaRoutes);
+app.use("/api/v1/e-arsiv", eArsivRoutes);
+app.use("/api/v1/e-defter", eDefterRoutes);
+app.use("/api/v1/tax", taxRoutes);
+app.use("/api/v1/kvkk", kvkkRoutes);
+app.use("/api/v1/security", securityRoutes);
+app.use("/api/v1/db-optimization", databaseOptimizationRoutes);
+app.use("/api/v1/analytics", analyticsRoutes);
 
 // Error handler (must be last)
 app.use(errorHandler);
@@ -160,6 +176,15 @@ const server = app.listen(PORT, () => {
     port: PORT,
     nodeEnv: process.env.NODE_ENV || "development",
   });
+
+  // Initialize WebSocket server
+  try {
+    const { websocketService } = require("./services/websocket-service");
+    websocketService.initialize(server);
+    logger.info("WebSocket server initialized");
+  } catch (error) {
+    logger.warn("WebSocket server initialization skipped:", error);
+  }
 });
 
 // Handle server errors

@@ -14,6 +14,18 @@ export interface LLMClient {
     userPrompt: string;
     maxTokens?: number;
   }): Promise<string>;
+
+  /**
+   * Generate structured JSON output using the LLM
+   * @param input - Input parameters with JSON schema
+   * @returns Parsed JSON object
+   */
+  generateJSON<T = any>(input: {
+    systemPrompt?: string;
+    userPrompt: string;
+    jsonSchema?: object;
+    maxTokens?: number;
+  }): Promise<T>;
 }
 
 /**

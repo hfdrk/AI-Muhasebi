@@ -64,14 +64,45 @@ export class AuthService {
       throw new AuthenticationError("E-posta veya şifre hatalı.");
     }
 
+    // Check account lockout status
+    const { securityService } = await import("./security-service");
+    const lockoutStatus = await securityService.getAccountLockoutStatus(user.id);
+    if (lockoutStatus.locked) {
+      await auditService.logAuthAction("LOGIN_BLOCKED", user.id, null, {
+        email: normalizedEmail,
+        ipAddress,
+        reason: "account_locked",
+        lockoutUntil: lockoutStatus.lockoutUntil,
+      });
+      throw new AuthenticationError(
+        `Hesap geçici olarak kilitlendi. ${lockoutStatus.lockoutUntil ? `Kilit ${new Date(lockoutStatus.lockoutUntil).toLocaleString("tr-TR")} tarihine kadar sürecek.` : ""}`
+      );
+    }
+
+    // Check IP whitelist if enabled
+    const firstMembership = user.memberships[0];
+    const tenantId = firstMembership?.tenantId;
+    if (tenantId && ipAddress) {
+      const isWhitelisted = await securityService.isIPWhitelisted(tenantId, ipAddress, user.id);
+      // Note: IP whitelisting is optional - can be enforced if needed
+      // if (!isWhitelisted) {
+      //   throw new AuthenticationError("IP adresi izin listesinde değil.");
+      // }
+    }
+
     const isValidPassword = await verifyPassword(input.password, user.hashedPassword);
     if (!isValidPassword) {
+      // Record failed attempt
+      await securityService.recordFailedAttempt(user.id);
       await auditService.logAuthAction("LOGIN_FAILED", user.id, null, {
         email: normalizedEmail,
         ipAddress,
       });
       throw new AuthenticationError("E-posta veya şifre hatalı.");
     }
+
+    // Clear failed attempts on successful login
+    await securityService.clearFailedAttempts(user.id);
 
     // Update last login (gracefully handle if user was deleted)
     try {
@@ -91,10 +122,6 @@ export class AuthService {
         throw error;
       }
     }
-
-    // Get first active tenant (or null if none)
-    const firstMembership = user.memberships[0];
-    const tenantId = firstMembership?.tenantId;
 
     // Generate tokens
     const platformRoles = user.platformRole ? [user.platformRole] : [];

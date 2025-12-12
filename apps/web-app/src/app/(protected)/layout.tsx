@@ -19,6 +19,261 @@ interface NavItem {
   children?: NavItem[];
 }
 
+// User Profile Dropdown Component
+function UserProfileDropdown({ 
+  currentUser, 
+  onLogout, 
+  sidebarCollapsed 
+}: { 
+  currentUser: any; 
+  onLogout: () => void;
+  sidebarCollapsed: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('[data-user-profile-dropdown]')) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
+
+  return (
+    <div style={{ position: "relative" }} data-user-profile-dropdown>
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: spacing.sm,
+          padding: `${spacing.xs} ${spacing.md} ${spacing.xs} ${spacing.xs}`,
+          borderRadius: borderRadius.lg,
+          cursor: "pointer",
+          transition: `all ${transitions.normal} ease`,
+          position: "relative",
+          border: `1px solid ${isOpen ? colors.primary : colors.border}`,
+          backgroundColor: isOpen ? colors.primaryLighter : colors.gray[50],
+          boxShadow: isOpen ? shadows.md : shadows.sm,
+        }}
+        onMouseEnter={(e) => {
+          if (!isOpen) {
+            e.currentTarget.style.backgroundColor = colors.gray[100];
+            e.currentTarget.style.borderColor = colors.primary;
+            e.currentTarget.style.boxShadow = shadows.md;
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!isOpen) {
+            e.currentTarget.style.backgroundColor = colors.gray[50];
+            e.currentTarget.style.borderColor = colors.border;
+            e.currentTarget.style.boxShadow = shadows.sm;
+          }
+        }}
+      >
+        <div
+          style={{
+            width: "44px",
+            height: "44px",
+            borderRadius: borderRadius.full,
+            background: colors.gradients.primary,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: colors.white,
+            fontWeight: typography.fontWeight.bold,
+            fontSize: typography.fontSize.base,
+            boxShadow: shadows.sm,
+            border: `2px solid ${colors.white}`,
+          }}
+        >
+          {currentUser.user?.fullName?.charAt(0)?.toUpperCase() || "U"}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", minWidth: 0 }}>
+          <div
+            style={{
+              fontSize: typography.fontSize.sm,
+              fontWeight: typography.fontWeight.semibold,
+              color: colors.text.primary,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              maxWidth: "180px",
+            }}
+          >
+            {currentUser.user?.fullName || "Kullanıcı"}
+          </div>
+          <div
+            style={{
+              fontSize: typography.fontSize.xs,
+              color: colors.text.secondary,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              maxWidth: "180px",
+            }}
+          >
+            {currentUser.user?.email}
+          </div>
+        </div>
+        <span
+          style={{
+            fontSize: "12px",
+            color: colors.text.secondary,
+            marginLeft: spacing.xs,
+            transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+            transition: `transform ${transitions.normal} ease`,
+          }}
+        >
+          ▼
+        </span>
+      </div>
+
+      {isOpen && (
+        <>
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: zIndex.dropdown - 1,
+            }}
+            onClick={() => setIsOpen(false)}
+          />
+          <div
+            style={{
+              position: "absolute",
+              top: "calc(100% + 8px)",
+              right: 0,
+              backgroundColor: colors.white,
+              border: `1px solid ${colors.border}`,
+              borderRadius: borderRadius.lg,
+              boxShadow: shadows.xl,
+              zIndex: zIndex.dropdown,
+              minWidth: "240px",
+              overflow: "hidden",
+            }}
+          >
+            {/* User Info Header */}
+            <div
+              style={{
+                padding: spacing.md,
+                borderBottom: `1px solid ${colors.border}`,
+                background: colors.gradients.pastelPrimary,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: typography.fontSize.sm,
+                  fontWeight: typography.fontWeight.semibold,
+                  color: colors.text.primary,
+                  marginBottom: spacing.xs / 2,
+                }}
+              >
+                {currentUser.user?.fullName || "Kullanıcı"}
+              </div>
+              <div
+                style={{
+                  fontSize: typography.fontSize.xs,
+                  color: colors.text.secondary,
+                }}
+              >
+                {currentUser.user?.email}
+              </div>
+            </div>
+
+            {/* Menu Items */}
+            <div style={{ padding: spacing.xs }}>
+              <button
+                onClick={() => {
+                  router.push("/ayarlar/profil");
+                  setIsOpen(false);
+                }}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: spacing.sm,
+                  padding: `${spacing.sm} ${spacing.md}`,
+                  backgroundColor: "transparent",
+                  border: "none",
+                  borderRadius: borderRadius.md,
+                  color: colors.text.primary,
+                  fontSize: typography.fontSize.sm,
+                  fontWeight: typography.fontWeight.medium,
+                  cursor: "pointer",
+                  transition: `all ${transitions.normal} ease`,
+                  textAlign: "left",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = colors.gray[50];
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }}
+              >
+                <span style={{ fontSize: "16px" }}>👤</span>
+                <span>Profil Ayarları</span>
+              </button>
+            </div>
+
+            {/* Logout Button */}
+            <div
+              style={{
+                padding: spacing.xs,
+                borderTop: `1px solid ${colors.border}`,
+                backgroundColor: colors.gray[50],
+              }}
+            >
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  onLogout();
+                }}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: spacing.sm,
+                  padding: `${spacing.sm} ${spacing.md}`,
+                  backgroundColor: "transparent",
+                  border: `1px solid ${colors.danger}`,
+                  borderRadius: borderRadius.md,
+                  color: colors.danger,
+                  fontSize: typography.fontSize.sm,
+                  fontWeight: typography.fontWeight.semibold,
+                  cursor: "pointer",
+                  transition: `all ${transitions.normal} ease`,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = colors.danger;
+                  e.currentTarget.style.color = colors.white;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                  e.currentTarget.style.color = colors.danger;
+                }}
+              >
+                <span style={{ fontSize: "16px" }}>🚪</span>
+                <span>Çıkış Yap</span>
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -76,6 +331,9 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     { href: "/anasayfa", label: "Ana Sayfa", icon: "🏠" },
     { href: "/musteriler", label: "Müşteriler", icon: "👥" },
     { href: "/faturalar", label: "Faturalar", icon: "📄" },
+    { href: "/e-fatura", label: "E-Fatura", icon: "📋" },
+    { href: "/e-arsiv", label: "E-Arşiv", icon: "📦" },
+    { href: "/e-defter", label: "E-Defter", icon: "📚" },
     { href: "/islemler", label: "İşlemler", icon: "💼" },
     { href: "/belgeler", label: "Belgeler", icon: "📁" },
     { href: "/gorevler", label: "Görevler", icon: "✅" },
@@ -84,6 +342,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   const riskNavItems: NavItem[] = [
     { href: "/risk/dashboard", label: "Risk Panosu", icon: "📊" },
     { href: "/risk/alerts", label: "Risk Uyarıları", icon: "⚠️", badge: 0 },
+    { href: "/risk/ml-fraud", label: "ML Dolandırıcılık", icon: "🤖" },
   ];
 
   // Get unread message count for badge
@@ -101,6 +360,10 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   const unreadMessageCount = threads.reduce((sum: number, thread: any) => sum + (thread.unreadCount || 0), 0);
 
   const otherNavItems: NavItem[] = [
+    { href: "/vergi", label: "Vergi", icon: "💰" },
+    { href: "/kvkk", label: "KVKK", icon: "🔒" },
+    { href: "/guvenlik", label: "Güvenlik", icon: "🔐" },
+    { href: "/analitik", label: "Analitik", icon: "📊" },
     { href: "/raporlar", label: "Raporlar", icon: "📈" },
     { href: "/entegrasyonlar", label: "Entegrasyonlar", icon: "🔌" },
     { href: "/ai-asistan", label: "AI Asistan", icon: "🤖" },
@@ -576,7 +839,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
         {/* Enhanced Top Header */}
         <header
           style={{
-            padding: `${spacing.lg} ${spacing.xxl}`,
+            padding: `${spacing.md} ${spacing.xxl}`,
             borderBottom: `1px solid ${colors.border}`,
             backgroundColor: colors.white,
             boxShadow: shadows.sm,
@@ -586,28 +849,35 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
             position: "sticky",
             top: 0,
             zIndex: zIndex.sticky,
-            minHeight: "72px",
+            minHeight: "80px",
+            backdropFilter: "blur(10px)",
+            background: colors.white,
+            borderBottom: `2px solid ${colors.border}`,
           }}
         >
-          {/* Page Title / Breadcrumb */}
-          <div style={{ flex: 1 }}>
+          {/* Page Title / Welcome Section */}
+          <div style={{ flex: 1, minWidth: 0 }}>
             {currentUser && (
-              <div style={{ display: "flex", alignItems: "center", gap: spacing.sm }}>
-                <div>
+              <div style={{ display: "flex", alignItems: "center", gap: spacing.md }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
                   <div
                     style={{
-                      fontSize: typography.fontSize.sm,
-                      color: colors.text.secondary,
-                      marginBottom: spacing.xs,
+                      fontSize: typography.fontSize.xs,
+                      color: colors.text.muted,
+                      marginBottom: spacing.xs / 2,
+                      fontWeight: typography.fontWeight.medium,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
                     }}
                   >
                     {currentTenant?.name || "Ofis"}
                   </div>
                   <div
                     style={{
-                      fontSize: typography.fontSize.base,
-                      fontWeight: typography.fontWeight.medium,
+                      fontSize: typography.fontSize.lg,
+                      fontWeight: typography.fontWeight.semibold,
                       color: colors.text.primary,
+                      lineHeight: typography.lineHeight.tight,
                     }}
                   >
                     Hoş geldiniz, {currentUser.user?.fullName || "Kullanıcı"}
@@ -622,7 +892,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
             style={{
               display: "flex",
               alignItems: "center",
-              gap: spacing.md,
+              gap: spacing.sm,
             }}
           >
             <GlobalSearch />
@@ -631,95 +901,12 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
             
             {/* User Profile Dropdown */}
             {currentUser && (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: spacing.sm,
-                  padding: `${spacing.xs} ${spacing.sm}`,
-                  borderRadius: borderRadius.lg,
-                  cursor: "pointer",
-                  transition: `all ${transitions.normal} ease`,
-                  position: "relative",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = colors.gray[50];
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "transparent";
-                }}
-              >
-                <div
-                  style={{
-                    width: "40px",
-                    height: "40px",
-                    borderRadius: borderRadius.full,
-                    background: colors.gradients.primary,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: colors.white,
-                    fontWeight: typography.fontWeight.bold,
-                    fontSize: typography.fontSize.sm,
-                  }}
-                >
-                  {currentUser.user?.fullName?.charAt(0)?.toUpperCase() || "U"}
-                </div>
-                {!sidebarCollapsed && (
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-                    <div
-                      style={{
-                        fontSize: typography.fontSize.sm,
-                        fontWeight: typography.fontWeight.medium,
-                        color: colors.text.primary,
-                      }}
-                    >
-                      {currentUser.user?.fullName || "Kullanıcı"}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: typography.fontSize.xs,
-                        color: colors.text.secondary,
-                      }}
-                    >
-                      {currentUser.user?.email}
-                    </div>
-                  </div>
-                )}
-              </div>
+              <UserProfileDropdown 
+                currentUser={currentUser}
+                onLogout={handleLogout}
+                sidebarCollapsed={sidebarCollapsed}
+              />
             )}
-            
-            <button
-              onClick={handleLogout}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: spacing.xs,
-                padding: `${spacing.sm} ${spacing.md}`,
-                backgroundColor: "transparent",
-                border: `1px solid ${colors.border}`,
-                borderRadius: borderRadius.md,
-                color: colors.text.secondary,
-                fontSize: typography.fontSize.sm,
-                fontWeight: typography.fontWeight.medium,
-                cursor: "pointer",
-                transition: `all ${transitions.normal} ease`,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = colors.error;
-                e.currentTarget.style.borderColor = colors.error;
-                e.currentTarget.style.color = colors.white;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "transparent";
-                e.currentTarget.style.borderColor = colors.border;
-                e.currentTarget.style.color = colors.text.secondary;
-              }}
-              title="Çıkış Yap"
-            >
-              <span style={{ fontSize: "16px" }}>🚪</span>
-              <span>Çıkış</span>
-            </button>
           </div>
         </header>
 

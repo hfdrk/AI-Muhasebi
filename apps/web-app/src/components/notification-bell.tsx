@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { notificationClient, type Notification, getCurrentUser } from "@repo/api-client";
 import { useRouter } from "next/navigation";
-import { colors, spacing, shadows, borderRadius } from "../styles/design-system";
+import { colors, spacing, shadows, borderRadius, transitions, typography, zIndex } from "../styles/design-system";
 import Link from "next/link";
 
 function formatTimeAgo(date: string): string {
@@ -157,35 +157,64 @@ export function NotificationBell() {
         onClick={() => setIsOpen(!isOpen)}
         style={{
           position: "relative",
-          padding: spacing.sm,
-          backgroundColor: "transparent",
-          border: "none",
+          padding: "10px",
+          backgroundColor: isOpen ? colors.primaryLighter : colors.gray[50],
+          border: `1px solid ${isOpen ? colors.primary : colors.border}`,
+          borderRadius: borderRadius.md,
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           color: colors.text.secondary,
           fontSize: "20px",
+          transition: `all ${transitions.normal} ease`,
+          minWidth: "44px",
+          minHeight: "44px",
+          boxShadow: isOpen ? shadows.md : shadows.sm,
+        }}
+        onMouseEnter={(e) => {
+          if (!isOpen) {
+            e.currentTarget.style.backgroundColor = colors.primaryLighter;
+            e.currentTarget.style.borderColor = colors.primary;
+            e.currentTarget.style.boxShadow = shadows.md;
+            e.currentTarget.style.transform = "scale(1.05)";
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!isOpen) {
+            e.currentTarget.style.backgroundColor = colors.gray[50];
+            e.currentTarget.style.borderColor = colors.border;
+            e.currentTarget.style.boxShadow = shadows.sm;
+            e.currentTarget.style.transform = "scale(1)";
+          }
         }}
         title="Bildirimler"
       >
-        🔔
+        <span style={{ 
+          filter: unreadCount > 0 ? "none" : "grayscale(0.3)",
+          transition: "filter 0.2s ease"
+        }}>
+          🔔
+        </span>
         {unreadCount > 0 && (
           <span
             style={{
               position: "absolute",
-              top: "0",
-              right: "0",
+              top: "6px",
+              right: "6px",
               backgroundColor: colors.danger,
               color: colors.white,
               borderRadius: borderRadius.full,
-              width: "18px",
-              height: "18px",
+              minWidth: "20px",
+              height: "20px",
               fontSize: "11px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               fontWeight: "bold",
+              padding: "0 6px",
+              boxShadow: `0 2px 4px rgba(239, 68, 68, 0.3)`,
+              border: `2px solid ${colors.white}`,
             }}
           >
             {unreadCount > 9 ? "9+" : unreadCount}
@@ -209,43 +238,62 @@ export function NotificationBell() {
           <div
             style={{
               position: "absolute",
-              top: "100%",
+              top: "calc(100% + 8px)",
               right: 0,
-              marginTop: spacing.sm,
               backgroundColor: colors.white,
               border: `1px solid ${colors.border}`,
-              borderRadius: borderRadius.md,
-              boxShadow: shadows.lg,
+              borderRadius: borderRadius.lg,
+              boxShadow: shadows.xl,
               zIndex: 2,
-              minWidth: "320px",
-              maxWidth: "400px",
+              minWidth: "360px",
+              maxWidth: "420px",
               maxHeight: "500px",
               overflow: "hidden",
               display: "flex",
               flexDirection: "column",
+              animation: "slideDown 0.2s ease",
             }}
           >
             <div
               style={{
-                padding: spacing.md,
+                padding: `${spacing.md} ${spacing.lg}`,
                 borderBottom: `1px solid ${colors.border}`,
                 fontWeight: 600,
                 fontSize: "16px",
+                backgroundColor: colors.gray[50],
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
               }}
             >
-              Bildirimler
+              <span>Bildirimler</span>
+              {unreadCount > 0 && (
+                <span
+                  style={{
+                    backgroundColor: colors.primary,
+                    color: colors.white,
+                    borderRadius: borderRadius.full,
+                    padding: `2px ${spacing.sm}`,
+                    fontSize: typography.fontSize.xs,
+                    fontWeight: typography.fontWeight.bold,
+                  }}
+                >
+                  {unreadCount} yeni
+                </span>
+              )}
             </div>
 
-            <div style={{ overflowY: "auto", flex: 1 }}>
+            <div style={{ overflowY: "auto", flex: 1, backgroundColor: colors.white }}>
               {notifications.length === 0 ? (
                 <div
                   style={{
-                    padding: spacing.xl,
+                    padding: spacing.xxl,
                     textAlign: "center",
                     color: colors.text.muted,
                   }}
                 >
-                  Yeni bildirim yok
+                  <div style={{ fontSize: "48px", marginBottom: spacing.md }}>🔔</div>
+                  <div style={{ fontSize: "14px", fontWeight: 500 }}>Yeni bildirim yok</div>
                 </div>
               ) : (
                 notifications.map((notification) => (
@@ -256,29 +304,46 @@ export function NotificationBell() {
                       padding: spacing.md,
                       borderBottom: `1px solid ${colors.border}`,
                       cursor: "pointer",
-                      backgroundColor: notification.is_read ? colors.white : colors.primaryLight,
-                      transition: "background-color 0.2s",
+                      backgroundColor: notification.is_read ? colors.white : colors.primaryLighter,
+                      transition: "all 0.2s ease",
+                      borderLeft: notification.is_read ? "none" : `3px solid ${colors.primary}`,
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = colors.gray[100];
+                      e.currentTarget.style.backgroundColor = colors.gray[50];
+                      e.currentTarget.style.transform = "translateX(2px)";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = notification.is_read ? colors.white : colors.primaryLight;
+                      e.currentTarget.style.backgroundColor = notification.is_read ? colors.white : colors.primaryLighter;
+                      e.currentTarget.style.transform = "translateX(0)";
                     }}
                   >
                     <div
                       style={{
-                        fontWeight: notification.is_read ? 400 : 600,
+                        fontWeight: notification.is_read ? 500 : 600,
                         fontSize: "14px",
                         marginBottom: spacing.xs,
                         color: colors.text.primary,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: spacing.xs,
                       }}
                     >
-                      {notification.title}
+                      {!notification.is_read && (
+                        <span
+                          style={{
+                            width: "8px",
+                            height: "8px",
+                            borderRadius: borderRadius.full,
+                            backgroundColor: colors.primary,
+                            display: "inline-block",
+                          }}
+                        />
+                      )}
+                      <span>{notification.title}</span>
                     </div>
                     <div
                       style={{
-                        fontSize: "12px",
+                        fontSize: "13px",
                         color: colors.text.secondary,
                         marginBottom: spacing.xs,
                         overflow: "hidden",
@@ -286,6 +351,7 @@ export function NotificationBell() {
                         display: "-webkit-box",
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: "vertical",
+                        lineHeight: typography.lineHeight.normal,
                       }}
                     >
                       {notification.message}
@@ -294,6 +360,7 @@ export function NotificationBell() {
                       style={{
                         fontSize: "11px",
                         color: colors.text.muted,
+                        fontWeight: typography.fontWeight.medium,
                       }}
                     >
                       {formatTimeAgo(notification.createdAt)}
@@ -308,6 +375,7 @@ export function NotificationBell() {
                 padding: spacing.md,
                 borderTop: `1px solid ${colors.border}`,
                 textAlign: "center",
+                backgroundColor: colors.gray[50],
               }}
             >
               <Link
@@ -316,16 +384,41 @@ export function NotificationBell() {
                   color: colors.primary,
                   textDecoration: "none",
                   fontSize: "14px",
-                  fontWeight: 500,
+                  fontWeight: 600,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: spacing.xs,
+                  padding: `${spacing.xs} ${spacing.md}`,
+                  borderRadius: borderRadius.md,
+                  transition: "all 0.2s ease",
                 }}
                 onClick={() => setIsOpen(false)}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = colors.primaryLighter;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }}
               >
-                Tüm bildirimleri gör
+                <span>Tüm bildirimleri gör</span>
+                <span>→</span>
               </Link>
             </div>
           </div>
         </>
       )}
+      <style jsx global>{`
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }

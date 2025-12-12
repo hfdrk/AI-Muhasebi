@@ -280,6 +280,31 @@ export async function getRiskExportData(): Promise<{
   return apiClient.get("/api/v1/risk/dashboard/export-data");
 }
 
+export interface MLFraudScore {
+  overallScore: number; // 0-100, higher = more suspicious
+  confidence: number; // 0-1, how confident the model is
+  factors: Array<{
+    name: string;
+    contribution: number; // How much this factor contributes to the score
+    severity: "low" | "medium" | "high";
+  }>;
+  recommendations: string[];
+}
+
+/**
+ * Get ML fraud score for a client company
+ */
+export async function getMLFraudScore(clientCompanyId: string): Promise<{ data: MLFraudScore }> {
+  return apiClient.get(`/api/v1/risk/ml-fraud/${clientCompanyId}`);
+}
+
+/**
+ * Check and alert fraud for a client company
+ */
+export async function checkMLFraud(clientCompanyId: string): Promise<{ data: { message: string } }> {
+  return apiClient.post(`/api/v1/risk/ml-fraud/${clientCompanyId}/check`);
+}
+
 // Export as object for backward compatibility
 export const riskClient = {
   getDocumentRiskScore,
@@ -295,5 +320,7 @@ export const riskClient = {
   getRiskForecast,
   exportRiskDashboard,
   getRiskExportData,
+  getMLFraudScore,
+  checkMLFraud,
 };
 

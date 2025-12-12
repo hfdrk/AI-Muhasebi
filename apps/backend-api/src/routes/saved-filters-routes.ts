@@ -46,6 +46,15 @@ router.get(
         });
       }
 
+      // Validate target if provided
+      if (target && !["CLIENT_COMPANIES", "INVOICES", "DOCUMENTS", "RISK_ALERTS", "REPORTS"].includes(target)) {
+        return res.status(400).json({
+          error: {
+            message: "Geçersiz hedef filtre türü.",
+          },
+        });
+      }
+
       const filters = await savedFilterService.listSavedFilters(
         req.context.tenantId,
         req.context.user.id,

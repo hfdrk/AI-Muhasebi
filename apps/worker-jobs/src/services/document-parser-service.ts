@@ -7,15 +7,13 @@ import type {
   ParsedDocumentResult,
   CreateDocumentParsedDataInput,
 } from "@repo/core-domain";
+import { createLLMClient, hasRealAIProvider, logger } from "@repo/shared-utils";
 
 /**
- * Document Parser Service - Rule-based Stub Implementation
+ * Document Parser Service - LLM-Based with Rule-based Fallback
  * 
- * TODO: Replace with LLM-based parsing:
- * - Use OpenAI GPT-4, Anthropic Claude, or similar LLM
- * - Send OCR text + document type hint to LLM
- * - Use structured output/function calling to extract fields
- * - Consider using prompt engineering for Turkish document formats
+ * Uses LLM (GPT-4, Claude, etc.) for high-accuracy document parsing.
+ * Falls back to rule-based parsing if LLM is unavailable or fails.
  */
 
 export interface ParsedDocumentData {
@@ -25,13 +23,15 @@ export interface ParsedDocumentData {
 }
 
 export class DocumentParserService {
-  private readonly PARSER_VERSION = "1.0-stub";
+  private readonly PARSER_VERSION = "2.0-llm";
+  private readonly FALLBACK_PARSER_VERSION = "1.0-stub";
+  private llmClient: ReturnType<typeof createLLMClient> | null = null;
 
   /**
    * Parse document from OCR text
    * @param rawText - Raw OCR text output
    * @param documentTypeHint - Hint about document type (INVOICE, BANK_STATEMENT, etc.)
-   * @param tenantId - Tenant ID for context (not used in stub, but needed for future LLM context)
+   * @param tenantId - Tenant ID for context
    * @returns Promise resolving to parsed document data
    */
   async parseDocument(
@@ -39,10 +39,86 @@ export class DocumentParserService {
     documentTypeHint: string,
     tenantId: string
   ): Promise<ParsedDocumentResult> {
-    // Determine document type from hint or text analysis
+    // Try LLM-based parsing first if available
+    if (hasRealAIProvider()) {
+      try {
+        if (!this.llmClient) {
+          this.llmClient = createLLMClient();
+        }
+
+        const result = await this.parseWithLLM(rawText, documentTypeHint, tenantId);
+        if (result) {
+          return {
+            ...result,
+            parserVersion: this.PARSER_VERSION,
+          };
+        }
+      } catch (error) {
+        logger.warn("LLM parsing failed, falling back to rule-based parser:", error);
+        // Fall through to rule-based parsing
+      }
+    }
+
+    // Fallback to rule-based parsing
+    return this.parseWithRules(rawText, documentTypeHint);
+  }
+
+  /**
+   * Parse document using LLM
+   */
+  private async parseWithLLM(
+    rawText: string,
+    documentTypeHint: string,
+    tenantId: string
+  ): Promise<ParsedDocumentResult | null> {
+    if (!this.llmClient) {
+      return null;
+    }
+
+    // Determine document type
     const documentType = this.detectDocumentType(documentTypeHint, rawText);
 
-    // Parse based on document type
+    // Create JSON schema based on document type
+    const jsonSchema = this.getJSONSchemaForDocumentType(documentType);
+
+    // Create system prompt
+    const systemPrompt = this.getSystemPrompt(documentType);
+
+    // Create user prompt with OCR text
+    const userPrompt = this.getUserPrompt(rawText, documentTypeHint, documentType);
+
+    try {
+      // Call LLM with structured output
+      const parsedData = await this.llmClient.generateJSON({
+        systemPrompt,
+        userPrompt,
+        jsonSchema,
+        maxTokens: 4000,
+      });
+
+      // Validate and map the response
+      const fields = this.mapLLMResponseToFields(parsedData, documentType);
+
+      return {
+        documentType,
+        fields,
+        parserVersion: this.PARSER_VERSION,
+      };
+    } catch (error) {
+      logger.error("LLM parsing error:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Parse document using rule-based approach (fallback)
+   */
+  private parseWithRules(
+    rawText: string,
+    documentTypeHint: string
+  ): ParsedDocumentResult {
+    const documentType = this.detectDocumentType(documentTypeHint, rawText);
+
     let fields: ParsedDocumentFields;
 
     switch (documentType) {
@@ -65,8 +141,250 @@ export class DocumentParserService {
     return {
       documentType,
       fields,
-      parserVersion: this.PARSER_VERSION,
+      parserVersion: this.FALLBACK_PARSER_VERSION,
     };
+  }
+
+  /**
+   * Get JSON schema for document type
+   */
+  private getJSONSchemaForDocumentType(documentType: DocumentParsedType): object {
+    switch (documentType) {
+      case "invoice":
+        return {
+          type: "object",
+          properties: {
+            invoiceNumber: { type: "string" },
+            issueDate: { type: "string", format: "date" },
+            dueDate: { type: "string", format: "date", nullable: true },
+            totalAmount: { type: "number" },
+            taxAmount: { type: "number", nullable: true },
+            netAmount: { type: "number", nullable: true },
+            currency: { type: "string", default: "TRY" },
+            counterpartyName: { type: "string", nullable: true },
+            counterpartyTaxNumber: { type: "string", nullable: true },
+            lineItems: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  description: { type: "string" },
+                  quantity: { type: "number" },
+                  unitPrice: { type: "number" },
+                  lineTotal: { type: "number" },
+                  vatRate: { type: "number" },
+                  vatAmount: { type: "number" },
+                },
+              },
+            },
+          },
+          required: ["invoiceNumber", "issueDate", "totalAmount"],
+        };
+      case "bank_statement":
+        return {
+          type: "object",
+          properties: {
+            accountNumber: { type: "string" },
+            startDate: { type: "string", format: "date" },
+            endDate: { type: "string", format: "date" },
+            startingBalance: { type: "number", nullable: true },
+            endingBalance: { type: "number", nullable: true },
+            currency: { type: "string", default: "TRY" },
+            transactions: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  date: { type: "string", format: "date" },
+                  description: { type: "string" },
+                  amount: { type: "number" },
+                  balance: { type: "number", nullable: true },
+                },
+              },
+            },
+          },
+        };
+      case "contract":
+        return {
+          type: "object",
+          properties: {
+            contractNumber: { type: "string", nullable: true },
+            contractDate: { type: "string", format: "date", nullable: true },
+            startDate: { type: "string", format: "date", nullable: true },
+            endDate: { type: "string", format: "date", nullable: true },
+            expirationDate: { type: "string", format: "date", nullable: true },
+            value: { type: "number", nullable: true },
+            currency: { type: "string", default: "TRY" },
+            contractType: { type: "string", nullable: true },
+            parties: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  role: { type: "string", nullable: true },
+                  taxNumber: { type: "string", nullable: true },
+                },
+              },
+            },
+            terms: { type: "string", nullable: true },
+            renewalTerms: { type: "string", nullable: true },
+          },
+        };
+      default:
+        return {
+          type: "object",
+          properties: {
+            amount: { type: "number", nullable: true },
+            date: { type: "string", format: "date", nullable: true },
+          },
+        };
+    }
+  }
+
+  /**
+   * Get system prompt for document type
+   */
+  private getSystemPrompt(documentType: DocumentParsedType): string {
+    const basePrompt = `Sen bir belge analiz uzmanısın. Türkçe belgelerden yapılandırılmış veri çıkarıyorsun.
+Belgeler Türk muhasebe standartlarına uygun formatta olabilir.
+Tarihler Türk formatında (DD.MM.YYYY veya DD/MM/YYYY) olabilir.
+Tutarlar Türk formatında (1.234,56) veya uluslararası format (1,234.56) olabilir.
+Tüm sayısal değerleri doğru parse et ve JSON formatında döndür.`;
+
+    switch (documentType) {
+      case "invoice":
+        return `${basePrompt}
+Fatura belgelerinden fatura numarası, tarihler, tutarlar, KDV bilgileri, müşteri/tedarikçi bilgileri ve kalem detaylarını çıkar.
+Türk fatura formatlarını (e-fatura, e-arşiv, kağıt fatura) destekle.`;
+      case "bank_statement":
+        return `${basePrompt}
+Banka ekstrelerinden hesap bilgileri, tarih aralığı, bakiyeler ve işlem listesini çıkar.
+Türk banka ekstre formatlarını destekle.`;
+      case "contract":
+        return `${basePrompt}
+Sözleşme belgelerinden sözleşme numarası, tarihler, taraflar, değer, sözleşme türü ve şartları çıkar.
+Türk sözleşme formatlarını destekle.`;
+      default:
+        return basePrompt;
+    }
+  }
+
+  /**
+   * Get user prompt with OCR text
+   */
+  private getUserPrompt(
+    rawText: string,
+    documentTypeHint: string,
+    documentType: DocumentParsedType
+  ): string {
+    const textPreview = rawText.length > 5000 ? rawText.substring(0, 5000) + "..." : rawText;
+
+    return `Belge Tipi İpucu: ${documentTypeHint}
+Tespit Edilen Tip: ${documentType}
+
+OCR Metni:
+${textPreview}
+
+Yukarıdaki OCR metninden yapılandırılmış verileri çıkar ve JSON formatında döndür.
+Eksik bilgiler için null değer kullan.
+Tarihleri ISO formatında (YYYY-MM-DD) döndür.
+Tutarları sayısal değer olarak döndür (ondalık ayırıcı: nokta).`;
+  }
+
+  /**
+   * Map LLM JSON response to ParsedDocumentFields
+   */
+  private mapLLMResponseToFields(
+    parsedData: any,
+    documentType: DocumentParsedType
+  ): ParsedDocumentFields {
+    // Convert date strings to the format expected by the system
+    const normalizeDate = (dateStr: string | null | undefined): string | undefined => {
+      if (!dateStr) return undefined;
+      // If already in ISO format, return as is
+      if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return dateStr;
+      }
+      // Try to parse and convert
+      try {
+        const date = new Date(dateStr);
+        if (!isNaN(date.getTime())) {
+          return date.toISOString().split("T")[0];
+        }
+      } catch {
+        // Ignore parse errors
+      }
+      return dateStr;
+    };
+
+    switch (documentType) {
+      case "invoice": {
+        const fields: ParsedInvoiceFields = {
+          invoiceNumber: parsedData.invoiceNumber || undefined,
+          issueDate: normalizeDate(parsedData.issueDate),
+          dueDate: normalizeDate(parsedData.dueDate),
+          totalAmount: parsedData.totalAmount || undefined,
+          taxAmount: parsedData.taxAmount || undefined,
+          netAmount: parsedData.netAmount || undefined,
+          currency: parsedData.currency || "TRY",
+          counterpartyName: parsedData.counterpartyName || undefined,
+          counterpartyTaxNumber: parsedData.counterpartyTaxNumber || undefined,
+          lineItems: parsedData.lineItems?.map((item: any) => ({
+            description: item.description || "",
+            quantity: item.quantity || 1,
+            unitPrice: item.unitPrice || 0,
+            lineTotal: item.lineTotal || 0,
+            vatRate: item.vatRate || 0,
+            vatAmount: item.vatAmount || 0,
+          })) || [],
+        };
+        return fields;
+      }
+      case "bank_statement": {
+        const fields: ParsedBankStatementFields = {
+          accountNumber: parsedData.accountNumber || undefined,
+          startDate: normalizeDate(parsedData.startDate),
+          endDate: normalizeDate(parsedData.endDate),
+          startingBalance: parsedData.startingBalance || null,
+          endingBalance: parsedData.endingBalance || null,
+          currency: parsedData.currency || "TRY",
+          transactions: parsedData.transactions?.map((txn: any) => ({
+            date: normalizeDate(txn.date) || new Date().toISOString().split("T")[0],
+            description: txn.description || "",
+            amount: txn.amount || 0,
+            balance: txn.balance || null,
+          })) || [],
+        };
+        return fields;
+      }
+      case "contract": {
+        const fields: ParsedContractFields = {
+          contractNumber: parsedData.contractNumber || undefined,
+          contractDate: normalizeDate(parsedData.contractDate),
+          startDate: normalizeDate(parsedData.startDate),
+          endDate: normalizeDate(parsedData.endDate),
+          expirationDate: normalizeDate(parsedData.expirationDate),
+          value: parsedData.value || undefined,
+          currency: parsedData.currency || "TRY",
+          contractType: parsedData.contractType || undefined,
+          parties: parsedData.parties?.map((party: any) => ({
+            name: party.name,
+            role: party.role || undefined,
+            taxNumber: party.taxNumber || undefined,
+          })) || [],
+          terms: parsedData.terms || undefined,
+          renewalTerms: parsedData.renewalTerms || undefined,
+        };
+        return fields;
+      }
+      default: {
+        return {
+          amount: parsedData.amount || null,
+          date: normalizeDate(parsedData.date),
+        };
+      }
+    }
   }
 
   private detectDocumentType(hint: string, text: string): DocumentParsedType {

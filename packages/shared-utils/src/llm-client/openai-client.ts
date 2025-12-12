@@ -97,5 +97,91 @@ export class OpenAIClient implements LLMClient {
       throw new Error(`AI yanıtı oluşturulurken bir hata oluştu: ${error.message}`);
     }
   }
+
+  async generateJSON<T = any>(input: {
+    systemPrompt?: string;
+    userPrompt: string;
+    jsonSchema?: object;
+    maxTokens?: number;
+  }): Promise<T> {
+    try {
+      const messages: Array<{ role: string; content: string }> = [];
+
+      if (input.systemPrompt) {
+        messages.push({
+          role: "system",
+          content: input.systemPrompt,
+        });
+      }
+
+      // Add JSON schema instruction to user prompt
+      let enhancedPrompt = input.userPrompt;
+      if (input.jsonSchema) {
+        enhancedPrompt += `\n\nLütfen yanıtı şu JSON şemasına uygun olarak döndürün:\n${JSON.stringify(input.jsonSchema, null, 2)}`;
+      } else {
+        enhancedPrompt += "\n\nLütfen yanıtı geçerli bir JSON formatında döndürün.";
+      }
+
+      messages.push({
+        role: "user",
+        content: enhancedPrompt,
+      });
+
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.apiKey}`,
+        },
+        body: JSON.stringify({
+          model: this.model,
+          messages,
+          max_tokens: input.maxTokens || this.maxTokens,
+          temperature: this.temperature,
+          response_format: { type: "json_object" }, // Force JSON mode for GPT-3.5-turbo and GPT-4
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: { message: "Unknown error", type: "parse_error" } }));
+        const errorMessage = errorData.error?.message || response.statusText;
+        const statusCode = response.status;
+        
+        console.error(`[OpenAI Client] API Error (${statusCode}):`, {
+          message: errorMessage,
+          status: statusCode,
+        });
+        
+        throw new Error(`OpenAI API error (${statusCode}): ${errorMessage}`);
+      }
+
+      const data = await response.json();
+      const content = data.choices[0]?.message?.content;
+      
+      if (!content) {
+        console.warn("[OpenAI Client] No content in response:", data);
+        throw new Error("Yanıt alınamadı.");
+      }
+
+      // Parse JSON response
+      try {
+        return JSON.parse(content) as T;
+      } catch (parseError) {
+        console.error("[OpenAI Client] Failed to parse JSON response:", content);
+        throw new Error("JSON yanıtı parse edilemedi.");
+      }
+    } catch (error: any) {
+      console.error("[OpenAI Client] Error generating JSON:", {
+        message: error.message,
+        stack: error.stack,
+      });
+      
+      if (error.message.includes("OpenAI API error") || error.message.includes("JSON")) {
+        throw error;
+      }
+      
+      throw new Error(`AI JSON yanıtı oluşturulurken bir hata oluştu: ${error.message}`);
+    }
+  }
 }
 

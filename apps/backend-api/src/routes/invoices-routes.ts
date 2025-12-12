@@ -57,10 +57,28 @@ router.get(
         clientCompanyId: req.query.clientCompanyId as string | undefined,
       });
 
+      // Parse date filters, handling empty strings and invalid dates
+      let issueDateFrom: Date | undefined;
+      let issueDateTo: Date | undefined;
+      
+      if (req.query.issueDateFrom && typeof req.query.issueDateFrom === "string" && req.query.issueDateFrom.trim() !== "") {
+        const parsedDate = new Date(req.query.issueDateFrom);
+        if (!isNaN(parsedDate.getTime())) {
+          issueDateFrom = parsedDate;
+        }
+      }
+      
+      if (req.query.issueDateTo && typeof req.query.issueDateTo === "string" && req.query.issueDateTo.trim() !== "") {
+        const parsedDate = new Date(req.query.issueDateTo);
+        if (!isNaN(parsedDate.getTime())) {
+          issueDateTo = parsedDate;
+        }
+      }
+
       const filters = {
         clientCompanyId: isolationFilter.clientCompanyId || undefined,
-        issueDateFrom: req.query.issueDateFrom ? new Date(req.query.issueDateFrom as string) : undefined,
-        issueDateTo: req.query.issueDateTo ? new Date(req.query.issueDateTo as string) : undefined,
+        issueDateFrom,
+        issueDateTo,
         type: req.query.type as string | undefined,
         status: req.query.status as string | undefined,
         page: req.query.page ? parseInt(req.query.page as string) : undefined,

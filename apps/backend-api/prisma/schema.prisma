@@ -19,6 +19,7 @@ model User {
   isActive       Boolean   @default(true) @map("is_active")
   platformRole   String?   @map("platform_role") @db.VarChar(50) // PLATFORM_ADMIN, PLATFORM_SUPPORT
   lastLoginAt    DateTime? @map("last_login_at") @db.Timestamptz(6)
+  metadata       Json?     @default("{}")
   createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -50,6 +51,7 @@ model Tenant {
   address   String?  @db.Text
   status    String   @default("ACTIVE") @db.VarChar(50) // ACTIVE, SUSPENDED
   settings  Json?    @default("{}")
+  metadata  Json?    @default("{}")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -195,6 +197,7 @@ model ClientCompany {
   address             String?   @db.Text
   startDate           DateTime? @map("start_date") @db.Timestamptz(6)
   isActive            Boolean   @default(true) @map("is_active")
+  metadata            Json?     @default("{}")
   createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -254,6 +257,7 @@ model Invoice {
   counterpartyTaxNumber String?   @map("counterparty_tax_number") @db.VarChar(50)
   status                String    @default("taslak") @db.VarChar(50) // taslak, kesildi, iptal, muhasebeleştirilmiş
   source                String    @default("manual") @db.VarChar(50) // manual, import, integration
+  metadata              Json?     @default("{}")
   pushedAt              DateTime? @map("pushed_at") @db.Timestamptz(6) // Last time this invoice was pushed to external system
   createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt             DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)

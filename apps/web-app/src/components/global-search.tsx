@@ -116,17 +116,52 @@ export function GlobalSearch() {
       <button
         onClick={() => setIsOpen(true)}
         style={{
-          padding: "8px 12px",
-          border: "1px solid #ddd",
-          borderRadius: "4px",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          padding: "10px 16px",
+          border: "1px solid #e2e8f0",
+          borderRadius: "10px",
           backgroundColor: "white",
           cursor: "pointer",
           fontSize: "14px",
-          color: "#666",
+          fontWeight: 600,
+          color: "#475569",
+          transition: "all 0.2s ease",
+          boxShadow: "0 2px 4px 0 rgba(0, 0, 0, 0.08)",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = "#2563eb";
+          e.currentTarget.style.backgroundColor = "#eff6ff";
+          e.currentTarget.style.color = "#1e40af";
+          e.currentTarget.style.boxShadow = "0 4px 12px -2px rgba(37, 99, 235, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.06)";
+          e.currentTarget.style.transform = "translateY(-1px)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = "#e2e8f0";
+          e.currentTarget.style.backgroundColor = "white";
+          e.currentTarget.style.color = "#475569";
+          e.currentTarget.style.boxShadow = "0 2px 4px 0 rgba(0, 0, 0, 0.08)";
+          e.currentTarget.style.transform = "translateY(0)";
         }}
         title={searchI18n.hint}
       >
-        🔍 Ara
+        <span style={{ fontSize: "16px" }}>🔍</span>
+        <span>Ara</span>
+        <span
+          style={{
+            marginLeft: "4px",
+            padding: "2px 6px",
+            backgroundColor: "#f1f5f9",
+            borderRadius: "4px",
+            fontSize: "11px",
+            fontWeight: 600,
+            color: "#64748b",
+            fontFamily: "monospace",
+          }}
+        >
+          ⌘K
+        </span>
       </button>
     );
   }
@@ -141,51 +176,82 @@ export function GlobalSearch() {
         right: 0,
         bottom: 0,
         backgroundColor: "rgba(0, 0, 0, 0.5)",
+        backdropFilter: "blur(4px)",
         zIndex: 1000,
         display: "flex",
         alignItems: "flex-start",
         justifyContent: "center",
         paddingTop: "100px",
+        animation: "fadeIn 0.2s ease",
       }}
     >
       <div
         style={{
           backgroundColor: "white",
-          borderRadius: "8px",
-          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+          borderRadius: "12px",
+          boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
           width: "90%",
-          maxWidth: "600px",
+          maxWidth: "640px",
           maxHeight: "70vh",
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
+          animation: "slideDown 0.2s ease",
         }}
       >
         {/* Search Input */}
-        <div style={{ padding: "16px", borderBottom: "1px solid #eee" }}>
-          <input
-            ref={inputRef}
-            type="text"
-            placeholder={searchI18n.placeholder}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "16px",
-              outline: "none",
-            }}
-          />
+        <div style={{ padding: "20px", borderBottom: "1px solid #e2e8f0", backgroundColor: "#f8fafc" }}>
+          <div style={{ position: "relative" }}>
+            <input
+              ref={inputRef}
+              type="text"
+              placeholder={searchI18n.placeholder}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "14px 16px 14px 44px",
+                border: "2px solid #e2e8f0",
+                borderRadius: "8px",
+                fontSize: "16px",
+                outline: "none",
+                transition: "all 0.2s ease",
+                backgroundColor: "white",
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = "#2563eb";
+                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37, 99, 235, 0.1)";
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = "#e2e8f0";
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            />
+            <span
+              style={{
+                position: "absolute",
+                left: "16px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                fontSize: "18px",
+              }}
+            >
+              🔍
+            </span>
+          </div>
           <div
             style={{
-              marginTop: "8px",
+              marginTop: "12px",
               fontSize: "12px",
-              color: "#666",
+              color: "#64748b",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
             }}
           >
-            {searchI18n.hint}
+            <span>{searchI18n.hint}</span>
+            <span style={{ color: "#cbd5e1" }}>•</span>
+            <span>ESC ile kapat</span>
           </div>
         </div>
 
@@ -194,20 +260,24 @@ export function GlobalSearch() {
           style={{
             flex: 1,
             overflowY: "auto",
-            padding: "16px",
+            padding: "12px",
+            backgroundColor: "white",
           }}
         >
           {isLoading && debouncedQuery.length >= 2 ? (
-            <div style={{ textAlign: "center", padding: "40px", color: "#666" }}>
-              {searchI18n.loading}
+            <div style={{ textAlign: "center", padding: "60px 40px", color: "#64748b" }}>
+              <div style={{ fontSize: "48px", marginBottom: "16px", animation: "spin 1s linear infinite" }}>⏳</div>
+              <div style={{ fontSize: "14px", fontWeight: 500 }}>{searchI18n.loading}</div>
             </div>
           ) : debouncedQuery.length < 2 ? (
-            <div style={{ textAlign: "center", padding: "40px", color: "#666" }}>
-              {searchI18n.placeholder}
+            <div style={{ textAlign: "center", padding: "60px 40px", color: "#64748b" }}>
+              <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔍</div>
+              <div style={{ fontSize: "14px", fontWeight: 500 }}>{searchI18n.placeholder}</div>
             </div>
           ) : !hasResults ? (
-            <div style={{ textAlign: "center", padding: "40px", color: "#666" }}>
-              {searchI18n.emptyState}
+            <div style={{ textAlign: "center", padding: "60px 40px", color: "#64748b" }}>
+              <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔎</div>
+              <div style={{ fontSize: "14px", fontWeight: 500 }}>{searchI18n.emptyState}</div>
             </div>
           ) : (
             <>
@@ -229,21 +299,24 @@ export function GlobalSearch() {
                       key={client.id}
                       onClick={() => handleResultClick("clients", client.id)}
                       style={{
-                        padding: "8px 12px",
+                        padding: "12px 16px",
                         cursor: "pointer",
-                        borderRadius: "4px",
+                        borderRadius: "8px",
                         marginBottom: "4px",
-                        transition: "background-color 0.2s",
+                        transition: "all 0.2s ease",
+                        border: "1px solid transparent",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#f5f5f5";
+                        e.currentTarget.style.backgroundColor = "#f1f5f9";
+                        e.currentTarget.style.borderColor = "#e2e8f0";
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = "transparent";
+                        e.currentTarget.style.borderColor = "transparent";
                       }}
                     >
-                      <div style={{ fontWeight: 500 }}>{client.name}</div>
-                      <div style={{ fontSize: "12px", color: "#666" }}>
+                      <div style={{ fontWeight: 600, color: "#0f172a", marginBottom: "4px" }}>{client.name}</div>
+                      <div style={{ fontSize: "12px", color: "#64748b" }}>
                         {client.taxNumber}
                       </div>
                     </div>
@@ -269,24 +342,27 @@ export function GlobalSearch() {
                       key={invoice.id}
                       onClick={() => handleResultClick("invoices", invoice.id)}
                       style={{
-                        padding: "8px 12px",
+                        padding: "12px 16px",
                         cursor: "pointer",
-                        borderRadius: "4px",
+                        borderRadius: "8px",
                         marginBottom: "4px",
-                        transition: "background-color 0.2s",
+                        transition: "all 0.2s ease",
+                        border: "1px solid transparent",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#f5f5f5";
+                        e.currentTarget.style.backgroundColor = "#f1f5f9";
+                        e.currentTarget.style.borderColor = "#e2e8f0";
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = "transparent";
+                        e.currentTarget.style.borderColor = "transparent";
                       }}
                     >
-                      <div style={{ fontWeight: 500 }}>
+                      <div style={{ fontWeight: 600, color: "#0f172a", marginBottom: "4px" }}>
                         {invoice.externalId || invoice.id}
                       </div>
                       {invoice.counterpartyName && (
-                        <div style={{ fontSize: "12px", color: "#666" }}>
+                        <div style={{ fontSize: "12px", color: "#64748b" }}>
                           {invoice.counterpartyName}
                         </div>
                       )}
@@ -313,20 +389,23 @@ export function GlobalSearch() {
                       key={doc.id}
                       onClick={() => handleResultClick("documents", doc.id)}
                       style={{
-                        padding: "8px 12px",
+                        padding: "12px 16px",
                         cursor: "pointer",
-                        borderRadius: "4px",
+                        borderRadius: "8px",
                         marginBottom: "4px",
-                        transition: "background-color 0.2s",
+                        transition: "all 0.2s ease",
+                        border: "1px solid transparent",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#f5f5f5";
+                        e.currentTarget.style.backgroundColor = "#f1f5f9";
+                        e.currentTarget.style.borderColor = "#e2e8f0";
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = "transparent";
+                        e.currentTarget.style.borderColor = "transparent";
                       }}
                     >
-                      <div style={{ fontWeight: 500 }}>{doc.originalFileName}</div>
+                      <div style={{ fontWeight: 600, color: "#0f172a" }}>{doc.originalFileName}</div>
                     </div>
                   ))}
                 </div>
@@ -350,21 +429,24 @@ export function GlobalSearch() {
                       key={alert.id}
                       onClick={() => handleResultClick("riskAlerts", alert.id)}
                       style={{
-                        padding: "8px 12px",
+                        padding: "12px 16px",
                         cursor: "pointer",
-                        borderRadius: "4px",
+                        borderRadius: "8px",
                         marginBottom: "4px",
-                        transition: "background-color 0.2s",
+                        transition: "all 0.2s ease",
+                        border: "1px solid transparent",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#f5f5f5";
+                        e.currentTarget.style.backgroundColor = "#f1f5f9";
+                        e.currentTarget.style.borderColor = "#e2e8f0";
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = "transparent";
+                        e.currentTarget.style.borderColor = "transparent";
                       }}
                     >
-                      <div style={{ fontWeight: 500 }}>{alert.title}</div>
-                      <div style={{ fontSize: "12px", color: "#666" }}>
+                      <div style={{ fontWeight: 600, color: "#0f172a", marginBottom: "4px" }}>{alert.title}</div>
+                      <div style={{ fontSize: "12px", color: "#64748b" }}>
                         Şiddet: {alert.severity}
                       </div>
                     </div>
@@ -390,21 +472,24 @@ export function GlobalSearch() {
                       key={report.id}
                       onClick={() => handleResultClick("reports", report.id)}
                       style={{
-                        padding: "8px 12px",
+                        padding: "12px 16px",
                         cursor: "pointer",
-                        borderRadius: "4px",
+                        borderRadius: "8px",
                         marginBottom: "4px",
-                        transition: "background-color 0.2s",
+                        transition: "all 0.2s ease",
+                        border: "1px solid transparent",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#f5f5f5";
+                        e.currentTarget.style.backgroundColor = "#f1f5f9";
+                        e.currentTarget.style.borderColor = "#e2e8f0";
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = "transparent";
+                        e.currentTarget.style.borderColor = "transparent";
                       }}
                     >
-                      <div style={{ fontWeight: 500 }}>{report.reportCode}</div>
-                      <div style={{ fontSize: "12px", color: "#666" }}>
+                      <div style={{ fontWeight: 600, color: "#0f172a", marginBottom: "4px" }}>{report.reportCode}</div>
+                      <div style={{ fontSize: "12px", color: "#64748b" }}>
                         {new Date(report.startedAt).toLocaleDateString("tr-TR")}
                       </div>
                     </div>
@@ -415,6 +500,34 @@ export function GlobalSearch() {
           )}
         </div>
       </div>
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      `}</style>
     </div>
   );
 }

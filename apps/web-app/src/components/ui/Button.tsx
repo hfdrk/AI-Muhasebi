@@ -167,6 +167,7 @@ export function Button({
   return (
     <>
       <button
+        type={asLink ? undefined : (props.type || "button")}
         style={baseStyle}
         className={className}
         disabled={disabled || loading}

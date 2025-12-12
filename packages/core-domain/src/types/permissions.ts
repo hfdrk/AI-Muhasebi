@@ -11,6 +11,7 @@ export type Permission =
   | "invoices:update"
   | "invoices:delete"
   | "invoices:export"
+  | "invoices:manage"
   | "clients:create"
   | "clients:read"
   | "clients:update"
@@ -19,7 +20,9 @@ export type Permission =
   | "risk:configure"
   | "risk:acknowledge"
   | "reports:view"
+  | "reports:read"
   | "reports:create"
+  | "reports:manage"
   | "reports:export"
   | "users:invite"
   | "users:read"
@@ -48,6 +51,7 @@ export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
     "invoices:update",
     "invoices:delete",
     "invoices:export",
+    "invoices:manage",
     "clients:create",
     "clients:read",
     "clients:update",
@@ -56,7 +60,9 @@ export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
     "risk:configure",
     "risk:acknowledge",
     "reports:view",
+    "reports:read",
     "reports:create",
+    "reports:manage",
     "reports:export",
     "users:invite",
     "users:read",
@@ -84,6 +90,7 @@ export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
     "invoices:update",
     "invoices:delete",
     "invoices:export",
+    "invoices:manage",
     "clients:create",
     "clients:read",
     "clients:update",
@@ -92,7 +99,9 @@ export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
     "risk:configure",
     "risk:acknowledge",
     "reports:view",
+    "reports:read",
     "reports:create",
+    "reports:manage",
     "reports:export",
     "users:invite",
     "users:read",
@@ -115,6 +124,7 @@ export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
     "clients:read",
     "users:read",
     "reports:view",
+    "reports:read",
     "tasks:read",
   ],
   // Customer role (ReadOnly) - View-only access

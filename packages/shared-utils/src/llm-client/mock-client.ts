@@ -29,6 +29,19 @@ export class MockLLMClient implements LLMClient {
     // Default mock response
     return `Bu bir örnek yanıttır. Gerçek üretim ortamında burada AI tarafından oluşturulmuş bir yanıt yer alacaktır. Sorunuz: "${input.userPrompt}"`;
   }
+
+  async generateJSON<T = any>(input: {
+    systemPrompt?: string;
+    userPrompt: string;
+    jsonSchema?: object;
+    maxTokens?: number;
+  }): Promise<T> {
+    // Simulate network delay
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Return mock JSON response
+    return {} as T;
+  }
 }
 
 

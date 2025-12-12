@@ -8,6 +8,7 @@ import { riskRecommendationsService } from "../services/risk-recommendations-ser
 import { riskHeatMapService } from "../services/risk-heatmap-service";
 import { riskForecastService } from "../services/risk-forecast-service";
 import { riskExportService } from "../services/risk-export-service";
+import { mlFraudDetectorService } from "../services/ml-fraud-detector-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
 import { requirePermission } from "../middleware/rbac-middleware";
@@ -278,6 +279,40 @@ router.get(
     try {
       const exportData = await riskExportService.getExportData(req.context!.tenantId!);
       res.json({ data: exportData });
+    } catch (error: any) {
+      next(error);
+    }
+  }
+);
+
+// GET /api/v1/risk/ml-fraud/:clientCompanyId
+router.get(
+  "/ml-fraud/:clientCompanyId",
+  requirePermission("clients:read"),
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const fraudScore = await mlFraudDetectorService.calculateFraudScore(
+        req.context!.tenantId!,
+        req.params.clientCompanyId
+      );
+      res.json({ data: fraudScore });
+    } catch (error: any) {
+      next(error);
+    }
+  }
+);
+
+// POST /api/v1/risk/ml-fraud/:clientCompanyId/check
+router.post(
+  "/ml-fraud/:clientCompanyId/check",
+  requirePermission("clients:read"),
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      await mlFraudDetectorService.checkAndAlertFraud(
+        req.context!.tenantId!,
+        req.params.clientCompanyId
+      );
+      res.json({ data: { message: "ML dolandırıcılık kontrolü tamamlandı." } });
     } catch (error: any) {
       next(error);
     }

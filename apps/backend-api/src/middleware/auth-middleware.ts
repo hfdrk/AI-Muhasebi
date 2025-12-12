@@ -46,6 +46,25 @@ export async function authMiddleware(
       throw new AuthenticationError("Kullanıcı bulunamadı veya devre dışı.");
     }
 
+    // Check account lockout status
+    const { securityService } = await import("../services/security-service");
+    const lockoutStatus = await securityService.getAccountLockoutStatus(user.id);
+    if (lockoutStatus.locked) {
+      throw new AuthenticationError(
+        `Hesap geçici olarak kilitlendi. ${lockoutStatus.lockoutUntil ? `Kilit ${new Date(lockoutStatus.lockoutUntil).toLocaleString("tr-TR")} tarihine kadar sürecek.` : ""}`
+      );
+    }
+
+    // Check IP whitelist (optional - can be enabled per tenant)
+    const ipAddress = req.ip || req.socket.remoteAddress;
+    if (decoded.tenantId && ipAddress) {
+      const isWhitelisted = await securityService.isIPWhitelisted(decoded.tenantId, ipAddress, user.id);
+      // IP whitelisting is optional - uncomment to enforce
+      // if (!isWhitelisted) {
+      //   throw new AuthenticationError("IP adresi izin listesinde değil.");
+      // }
+    }
+
     // Attach user to request context
     req.context = {
       user: {

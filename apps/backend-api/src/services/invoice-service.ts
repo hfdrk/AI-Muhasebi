@@ -94,6 +94,7 @@ export class InvoiceService {
         counterpartyTaxNumber: item.counterpartyTaxNumber,
         status: item.status as any,
         source: item.source as any,
+        metadata: item.metadata || {},
         createdAt: item.createdAt,
         updatedAt: item.updatedAt,
       })),

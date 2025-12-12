@@ -7,7 +7,7 @@ export interface FraudPatternResult {
   roundNumberSuspicious: boolean;
   unusualTiming: boolean;
   patterns: Array<{
-    type: "benfords_law" | "round_number" | "unusual_timing";
+    type: "benfords_law" | "round_number" | "unusual_timing" | "circular_transaction" | "vat_pattern" | "invoice_anomaly" | "date_manipulation" | "related_party" | "cross_company";
     severity: "low" | "medium" | "high";
     description: string;
     value?: number;
@@ -279,7 +279,7 @@ export class FraudPatternDetectorService {
     });
 
     const patterns: Array<{
-      type: "benfords_law" | "round_number" | "unusual_timing";
+      type: "benfords_law" | "round_number" | "unusual_timing" | "circular_transaction" | "vat_pattern" | "invoice_anomaly" | "date_manipulation" | "related_party" | "cross_company";
       severity: "low" | "medium" | "high";
       description: string;
       value?: number;
@@ -321,12 +321,447 @@ export class FraudPatternDetectorService {
       }
     }
 
+    // Enhanced government-style fraud detection patterns
+    const invoices = await prisma.invoice.findMany({
+      where: {
+        tenantId,
+        clientCompanyId,
+        issueDate: {
+          gte: twelveMonthsAgo,
+        },
+      },
+      include: {
+        counterparty: true,
+      },
+    });
+
+    // Circular transaction detection (A→B→C→A)
+    const circularPatterns = await this.detectCircularTransactions(tenantId, clientCompanyId, transactions);
+    patterns.push(...circularPatterns);
+
+    // VAT pattern anomalies
+    const vatPatterns = this.detectVATPatternAnomalies(invoices);
+    patterns.push(...vatPatterns);
+
+    // Invoice number sequence anomalies
+    const invoiceAnomalies = this.detectInvoiceNumberAnomalies(invoices);
+    patterns.push(...invoiceAnomalies);
+
+    // Date manipulation detection
+    const dateManipulation = this.detectDateManipulation(invoices, transactions);
+    patterns.push(...dateManipulation);
+
+    // Related party transaction analysis
+    const relatedPartyPatterns = await this.detectRelatedPartyTransactions(tenantId, clientCompanyId, transactions, invoices);
+    patterns.push(...relatedPartyPatterns);
+
+    // Cross-company pattern matching
+    const crossCompanyPatterns = await this.detectCrossCompanyPatterns(tenantId, clientCompanyId, invoices);
+    patterns.push(...crossCompanyPatterns);
+
     return {
       benfordsLawViolation: benfordsResult.violation,
       roundNumberSuspicious: roundNumbers.length > amounts.length * 0.3,
       unusualTiming: timingResult.unusualTiming,
       patterns,
     };
+  }
+
+  /**
+   * Detect circular transactions (A→B→C→A pattern)
+   */
+  private async detectCircularTransactions(
+    tenantId: string,
+    clientCompanyId: string,
+    transactions: Array<{ id: string; counterpartyId: string | null; date: Date; lines: Array<{ debitAmount: number; creditAmount: number }> }>
+  ): Promise<Array<{
+    type: "circular_transaction";
+    severity: "low" | "medium" | "high";
+    description: string;
+    value?: number;
+  }>> {
+    const patterns: Array<{
+      type: "circular_transaction";
+      severity: "low" | "medium" | "high";
+      description: string;
+      value?: number;
+    }> = [];
+
+    // Group transactions by counterparty
+    const counterpartyMap = new Map<string, Array<{ date: Date; amount: number }>>();
+
+    for (const txn of transactions) {
+      if (!txn.counterpartyId) continue;
+
+      const amount = txn.lines.reduce(
+        (sum, line) => sum + Number(line.debitAmount) + Number(line.creditAmount),
+        0
+      );
+
+      if (!counterpartyMap.has(txn.counterpartyId)) {
+        counterpartyMap.set(txn.counterpartyId, []);
+      }
+      counterpartyMap.get(txn.counterpartyId)!.push({ date: txn.date, amount });
+    }
+
+    // Check for circular patterns (simplified: same counterparty with back-and-forth transactions)
+    const counterparties = Array.from(counterpartyMap.entries());
+    for (let i = 0; i < counterparties.length; i++) {
+      const [counterpartyId1, txns1] = counterparties[i];
+      for (let j = i + 1; j < counterparties.length; j++) {
+        const [counterpartyId2, txns2] = counterparties[j];
+
+        // Check if there are transactions between these two counterparties within short time
+        for (const txn1 of txns1) {
+          for (const txn2 of txns2) {
+            const daysDiff = Math.abs((txn1.date.getTime() - txn2.date.getTime()) / (1000 * 60 * 60 * 24));
+            if (daysDiff <= 7 && Math.abs(txn1.amount - txn2.amount) < txn1.amount * 0.1) {
+              // Similar amounts within 7 days - potential circular transaction
+              patterns.push({
+                type: "circular_transaction",
+                severity: "high",
+                description: `Dairesel işlem deseni tespit edildi: Benzer tutarlı işlemler ${daysDiff.toFixed(0)} gün arayla`,
+                value: txn1.amount,
+              });
+            }
+          }
+        }
+      }
+    }
+
+    return patterns;
+  }
+
+  /**
+   * Detect VAT pattern anomalies
+   */
+  private detectVATPatternAnomalies(
+    invoices: Array<{ taxAmount: number | null; totalAmount: number; issueDate: Date }>
+  ): Array<{
+    type: "vat_pattern";
+    severity: "low" | "medium" | "high";
+    description: string;
+    value?: number;
+  }> {
+    const patterns: Array<{
+      type: "vat_pattern";
+      severity: "low" | "medium" | "high";
+      description: string;
+      value?: number;
+    }> = [];
+
+    // Check for unusual VAT rates (Turkish rates: 0%, 1%, 10%, 18%, 20%)
+    const validVATRates = [0, 0.01, 0.10, 0.18, 0.20];
+    const suspiciousVATs: number[] = [];
+
+    for (const invoice of invoices) {
+      if (!invoice.taxAmount || !invoice.totalAmount) continue;
+
+      const netAmount = invoice.totalAmount - invoice.taxAmount;
+      if (netAmount <= 0) continue;
+
+      const vatRate = invoice.taxAmount / netAmount;
+
+      // Check if VAT rate is close to valid rates (within 0.5%)
+      const isValidRate = validVATRates.some((rate) => Math.abs(vatRate - rate) < 0.005);
+
+      if (!isValidRate) {
+        suspiciousVATs.push(vatRate);
+      }
+    }
+
+    if (suspiciousVATs.length > invoices.length * 0.1) {
+      patterns.push({
+        type: "vat_pattern",
+        severity: suspiciousVATs.length > invoices.length * 0.2 ? "high" : "medium",
+        description: `${suspiciousVATs.length} faturada şüpheli KDV oranı tespit edildi (${((suspiciousVATs.length / invoices.length) * 100).toFixed(1)}%)`,
+        value: suspiciousVATs.length,
+      });
+    }
+
+    // Check for consistent rounding patterns (government flag)
+    const roundedAmounts = invoices.filter((inv) => {
+      if (!inv.totalAmount) return false;
+      const rounded = Math.round(inv.totalAmount);
+      return Math.abs(inv.totalAmount - rounded) < 0.01;
+    });
+
+    if (roundedAmounts.length > invoices.length * 0.4) {
+      patterns.push({
+        type: "vat_pattern",
+        severity: "medium",
+        description: `Yüksek oranda yuvarlak tutarlı faturalar tespit edildi (${((roundedAmounts.length / invoices.length) * 100).toFixed(1)}%) - Devlet kontrolü gerektirebilir`,
+        value: roundedAmounts.length,
+      });
+    }
+
+    return patterns;
+  }
+
+  /**
+   * Detect invoice number sequence anomalies
+   */
+  private detectInvoiceNumberAnomalies(
+    invoices: Array<{ invoiceNumber: string | null; issueDate: Date }>
+  ): Array<{
+    type: "invoice_anomaly";
+    severity: "low" | "medium" | "high";
+    description: string;
+    value?: number;
+  }> {
+    const patterns: Array<{
+      type: "invoice_anomaly";
+      severity: "low" | "medium" | "high";
+      description: string;
+      value?: number;
+    }> = [];
+
+    // Sort invoices by date
+    const sortedInvoices = invoices
+      .filter((inv) => inv.invoiceNumber)
+      .sort((a, b) => a.issueDate.getTime() - b.issueDate.getTime());
+
+    if (sortedInvoices.length < 2) return patterns;
+
+    // Check for gaps in invoice number sequences
+    const gaps: number[] = [];
+    for (let i = 1; i < sortedInvoices.length; i++) {
+      const prevNum = this.extractInvoiceNumber(sortedInvoices[i - 1].invoiceNumber!);
+      const currNum = this.extractInvoiceNumber(sortedInvoices[i].invoiceNumber!);
+
+      if (prevNum !== null && currNum !== null && currNum - prevNum > 10) {
+        gaps.push(currNum - prevNum);
+      }
+    }
+
+    if (gaps.length > sortedInvoices.length * 0.1) {
+      patterns.push({
+        type: "invoice_anomaly",
+        severity: "medium",
+        description: `Fatura numarası sırasında ${gaps.length} adet büyük boşluk tespit edildi`,
+        value: gaps.length,
+      });
+    }
+
+    // Check for duplicate invoice numbers
+    const invoiceNumbers = new Map<string, number>();
+    for (const invoice of sortedInvoices) {
+      const num = invoice.invoiceNumber!;
+      invoiceNumbers.set(num, (invoiceNumbers.get(num) || 0) + 1);
+    }
+
+    const duplicates = Array.from(invoiceNumbers.entries()).filter(([, count]) => count > 1);
+    if (duplicates.length > 0) {
+      patterns.push({
+        type: "invoice_anomaly",
+        severity: "high",
+        description: `${duplicates.length} adet tekrar eden fatura numarası tespit edildi`,
+        value: duplicates.length,
+      });
+    }
+
+    return patterns;
+  }
+
+  /**
+   * Extract numeric part from invoice number
+   */
+  private extractInvoiceNumber(invoiceNumber: string): number | null {
+    const match = invoiceNumber.match(/\d+/);
+    return match ? parseInt(match[0], 10) : null;
+  }
+
+  /**
+   * Detect date manipulation
+   */
+  private detectDateManipulation(
+    invoices: Array<{ issueDate: Date; dueDate: Date | null }>,
+    transactions: Array<{ date: Date }>
+  ): Array<{
+    type: "date_manipulation";
+    severity: "low" | "medium" | "high";
+    description: string;
+    value?: number;
+  }> {
+    const patterns: Array<{
+      type: "date_manipulation";
+      severity: "low" | "medium" | "high";
+      description: string;
+      value?: number;
+    }> = [];
+
+    // Check for invoices dated in the future
+    const now = new Date();
+    const futureInvoices = invoices.filter((inv) => inv.issueDate > now);
+    if (futureInvoices.length > 0) {
+      patterns.push({
+        type: "date_manipulation",
+        severity: "high",
+        description: `${futureInvoices.length} adet gelecek tarihli fatura tespit edildi`,
+        value: futureInvoices.length,
+      });
+    }
+
+    // Check for transactions with dates far in the past (potential backdating)
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    const oldTransactions = transactions.filter((txn) => txn.date < oneYearAgo);
+    if (oldTransactions.length > transactions.length * 0.1) {
+      patterns.push({
+        type: "date_manipulation",
+        severity: "medium",
+        description: `${oldTransactions.length} adet eski tarihli işlem tespit edildi (potansiyel geriye dönük kayıt)`,
+        value: oldTransactions.length,
+      });
+    }
+
+    // Check for invoices with due dates before issue dates
+    const invalidDueDates = invoices.filter(
+      (inv) => inv.dueDate && inv.dueDate < inv.issueDate
+    );
+    if (invalidDueDates.length > 0) {
+      patterns.push({
+        type: "date_manipulation",
+        severity: "high",
+        description: `${invalidDueDates.length} adet faturada vade tarihi, fatura tarihinden önce`,
+        value: invalidDueDates.length,
+      });
+    }
+
+    return patterns;
+  }
+
+  /**
+   * Detect related party transactions
+   */
+  private async detectRelatedPartyTransactions(
+    tenantId: string,
+    clientCompanyId: string,
+    transactions: Array<{ counterpartyId: string | null; date: Date }>,
+    invoices: Array<{ counterpartyId: string | null }>
+  ): Promise<Array<{
+    type: "related_party";
+    severity: "low" | "medium" | "high";
+    description: string;
+    value?: number;
+  }>> {
+    const patterns: Array<{
+      type: "related_party";
+      severity: "low" | "medium" | "high";
+      description: string;
+      value?: number;
+    }> = [];
+
+    // Get client company
+    const company = await prisma.clientCompany.findUnique({
+      where: { id: clientCompanyId },
+    });
+
+    if (!company) return patterns;
+
+    // Check for transactions with counterparties that share similar tax numbers or names
+    const counterpartyIds = new Set<string>();
+    transactions.forEach((txn) => {
+      if (txn.counterpartyId) counterpartyIds.add(txn.counterpartyId);
+    });
+    invoices.forEach((inv) => {
+      if (inv.counterpartyId) counterpartyIds.add(inv.counterpartyId);
+    });
+
+    // Check for similar tax numbers (potential related parties)
+    const counterparties = await prisma.counterparty.findMany({
+      where: {
+        id: { in: Array.from(counterpartyIds) },
+        tenantId,
+      },
+    });
+
+    const companyTaxNumber = company.taxNumber || "";
+    const suspiciousCounterparties = counterparties.filter((cp) => {
+      if (!cp.taxNumber) return false;
+      // Check if tax numbers are similar (first 6 digits match - potential related company)
+      return (
+        cp.taxNumber.substring(0, 6) === companyTaxNumber.substring(0, 6) &&
+        cp.taxNumber !== companyTaxNumber
+      );
+    });
+
+    if (suspiciousCounterparties.length > 0) {
+      patterns.push({
+        type: "related_party",
+        severity: "medium",
+        description: `${suspiciousCounterparties.length} adet ilişkili taraf işlemi tespit edildi (benzer vergi numarası)`,
+        value: suspiciousCounterparties.length,
+      });
+    }
+
+    return patterns;
+  }
+
+  /**
+   * Detect cross-company pattern matching
+   */
+  private async detectCrossCompanyPatterns(
+    tenantId: string,
+    clientCompanyId: string,
+    invoices: Array<{ counterpartyId: string | null; totalAmount: number; issueDate: Date }>
+  ): Promise<Array<{
+    type: "cross_company";
+    severity: "low" | "medium" | "high";
+    description: string;
+    value?: number;
+  }>> {
+    const patterns: Array<{
+      type: "cross_company";
+      severity: "low" | "medium" | "high";
+      description: string;
+      value?: number;
+    }> = [];
+
+    // Group invoices by counterparty and check for patterns
+    const counterpartyInvoices = new Map<string, Array<{ amount: number; date: Date }>>();
+
+    for (const invoice of invoices) {
+      if (!invoice.counterpartyId) continue;
+      const key = invoice.counterpartyId;
+      if (!counterpartyInvoices.has(key)) {
+        counterpartyInvoices.set(key, []);
+      }
+      counterpartyInvoices.get(key)!.push({
+        amount: Number(invoice.totalAmount),
+        date: invoice.issueDate,
+      });
+    }
+
+    // Check for counterparties with suspicious patterns (e.g., all invoices same amount)
+    for (const [counterpartyId, invs] of counterpartyInvoices.entries()) {
+      if (invs.length < 3) continue;
+
+      // Check if all amounts are identical (suspicious)
+      const amounts = invs.map((inv) => inv.amount);
+      const uniqueAmounts = new Set(amounts);
+      if (uniqueAmounts.size === 1 && amounts.length >= 5) {
+        patterns.push({
+          type: "cross_company",
+          severity: "high",
+          description: `Aynı tarafla ${amounts.length} adet aynı tutarlı fatura tespit edildi`,
+          value: amounts.length,
+        });
+      }
+
+      // Check for round number pattern
+      const roundAmounts = amounts.filter((amt) => Math.abs(amt - Math.round(amt)) < 0.01);
+      if (roundAmounts.length === amounts.length && amounts.length >= 10) {
+        patterns.push({
+          type: "cross_company",
+          severity: "medium",
+          description: `Tüm faturalar yuvarlak tutarlı (${amounts.length} adet)`,
+          value: amounts.length,
+        });
+      }
+    }
+
+    return patterns;
   }
 
   /**
