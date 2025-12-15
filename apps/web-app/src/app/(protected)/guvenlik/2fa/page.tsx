@@ -7,10 +7,12 @@ import Link from "next/link";
 import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
 import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
+import { toast } from "../../../../lib/toast";
 
 export default function TwoFactorAuthPage() {
   const [verificationToken, setVerificationToken] = useState<string>("");
   const [showBackupCodes, setShowBackupCodes] = useState<boolean>(false);
+  const [disableModal, setDisableModal] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: userData } = useQuery({
@@ -25,11 +27,11 @@ export default function TwoFactorAuthPage() {
   const enable2FAMutation = useMutation({
     mutationFn: () => securityClient.enable2FA(userId),
     onSuccess: (data) => {
-      alert("2FA kurulumu başlatıldı. Lütfen QR kodu tarayın ve doğrulama kodunu girin.");
+      toast.info("2FA kurulumu başlatıldı. Lütfen QR kodu tarayın ve doğrulama kodunu girin.");
       queryClient.invalidateQueries({ queryKey: ["2fa-status"] });
     },
     onError: (error: Error) => {
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 
@@ -43,15 +45,15 @@ export default function TwoFactorAuthPage() {
     },
     onSuccess: (data) => {
       if (data.data.success) {
-        alert("2FA başarıyla etkinleştirildi!");
+        toast.success("2FA başarıyla etkinleştirildi!");
         setVerificationToken("");
         queryClient.invalidateQueries({ queryKey: ["2fa-status"] });
       } else {
-        alert(data.data.message || "Doğrulama başarısız");
+        toast.error(data.data.message || "Doğrulama başarısız");
       }
     },
     onError: (error: Error) => {
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 
@@ -59,17 +61,18 @@ export default function TwoFactorAuthPage() {
   const disable2FAMutation = useMutation({
     mutationFn: () => securityClient.disable2FA(userId),
     onSuccess: () => {
-      alert("2FA devre dışı bırakıldı!");
+      toast.success("2FA devre dışı bırakıldı!");
       queryClient.invalidateQueries({ queryKey: ["2fa-status"] });
     },
     onError: (error: Error) => {
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 
   const twoFactorAuth = enable2FAMutation.data?.data;
 
   return (
+    <PageTransition>
     <div
       style={{
         padding: spacing.xxl,
@@ -391,11 +394,7 @@ export default function TwoFactorAuthPage() {
             </div>
             <Button
               variant="danger"
-              onClick={() => {
-                if (confirm("2FA'yı devre dışı bırakmak istediğinize emin misiniz?")) {
-                  disable2FAMutation.mutate();
-                }
-              }}
+              onClick={() => setDisableModal(true)}
               loading={disable2FAMutation.isPending}
             >
               🔓 2FA'yı Devre Dışı Bırak
@@ -411,7 +410,34 @@ export default function TwoFactorAuthPage() {
           }
         }
       `}</style>
+
+      <Modal
+        isOpen={disableModal}
+        onClose={() => setDisableModal(false)}
+        title="2FA'yı Devre Dışı Bırak"
+        size="sm"
+      >
+        <div style={{ marginBottom: spacing.lg }}>
+          <p>2FA'yı devre dışı bırakmak istediğinize emin misiniz? Bu işlem güvenliğinizi azaltacaktır.</p>
+        </div>
+        <div style={{ display: "flex", gap: spacing.md, justifyContent: "flex-end" }}>
+          <Button variant="outline" onClick={() => setDisableModal(false)}>
+            İptal
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              disable2FAMutation.mutate();
+              setDisableModal(false);
+            }}
+            loading={disable2FAMutation.isPending}
+          >
+            Devre Dışı Bırak
+          </Button>
+        </div>
+      </Modal>
     </div>
+    </PageTransition>
   );
 }
 

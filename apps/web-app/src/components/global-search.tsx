@@ -6,6 +6,9 @@ import { globalSearch } from "@repo/api-client";
 import { search as searchI18n } from "@repo/i18n";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Icon } from "./ui/Icon";
+import { Tooltip } from "./ui/Tooltip";
+import { colors } from "../styles/design-system";
 
 export function GlobalSearch() {
   const router = useRouter();
@@ -113,9 +116,10 @@ export function GlobalSearch() {
 
   if (!isOpen) {
     return (
-      <button
-        onClick={() => setIsOpen(true)}
-        style={{
+      <Tooltip content={searchI18n.hint}>
+        <button
+          onClick={() => setIsOpen(true)}
+          style={{
           display: "flex",
           alignItems: "center",
           gap: "8px",
@@ -146,7 +150,7 @@ export function GlobalSearch() {
         }}
         title={searchI18n.hint}
       >
-        <span style={{ fontSize: "16px" }}>🔍</span>
+        <Icon name="search" size={16} color="currentColor" />
         <span>Ara</span>
         <span
           style={{
@@ -163,6 +167,7 @@ export function GlobalSearch() {
           ⌘K
         </span>
       </button>
+      </Tooltip>
     );
   }
 
@@ -227,17 +232,18 @@ export function GlobalSearch() {
                 e.currentTarget.style.boxShadow = "none";
               }}
             />
-            <span
+            <Icon
+              name="search"
+              size={18}
+              color="#94a3b8"
               style={{
                 position: "absolute",
                 left: "16px",
                 top: "50%",
                 transform: "translateY(-50%)",
-                fontSize: "18px",
+                pointerEvents: "none",
               }}
-            >
-              🔍
-            </span>
+            />
           </div>
           <div
             style={{
@@ -266,7 +272,7 @@ export function GlobalSearch() {
         >
           {isLoading && debouncedQuery.length >= 2 ? (
             <div style={{ textAlign: "center", padding: "60px 40px", color: "#64748b" }}>
-              <div style={{ fontSize: "48px", marginBottom: "16px", animation: "spin 1s linear infinite" }}>⏳</div>
+              <Icon name="search" size={48} color="#64748b" style={{ marginBottom: "16px", display: "block", margin: "0 auto 16px", animation: "spin 1s linear infinite" }} />
               <div style={{ fontSize: "14px", fontWeight: 500 }}>{searchI18n.loading}</div>
             </div>
           ) : debouncedQuery.length < 2 ? (

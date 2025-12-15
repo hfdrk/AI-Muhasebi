@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { colors, spacing } from "@/styles/design-system";
+import { toast } from "@/lib/toast";
 
 const TYPE_LABELS: Record<string, string> = {
   INVOICE: "Fatura",
@@ -78,7 +79,7 @@ export default function ClientDocumentDetailPage() {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error: any) {
-      alert(`Dosya indirilemedi: ${error.message}`);
+      toast.error(`Dosya indirilemedi: ${error.message}`);
     } finally {
       setDownloading(false);
     }

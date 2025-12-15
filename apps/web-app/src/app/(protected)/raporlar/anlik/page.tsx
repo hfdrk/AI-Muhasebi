@@ -484,11 +484,11 @@ export default function OnDemandReportsPage() {
           )}
 
           {reportResult.suggestions && reportResult.suggestions.length > 0 && (
-            <div style={{ marginTop: spacing.xl, padding: spacing.md, backgroundColor: "#f0f9ff", borderRadius: "4px", border: "1px solid #bae6fd" }}>
-              <h3 style={{ fontSize: "16px", fontWeight: 600, marginBottom: spacing.sm, color: "#0369a1" }}>
+            <div style={{ marginTop: spacing.xl, padding: spacing.md, backgroundColor: colors.infoLight, borderRadius: borderRadius.sm, border: `1px solid ${colors.info}` }}>
+              <h3 style={{ fontSize: "16px", fontWeight: 600, marginBottom: spacing.sm, color: colors.info }}>
                 İyileştirme Önerileri
               </h3>
-              <ul style={{ margin: 0, paddingLeft: spacing.lg, color: "#0c4a6e" }}>
+              <ul style={{ margin: 0, paddingLeft: spacing.lg, color: colors.text.primary }}>
                 {reportResult.suggestions.map((suggestion, index) => (
                   <li key={index} style={{ marginBottom: spacing.xs, fontSize: "14px" }}>
                     {suggestion}

@@ -72,3 +72,4 @@ Once the database is running:
 2. ✅ Login will work
 3. ✅ High-risk documents will be visible
 4. ✅ All features will function
+

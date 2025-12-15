@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { colors, spacing } from "@/styles/design-system";
 import Link from "next/link";
+import { toast } from "@/lib/toast";
 
 export default function NewMessagePage() {
   const router = useRouter();
@@ -72,7 +73,7 @@ export default function NewMessagePage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedClientCompanyId && participantUserIds.length === 0) {
-      alert("Lütfen bir müşteri seçin veya katılımcı ekleyin.");
+      toast.warning("Lütfen bir müşteri seçin veya katılımcı ekleyin.");
       return;
     }
     createThreadMutation.mutate();

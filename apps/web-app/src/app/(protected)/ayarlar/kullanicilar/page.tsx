@@ -4,6 +4,11 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listTenantUsers, changeUserRole, updateUserStatus, getCurrentUser } from "@repo/api-client";
 import { InviteUserModal } from "@/components/invite-user-modal";
+import { Card } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { SkeletonTable } from "@/components/ui/Skeleton";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { spacing } from "@/styles/design-system";
 import { settings as settingsTranslations } from "@repo/i18n";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -92,9 +97,14 @@ export default function UsersPage() {
   // Show loading state while fetching user data
   if (isLoadingUser) {
     return (
-      <div style={{ padding: "40px" }}>
-        <p>Yükleniyor...</p>
-      </div>
+      <PageTransition>
+        <Card>
+          <div style={{ padding: spacing.xxl }}>
+            <Skeleton height="40px" width="300px" style={{ marginBottom: spacing.md }} />
+            <Skeleton height="200px" width="100%" />
+          </div>
+        </Card>
+      </PageTransition>
     );
   }
 
@@ -115,7 +125,8 @@ export default function UsersPage() {
   const users = data?.data || [];
 
   return (
-    <div style={{ padding: "40px" }}>
+    <PageTransition>
+      <div style={{ padding: "40px" }}>
       {toastMessage && (
         <div
           style={{
@@ -170,7 +181,11 @@ export default function UsersPage() {
       )}
 
       {isLoading ? (
-        <p>Yükleniyor...</p>
+        <Card>
+          <div style={{ padding: spacing.lg }}>
+            <SkeletonTable rows={5} columns={5} />
+          </div>
+        </Card>
       ) : users.length === 0 ? (
         <p style={{ color: "#666", padding: "20px" }}>Henüz kullanıcı bulunmuyor.</p>
       ) : (
@@ -275,6 +290,7 @@ export default function UsersPage() {
         }}
       />
     </div>
+    </PageTransition>
   );
 }
 

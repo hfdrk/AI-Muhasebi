@@ -30,3 +30,4 @@ CREATE INDEX "retry_queue_type_idx" ON "retry_queue"("type");
 -- AddForeignKey
 ALTER TABLE "retry_queue" ADD CONSTRAINT "retry_queue_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
+

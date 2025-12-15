@@ -55,3 +55,4 @@ const mockReport = reportDemoData.scheduledReports[0];
 - Config values (API keys, secrets) are example values and should not be used in production
 - Turkish language is used for display names and messages to match the application locale
 
+

@@ -1,14 +1,21 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { getTenantDetail, updateTenantStatus } from "@repo/api-client";
+import { Modal } from "../../../../../components/ui/Modal";
+import { Button } from "../../../../../components/ui/Button";
+import { Card } from "../../../../../components/ui/Card";
+import { Skeleton } from "../../../../../components/ui/Skeleton";
+import { PageTransition } from "../../../../../components/ui/PageTransition";
 import { colors, spacing, shadows } from "../../../../../styles/design-system";
+import { toast } from "../../../../../lib/toast";
 
 export default function AdminTenantDetailPage({ params }: { params: Promise<{ tenantId: string }> }) {
   const { tenantId } = use(params);
   const router = useRouter();
+  const [statusModal, setStatusModal] = useState<{ open: boolean; newStatus: "ACTIVE" | "SUSPENDED" | null }>({ open: false, newStatus: null });
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["admin-tenant-detail", tenantId],
@@ -16,20 +23,32 @@ export default function AdminTenantDetailPage({ params }: { params: Promise<{ te
   });
 
   const handleStatusChange = async (newStatus: "ACTIVE" | "SUSPENDED") => {
-    if (!confirm(`Kiracı durumunu "${newStatus === "ACTIVE" ? "Aktif" : "Askıya Alındı"}" olarak değiştirmek istediğinize emin misiniz?`)) {
-      return;
-    }
+    setStatusModal({ open: true, newStatus });
+  };
 
+  const confirmStatusChange = async () => {
+    if (!statusModal.newStatus) return;
     try {
-      await updateTenantStatus(tenantId, newStatus);
+      await updateTenantStatus(tenantId, statusModal.newStatus);
       refetch();
+      toast.success(`Kiracı durumu "${statusModal.newStatus === "ACTIVE" ? "Aktif" : "Askıya Alındı"}" olarak güncellendi.`);
+      setStatusModal({ open: false, newStatus: null });
     } catch (error) {
-      alert("Durum güncellenemedi: " + (error instanceof Error ? error.message : "Bilinmeyen hata"));
+      toast.error("Durum güncellenemedi: " + (error instanceof Error ? error.message : "Bilinmeyen hata"));
     }
   };
 
   if (isLoading) {
-    return <div style={{ textAlign: "center", padding: spacing.xxl }}>Yükleniyor...</div>;
+    return (
+      <PageTransition>
+        <Card>
+          <div style={{ padding: spacing.xxl }}>
+            <Skeleton height="40px" width="300px" style={{ marginBottom: spacing.md }} />
+            <Skeleton height="200px" width="100%" />
+          </div>
+        </Card>
+      </PageTransition>
+    );
   }
 
   if (error || !data) {
@@ -43,7 +62,8 @@ export default function AdminTenantDetailPage({ params }: { params: Promise<{ te
   const tenant = data.data;
 
   return (
-    <div>
+    <PageTransition>
+      <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.xl }}>
         <h1 style={{ margin: 0, fontSize: "28px", fontWeight: 600, color: colors.text.primary }}>
           Kiracı Detayı: {tenant.name}
@@ -245,6 +265,7 @@ export default function AdminTenantDetailPage({ params }: { params: Promise<{ te
         )}
       </div>
     </div>
+    </PageTransition>
   );
 }
 

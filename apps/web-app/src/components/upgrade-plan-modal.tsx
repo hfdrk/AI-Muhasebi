@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateSubscription } from "@repo/api-client";
 import { billing as billingTranslations } from "@repo/i18n";
+import { toast } from "@/lib/toast";
 
 interface UpgradePlanModalProps {
   isOpen: boolean;
@@ -50,7 +51,7 @@ export function UpgradePlanModal({ isOpen, onClose, currentPlan, onSuccess }: Up
       queryClient.invalidateQueries({ queryKey: ["usage"] });
       onClose();
       // Show success message
-      alert("Plan başarıyla güncellendi!");
+      toast.success("Plan başarıyla güncellendi!");
       // Call onSuccess callback if provided
       if (onSuccess) {
         onSuccess();

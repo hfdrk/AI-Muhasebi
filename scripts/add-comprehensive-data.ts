@@ -313,3 +313,4 @@ addComprehensiveData()
   .finally(async () => {
     await prisma.$disconnect();
   });
+

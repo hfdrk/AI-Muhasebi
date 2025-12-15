@@ -7,6 +7,10 @@ import { clients as clientsI18n, common as commonI18n } from "@repo/i18n";
 import { SavedFiltersDropdown } from "../../../components/saved-filters-dropdown";
 // import { useRouter } from "next/navigation"; // Reserved for future use
 import Link from "next/link";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { colors, spacing, typography, borderRadius } from "@/styles/design-system";
 
 export default function ClientsPage() {
   // const router = useRouter(); // Reserved for future use
@@ -85,7 +89,7 @@ export default function ClientsPage() {
             href="/musteriler/new"
             style={{
               padding: "8px 16px",
-              backgroundColor: "#0066cc",
+              backgroundColor: colors.primary,
               color: "white",
               textDecoration: "none",
               borderRadius: "4px",
@@ -152,7 +156,7 @@ export default function ClientsPage() {
                 display: "inline-block",
                 marginTop: "16px",
                 padding: "8px 16px",
-                backgroundColor: "#0066cc",
+                backgroundColor: colors.primary,
                 color: "white",
                 textDecoration: "none",
                 borderRadius: "4px",
@@ -181,7 +185,7 @@ export default function ClientsPage() {
                   <td style={{ padding: "12px" }}>
                     <Link
                       href={`/musteriler/${client.id}`}
-                      style={{ color: "#0066cc", textDecoration: "none" }}
+                      style={{ color: colors.primary, textDecoration: "none" }}
                     >
                       {client.name}
                     </Link>
@@ -193,8 +197,8 @@ export default function ClientsPage() {
                       style={{
                         padding: "4px 8px",
                         borderRadius: "4px",
-                        backgroundColor: client.isActive ? "#d4edda" : "#f8d7da",
-                        color: client.isActive ? "#155724" : "#721c24",
+                        backgroundColor: client.isActive ? colors.successLight : colors.dangerLight,
+                        color: client.isActive ? colors.successDark : colors.dangerDark,
                         fontSize: "12px",
                       }}
                     >
@@ -210,7 +214,7 @@ export default function ClientsPage() {
                         href={`/musteriler/${client.id}/edit`}
                         style={{
                           padding: "4px 8px",
-                          color: "#0066cc",
+                          color: colors.primary,
                           textDecoration: "none",
                           fontSize: "14px",
                         }}

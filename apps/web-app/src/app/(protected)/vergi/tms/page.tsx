@@ -44,11 +44,11 @@ export default function TMSCompliancePage() {
       return taxClient.generateTMSBalanceSheet(selectedClientId, asOfDate);
     },
     onSuccess: (data) => {
-      alert("TMS Bilanço başarıyla oluşturuldu!");
+      toast.success("TMS Bilanço başarıyla oluşturuldu!");
       console.log("Balance Sheet:", data);
     },
     onError: (error: Error) => {
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 
@@ -59,11 +59,11 @@ export default function TMSCompliancePage() {
       return taxClient.generateTMSIncomeStatement(selectedClientId, startDate, endDate);
     },
     onSuccess: (data) => {
-      alert("TMS Gelir Tablosu başarıyla oluşturuldu!");
+      toast.success("TMS Gelir Tablosu başarıyla oluşturuldu!");
       console.log("Income Statement:", data);
     },
     onError: (error: Error) => {
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 

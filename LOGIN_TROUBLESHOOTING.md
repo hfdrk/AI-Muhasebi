@@ -114,3 +114,4 @@ pnpm --filter web-app dev      # Terminal 2
 
 **Still having issues?** Check the backend logs for detailed error messages.
 
+

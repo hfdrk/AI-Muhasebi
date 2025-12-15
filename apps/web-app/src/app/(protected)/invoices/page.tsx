@@ -263,7 +263,7 @@ export default function InvoicesPage() {
               display: "inline-block",
               marginTop: "16px",
               padding: "8px 16px",
-              backgroundColor: "#0066cc",
+              backgroundColor: colors.primary,
               color: "white",
               textDecoration: "none",
               borderRadius: "4px",
@@ -297,7 +297,7 @@ export default function InvoicesPage() {
                   <td style={{ padding: "12px" }}>
                     <Link
                       href={`/faturalar/${invoice.id}`}
-                      style={{ color: "#0066cc", textDecoration: "none" }}
+                      style={{ color: colors.primary, textDecoration: "none" }}
                     >
                       {invoice.externalId || invoice.id.substring(0, 8)}
                     </Link>
@@ -321,8 +321,8 @@ export default function InvoicesPage() {
                       style={{
                         padding: "4px 8px",
                         borderRadius: "4px",
-                        backgroundColor: invoice.status === "kesildi" ? "#d4edda" : "#f8d7da",
-                        color: invoice.status === "kesildi" ? "#155724" : "#721c24",
+                        backgroundColor: invoice.status === "kesildi" ? colors.successLight : colors.dangerLight,
+                        color: invoice.status === "kesildi" ? colors.successDark : colors.dangerDark,
                         fontSize: "12px",
                       }}
                     >
@@ -334,7 +334,7 @@ export default function InvoicesPage() {
                       href={`/faturalar/${invoice.id}/edit`}
                       style={{
                         padding: "4px 8px",
-                        color: "#0066cc",
+                        color: colors.primary,
                         textDecoration: "none",
                         fontSize: "14px",
                       }}

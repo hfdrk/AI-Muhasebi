@@ -7,6 +7,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getInvoice, updateInvoice, listClientCompanies } from "@repo/api-client";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import { Card } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { spacing, colors, borderRadius } from "@/styles/design-system";
 import Link from "next/link";
 
 const invoiceLineSchema = z.object({
@@ -158,9 +162,14 @@ export default function EditInvoicePage() {
 
   if (invoiceLoading) {
     return (
-      <div style={{ padding: "40px" }}>
-        <p>Yükleniyor...</p>
-      </div>
+      <PageTransition>
+        <Card>
+          <div style={{ padding: spacing.xxl }}>
+            <Skeleton height="40px" width="300px" style={{ marginBottom: spacing.md }} />
+            <Skeleton height="200px" width="100%" />
+          </div>
+        </Card>
+      </PageTransition>
     );
   }
 
@@ -183,7 +192,8 @@ export default function EditInvoicePage() {
   }
 
   return (
-    <div style={{ padding: "40px", maxWidth: "1200px" }}>
+    <PageTransition>
+      <div style={{ padding: "40px", maxWidth: "1200px" }}>
       <h1 style={{ marginBottom: "24px" }}>Fatura Düzenle</h1>
 
       <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
@@ -398,7 +408,7 @@ export default function EditInvoicePage() {
               }
               style={{
                 padding: "8px 16px",
-                backgroundColor: "#28a745",
+                backgroundColor: colors.success,
                 color: "white",
                 border: "none",
                 borderRadius: "4px",
@@ -480,7 +490,7 @@ export default function EditInvoicePage() {
                         padding: "4px 8px",
                         border: "1px solid #ddd",
                         borderRadius: "4px",
-                        backgroundColor: "#f5f5f5",
+                        backgroundColor: colors.gray[100],
                       }}
                     />
                   </td>
@@ -516,7 +526,7 @@ export default function EditInvoicePage() {
                         padding: "4px 8px",
                         border: "1px solid #ddd",
                         borderRadius: "4px",
-                        backgroundColor: "#f5f5f5",
+                        backgroundColor: colors.gray[100],
                       }}
                     />
                   </td>
@@ -530,8 +540,8 @@ export default function EditInvoicePage() {
                         }}
                         style={{
                           padding: "4px 8px",
-                          color: "#dc3545",
-                          border: "1px solid #dc3545",
+                          color: colors.danger,
+                          border: `1px solid ${colors.danger}`,
                           borderRadius: "4px",
                           cursor: "pointer",
                           fontSize: "12px",
@@ -551,7 +561,7 @@ export default function EditInvoicePage() {
           )}
         </div>
 
-        <div style={{ display: "flex", justifyContent: "space-between", padding: "16px", backgroundColor: "#f5f5f5", borderRadius: "4px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", padding: "16px", backgroundColor: colors.gray[100], borderRadius: borderRadius.sm }}>
           <div>
             <strong>Toplam Tutar:</strong>{" "}
             {watch("totalAmount")?.toLocaleString("tr-TR", {
@@ -589,7 +599,7 @@ export default function EditInvoicePage() {
             disabled={isSubmitting}
             style={{
               padding: "8px 16px",
-              backgroundColor: "#0066cc",
+              backgroundColor: colors.primary,
               color: "white",
               border: "none",
               borderRadius: "4px",
@@ -602,6 +612,7 @@ export default function EditInvoicePage() {
         </div>
       </form>
     </div>
+    </PageTransition>
   );
 }
 

@@ -85,7 +85,8 @@ export default function ProfilePage() {
   const timezoneValue = watch("timezone");
 
   return (
-    <div style={{ padding: spacing.xxl }}>
+    <PageTransition>
+      <div style={{ padding: spacing.xxl }}>
       <div style={{ marginBottom: spacing.xxl }}>
         <h1 style={{ fontSize: "28px", fontWeight: 600, marginBottom: spacing.sm, color: colors.text.primary }}>
           Profilim
@@ -126,7 +127,12 @@ export default function ProfilePage() {
       )}
 
       {isLoading ? (
-        <div style={{ padding: spacing.xxl, textAlign: "center" }}>Yükleniyor...</div>
+        <Card>
+          <div style={{ padding: spacing.xxl }}>
+            <Skeleton height="40px" width="300px" style={{ marginBottom: spacing.md }} />
+            <Skeleton height="200px" width="100%" />
+          </div>
+        </Card>
       ) : (
         <form onSubmit={handleSubmit(onSubmit)}>
           <div
@@ -317,6 +323,7 @@ export default function ProfilePage() {
         </form>
       )}
     </div>
+    </PageTransition>
   );
 }
 

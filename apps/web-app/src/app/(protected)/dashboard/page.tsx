@@ -9,7 +9,9 @@ import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Table, TableRow, TableCell } from "@/components/ui/Table";
 import { Button } from "@/components/ui/Button";
-import { colors, spacing } from "@/styles/design-system";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { colors, spacing, borderRadius } from "@/styles/design-system";
 
 const STATUS_LABELS: Record<string, string> = {
   taslak: "Taslak",
@@ -163,8 +165,9 @@ export default function DashboardPage() {
   // const totalInvoiceAmount = recentInvoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
 
   return (
-    <div>
-      <PageHeader
+    <PageTransition>
+      <div>
+        <PageHeader
         title="Dashboard"
         subtitle="Genel bakış ve özet bilgiler"
       />
@@ -364,13 +367,13 @@ export default function DashboardPage() {
 
       {/* Missing Documents Summary */}
       {missingDocsData?.data?.data && missingDocsData.data.data.length > 0 && (
-        <Card style={{ marginBottom: spacing.xl, backgroundColor: "#fee2e2", border: "1px solid #dc2626" }}>
+        <Card style={{ marginBottom: spacing.xl, backgroundColor: colors.dangerLight, border: `1px solid ${colors.dangerDark}` }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
-              <p style={{ margin: 0, color: "#dc2626", fontSize: "14px", fontWeight: "bold" }}>
+              <p style={{ margin: 0, color: colors.dangerDark, fontSize: "14px", fontWeight: "bold" }}>
                 Vadesi Geçen Belgeler
               </p>
-              <h3 style={{ margin: `${spacing.xs} 0 0 0`, fontSize: "24px", fontWeight: 600, color: "#dc2626" }}>
+              <h3 style={{ margin: `${spacing.xs} 0 0 0`, fontSize: "24px", fontWeight: 600, color: colors.dangerDark }}>
                 {missingDocsData.data.data.length}
               </h3>
             </div>
@@ -399,7 +402,7 @@ export default function DashboardPage() {
           }
         >
           {invoicesLoading ? (
-            <p style={{ color: colors.text.secondary }}>Yükleniyor...</p>
+            <Skeleton height="20px" width="100%" />
           ) : recentInvoices.length === 0 ? (
             <p style={{ color: colors.text.secondary }}>Henüz fatura bulunmuyor.</p>
           ) : (
@@ -473,7 +476,7 @@ export default function DashboardPage() {
           }
         >
           {transactionsLoading ? (
-            <p style={{ color: colors.text.secondary }}>Yükleniyor...</p>
+            <Skeleton height="20px" width="100%" />
           ) : recentTransactions.length === 0 ? (
             <p style={{ color: colors.text.secondary }}>Henüz işlem bulunmuyor.</p>
           ) : (
@@ -516,7 +519,7 @@ export default function DashboardPage() {
           }
         >
           {customersLoading ? (
-            <p style={{ color: colors.text.secondary }}>Yükleniyor...</p>
+            <Skeleton height="20px" width="100%" />
           ) : recentCustomers.length === 0 ? (
             <p style={{ color: colors.text.secondary }}>Henüz müşteri bulunmuyor.</p>
           ) : (
@@ -570,7 +573,7 @@ export default function DashboardPage() {
           }
         >
           {documentsLoading ? (
-            <p style={{ color: colors.text.secondary }}>Yükleniyor...</p>
+            <Skeleton height="20px" width="100%" />
           ) : recentDocuments.length === 0 ? (
             <div>
               <p style={{ color: colors.text.secondary, marginBottom: spacing.md }}>
@@ -636,5 +639,6 @@ export default function DashboardPage() {
         </Card>
       </div>
     </div>
+    </PageTransition>
   );
 }

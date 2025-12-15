@@ -6,7 +6,10 @@ import { kvkkClient, listTenantUsers } from "@repo/api-client";
 import Link from "next/link";
 import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
+import { Modal } from "../../../../components/ui/Modal";
+import { PageTransition } from "../../../../components/ui/PageTransition";
 import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
+import { toast } from "../../../../lib/toast";
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "Beklemede",
@@ -17,6 +20,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 export default function DataDeletionRequestsPage() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [confirmModal, setConfirmModal] = useState(false);
   const queryClient = useQueryClient();
 
   // Get current tenant
@@ -59,22 +63,17 @@ export default function DataDeletionRequestsPage() {
       return kvkkClient.requestDataDeletion(selectedUserId);
     },
     onSuccess: (data) => {
-      if (
-        confirm(
-          "Veri silme talebi oluşturuldu. Bu işlem geri alınamaz. Devam etmek istediğinize emin misiniz?"
-        )
-      ) {
-        alert("Veri silme talebi başarıyla oluşturuldu!");
-        console.log("Data Deletion Request:", data);
-        queryClient.invalidateQueries({ queryKey: ["kvkk-data-deletion"] });
-      }
+      setConfirmModal(true);
+      console.log("Data Deletion Request:", data);
+      queryClient.invalidateQueries({ queryKey: ["kvkk-data-deletion"] });
     },
     onError: (error: Error) => {
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 
   return (
+    <PageTransition>
     <div
       style={{
         padding: spacing.xxl,
@@ -308,7 +307,33 @@ export default function DataDeletionRequestsPage() {
           }
         }
       `}</style>
+
+      <Modal
+        isOpen={confirmModal}
+        onClose={() => setConfirmModal(false)}
+        title="Veri Silme Talebi Onayı"
+        size="sm"
+      >
+        <div style={{ marginBottom: spacing.lg }}>
+          <p>Veri silme talebi oluşturuldu. Bu işlem geri alınamaz. Devam etmek istediğinize emin misiniz?</p>
+        </div>
+        <div style={{ display: "flex", gap: spacing.md, justifyContent: "flex-end" }}>
+          <Button variant="outline" onClick={() => setConfirmModal(false)}>
+            İptal
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              toast.success("Veri silme talebi başarıyla oluşturuldu!");
+              setConfirmModal(false);
+            }}
+          >
+            Onayla
+          </Button>
+        </div>
+      </Modal>
     </div>
+    </PageTransition>
   );
 }
 

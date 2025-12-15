@@ -6,6 +6,8 @@ import { analyticsClient } from "@repo/api-client";
 import Link from "next/link";
 import { Card } from "../../../components/ui/Card";
 import { Button } from "../../../components/ui/Button";
+import { Skeleton } from "../../../components/ui/Skeleton";
+import { PageTransition } from "../../../components/ui/PageTransition";
 import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../styles/design-system";
 
 export default function AnalyticsDashboardPage() {
@@ -35,8 +37,9 @@ export default function AnalyticsDashboardPage() {
   };
 
   return (
-    <div
-      style={{
+    <PageTransition>
+      <div
+        style={{
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
@@ -160,9 +163,9 @@ export default function AnalyticsDashboardPage() {
                 margin: 0,
               }}
             >
-              Yükleniyor...
+              <Skeleton height="20px" width="100px" />
             </p>
-          </div>
+            </div>
         </Card>
       ) : dashboard ? (
         <>
@@ -676,6 +679,7 @@ export default function AnalyticsDashboardPage() {
         }
       `}</style>
     </div>
+    </PageTransition>
   );
 }
 

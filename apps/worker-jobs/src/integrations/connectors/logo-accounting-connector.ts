@@ -62,3 +62,4 @@ export class LogoAccountingConnector implements AccountingIntegrationConnector {
 }
 
 
+

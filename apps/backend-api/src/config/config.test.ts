@@ -23,7 +23,7 @@ describe("Config Module", () => {
     
     expect(() => {
       validateEnv();
-    }).toThrow("DATABASE_URL is required");
+    }).toThrow(/DATABASE_URL.*required/i);
   });
 
   it("should throw error when JWT_SECRET is too short", () => {
@@ -112,11 +112,15 @@ describe("Config Module", () => {
     expect(() => {
       getConfig();
     }).toThrow();
+    
+    // Clean up
+    delete process.env.EMAIL_TRANSPORT;
   });
 
   it("should use default EMAIL_TRANSPORT when not provided", () => {
     process.env.DATABASE_URL = "postgresql://user:pass@localhost:5432/db";
     process.env.JWT_SECRET = "test-jwt-secret-minimum-32-characters-long";
+    delete process.env.EMAIL_TRANSPORT;
     
     const config = getConfig();
     

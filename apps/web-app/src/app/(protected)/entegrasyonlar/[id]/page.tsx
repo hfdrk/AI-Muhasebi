@@ -13,6 +13,7 @@ import {
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import IntegrationFieldMappingModal from "@/components/integration-field-mapping-modal";
+import { colors, spacing, borderRadius } from "@/styles/design-system";
 
 const STATUS_LABELS: Record<string, string> = {
   connected: "Bağlı",
@@ -52,6 +53,7 @@ export default function IntegrationDetailPage() {
   const queryClient = useQueryClient();
   const integrationId = params.id as string;
   const [isMappingModalOpen, setIsMappingModalOpen] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
 
   const { data: integrationData, isLoading } = useQuery({
     queryKey: ["integration", integrationId],
@@ -124,21 +126,14 @@ export default function IntegrationDetailPage() {
 
   if (isLoading) {
     return (
-      <div style={{ padding: "40px", maxWidth: "1400px", margin: "0 auto" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <div
-            style={{
-              width: "24px",
-              height: "24px",
-              border: "3px solid #e5e7eb",
-              borderTopColor: "#2563eb",
-              borderRadius: "50%",
-              animation: "spin 1s linear infinite",
-            }}
-          />
-          <span style={{ color: "#6b7280", fontSize: "16px" }}>Yükleniyor...</span>
-        </div>
-      </div>
+      <PageTransition>
+        <Card>
+          <div style={{ padding: spacing.xxl }}>
+            <Skeleton height="40px" width="300px" style={{ marginBottom: spacing.md }} />
+            <Skeleton height="200px" width="100%" />
+          </div>
+        </Card>
+      </PageTransition>
     );
   }
 
@@ -146,8 +141,8 @@ export default function IntegrationDetailPage() {
     return (
       <div style={{ padding: "40px", maxWidth: "1400px", margin: "0 auto", textAlign: "center" }}>
         <div style={{ fontSize: "48px", marginBottom: "16px" }}>⚠️</div>
-        <h2 style={{ color: "#111827", marginBottom: "8px" }}>Entegrasyon bulunamadı</h2>
-        <p style={{ color: "#6b7280", marginBottom: "24px" }}>
+        <h2 style={{ color: colors.text.primary, marginBottom: "8px" }}>Entegrasyon bulunamadı</h2>
+        <p style={{ color: colors.text.secondary, marginBottom: "24px" }}>
           Aradığınız entegrasyon mevcut değil veya silinmiş olabilir.
         </p>
         <Link
@@ -155,7 +150,7 @@ export default function IntegrationDetailPage() {
           style={{
             display: "inline-block",
             padding: "12px 24px",
-            backgroundColor: "#2563eb",
+            backgroundColor: colors.primary,
             color: "white",
             textDecoration: "none",
             borderRadius: "8px",
@@ -178,9 +173,7 @@ export default function IntegrationDetailPage() {
   };
 
   const handleDelete = () => {
-    if (confirm("Bu entegrasyonu silmek istediğinize emin misiniz?")) {
-      deleteMutation.mutate();
-    }
+    setDeleteModal(true);
   };
 
   // Add CSS for animations
@@ -200,7 +193,8 @@ export default function IntegrationDetailPage() {
   }
 
   return (
-    <div style={{ padding: "32px", maxWidth: "1400px", margin: "0 auto" }}>
+    <PageTransition>
+      <div style={{ padding: "32px", maxWidth: "1400px", margin: "0 auto" }}>
       {syncNotification && (
         <div
           style={{
@@ -208,8 +202,8 @@ export default function IntegrationDetailPage() {
             top: "20px",
             right: "20px",
             padding: "16px 20px",
-            backgroundColor: syncNotification.type === "success" ? "#d1fae5" : "#fee2e2",
-            color: syncNotification.type === "success" ? "#065f46" : "#991b1b",
+            backgroundColor: syncNotification.type === "success" ? colors.successLight : colors.dangerLight,
+            color: syncNotification.type === "success" ? colors.successDark : colors.dangerDark,
             borderRadius: "8px",
             boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
             zIndex: 1000,
@@ -253,17 +247,17 @@ export default function IntegrationDetailPage() {
             marginBottom: "16px",
             transition: "color 0.2s",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#1d4ed8")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#2563eb")}
+          onMouseEnter={(e) => (e.currentTarget.style.color = colors.primaryDark)}
+          onMouseLeave={(e) => (e.currentTarget.style.color = colors.primary)}
         >
           ← İntegrasyonlara Dön
         </Link>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
-            <h1 style={{ margin: "0 0 8px 0", fontSize: "32px", fontWeight: "700", color: "#111827" }}>
+            <h1 style={{ margin: "0 0 8px 0", fontSize: "32px", fontWeight: "700", color: colors.text.primary }}>
               {integration.displayName}
             </h1>
-            <p style={{ margin: 0, color: "#6b7280", fontSize: "16px" }}>
+            <p style={{ margin: 0, color: colors.text.secondary, fontSize: "16px" }}>
               {provider.name} • {provider.type === "accounting" ? "Muhasebe Sistemi" : "Banka Bağlantısı"}
             </p>
           </div>
@@ -277,31 +271,31 @@ export default function IntegrationDetailPage() {
           style={{
             padding: "24px",
             backgroundColor: "white",
-            border: "1px solid #e5e7eb",
+            border: `1px solid ${colors.border}`,
             borderRadius: "12px",
             boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
           }}
         >
-          <h3 style={{ margin: "0 0 16px 0", fontSize: "18px", fontWeight: "600", color: "#111827" }}>
+          <h3 style={{ margin: "0 0 16px 0", fontSize: "18px", fontWeight: "600", color: colors.text.primary }}>
             Sağlayıcı Bilgileri
           </h3>
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <div>
-              <span style={{ color: "#6b7280", fontSize: "14px", display: "block", marginBottom: "4px" }}>Ad</span>
-              <span style={{ color: "#111827", fontSize: "16px", fontWeight: "500" }}>{provider.name}</span>
+              <span style={{ color: colors.text.secondary, fontSize: "14px", display: "block", marginBottom: "4px" }}>Ad</span>
+              <span style={{ color: colors.text.primary, fontSize: "16px", fontWeight: "500" }}>{provider.name}</span>
             </div>
             <div>
-              <span style={{ color: "#6b7280", fontSize: "14px", display: "block", marginBottom: "4px" }}>Tür</span>
-              <span style={{ color: "#111827", fontSize: "16px", fontWeight: "500" }}>
+              <span style={{ color: colors.text.secondary, fontSize: "14px", display: "block", marginBottom: "4px" }}>Tür</span>
+              <span style={{ color: colors.text.primary, fontSize: "16px", fontWeight: "500" }}>
                 {provider.type === "accounting" ? "Muhasebe" : "Banka"}
               </span>
             </div>
             {provider.description && (
               <div>
-                <span style={{ color: "#6b7280", fontSize: "14px", display: "block", marginBottom: "4px" }}>
+                <span style={{ color: colors.text.secondary, fontSize: "14px", display: "block", marginBottom: "4px" }}>
                   Açıklama
                 </span>
-                <span style={{ color: "#111827", fontSize: "16px" }}>{provider.description}</span>
+                <span style={{ color: colors.text.primary, fontSize: "16px" }}>{provider.description}</span>
               </div>
             )}
           </div>
@@ -312,15 +306,15 @@ export default function IntegrationDetailPage() {
           style={{
             padding: "24px",
             backgroundColor: "white",
-            border: "1px solid #e5e7eb",
+            border: `1px solid ${colors.border}`,
             borderRadius: "12px",
             boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
           }}
         >
-          <h3 style={{ margin: "0 0 16px 0", fontSize: "18px", fontWeight: "600", color: "#111827" }}>Durum</h3>
+          <h3 style={{ margin: "0 0 16px 0", fontSize: "18px", fontWeight: "600", color: colors.text.primary }}>Durum</h3>
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <div>
-              <span style={{ color: "#6b7280", fontSize: "14px", display: "block", marginBottom: "4px" }}>
+              <span style={{ color: colors.text.secondary, fontSize: "14px", display: "block", marginBottom: "4px" }}>
                 Bağlantı Durumu
               </span>
               <span
@@ -348,10 +342,10 @@ export default function IntegrationDetailPage() {
               </span>
             </div>
             <div>
-              <span style={{ color: "#6b7280", fontSize: "14px", display: "block", marginBottom: "4px" }}>
+              <span style={{ color: colors.text.secondary, fontSize: "14px", display: "block", marginBottom: "4px" }}>
                 Son Senkron
               </span>
-              <span style={{ color: "#111827", fontSize: "16px", fontWeight: "500" }}>
+              <span style={{ color: colors.text.primary, fontSize: "16px", fontWeight: "500" }}>
                 {integration.lastSyncAt
                   ? new Date(integration.lastSyncAt).toLocaleString("tr-TR")
                   : "Henüz senkronize edilmedi"}
@@ -359,7 +353,7 @@ export default function IntegrationDetailPage() {
             </div>
             {integration.lastSyncStatus && (
               <div>
-                <span style={{ color: "#6b7280", fontSize: "14px", display: "block", marginBottom: "4px" }}>
+                <span style={{ color: colors.text.secondary, fontSize: "14px", display: "block", marginBottom: "4px" }}>
                   Son Senkron Durumu
                 </span>
                 <span
@@ -402,7 +396,7 @@ export default function IntegrationDetailPage() {
           boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
         }}
       >
-        <h2 style={{ margin: "0 0 16px 0", fontSize: "20px", fontWeight: "600", color: "#111827" }}>
+        <h2 style={{ margin: "0 0 16px 0", fontSize: "20px", fontWeight: "600", color: colors.text.primary }}>
           İşlemler
         </h2>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
@@ -631,8 +625,8 @@ export default function IntegrationDetailPage() {
             style={{
               textAlign: "center",
               padding: "40px",
-              color: "#6b7280",
-              backgroundColor: "#f9fafb",
+              color: colors.text.secondary,
+              backgroundColor: colors.gray[50],
               borderRadius: "8px",
             }}
           >
@@ -642,8 +636,8 @@ export default function IntegrationDetailPage() {
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ borderBottom: "2px solid #e5e7eb" }}>
-                  <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: "#6b7280" }}>
+                <tr style={{ borderBottom: `2px solid ${colors.border}` }}>
+                  <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: colors.text.secondary }}>
                     İşlem Tipi
                   </th>
                   <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: "#6b7280" }}>
@@ -665,17 +659,17 @@ export default function IntegrationDetailPage() {
                   <tr
                     key={job.id}
                     style={{
-                      borderBottom: "1px solid #e5e7eb",
+                      borderBottom: `1px solid ${colors.border}`,
                       transition: "background-color 0.2s",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#f9fafb";
+                      e.currentTarget.style.backgroundColor = colors.gray[50];
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.backgroundColor = "transparent";
                     }}
                   >
-                    <td style={{ padding: "12px", color: "#111827", fontSize: "14px" }}>
+                    <td style={{ padding: "12px", color: colors.text.primary, fontSize: "14px" }}>
                       {JOB_TYPE_LABELS[job.jobType] || job.jobType}
                     </td>
                     <td style={{ padding: "12px" }}>
@@ -690,20 +684,20 @@ export default function IntegrationDetailPage() {
                           gap: "6px",
                           backgroundColor:
                             job.status === "success"
-                              ? "#d1fae5"
+                              ? colors.successLight
                               : job.status === "failed"
-                              ? "#fee2e2"
+                              ? colors.dangerLight
                               : job.status === "in_progress"
-                              ? "#dbeafe"
-                              : "#fef3c7",
+                              ? colors.infoLight
+                              : colors.warningLight,
                           color:
                             job.status === "success"
-                              ? "#065f46"
+                              ? colors.successDark
                               : job.status === "failed"
-                              ? "#991b1b"
+                              ? colors.dangerDark
                               : job.status === "in_progress"
-                              ? "#1e40af"
-                              : "#92400e",
+                              ? colors.primaryDark
+                              : colors.warning,
                         }}
                       >
                         {(job.status === "pending" || job.status === "in_progress") && (
@@ -714,7 +708,7 @@ export default function IntegrationDetailPage() {
                               height: "8px",
                               borderRadius: "50%",
                               backgroundColor:
-                                job.status === "in_progress" ? "#1e40af" : "#92400e",
+                                job.status === "in_progress" ? colors.primaryDark : colors.warning,
                               animation: "pulse 1.5s ease-in-out infinite",
                             }}
                           />
@@ -722,10 +716,10 @@ export default function IntegrationDetailPage() {
                         {JOB_STATUS_LABELS[job.status] || job.status}
                       </span>
                     </td>
-                    <td style={{ padding: "12px", color: "#6b7280", fontSize: "14px" }}>
+                    <td style={{ padding: "12px", color: colors.text.secondary, fontSize: "14px" }}>
                       {job.startedAt ? new Date(job.startedAt).toLocaleString("tr-TR") : "-"}
                     </td>
-                    <td style={{ padding: "12px", color: "#6b7280", fontSize: "14px" }}>
+                    <td style={{ padding: "12px", color: colors.text.secondary, fontSize: "14px" }}>
                       {job.finishedAt ? new Date(job.finishedAt).toLocaleString("tr-TR") : "-"}
                     </td>
                     <td style={{ padding: "12px" }}>
@@ -748,7 +742,7 @@ export default function IntegrationDetailPage() {
           style={{
             padding: "24px",
             backgroundColor: "white",
-            border: "1px solid #e5e7eb",
+            border: `1px solid ${colors.border}`,
             borderRadius: "12px",
             boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
           }}
@@ -761,14 +755,14 @@ export default function IntegrationDetailPage() {
               style={{
                 textAlign: "center",
                 padding: "40px",
-                color: "#6b7280",
-                backgroundColor: "#f9fafb",
+                color: colors.text.secondary,
+                backgroundColor: colors.gray[50],
                 borderRadius: "8px",
               }}
             >
               <p style={{ margin: 0 }}>Henüz günlük kaydı bulunmamaktadır.</p>
               {jobs.some((job: any) => job.status === "pending" || job.status === "in_progress") && (
-                <p style={{ fontSize: "14px", color: "#6b7280", marginTop: "8px" }}>
+                <p style={{ fontSize: "14px", color: colors.text.secondary, marginTop: "8px" }}>
                   <em>Günlükler, senkronizasyon işlemleri tamamlandığında görünecektir.</em>
                 </p>
               )}
@@ -794,11 +788,11 @@ export default function IntegrationDetailPage() {
                     <tr
                       key={log.id}
                       style={{
-                        borderBottom: "1px solid #e5e7eb",
+                        borderBottom: `1px solid ${colors.border}`,
                         transition: "background-color 0.2s",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#f9fafb";
+                        e.currentTarget.style.backgroundColor = colors.gray[50];
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = "transparent";
@@ -854,7 +848,7 @@ export default function IntegrationDetailPage() {
                                 overflow: "auto",
                                 maxHeight: "200px",
                                 fontSize: "12px",
-                                border: "1px solid #e5e7eb",
+                                border: `1px solid ${colors.border}`,
                               }}
                             >
                               {JSON.stringify(log.context, null, 2)}
@@ -862,7 +856,7 @@ export default function IntegrationDetailPage() {
                           </details>
                         )}
                       </td>
-                      <td style={{ padding: "12px", color: "#6b7280", fontSize: "14px" }}>
+                      <td style={{ padding: "12px", color: colors.text.secondary, fontSize: "14px" }}>
                         {new Date(log.createdAt).toLocaleString("tr-TR")}
                       </td>
                     </tr>
@@ -881,7 +875,34 @@ export default function IntegrationDetailPage() {
           tenantId={integration.tenantId}
         />
       )}
+
+      <Modal
+        isOpen={deleteModal}
+        onClose={() => setDeleteModal(false)}
+        title="Entegrasyonu Sil"
+        size="sm"
+      >
+        <div style={{ marginBottom: spacing.lg }}>
+          <p>Bu entegrasyonu silmek istediğinize emin misiniz? Bu işlem geri alınamaz.</p>
+        </div>
+        <div style={{ display: "flex", gap: spacing.md, justifyContent: "flex-end" }}>
+          <Button variant="outline" onClick={() => setDeleteModal(false)}>
+            İptal
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              deleteMutation.mutate();
+              setDeleteModal(false);
+            }}
+            loading={deleteMutation.isPending}
+          >
+            Sil
+          </Button>
+        </div>
+      </Modal>
     </div>
+    </PageTransition>
   );
 }
 

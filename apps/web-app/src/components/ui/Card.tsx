@@ -51,7 +51,7 @@ export function Card({
         borderRadius: borderRadius.lg,
         padding: spacing.lg,
         transition: `all ${transitions.normal} ease`,
-        transform: hoverable && isHovered ? "translateY(-2px)" : "translateY(0)",
+        transform: hoverable && isHovered ? "translateY(-4px) scale(1.01)" : "translateY(0) scale(1)",
         cursor: onClick ? "pointer" : "default",
         ...getVariantStyles(),
         ...style,
@@ -59,6 +59,15 @@ export function Card({
       onMouseEnter={() => hoverable && setIsHovered(true)}
       onMouseLeave={() => hoverable && setIsHovered(false)}
       onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={(e) => {
+        if (onClick && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      aria-label={onClick ? title : undefined}
     >
       {(title || actions) && (
         <div

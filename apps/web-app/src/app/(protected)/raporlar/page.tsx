@@ -3,7 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useMutation } from "@tanstack/react-query";
-import { colors, spacing } from "../../../styles/design-system";
+import { colors, spacing, borderRadius, typography, shadows } from "../../../styles/design-system";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Modal } from "@/components/ui/Modal";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { toast } from "../../../lib/toast";
 
 async function getDailyRiskSummary() {
   const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
@@ -57,7 +62,7 @@ export default function ReportsPage() {
       });
     },
     onError: (error: any) => {
-      alert(error.message || "Şu anda AI servisine ulaşılamıyor. Lütfen daha sonra tekrar deneyin.");
+      toast.error(error.message || "Şu anda AI servisine ulaşılamıyor. Lütfen daha sonra tekrar deneyin.");
     },
   });
 
@@ -71,11 +76,12 @@ export default function ReportsPage() {
       });
     },
     onError: (error: any) => {
-      alert(error.message || "Şu anda AI servisine ulaşılamıyor. Lütfen daha sonra tekrar deneyin.");
+      toast.error(error.message || "Şu anda AI servisine ulaşılamıyor. Lütfen daha sonra tekrar deneyin.");
     },
   });
   return (
-    <div style={{ padding: spacing.xxl }}>
+    <PageTransition>
+      <div style={{ padding: spacing.xxl }}>
       <div style={{ marginBottom: spacing.xxl }}>
         <h1 style={{ fontSize: "28px", fontWeight: 600, marginBottom: spacing.sm, color: colors.text.primary }}>
           Raporlar
@@ -86,167 +92,73 @@ export default function ReportsPage() {
       </div>
 
       {/* AI Summary Panel */}
-      <div
+      <Card
         style={{
           marginBottom: spacing.xl,
-          padding: spacing.lg,
-          backgroundColor: "#f0f9ff",
-          borderRadius: "8px",
-          border: "1px solid #bae6fd",
+          backgroundColor: colors.infoLight,
+          border: `1px solid ${colors.info}`,
         }}
       >
-        <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: spacing.md, color: "#0369a1" }}>
+        <h3 style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, marginBottom: spacing.md, color: colors.info }}>
           AI Özetleri
         </h3>
-        <div style={{ display: "flex", gap: spacing.md }}>
-          <button
+        <div style={{ display: "flex", gap: spacing.md, flexWrap: "wrap" }}>
+          <Button
             onClick={() => dailyRiskMutation.mutate()}
             disabled={dailyRiskMutation.isPending}
-            style={{
-              padding: "10px 20px",
-              backgroundColor: "#007AFF",
-              color: "#fff",
-              border: "none",
-              borderRadius: "6px",
-              cursor: dailyRiskMutation.isPending ? "not-allowed" : "pointer",
-              opacity: dailyRiskMutation.isPending ? 0.6 : 1,
-              fontWeight: 500,
-            }}
+            variant="primary"
+            loading={dailyRiskMutation.isPending}
           >
             {dailyRiskMutation.isPending ? "Oluşturuluyor..." : "Bugünün Risk Özetini Oluştur"}
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => portfolioMutation.mutate()}
             disabled={portfolioMutation.isPending}
-            style={{
-              padding: "10px 20px",
-              backgroundColor: "#007AFF",
-              color: "#fff",
-              border: "none",
-              borderRadius: "6px",
-              cursor: portfolioMutation.isPending ? "not-allowed" : "pointer",
-              opacity: portfolioMutation.isPending ? 0.6 : 1,
-              fontWeight: 500,
-            }}
+            variant="primary"
+            loading={portfolioMutation.isPending}
           >
             {portfolioMutation.isPending ? "Oluşturuluyor..." : "Portföy Özeti Oluştur"}
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: spacing.lg }}>
-        <Link
-          href="/raporlar/anlik"
-          style={{
-            textDecoration: "none",
-            color: "inherit",
-            display: "block",
-            padding: spacing.xl,
-            backgroundColor: colors.white,
-            borderRadius: "8px",
-            border: `1px solid ${colors.border}`,
-            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-            transition: "transform 0.2s ease, box-shadow 0.2s ease",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = "translateY(-2px)";
-            e.currentTarget.style.boxShadow = "0 4px 6px rgba(0,0,0,0.15)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
-          }}
-        >
-          <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: spacing.sm, color: colors.primary }}>
-            Anlık Raporlar
-          </h2>
-          <p style={{ color: colors.text.secondary, fontSize: "14px", lineHeight: 1.6 }}>
-            İstediğiniz zaman finansal özet, risk analizi ve aktivite raporları oluşturun. PDF veya Excel formatında indirin.
-          </p>
+        <Link href="/raporlar/anlik" style={{ textDecoration: "none", color: "inherit" }}>
+          <Card hoverable>
+            <h2 style={{ fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.semibold, marginBottom: spacing.sm, color: colors.primary }}>
+              Anlık Raporlar
+            </h2>
+            <p style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm, lineHeight: 1.6 }}>
+              İstediğiniz zaman finansal özet, risk analizi ve aktivite raporları oluşturun. PDF veya Excel formatında indirin.
+            </p>
+          </Card>
         </Link>
 
-        <Link
-          href="/raporlar/zamanlanmis"
-          style={{
-            textDecoration: "none",
-            color: "inherit",
-            display: "block",
-            padding: spacing.xl,
-            backgroundColor: colors.white,
-            borderRadius: "8px",
-            border: `1px solid ${colors.border}`,
-            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-            transition: "transform 0.2s ease, box-shadow 0.2s ease",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = "translateY(-2px)";
-            e.currentTarget.style.boxShadow = "0 4px 6px rgba(0,0,0,0.15)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
-          }}
-        >
-          <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: spacing.sm, color: colors.primary }}>
-            Zamanlanmış Raporlar
-          </h2>
-          <p style={{ color: colors.text.secondary, fontSize: "14px", lineHeight: 1.6 }}>
-            Raporları otomatik olarak günlük, haftalık veya aylık olarak oluşturun ve e-posta ile gönderin.
-          </p>
+        <Link href="/raporlar/zamanlanmis" style={{ textDecoration: "none", color: "inherit" }}>
+          <Card hoverable>
+            <h2 style={{ fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.semibold, marginBottom: spacing.sm, color: colors.primary }}>
+              Zamanlanmış Raporlar
+            </h2>
+            <p style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm, lineHeight: 1.6 }}>
+              Raporları otomatik olarak günlük, haftalık veya aylık olarak oluşturun ve e-posta ile gönderin.
+            </p>
+          </Card>
         </Link>
       </div>
 
       {/* Summary Modal */}
-      {summaryModal.visible && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-          }}
-          onClick={() => setSummaryModal({ visible: false, title: "", text: "" })}
-        >
-          <div
-            style={{
-              backgroundColor: colors.white,
-              borderRadius: "12px",
-              padding: spacing.xl,
-              maxWidth: "600px",
-              maxHeight: "80vh",
-              overflow: "auto",
-              boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.md }}>
-              <h3 style={{ fontSize: "20px", fontWeight: "600", color: colors.text.primary }}>{summaryModal.title}</h3>
-              <button
-                onClick={() => setSummaryModal({ visible: false, title: "", text: "" })}
-                style={{
-                  background: "none",
-                  border: "none",
-                  fontSize: "24px",
-                  cursor: "pointer",
-                  color: colors.text.secondary,
-                }}
-              >
-                ×
-              </button>
-            </div>
-            <div style={{ color: colors.text.primary, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
-              {summaryModal.text}
-            </div>
-          </div>
+      <Modal
+        isOpen={summaryModal.visible}
+        onClose={() => setSummaryModal({ visible: false, title: "", text: "" })}
+        title={summaryModal.title}
+        size="lg"
+      >
+        <div style={{ color: colors.text.primary, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+          {summaryModal.text}
         </div>
-      )}
+      </Modal>
     </div>
+    </PageTransition>
   );
 }
 

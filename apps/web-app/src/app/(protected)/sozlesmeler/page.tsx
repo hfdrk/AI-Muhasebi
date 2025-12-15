@@ -6,6 +6,8 @@ import { contractClient } from "@repo/api-client";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { SkeletonTable } from "@/components/ui/Skeleton";
+import { Badge } from "@/components/ui/Badge";
 import { colors, spacing } from "@/styles/design-system";
 import Link from "next/link";
 
@@ -35,99 +37,48 @@ function formatCurrency(value: number | null | undefined, currency: string | nul
 function getExpirationStatusBadge(daysUntilExpiration: number | null, isExpired: boolean) {
   if (isExpired) {
     return (
-      <span
-        style={{
-          backgroundColor: colors.error,
-          color: colors.white,
-          padding: "4px 8px",
-          borderRadius: "4px",
-          fontSize: "12px",
-          fontWeight: "bold",
-        }}
-      >
+      <Badge variant="danger" size="sm">
         Süresi Dolmuş
-      </span>
+      </Badge>
     );
   }
 
   if (daysUntilExpiration === null) {
     return (
-      <span
-        style={{
-          backgroundColor: colors.gray[300],
-          color: colors.text.secondary,
-          padding: "4px 8px",
-          borderRadius: "4px",
-          fontSize: "12px",
-        }}
-      >
+      <Badge variant="secondary" size="sm">
         Tarih Belirtilmemiş
-      </span>
+      </Badge>
     );
   }
 
   if (daysUntilExpiration <= 30) {
     return (
-      <span
-        style={{
-          backgroundColor: colors.error,
-          color: colors.white,
-          padding: "4px 8px",
-          borderRadius: "4px",
-          fontSize: "12px",
-          fontWeight: "bold",
-        }}
-      >
+      <Badge variant="danger" size="sm">
         {daysUntilExpiration} gün kaldı (Acil)
-      </span>
+      </Badge>
     );
   }
 
   if (daysUntilExpiration <= 60) {
     return (
-      <span
-        style={{
-          backgroundColor: "#FFA500",
-          color: colors.white,
-          padding: "4px 8px",
-          borderRadius: "4px",
-          fontSize: "12px",
-          fontWeight: "bold",
-        }}
-      >
+      <Badge variant="warning" size="sm">
         {daysUntilExpiration} gün kaldı
-      </span>
+      </Badge>
     );
   }
 
   if (daysUntilExpiration <= 90) {
     return (
-      <span
-        style={{
-          backgroundColor: "#FFD700",
-          color: colors.text.primary,
-          padding: "4px 8px",
-          borderRadius: "4px",
-          fontSize: "12px",
-        }}
-      >
+      <Badge variant="warning" size="sm">
         {daysUntilExpiration} gün kaldı
-      </span>
+      </Badge>
     );
   }
 
   return (
-    <span
-      style={{
-        backgroundColor: colors.success,
-        color: colors.white,
-        padding: "4px 8px",
-        borderRadius: "4px",
-        fontSize: "12px",
-      }}
-    >
+    <Badge variant="success" size="sm">
       {daysUntilExpiration} gün kaldı
-    </span>
+    </Badge>
   );
 }
 
@@ -173,7 +124,7 @@ export default function ContractsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
       queryClient.invalidateQueries({ queryKey: ["contract-summary"] });
-      alert("Sözleşme süresi kontrolü tamamlandı!");
+      toast.success("Sözleşme süresi kontrolü tamamlandı!");
     },
   });
 
@@ -214,7 +165,7 @@ export default function ContractsPage() {
           <Card>
             <div style={{ padding: spacing.md }}>
               <div style={{ fontSize: "14px", color: colors.text.secondary, marginBottom: spacing.xs }}>Yakında Dolacak</div>
-              <div style={{ fontSize: "24px", fontWeight: "bold", color: "#FFA500" }}>{summary.expiringSoon}</div>
+              <div style={{ fontSize: "24px", fontWeight: "bold", color: colors.warning }}>{summary.expiringSoon}</div>
             </div>
           </Card>
           <Card>
@@ -285,7 +236,9 @@ export default function ContractsPage() {
       {/* Contracts List */}
       {isLoading ? (
         <Card>
-          <div style={{ padding: spacing.xl, textAlign: "center", color: colors.text.secondary }}>Yükleniyor...</div>
+          <div style={{ padding: spacing.xl }}>
+            <SkeletonTable rows={5} columns={5} />
+          </div>
         </Card>
       ) : (allError || expiringLoading || expiredLoading) ? (
         <Card>

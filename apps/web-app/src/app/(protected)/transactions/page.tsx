@@ -4,6 +4,10 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { listTransactions, listClientCompanies } from "@repo/api-client";
 import { useSearchParams } from "next/navigation";
+import { Card } from "@/components/ui/Card";
+import { SkeletonTable } from "@/components/ui/Skeleton";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { spacing, colors, borderRadius } from "@/styles/design-system";
 import Link from "next/link";
 
 export default function TransactionsPage() {
@@ -39,7 +43,8 @@ export default function TransactionsPage() {
   const pagination = data?.data || { total: 0, page: 1, pageSize: 20, totalPages: 1 };
 
   return (
-    <div style={{ padding: "40px" }}>
+    <PageTransition>
+      <div style={{ padding: "40px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
         <h1>Mali Hareketler</h1>
         <Link
@@ -136,7 +141,11 @@ export default function TransactionsPage() {
       </div>
 
       {isLoading ? (
-        <p>Yükleniyor...</p>
+        <Card>
+          <div style={{ padding: spacing.lg }}>
+            <SkeletonTable rows={5} columns={6} />
+          </div>
+        </Card>
       ) : transactions.length === 0 ? (
         <div style={{ textAlign: "center", padding: "40px" }}>
           <p>Henüz mali hareket bulunmamaktadır.</p>
@@ -146,7 +155,7 @@ export default function TransactionsPage() {
               display: "inline-block",
               marginTop: "16px",
               padding: "8px 16px",
-              backgroundColor: "#0066cc",
+              backgroundColor: colors.primary,
               color: "white",
               textDecoration: "none",
               borderRadius: "4px",
@@ -177,7 +186,7 @@ export default function TransactionsPage() {
                   <td style={{ padding: "12px" }}>
                     <Link
                       href={`/islemler/${transaction.id}`}
-                      style={{ color: "#0066cc", textDecoration: "none" }}
+                      style={{ color: colors.primary, textDecoration: "none" }}
                     >
                       {transaction.referenceNo || transaction.id.substring(0, 8)}
                     </Link>
@@ -200,7 +209,7 @@ export default function TransactionsPage() {
                       href={`/islemler/${transaction.id}/edit`}
                       style={{
                         padding: "4px 8px",
-                        color: "#0066cc",
+                        color: colors.primary,
                         textDecoration: "none",
                         fontSize: "14px",
                       }}
@@ -249,6 +258,7 @@ export default function TransactionsPage() {
         </>
       )}
     </div>
+    </PageTransition>
   );
 }
 

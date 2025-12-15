@@ -4,6 +4,10 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getIntegration } from "@repo/api-client";
+import { Card } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { spacing } from "@/styles/design-system";
 import IntegrationModal from "@/components/integration-modal";
 
 export default function EditIntegrationPage() {
@@ -43,9 +47,14 @@ export default function EditIntegrationPage() {
 
   if (isLoading) {
     return (
-      <div style={{ padding: "40px", textAlign: "center" }}>
-        Yükleniyor...
-      </div>
+      <PageTransition>
+        <Card>
+          <div style={{ padding: spacing.xxl }}>
+            <Skeleton height="40px" width="300px" style={{ marginBottom: spacing.md }} />
+            <Skeleton height="200px" width="100%" />
+          </div>
+        </Card>
+      </PageTransition>
     );
   }
 

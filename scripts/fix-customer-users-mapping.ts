@@ -155,3 +155,4 @@ fixCustomerUsersMapping()
   .finally(async () => {
     await prisma.$disconnect();
   });
+

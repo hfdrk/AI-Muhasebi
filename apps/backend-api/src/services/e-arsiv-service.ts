@@ -63,7 +63,6 @@ export class EArsivService {
       include: {
         lines: true,
         clientCompany: true,
-        counterparty: true,
       },
     });
 
@@ -191,7 +190,8 @@ export class EArsivService {
     const invoices = await prisma.invoice.findMany({
       where,
       include: {
-        counterparty: true,
+        clientCompany: true,
+        lines: true,
       },
       orderBy: {
         issueDate: "desc",
@@ -235,7 +235,6 @@ export class EArsivService {
       include: {
         lines: true,
         clientCompany: true,
-        counterparty: true,
       },
     });
 

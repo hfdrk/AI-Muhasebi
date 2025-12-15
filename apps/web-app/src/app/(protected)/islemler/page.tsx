@@ -5,6 +5,15 @@ import { useQuery } from "@tanstack/react-query";
 import { listTransactions, listClientCompanies } from "@repo/api-client";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
+import { SkeletonTable } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { TableRow, TableCell } from "@/components/ui/Table";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { colors, spacing, typography } from "@/styles/design-system";
 
 export default function TransactionsPage() {
   const searchParams = useSearchParams();
@@ -39,216 +48,182 @@ export default function TransactionsPage() {
   const pagination = data?.data || { total: 0, page: 1, pageSize: 20, totalPages: 1 };
 
   return (
-    <div style={{ padding: "40px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-        <h1>Mali Hareketler</h1>
-        <Link
-          href="/islemler/new"
-          style={{
-            padding: "8px 16px",
-            backgroundColor: "#0066cc",
-            color: "white",
-            textDecoration: "none",
-            borderRadius: "4px",
-          }}
-        >
+    <PageTransition>
+      <div style={{ padding: spacing.xxl, maxWidth: "1600px", margin: "0 auto" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.xl }}>
+        <div>
+          <h1 style={{ fontSize: typography.fontSize["3xl"], fontWeight: typography.fontWeight.bold, color: colors.text.primary, marginBottom: spacing.sm }}>
+            Mali Hareketler
+          </h1>
+          <p style={{ color: colors.text.secondary, fontSize: typography.fontSize.base }}>
+            Mali hareketlerinizi görüntüleyin ve yönetin
+          </p>
+        </div>
+        <Button asLink href="/islemler/new" variant="primary">
           Yeni Hareket Ekle
-        </Link>
+        </Button>
       </div>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", marginBottom: "24px" }}>
-        <div>
-          <label style={{ display: "block", marginBottom: "4px", fontSize: "14px" }}>Başlangıç Tarihi</label>
-          <input
-            type="date"
-            value={dateFrom}
-            onChange={(e) => {
-              setDateFrom(e.target.value);
-              setPage(1);
-            }}
-            style={{
-              padding: "8px 12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "16px",
-            }}
-          />
+      <Card style={{ marginBottom: spacing.lg }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: spacing.md, padding: spacing.md }}>
+          <div style={{ flex: "1 1 200px" }}>
+            <Input
+              type="date"
+              label="Başlangıç Tarihi"
+              value={dateFrom}
+              onChange={(e) => {
+                setDateFrom(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
+          <div style={{ flex: "1 1 200px" }}>
+            <Input
+              type="date"
+              label="Bitiş Tarihi"
+              value={dateTo}
+              onChange={(e) => {
+                setDateTo(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
+          <div style={{ flex: "1 1 200px" }}>
+            <Input
+              type="text"
+              label="Referans No"
+              value={referenceNo}
+              onChange={(e) => {
+                setReferenceNo(e.target.value);
+                setPage(1);
+              }}
+              placeholder="Referans no ile ara..."
+            />
+          </div>
+          <div style={{ flex: "1 1 200px" }}>
+            <Select
+              label="Müşteri Şirketi"
+              value={clientCompanyId || ""}
+              onChange={(e) => {
+                setClientCompanyId(e.target.value || undefined);
+                setPage(1);
+              }}
+              options={[
+                { value: "", label: "Tümü" },
+                ...((clientsData?.data?.data || []).map((client: any) => ({
+                  value: client.id,
+                  label: client.name,
+                }))),
+              ]}
+            />
+          </div>
         </div>
-        <div>
-          <label style={{ display: "block", marginBottom: "4px", fontSize: "14px" }}>Bitiş Tarihi</label>
-          <input
-            type="date"
-            value={dateTo}
-            onChange={(e) => {
-              setDateTo(e.target.value);
-              setPage(1);
-            }}
-            style={{
-              padding: "8px 12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "16px",
-            }}
-          />
-        </div>
-        <div>
-          <label style={{ display: "block", marginBottom: "4px", fontSize: "14px" }}>Referans No</label>
-          <input
-            type="text"
-            value={referenceNo}
-            onChange={(e) => {
-              setReferenceNo(e.target.value);
-              setPage(1);
-            }}
-            placeholder="Referans no ile ara..."
-            style={{
-              padding: "8px 12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "16px",
-            }}
-          />
-        </div>
-        <div>
-          <label style={{ display: "block", marginBottom: "4px", fontSize: "14px" }}>Müşteri Şirketi</label>
-          <select
-            value={clientCompanyId || ""}
-            onChange={(e) => {
-              setClientCompanyId(e.target.value || undefined);
-              setPage(1);
-            }}
-            style={{
-              padding: "8px 12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "16px",
-              minWidth: "200px",
-            }}
-          >
-            <option value="">Tümü</option>
-            {clientsData?.data.data.map((client) => (
-              <option key={client.id} value={client.id}>
-                {client.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+      </Card>
 
-      {isLoading ? (
-        <p>Yükleniyor...</p>
-      ) : transactions.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "40px" }}>
-          <p>Henüz mali hareket bulunmamaktadır.</p>
-          <Link
-            href="/islemler/new"
-            style={{
-              display: "inline-block",
-              marginTop: "16px",
-              padding: "8px 16px",
-              backgroundColor: "#0066cc",
-              color: "white",
-              textDecoration: "none",
-              borderRadius: "4px",
-            }}
-          >
-            İlk Mali Hareketi Ekle
-          </Link>
-        </div>
-      ) : (
-        <>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ borderBottom: "2px solid #ddd" }}>
-                <th style={{ padding: "12px", textAlign: "left" }}>Tarih</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>Referans No</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>Açıklama</th>
-                <th style={{ padding: "12px", textAlign: "right" }}>Toplam Borç</th>
-                <th style={{ padding: "12px", textAlign: "right" }}>Toplam Alacak</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>İşlemler</th>
-              </tr>
-            </thead>
-            <tbody>
-              {transactions.map((transaction) => (
-                <tr key={transaction.id} style={{ borderBottom: "1px solid #eee" }}>
-                  <td style={{ padding: "12px" }}>
-                    {new Date(transaction.date).toLocaleDateString("tr-TR")}
-                  </td>
-                  <td style={{ padding: "12px" }}>
-                    <Link
-                      href={`/islemler/${transaction.id}`}
-                      style={{ color: "#0066cc", textDecoration: "none" }}
-                    >
-                      {transaction.referenceNo || transaction.id.substring(0, 8)}
-                    </Link>
-                  </td>
-                  <td style={{ padding: "12px" }}>{transaction.description || "-"}</td>
-                  <td style={{ padding: "12px", textAlign: "right" }}>
-                    {transaction.totalDebit?.toLocaleString("tr-TR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    }) || "0.00"}
-                  </td>
-                  <td style={{ padding: "12px", textAlign: "right" }}>
-                    {transaction.totalCredit?.toLocaleString("tr-TR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    }) || "0.00"}
-                  </td>
-                  <td style={{ padding: "12px" }}>
-                    <Link
-                      href={`/islemler/${transaction.id}/edit`}
-                      style={{
-                        padding: "4px 8px",
-                        color: "#0066cc",
-                        textDecoration: "none",
-                        fontSize: "14px",
-                      }}
-                    >
-                      Düzenle
-                    </Link>
-                  </td>
+      <Card>
+        {isLoading ? (
+          <div style={{ padding: spacing.lg }}>
+            <SkeletonTable rows={5} columns={6} />
+          </div>
+        ) : transactions.length === 0 ? (
+          <EmptyState
+            icon="FileX"
+            title="Henüz mali hareket bulunmamaktadır"
+            description="İlk mali hareketinizi ekleyerek başlayın"
+            actionLabel="İlk Mali Hareketi Ekle"
+            onAction={() => window.location.href = "/islemler/new"}
+          />
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ borderBottom: `2px solid ${colors.border}`, backgroundColor: colors.gray[50] }}>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                    Tarih
+                  </th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                    Referans No
+                  </th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                    Açıklama
+                  </th>
+                  <th style={{ padding: spacing.md, textAlign: "right", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                    Toplam Borç
+                  </th>
+                  <th style={{ padding: spacing.md, textAlign: "right", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                    Toplam Alacak
+                  </th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                    İşlemler
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {transactions.map((transaction) => (
+                  <TableRow key={transaction.id}>
+                    <TableCell>
+                      {new Date(transaction.date).toLocaleDateString("tr-TR")}
+                    </TableCell>
+                    <TableCell>
+                      <Link
+                        href={`/islemler/${transaction.id}`}
+                        style={{ color: colors.primary, textDecoration: "none", fontWeight: typography.fontWeight.medium }}
+                      >
+                        {transaction.referenceNo || transaction.id.substring(0, 8)}
+                      </Link>
+                    </TableCell>
+                    <TableCell>{transaction.description || "-"}</TableCell>
+                    <TableCell style={{ textAlign: "right" }}>
+                      {transaction.totalDebit?.toLocaleString("tr-TR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      }) || "0.00"}
+                    </TableCell>
+                    <TableCell style={{ textAlign: "right" }}>
+                      {transaction.totalCredit?.toLocaleString("tr-TR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      }) || "0.00"}
+                    </TableCell>
+                    <TableCell>
+                      <Button asLink href={`/islemler/${transaction.id}/edit`} variant="ghost" size="sm">
+                        Düzenle
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
 
-          {pagination.totalPages > 1 && (
-            <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginTop: "24px" }}>
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                style={{
-                  padding: "8px 16px",
-                  border: "1px solid #ddd",
-                  borderRadius: "4px",
-                  cursor: page === 1 ? "not-allowed" : "pointer",
-                  opacity: page === 1 ? 0.5 : 1,
-                }}
-              >
-                Önceki
-              </button>
-              <span style={{ padding: "8px 16px", display: "flex", alignItems: "center" }}>
-                Sayfa {pagination.page} / {pagination.totalPages}
-              </span>
-              <button
-                onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
-                disabled={page === pagination.totalPages}
-                style={{
-                  padding: "8px 16px",
-                  border: "1px solid #ddd",
-                  borderRadius: "4px",
-                  cursor: page === pagination.totalPages ? "not-allowed" : "pointer",
-                  opacity: page === pagination.totalPages ? 0.5 : 1,
-                }}
-              >
-                Sonraki
-              </button>
-            </div>
-          )}
-        </>
+      {/* Pagination */}
+      {!isLoading && transactions.length > 0 && pagination.totalPages > 1 && (
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: spacing.md, marginTop: spacing.lg }}>
+          <Button
+            variant="outline"
+            onClick={() => setPage(page - 1)}
+            disabled={page === 1}
+            size="sm"
+          >
+            Önceki
+          </Button>
+          <span style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm }}>
+            Sayfa {page} / {pagination.totalPages}
+          </span>
+          <Button
+            variant="outline"
+            onClick={() => setPage(page + 1)}
+            disabled={page === pagination.totalPages}
+            size="sm"
+          >
+            Sonraki
+          </Button>
+        </div>
       )}
-    </div>
+      </div>
+    </PageTransition>
   );
 }
 

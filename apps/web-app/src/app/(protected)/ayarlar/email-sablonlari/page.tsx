@@ -6,7 +6,10 @@ import { emailTemplateClient } from "@repo/api-client";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { PageTransition } from "@/components/ui/PageTransition";
 import { colors, spacing } from "@/styles/design-system";
+import { toast } from "@/lib/toast";
 
 const TEMPLATE_NAMES = [
   { name: "notification", label: "Bildirim Şablonu", description: "Sistem bildirimleri için" },
@@ -46,7 +49,7 @@ export default function EmailTemplatesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["email-templates"] });
       queryClient.invalidateQueries({ queryKey: ["email-template", selectedTemplate] });
-      alert("Şablon başarıyla güncellendi!");
+      toast.success("Şablon başarıyla güncellendi!");
     },
   });
 
@@ -61,14 +64,14 @@ export default function EmailTemplatesPage() {
     mutationFn: () =>
       emailTemplateClient.sendTestEmail(selectedTemplate!, testEmail, `Test: ${selectedTemplate}`),
     onSuccess: () => {
-      alert("Test e-postası gönderildi!");
+      toast.success("Test e-postası gönderildi!");
       setTestEmail("");
     },
   });
 
   const handleSave = () => {
     if (!selectedTemplate || !templateContent.trim()) {
-      alert("Lütfen şablon içeriğini doldurun.");
+      toast.warning("Lütfen şablon içeriğini doldurun.");
       return;
     }
     updateTemplateMutation.mutate(templateContent);
@@ -80,7 +83,7 @@ export default function EmailTemplatesPage() {
 
   const handleSendTest = () => {
     if (!testEmail.trim()) {
-      alert("Lütfen test e-posta adresini girin.");
+      toast.warning("Lütfen test e-posta adresini girin.");
       return;
     }
     testEmailMutation.mutate();
@@ -90,8 +93,9 @@ export default function EmailTemplatesPage() {
   const currentTemplate = templateData?.data;
 
   return (
-    <div>
-      <PageHeader title="E-posta Şablonları" />
+    <PageTransition>
+      <div>
+        <PageHeader title="E-posta Şablonları" />
 
       <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: spacing.lg }}>
         {/* Template List */}
@@ -148,7 +152,10 @@ export default function EmailTemplatesPage() {
             </Card>
           ) : templateLoading ? (
             <Card>
-              <div style={{ padding: spacing.xl, textAlign: "center" }}>Yükleniyor...</div>
+              <div style={{ padding: spacing.xl }}>
+                <Skeleton height="40px" width="100%" style={{ marginBottom: spacing.md }} />
+                <Skeleton height="300px" width="100%" />
+              </div>
             </Card>
           ) : (
             <>
@@ -264,6 +271,7 @@ export default function EmailTemplatesPage() {
         </div>
       </div>
     </div>
+    </PageTransition>
   );
 }
 

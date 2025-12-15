@@ -6,7 +6,10 @@ import { dbOptimizationClient } from "@repo/api-client";
 import Link from "next/link";
 import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
+import { Modal } from "../../../../components/ui/Modal";
+import { PageTransition } from "../../../../components/ui/PageTransition";
 import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
+import { toast } from "../../../../lib/toast";
 
 const IMPACT_COLORS: Record<string, { bg: string; text: string }> = {
   high: { bg: colors.dangerLight, text: colors.dangerDark },
@@ -23,6 +26,7 @@ const TYPE_LABELS: Record<string, string> = {
 
 export default function IndexManagementPage() {
   const queryClient = useQueryClient();
+  const [createAllModal, setCreateAllModal] = useState(false);
 
   // Fetch index recommendations
   const { data: recommendationsData, isLoading: recommendationsLoading } = useQuery({
@@ -36,19 +40,23 @@ export default function IndexManagementPage() {
   const createIndexesMutation = useMutation({
     mutationFn: () => dbOptimizationClient.createRecommendedIndexes(),
     onSuccess: (data) => {
-      alert(
-        `İndeks oluşturma tamamlandı!\nOluşturulan: ${data.data.created}\nAtlanan: ${data.data.skipped}\nHatalar: ${data.data.errors.length}`
-      );
+      const message = `İndeks oluşturma tamamlandı! Oluşturulan: ${data.data.created}, Atlanan: ${data.data.skipped}, Hatalar: ${data.data.errors.length}`;
+      if (data.data.errors.length > 0) {
+        toast.warning(message);
+      } else {
+        toast.success(message);
+      }
       queryClient.invalidateQueries({ queryKey: ["index-recommendations"] });
     },
     onError: (error: Error) => {
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 
   return (
-    <div
-      style={{
+    <PageTransition>
+      <div
+        style={{
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
@@ -117,15 +125,7 @@ export default function IndexManagementPage() {
             </div>
             <Button
               variant="primary"
-              onClick={() => {
-                if (
-                  confirm(
-                    "Tüm önerilen indeksleri oluşturmak istediğinize emin misiniz? Bu işlem biraz zaman alabilir."
-                  )
-                ) {
-                  createIndexesMutation.mutate();
-                }
-              }}
+              onClick={() => setCreateAllModal(true)}
               loading={createIndexesMutation.isPending}
             >
               📑 Tümünü Oluştur
@@ -262,7 +262,33 @@ export default function IndexManagementPage() {
           }
         }
       `}</style>
+
+      <Modal
+        isOpen={createAllModal}
+        onClose={() => setCreateAllModal(false)}
+        title="Tüm İndeksleri Oluştur"
+        size="sm"
+      >
+        <div style={{ marginBottom: spacing.lg }}>
+          <p>Tüm önerilen indeksleri oluşturmak istediğinize emin misiniz? Bu işlem biraz zaman alabilir.</p>
+        </div>
+        <div style={{ display: "flex", gap: spacing.md, justifyContent: "flex-end" }}>
+          <Button variant="outline" onClick={() => setCreateAllModal(false)}>
+            İptal
+          </Button>
+          <Button
+            onClick={() => {
+              createIndexesMutation.mutate();
+              setCreateAllModal(false);
+            }}
+            loading={createIndexesMutation.isPending}
+          >
+            Oluştur
+          </Button>
+        </div>
+      </Modal>
     </div>
+    </PageTransition>
   );
 }
 

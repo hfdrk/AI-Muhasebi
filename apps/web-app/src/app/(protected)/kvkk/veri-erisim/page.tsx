@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
 import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
+import { toast } from "../../../../lib/toast";
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "Beklemede",
@@ -54,12 +55,12 @@ export default function DataAccessRequestsPage() {
       return kvkkClient.requestDataAccess(selectedUserId);
     },
     onSuccess: (data) => {
-      alert("Veri erişim talebi başarıyla oluşturuldu!");
+      toast.success("Veri erişim talebi başarıyla oluşturuldu!");
       console.log("Data Access Request:", data);
       queryClient.invalidateQueries({ queryKey: ["kvkk-data-access"] });
     },
     onError: (error: Error) => {
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 

@@ -10,6 +10,8 @@ import { Card } from "@/components/ui/Card";
 import { Table, TableRow, TableCell } from "@/components/ui/Table";
 import { Select } from "@/components/ui/Select";
 import { DocumentUploadModal } from "@/components/document-upload-modal";
+import { SkeletonTable } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { colors, spacing } from "@/styles/design-system";
 import Link from "next/link";
 
@@ -89,7 +91,8 @@ export default function DocumentsPage() {
   };
 
   return (
-    <div>
+    <PageTransition>
+      <div>
       <PageHeader
         title="Belgeler"
         subtitle="Yüklenen belgeleri görüntüleyin ve yönetin"
@@ -163,18 +166,20 @@ export default function DocumentsPage() {
       {/* Documents Table */}
       <Card>
         {isLoading ? (
-          <p style={{ color: colors.text.secondary }}>{commonI18n.labels.loading}</p>
-        ) : documents.length === 0 ? (
-          <div style={{ textAlign: "center", padding: spacing.xl }}>
-            <p style={{ color: colors.text.secondary, marginBottom: spacing.md }}>
-              {documentsI18n.list.emptyState}
-            </p>
-            {selectedClientId !== "all" && (
-              <Button onClick={() => setDocumentModalOpen(true)} variant="primary">
-                {documentsI18n.list.emptyStateAction}
-              </Button>
-            )}
+          <div style={{ padding: spacing.lg }}>
+            <SkeletonTable rows={5} columns={7} />
           </div>
+        ) : documents.length === 0 ? (
+          <EmptyState
+            icon="FileText"
+            title="Henüz belge bulunmuyor"
+            description={selectedClientId !== "all" 
+              ? "Bu müşteri için henüz belge yüklenmemiş. İlk belgeyi yükleyerek başlayın."
+              : "Henüz hiç belge yüklenmemiş. İlk belgenizi yükleyerek başlayın."}
+            actionLabel={selectedClientId !== "all" ? documentsI18n.list.emptyStateAction : "Belge Yükle"}
+            onAction={() => setDocumentModalOpen(true)}
+            variant="subtle"
+          />
         ) : (
           <>
             <Table
@@ -299,6 +304,7 @@ export default function DocumentsPage() {
         onClose={() => setDocumentModalOpen(false)}
       />
     </div>
+    </PageTransition>
   );
 }
 

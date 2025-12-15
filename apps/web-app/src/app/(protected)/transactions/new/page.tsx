@@ -8,6 +8,7 @@ import { createTransaction, listClientCompanies, listLedgerAccounts } from "@rep
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
+import { colors, spacing, borderRadius } from "@/styles/design-system";
 
 const transactionLineSchema = z.object({
   ledgerAccountId: z.string().min(1, "Hesap seçilmelidir."),
@@ -241,7 +242,7 @@ export default function NewTransactionPage() {
               }
               style={{
                 padding: "8px 16px",
-                backgroundColor: "#28a745",
+                backgroundColor: colors.success,
                 color: "white",
                 border: "none",
                 borderRadius: "4px",
@@ -337,8 +338,8 @@ export default function NewTransactionPage() {
                           onClick={() => remove(index)}
                           style={{
                             padding: "4px 8px",
-                            color: "#dc3545",
-                            border: "1px solid #dc3545",
+                            color: colors.danger,
+                            border: `1px solid ${colors.danger}`,
                             borderRadius: "4px",
                             cursor: "pointer",
                             fontSize: "12px",
@@ -360,7 +361,7 @@ export default function NewTransactionPage() {
             </p>
           )}
 
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: "16px", padding: "16px", backgroundColor: "#f5f5f5", borderRadius: "4px" }}>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: "16px", padding: "16px", backgroundColor: colors.gray[100], borderRadius: borderRadius.sm }}>
             <div>
               <strong>Toplam Borç:</strong>{" "}
               {totals.totalDebit.toLocaleString("tr-TR", {
@@ -377,7 +378,7 @@ export default function NewTransactionPage() {
             </div>
             <div
               style={{
-                color: Math.abs(totals.totalDebit - totals.totalCredit) < 0.01 ? "#28a745" : "#dc3545",
+                color: Math.abs(totals.totalDebit - totals.totalCredit) < 0.01 ? colors.success : colors.danger,
                 fontWeight: "bold",
               }}
             >
@@ -395,7 +396,7 @@ export default function NewTransactionPage() {
             href="/islemler"
             style={{
               padding: "8px 16px",
-              backgroundColor: "#f5f5f5",
+              backgroundColor: colors.gray[100],
               border: "1px solid #ddd",
               borderRadius: "4px",
               textDecoration: "none",
@@ -409,7 +410,7 @@ export default function NewTransactionPage() {
             disabled={isSubmitting || Math.abs(totals.totalDebit - totals.totalCredit) >= 0.01}
             style={{
               padding: "8px 16px",
-              backgroundColor: "#0066cc",
+              backgroundColor: colors.primary,
               color: "white",
               border: "none",
               borderRadius: "4px",

@@ -5,6 +5,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { getCurrentUser, switchTenant } from "@repo/api-client";
 import { useRouter } from "next/navigation";
 import { colors, spacing, shadows, borderRadius, transitions, zIndex, typography } from "../styles/design-system";
+import { Icon } from "./ui/Icon";
+import { Tooltip } from "./ui/Tooltip";
 
 export function TenantSwitcher() {
   const router = useRouter();
@@ -61,9 +63,10 @@ export function TenantSwitcher() {
 
   return (
     <div style={{ position: "relative" }} data-tenant-switcher>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        style={{
+      <Tooltip content="Şirket / Ofis Değiştir">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          style={{
           padding: "10px 14px",
           backgroundColor: isOpen ? colors.primaryLighter : colors.gray[50],
           border: `1px solid ${isOpen ? colors.primary : colors.border}`,
@@ -109,6 +112,7 @@ export function TenantSwitcher() {
           ▼
         </span>
       </button>
+      </Tooltip>
 
       {isOpen && (
         <>
@@ -190,7 +194,7 @@ export function TenantSwitcher() {
                       }
                     }}
                   >
-                    <span style={{ fontSize: "18px" }}>🏢</span>
+                    <Icon name="building" size={18} color={isActive ? colors.primary : colors.text.primary} />
                     <span
                       style={{
                         flex: 1,

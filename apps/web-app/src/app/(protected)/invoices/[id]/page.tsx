@@ -4,6 +4,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getInvoice, updateInvoiceStatus } from "@repo/api-client";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useState } from "react";
+import { Modal } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { Card } from "@/components/ui/Card";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { spacing, colors, borderRadius } from "@/styles/design-system";
 
 const STATUS_LABELS: Record<string, string> = {
   taslak: "Taslak",
@@ -21,6 +28,7 @@ export default function InvoiceDetailPage() {
   const params = useParams();
   const invoiceId = params.id as string;
   const queryClient = useQueryClient();
+  const [cancelModal, setCancelModal] = useState(false);
 
   const { data: invoice, isLoading } = useQuery({
     queryKey: ["invoice", invoiceId],
@@ -38,16 +46,19 @@ export default function InvoiceDetailPage() {
   });
 
   const handleCancelInvoice = () => {
-    if (confirm("Bu faturayı iptal etmek istediğinize emin misiniz?")) {
-      statusMutation.mutate("iptal");
-    }
+    setCancelModal(true);
   };
 
   if (isLoading) {
     return (
-      <div style={{ padding: "40px" }}>
-        <p>Yükleniyor...</p>
-      </div>
+      <PageTransition>
+        <Card>
+          <div style={{ padding: spacing.xxl }}>
+            <Skeleton height="40px" width="300px" style={{ marginBottom: spacing.md }} />
+            <Skeleton height="200px" width="100%" />
+          </div>
+        </Card>
+      </PageTransition>
     );
   }
 
@@ -64,7 +75,8 @@ export default function InvoiceDetailPage() {
   const canEdit = invoiceData.status === "taslak";
 
   return (
-    <div style={{ padding: "40px", maxWidth: "1200px" }}>
+    <PageTransition>
+      <div style={{ padding: "40px", maxWidth: "1200px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
         <h1>Fatura Detayı</h1>
         <div style={{ display: "flex", gap: "8px" }}>
@@ -73,7 +85,7 @@ export default function InvoiceDetailPage() {
               href={`/invoices/${invoiceId}/edit`}
               style={{
                 padding: "8px 16px",
-                backgroundColor: "#0066cc",
+                backgroundColor: colors.primary,
                 color: "white",
                 textDecoration: "none",
                 borderRadius: "4px",
@@ -88,7 +100,7 @@ export default function InvoiceDetailPage() {
               disabled={statusMutation.isPending}
               style={{
                 padding: "8px 16px",
-                backgroundColor: "#dc3545",
+                backgroundColor: colors.danger,
                 color: "white",
                 border: "none",
                 borderRadius: "4px",
@@ -103,7 +115,7 @@ export default function InvoiceDetailPage() {
             href="/faturalar"
             style={{
               padding: "8px 16px",
-              backgroundColor: "#f5f5f5",
+              backgroundColor: colors.gray[100],
               color: "inherit",
               textDecoration: "none",
               borderRadius: "4px",
@@ -127,8 +139,8 @@ export default function InvoiceDetailPage() {
             style={{
               padding: "4px 8px",
               borderRadius: "4px",
-              backgroundColor: invoiceData.status === "kesildi" ? "#d4edda" : "#f8d7da",
-              color: invoiceData.status === "kesildi" ? "#155724" : "#721c24",
+              backgroundColor: invoiceData.status === "kesildi" ? colors.successLight : colors.dangerLight,
+              color: invoiceData.status === "kesildi" ? colors.successDark : colors.dangerDark,
               fontSize: "12px",
             }}
           >
@@ -208,7 +220,7 @@ export default function InvoiceDetailPage() {
         </table>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "flex-end", padding: "16px", backgroundColor: "#f5f5f5", borderRadius: "4px" }}>
+      <div style={{ display: "flex", justifyContent: "flex-end", padding: "16px", backgroundColor: colors.gray[100], borderRadius: borderRadius.sm }}>
         <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "300px" }}>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <strong>Net Tutar:</strong>{" "}
@@ -236,7 +248,34 @@ export default function InvoiceDetailPage() {
           </div>
         </div>
       </div>
+
+      <Modal
+        isOpen={cancelModal}
+        onClose={() => setCancelModal(false)}
+        title="Faturayı İptal Et"
+        size="sm"
+      >
+        <div style={{ marginBottom: spacing.lg }}>
+          <p>Bu faturayı iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz.</p>
+        </div>
+        <div style={{ display: "flex", gap: spacing.md, justifyContent: "flex-end" }}>
+          <Button variant="outline" onClick={() => setCancelModal(false)}>
+            İptal
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              statusMutation.mutate("iptal");
+              setCancelModal(false);
+            }}
+            loading={statusMutation.isPending}
+          >
+            İptal Et
+          </Button>
+        </div>
+      </Modal>
     </div>
+    </PageTransition>
   );
 }
 

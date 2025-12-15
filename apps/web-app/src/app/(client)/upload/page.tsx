@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { colors, spacing } from "@/styles/design-system";
+import { toast } from "@/lib/toast";
 
 export default function ClientUploadPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -37,14 +38,14 @@ export default function ClientUploadPage() {
       // Validate file type
       const allowedTypes = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
       if (!allowedTypes.includes(file.type)) {
-        alert("Lütfen PDF veya resim dosyası seçin (PDF, JPG, PNG)");
+        toast.warning("Lütfen PDF veya resim dosyası seçin (PDF, JPG, PNG)");
         return;
       }
 
       // Validate file size (20MB max)
       const maxSize = 20 * 1024 * 1024; // 20MB
       if (file.size > maxSize) {
-        alert("Dosya boyutu 20MB'dan küçük olmalıdır");
+        toast.warning("Dosya boyutu 20MB'dan küçük olmalıdır");
         return;
       }
 

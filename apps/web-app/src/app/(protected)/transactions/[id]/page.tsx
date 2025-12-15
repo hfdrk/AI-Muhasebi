@@ -3,14 +3,19 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getTransaction, deleteTransaction } from "@repo/api-client";
 import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 import Link from "next/link";
+import { Modal } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { spacing, colors } from "@/styles/design-system";
 
 export default function TransactionDetailPage() {
   const params = useParams();
   const router = useRouter();
   const transactionId = params.id as string;
   const queryClient = useQueryClient();
-  // const [showDeleteConfirm, setShowDeleteConfirm] = useState(false); // Reserved for future use
+  const [deleteModal, setDeleteModal] = useState(false);
 
   const { data: transaction, isLoading } = useQuery({
     queryKey: ["transaction", transactionId],
@@ -27,16 +32,19 @@ export default function TransactionDetailPage() {
   });
 
   const handleDelete = () => {
-    if (confirm("Bu mali hareketi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.")) {
-      deleteMutation.mutate();
-    }
+    setDeleteModal(true);
   };
 
   if (isLoading) {
     return (
-      <div style={{ padding: "40px" }}>
-        <p>Yükleniyor...</p>
-      </div>
+      <PageTransition>
+        <Card>
+          <div style={{ padding: spacing.xxl }}>
+            <Skeleton height="40px" width="300px" style={{ marginBottom: spacing.md }} />
+            <Skeleton height="200px" width="100%" />
+          </div>
+        </Card>
+      </PageTransition>
     );
   }
 
@@ -54,7 +62,8 @@ export default function TransactionDetailPage() {
   const totalCredit = transactionData.lines?.reduce((sum, line) => sum + line.creditAmount, 0) || 0;
 
   return (
-    <div style={{ padding: "40px", maxWidth: "1200px" }}>
+    <PageTransition>
+      <div style={{ padding: "40px", maxWidth: "1200px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
         <h1>Mali Hareket Detayı</h1>
         <div style={{ display: "flex", gap: "8px" }}>
@@ -62,7 +71,7 @@ export default function TransactionDetailPage() {
             href={`/transactions/${transactionId}/edit`}
             style={{
               padding: "8px 16px",
-              backgroundColor: "#0066cc",
+              backgroundColor: colors.primary,
               color: "white",
               textDecoration: "none",
               borderRadius: "4px",
@@ -75,7 +84,7 @@ export default function TransactionDetailPage() {
             disabled={deleteMutation.isPending}
             style={{
               padding: "8px 16px",
-              backgroundColor: "#dc3545",
+              backgroundColor: colors.danger,
               color: "white",
               border: "none",
               borderRadius: "4px",
@@ -89,7 +98,7 @@ export default function TransactionDetailPage() {
             href="/islemler"
             style={{
               padding: "8px 16px",
-              backgroundColor: "#f5f5f5",
+              backgroundColor: colors.gray[100],
               color: "inherit",
               textDecoration: "none",
               borderRadius: "4px",
@@ -175,16 +184,43 @@ export default function TransactionDetailPage() {
               </td>
               <td style={{ padding: "12px" }}>
                 {Math.abs(totalDebit - totalCredit) < 0.01 ? (
-                  <span style={{ color: "#28a745" }}>✓ Dengeli</span>
+                  <span style={{ color: colors.success }}>✓ Dengeli</span>
                 ) : (
-                  <span style={{ color: "#dc3545" }}>✗ Dengesiz</span>
+                  <span style={{ color: colors.danger }}>✗ Dengesiz</span>
                 )}
               </td>
             </tr>
           </tfoot>
         </table>
       </div>
+
+      <Modal
+        isOpen={deleteModal}
+        onClose={() => setDeleteModal(false)}
+        title="Mali Hareketi Sil"
+        size="sm"
+      >
+        <div style={{ marginBottom: spacing.lg }}>
+          <p>Bu mali hareketi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.</p>
+        </div>
+        <div style={{ display: "flex", gap: spacing.md, justifyContent: "flex-end" }}>
+          <Button variant="outline" onClick={() => setDeleteModal(false)}>
+            İptal
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              deleteMutation.mutate();
+              setDeleteModal(false);
+            }}
+            loading={deleteMutation.isPending}
+          >
+            Sil
+          </Button>
+        </div>
+      </Modal>
     </div>
+    </PageTransition>
   );
 }
 

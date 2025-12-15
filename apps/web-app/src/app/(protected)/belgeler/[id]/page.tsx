@@ -7,6 +7,12 @@ import Link from "next/link";
 import { useState } from "react";
 import { useDocumentRiskScore } from "@/hooks/use-risk";
 import { Button } from "@/components/ui/Button";
+import { Modal } from "@/components/ui/Modal";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { Tabs } from "@/components/ui/Tabs";
+import { Badge } from "@/components/ui/Badge";
+import { toast } from "@/lib/toast";
+import { colors, spacing, borderRadius, typography } from "@/styles/design-system";
 
 const TYPE_LABELS: Record<string, string> = {
   INVOICE: "Fatura",
@@ -27,7 +33,7 @@ export default function DocumentDetailPage() {
   const router = useRouter();
   const documentId = params.id as string;
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"details" | "ai" | "risk">("details");
+  const [deleteModal, setDeleteModal] = useState(false);
 
   const { data: document, isLoading } = useQuery({
     queryKey: ["document", documentId],
@@ -64,7 +70,8 @@ export default function DocumentDetailPage() {
         const url = window.URL.createObjectURL(blob);
         const a = window.document.createElement("a");
         a.href = url;
-        a.download = documentData.originalFileName || `document-${documentId}`;
+        const fileName = document?.data?.originalFileName || `document-${documentId}`;
+        a.download = fileName;
         window.document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
@@ -72,14 +79,15 @@ export default function DocumentDetailPage() {
         if (a.parentNode) {
           a.parentNode.removeChild(a);
         }
+        toast.success("Dosya başarıyla indirildi.");
       } catch (error) {
         console.error("Error downloading file:", error);
-        alert("Dosya indirilirken bir hata oluştu.");
+        toast.error("Dosya indirilirken bir hata oluştu.");
       }
     },
     onError: (error: Error) => {
       console.error("Download error:", error);
-      alert(`Dosya indirilemedi: ${error.message}`);
+      toast.error(`Dosya indirilemedi: ${error.message}`);
     },
   });
 
@@ -87,23 +95,37 @@ export default function DocumentDetailPage() {
     mutationFn: (id: string) => retryDocumentProcessing(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["document", documentId] });
-      alert("Belge yeniden işleme için kuyruğa eklendi. İşlem birkaç dakika içinde başlayacak.");
+      toast.success("Belge yeniden işleme için kuyruğa eklendi. İşlem birkaç dakika içinde başlayacak.");
     },
     onError: (error: Error) => {
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 
   const handleDelete = () => {
-    if (confirm("Bu belgeyi silmek istediğinize emin misiniz?")) {
-      deleteMutation.mutate(documentId);
-    }
+    setDeleteModal(true);
   };
 
   if (isLoading) {
     return (
-      <div style={{ padding: "40px" }}>
-        <p>Yükleniyor...</p>
+      <div style={{ padding: spacing.xxl, maxWidth: "1200px" }}>
+        <div style={{ marginBottom: spacing.xl }}>
+          <Skeleton height="40px" width="300px" variant="text" />
+        </div>
+        <div style={{ display: "flex", gap: spacing.md, marginBottom: spacing.lg }}>
+          <Skeleton height="40px" width="120px" variant="rectangular" />
+          <Skeleton height="40px" width="120px" variant="rectangular" />
+        </div>
+        <div style={{ backgroundColor: colors.white, padding: spacing.lg, borderRadius: borderRadius.lg, marginBottom: spacing.lg }}>
+          <Skeleton height="24px" width="200px" variant="text" style={{ marginBottom: spacing.md }} />
+          <Skeleton height="20px" width="100%" variant="text" style={{ marginBottom: spacing.sm }} />
+          <Skeleton height="20px" width="90%" variant="text" style={{ marginBottom: spacing.sm }} />
+          <Skeleton height="20px" width="95%" variant="text" />
+        </div>
+        <div style={{ backgroundColor: colors.white, padding: spacing.lg, borderRadius: borderRadius.lg }}>
+          <Skeleton height="24px" width="200px" variant="text" style={{ marginBottom: spacing.md }} />
+          <Skeleton height="150px" width="100%" variant="rectangular" />
+        </div>
       </div>
     );
   }
@@ -120,7 +142,8 @@ export default function DocumentDetailPage() {
   const documentData = document.data;
 
   return (
-    <div style={{ padding: "40px", maxWidth: "1200px" }}>
+    <PageTransition>
+      <div style={{ padding: "40px", maxWidth: "1200px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
         <h1>Belge Detayı</h1>
         <div style={{ display: "flex", gap: "8px" }}>
@@ -136,7 +159,7 @@ export default function DocumentDetailPage() {
             disabled={deleteMutation.isPending}
             style={{
               padding: "8px 16px",
-              backgroundColor: "#dc3545",
+              backgroundColor: colors.danger,
               color: "white",
               border: "none",
               borderRadius: "4px",
@@ -150,7 +173,7 @@ export default function DocumentDetailPage() {
             href={`/musteriler/${documentData.clientCompanyId}`}
             style={{
               padding: "8px 16px",
-              backgroundColor: "#f5f5f5",
+              backgroundColor: colors.gray[100],
               color: "inherit",
               textDecoration: "none",
               borderRadius: "4px",
@@ -176,20 +199,20 @@ export default function DocumentDetailPage() {
               borderRadius: "4px",
               backgroundColor:
                 documentData.status === "PROCESSED"
-                  ? "#d4edda"
+                  ? colors.successLight
                   : documentData.status === "FAILED"
-                  ? "#f8d7da"
+                  ? colors.dangerLight
                   : documentData.status === "PROCESSING"
-                  ? "#fff3cd"
-                  : "#e2e3e5",
+                  ? colors.warningLight
+                  : colors.gray[200],
               color:
                 documentData.status === "PROCESSED"
-                  ? "#155724"
+                  ? colors.successDark
                   : documentData.status === "FAILED"
-                  ? "#721c24"
+                  ? colors.dangerDark
                   : documentData.status === "PROCESSING"
-                  ? "#856404"
-                  : "#383d41",
+                  ? colors.warning
+                  : colors.gray[700],
               fontSize: "12px",
             }}
           >
@@ -225,77 +248,39 @@ export default function DocumentDetailPage() {
         {documentData.processingErrorMessage && (
           <div style={{ gridColumn: "1 / -1" }}>
             <strong>İşleme Hatası:</strong>{" "}
-            <span style={{ color: "#dc3545" }}>{documentData.processingErrorMessage}</span>
+            <span style={{ color: colors.danger }}>{documentData.processingErrorMessage}</span>
           </div>
         )}
       </div>
 
       {/* Tabs */}
-      <div style={{ borderBottom: "1px solid #ddd", marginBottom: "24px" }}>
-        <div style={{ display: "flex", gap: "16px" }}>
-          <button
-            onClick={() => setActiveTab("details")}
-            style={{
-              padding: "8px 16px",
-              border: "none",
-              borderBottom: activeTab === "details" ? "2px solid #0066cc" : "2px solid transparent",
-              backgroundColor: "transparent",
-              cursor: "pointer",
-              color: activeTab === "details" ? "#0066cc" : "inherit",
-            }}
-          >
-            Detaylar
-          </button>
-          <button
-            onClick={() => setActiveTab("ai")}
-            style={{
-              padding: "8px 16px",
-              border: "none",
-              borderBottom: activeTab === "ai" ? "2px solid #0066cc" : "2px solid transparent",
-              backgroundColor: "transparent",
-              cursor: "pointer",
-              color: activeTab === "ai" ? "#0066cc" : "inherit",
-            }}
-          >
-            AI Analiz
-          </button>
-          <button
-            onClick={() => setActiveTab("risk")}
-            style={{
-              padding: "8px 16px",
-              border: "none",
-              borderBottom: activeTab === "risk" ? "2px solid #0066cc" : "2px solid transparent",
-              backgroundColor: "transparent",
-              cursor: "pointer",
-              color: activeTab === "risk" ? "#0066cc" : "inherit",
-            }}
-          >
-            Risk Analizi
-          </button>
-        </div>
-      </div>
-
-      {activeTab === "details" && (
+      <Tabs
+        items={[
+          {
+            id: "details",
+            label: "Detaylar",
+            icon: "FileText",
+            content: (
         <div>
           {documentData.status === "PROCESSING" && (
-            <div style={{ padding: "16px", backgroundColor: "#fff3cd", borderRadius: "4px", marginBottom: "24px" }}>
-              <p>Bu belge şu anda işleniyor.</p>
+            <div style={{ padding: spacing.md, backgroundColor: colors.warningLight, borderRadius: borderRadius.md, marginBottom: spacing.lg, border: `1px solid ${colors.warning}` }}>
+              <p style={{ margin: 0, color: colors.warning }}>Bu belge şu anda işleniyor.</p>
             </div>
           )}
 
           {documentData.status === "FAILED" && (
-            <div style={{ padding: "16px", backgroundColor: "#f8d7da", borderRadius: "4px", marginBottom: "24px" }}>
+            <div style={{ padding: spacing.md, backgroundColor: colors.dangerLight, borderRadius: borderRadius.md, marginBottom: spacing.lg, border: `1px solid ${colors.danger}` }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <div>
-                  <p style={{ color: "#721c24", margin: 0, marginBottom: "8px" }}>
+                  <p style={{ color: colors.dangerDark, margin: 0, marginBottom: spacing.sm, fontWeight: typography.fontWeight.medium }}>
                     Belge işlenirken bir hata oluştu.
                   </p>
                   {documentData.processingErrorMessage && (
-                    <p style={{ color: "#721c24", margin: 0, fontSize: "14px" }}>
+                    <p style={{ color: colors.dangerDark, margin: 0, fontSize: typography.fontSize.sm }}>
                       <strong>Hata:</strong> {documentData.processingErrorMessage}
                     </p>
                   )}
-                  <p style={{ color: "#721c24", margin: "8px 0 0 0", fontSize: "12px" }}>
+                  <p style={{ color: colors.dangerDark, margin: `${spacing.sm} 0 0 0`, fontSize: typography.fontSize.xs }}>
                     Belgeyi yeniden işlemek için "Yeniden Dene" butonuna tıklayın.
                   </p>
                 </div>
@@ -312,23 +297,23 @@ export default function DocumentDetailPage() {
           )}
 
           {/* Detailed Information Card */}
-          <div style={{ padding: "24px", backgroundColor: "#f8f9fa", borderRadius: "8px", marginBottom: "24px" }}>
-            <h2 style={{ marginTop: 0, marginBottom: "20px", fontSize: "20px" }}>Belge Bilgileri</h2>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+          <div style={{ padding: spacing.xl, backgroundColor: colors.gray[50], borderRadius: borderRadius.lg, marginBottom: spacing.lg, border: `1px solid ${colors.border}` }}>
+            <h2 style={{ marginTop: 0, marginBottom: spacing.lg, fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.semibold, color: colors.text.primary }}>Belge Bilgileri</h2>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: spacing.md }}>
               <div>
-                <strong style={{ display: "block", marginBottom: "4px", color: "#666" }}>Dosya Adı</strong>
+                <strong style={{ display: "block", marginBottom: spacing.xs, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Dosya Adı</strong>
                 <span>{documentData.originalFileName}</span>
               </div>
               <div>
-                <strong style={{ display: "block", marginBottom: "4px", color: "#666" }}>Dosya Türü</strong>
+                <strong style={{ display: "block", marginBottom: spacing.xs, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Dosya Türü</strong>
                 <span>{documentData.mimeType}</span>
               </div>
               <div>
-                <strong style={{ display: "block", marginBottom: "4px", color: "#666" }}>Belge Türü</strong>
+                <strong style={{ display: "block", marginBottom: spacing.xs, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Belge Türü</strong>
                 <span>{TYPE_LABELS[documentData.type] || documentData.type}</span>
               </div>
               <div>
-                <strong style={{ display: "block", marginBottom: "4px", color: "#666" }}>Yükleme Kaynağı</strong>
+                <strong style={{ display: "block", marginBottom: spacing.xs, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Yükleme Kaynağı</strong>
                 <span>
                   {documentData.uploadSource === "manual"
                     ? "Manuel Yükleme"
@@ -340,39 +325,28 @@ export default function DocumentDetailPage() {
                 </span>
               </div>
               <div>
-                <strong style={{ display: "block", marginBottom: "4px", color: "#666" }}>Dosya Boyutu</strong>
+                <strong style={{ display: "block", marginBottom: spacing.xs, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Dosya Boyutu</strong>
                 <span>{(documentData.fileSizeBytes / (1024 * 1024)).toFixed(2)} MB</span>
               </div>
               <div>
-                <strong style={{ display: "block", marginBottom: "4px", color: "#666" }}>Durum</strong>
-                <span
-                  style={{
-                    padding: "4px 8px",
-                    borderRadius: "4px",
-                    fontSize: "12px",
-                    backgroundColor:
-                      documentData.status === "PROCESSED"
-                        ? "#d4edda"
-                        : documentData.status === "FAILED"
-                        ? "#f8d7da"
-                        : documentData.status === "PROCESSING"
-                        ? "#fff3cd"
-                        : "#e2e3e5",
-                    color:
-                      documentData.status === "PROCESSED"
-                        ? "#155724"
-                        : documentData.status === "FAILED"
-                        ? "#721c24"
-                        : documentData.status === "PROCESSING"
-                        ? "#856404"
-                        : "#383d41",
-                  }}
+                <strong style={{ display: "block", marginBottom: spacing.xs, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Durum</strong>
+                <Badge
+                  variant={
+                    documentData.status === "PROCESSED"
+                      ? "success"
+                      : documentData.status === "FAILED"
+                      ? "danger"
+                      : documentData.status === "PROCESSING"
+                      ? "warning"
+                      : "secondary"
+                  }
+                  size="sm"
                 >
                   {STATUS_LABELS[documentData.status] || documentData.status}
-                </span>
+                </Badge>
               </div>
               <div>
-                <strong style={{ display: "block", marginBottom: "4px", color: "#666" }}>Yükleme Tarihi</strong>
+                <strong style={{ display: "block", marginBottom: spacing.xs, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Yükleme Tarihi</strong>
                 <span>
                   {new Date(documentData.createdAt).toLocaleDateString("tr-TR", {
                     year: "numeric",
@@ -385,7 +359,7 @@ export default function DocumentDetailPage() {
               </div>
               {documentData.processedAt && (
                 <div>
-                  <strong style={{ display: "block", marginBottom: "4px", color: "#666" }}>İşlenme Tarihi</strong>
+                  <strong style={{ display: "block", marginBottom: spacing.xs, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>İşlenme Tarihi</strong>
                   <span>
                     {new Date(documentData.processedAt).toLocaleDateString("tr-TR", {
                       year: "numeric",
@@ -402,15 +376,15 @@ export default function DocumentDetailPage() {
 
           {/* Related Information */}
           {(documentData.relatedInvoiceId || documentData.relatedTransactionId) && (
-            <div style={{ padding: "24px", backgroundColor: "#f8f9fa", borderRadius: "8px", marginBottom: "24px" }}>
-              <h2 style={{ marginTop: 0, marginBottom: "20px", fontSize: "20px" }}>İlişkili Kayıtlar</h2>
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            <div style={{ padding: spacing.xl, backgroundColor: colors.gray[50], borderRadius: borderRadius.lg, marginBottom: spacing.lg, border: `1px solid ${colors.border}` }}>
+              <h2 style={{ marginTop: 0, marginBottom: spacing.lg, fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.semibold, color: colors.text.primary }}>İlişkili Kayıtlar</h2>
+              <div style={{ display: "flex", flexDirection: "column", gap: spacing.md }}>
                 {documentData.relatedInvoiceId && (
                   <div>
-                    <strong style={{ display: "block", marginBottom: "4px", color: "#666" }}>İlişkili Fatura</strong>
+                    <strong style={{ display: "block", marginBottom: spacing.xs, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>İlişkili Fatura</strong>
                     <Link
                       href={`/faturalar/${documentData.relatedInvoiceId}`}
-                      style={{ color: "#0066cc", textDecoration: "none" }}
+                      style={{ color: colors.primary, textDecoration: "none", fontWeight: typography.fontWeight.medium }}
                     >
                       Faturayı Görüntüle →
                     </Link>
@@ -418,12 +392,12 @@ export default function DocumentDetailPage() {
                 )}
                 {documentData.relatedTransactionId && (
                   <div>
-                    <strong style={{ display: "block", marginBottom: "4px", color: "#666" }}>
+                    <strong style={{ display: "block", marginBottom: spacing.xs, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>
                       İlişkili İşlem
                     </strong>
                     <Link
                       href={`/islemler/${documentData.relatedTransactionId}`}
-                      style={{ color: "#0066cc", textDecoration: "none" }}
+                      style={{ color: colors.primary, textDecoration: "none", fontWeight: typography.fontWeight.medium }}
                     >
                       İşlemi Görüntüle →
                     </Link>
@@ -434,22 +408,26 @@ export default function DocumentDetailPage() {
           )}
 
           {/* Client Company Link */}
-          <div style={{ padding: "24px", backgroundColor: "#f8f9fa", borderRadius: "8px" }}>
-            <h2 style={{ marginTop: 0, marginBottom: "20px", fontSize: "20px" }}>Müşteri Bilgisi</h2>
+          <div style={{ padding: spacing.xl, backgroundColor: colors.gray[50], borderRadius: borderRadius.lg, border: `1px solid ${colors.border}` }}>
+            <h2 style={{ marginTop: 0, marginBottom: spacing.lg, fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.semibold, color: colors.text.primary }}>Müşteri Bilgisi</h2>
             <div>
-              <strong style={{ display: "block", marginBottom: "4px", color: "#666" }}>Müşteri Şirketi</strong>
+              <strong style={{ display: "block", marginBottom: spacing.xs, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Müşteri Şirketi</strong>
               <Link
                 href={`/musteriler/${documentData.clientCompanyId}`}
-                style={{ color: "#0066cc", textDecoration: "none", fontSize: "16px" }}
+                style={{ color: colors.primary, textDecoration: "none", fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.medium }}
               >
                 Müşteri Detaylarını Görüntüle →
               </Link>
             </div>
           </div>
         </div>
-      )}
-
-      {activeTab === "ai" && (
+            ),
+          },
+          {
+            id: "ai",
+            label: "AI Analiz",
+            icon: "Brain",
+            content: (
         <div>
           {documentData.status === "PROCESSING" && (
             <div style={{ padding: "16px", backgroundColor: "#fff3cd", borderRadius: "4px", marginBottom: "24px" }}>
@@ -458,38 +436,36 @@ export default function DocumentDetailPage() {
           )}
 
           {documentData.status === "UPLOADED" && (
-            <div style={{ padding: "16px", backgroundColor: "#e2e3e5", borderRadius: "4px", marginBottom: "24px" }}>
-              <p>Bu belge henüz AI tarafından analiz edilmemiş.</p>
+            <div style={{ padding: spacing.md, backgroundColor: colors.gray[200], borderRadius: borderRadius.md, marginBottom: spacing.lg, border: `1px solid ${colors.border}` }}>
+              <p style={{ margin: 0, color: colors.text.secondary }}>Bu belge henüz AI tarafından analiz edilmemiş.</p>
             </div>
           )}
 
           {aiError && (
-            <div style={{ padding: "16px", backgroundColor: "#f8d7da", borderRadius: "4px", marginBottom: "24px" }}>
-              <p style={{ color: "#721c24", margin: 0, marginBottom: "8px" }}>
+            <div style={{ padding: spacing.md, backgroundColor: colors.dangerLight, borderRadius: borderRadius.md, marginBottom: spacing.lg, border: `1px solid ${colors.danger}` }}>
+              <p style={{ color: colors.dangerDark, margin: 0, marginBottom: spacing.sm, fontWeight: typography.fontWeight.medium }}>
                 <strong>Hata:</strong> AI analizi yüklenirken bir hata oluştu.
               </p>
-              <p style={{ color: "#721c24", margin: 0, fontSize: "14px", marginBottom: "8px" }}>
+              <p style={{ color: colors.dangerDark, margin: 0, fontSize: typography.fontSize.sm, marginBottom: spacing.sm }}>
                 {aiError instanceof Error ? aiError.message : "Bilinmeyen bir hata oluştu."}
               </p>
-              <button
+              <Button
                 onClick={() => refetchAIAnalysis()}
-                style={{
-                  padding: "8px 16px",
-                  backgroundColor: "#dc3545",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
+                variant="danger"
+                size="sm"
               >
                 Tekrar Dene
-              </button>
+              </Button>
             </div>
           )}
 
           {aiLoading && (
-            <div style={{ padding: "16px" }}>
-              <p>AI analizi yükleniyor...</p>
+            <div style={{ padding: spacing.md }}>
+              <Skeleton height="24px" width="200px" variant="text" style={{ marginBottom: spacing.md }} />
+              <Skeleton height="20px" width="100%" variant="text" style={{ marginBottom: spacing.sm }} />
+              <Skeleton height="20px" width="90%" variant="text" style={{ marginBottom: spacing.sm }} />
+              <Skeleton height="20px" width="95%" variant="text" style={{ marginBottom: spacing.md }} />
+              <Skeleton height="150px" width="100%" variant="rectangular" />
             </div>
           )}
 
@@ -497,8 +473,8 @@ export default function DocumentDetailPage() {
             <>
               {/* Extracted Fields Section */}
               {aiAnalysis.data.parsedData && (
-                <div style={{ marginBottom: "24px", padding: "16px", backgroundColor: "#f5f5f5", borderRadius: "4px" }}>
-                  <h2 style={{ marginBottom: "16px" }}>Çıkarılan Alanlar</h2>
+                <div style={{ marginBottom: spacing.lg, padding: spacing.md, backgroundColor: colors.gray[50], borderRadius: borderRadius.md, border: `1px solid ${colors.border}` }}>
+                  <h2 style={{ marginBottom: spacing.md, fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: colors.text.primary }}>Çıkarılan Alanlar</h2>
                   {aiAnalysis.data.parsedData.documentType === "invoice" && (
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                       {aiAnalysis.data.parsedData.fields.invoiceNumber && (
@@ -588,9 +564,9 @@ export default function DocumentDetailPage() {
 
               {/* Risk Features Section */}
               {aiAnalysis.data.riskFeatures && (
-                <div style={{ marginBottom: "24px", padding: "16px", backgroundColor: "#f5f5f5", borderRadius: "4px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-                    <h2>Risk Göstergeleri</h2>
+                <div style={{ marginBottom: spacing.lg, padding: spacing.md, backgroundColor: colors.gray[50], borderRadius: borderRadius.md, border: `1px solid ${colors.border}` }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.md }}>
+                    <h2 style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: colors.text.primary }}>Risk Göstergeleri</h2>
                     {aiAnalysis.data.riskFeatures.riskScore !== null && (
                       <span
                         style={{
@@ -664,49 +640,56 @@ export default function DocumentDetailPage() {
               )}
 
               {!aiAnalysis.data.parsedData && !aiAnalysis.data.riskFeatures && (
-                <div style={{ padding: "16px", backgroundColor: "#e2e3e5", borderRadius: "4px" }}>
-                  <p>Bu belge henüz AI tarafından analiz edilmemiş.</p>
-                </div>
+            <div style={{ padding: spacing.md, backgroundColor: colors.gray[200], borderRadius: borderRadius.md, border: `1px solid ${colors.border}` }}>
+              <p style={{ margin: 0, color: colors.text.secondary }}>Bu belge henüz AI tarafından analiz edilmemiş.</p>
+            </div>
               )}
             </>
           )}
 
           {!aiLoading && !aiError && !aiAnalysis?.data && documentData.status === "PROCESSED" && (
-            <div style={{ padding: "16px", backgroundColor: "#e2e3e5", borderRadius: "4px" }}>
-              <p>Bu belge henüz AI tarafından analiz edilmemiş.</p>
-              <p style={{ fontSize: "14px", color: "#666", marginTop: "8px" }}>
+            <div style={{ padding: spacing.md, backgroundColor: colors.gray[200], borderRadius: borderRadius.md, border: `1px solid ${colors.border}` }}>
+              <p style={{ margin: 0, color: colors.text.secondary }}>Bu belge henüz AI tarafından analiz edilmemiş.</p>
+              <p style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary, marginTop: spacing.sm, margin: `${spacing.sm} 0 0 0` }}>
                 Belge işlendi ancak AI analiz verisi bulunamadı. Bu durum genellikle belge işleme sırasında bir sorun olduğunu gösterir.
               </p>
             </div>
           )}
         </div>
-      )}
-
-      {activeTab === "risk" && (
+            ),
+          },
+          {
+            id: "risk",
+            label: "Risk Analizi",
+            icon: "AlertTriangle",
+            content: (
         <div>
           {riskLoading && (
-            <div style={{ padding: "16px" }}>
-              <p>Risk skoru yükleniyor...</p>
+            <div style={{ padding: spacing.md }}>
+              <Skeleton height="24px" width="200px" variant="text" style={{ marginBottom: spacing.md }} />
+              <Skeleton height="100px" width="100%" variant="rectangular" style={{ marginBottom: spacing.md }} />
+              <Skeleton height="20px" width="100%" variant="text" style={{ marginBottom: spacing.sm }} />
+              <Skeleton height="20px" width="90%" variant="text" />
             </div>
           )}
 
           {!riskLoading && riskScoreData?.data?.riskScore && (
-            <div style={{ padding: "16px", backgroundColor: "#f5f5f5", borderRadius: "4px" }}>
-              <h2 style={{ marginBottom: "16px" }}>Belge Risk Skoru</h2>
-              <div style={{ marginBottom: "20px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "12px" }}>
+            <div style={{ padding: spacing.md, backgroundColor: colors.gray[50], borderRadius: borderRadius.md, border: `1px solid ${colors.border}` }}>
+              <h2 style={{ marginBottom: spacing.md, fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: colors.text.primary }}>Belge Risk Skoru</h2>
+              <div style={{ marginBottom: spacing.lg }}>
+                <div style={{ display: "flex", alignItems: "center", gap: spacing.md, marginBottom: spacing.md, flexWrap: "wrap" }}>
                   <div>
-                    <strong>Risk Skoru:</strong>{" "}
+                    <strong style={{ color: colors.text.secondary }}>Risk Skoru:</strong>{" "}
                     <span
                       style={{
-                        fontSize: "24px",
-                        fontWeight: "bold",
+                        fontSize: typography.fontSize["2xl"],
+                        fontWeight: typography.fontWeight.bold,
                         color:
                           riskScoreData.data.riskScore.severity === "high"
-                            ? "#dc2626"
+                            ? colors.danger
                             : riskScoreData.data.riskScore.severity === "medium"
-                            ? "#f59e0b"
-                            : "#10b981",
+                            ? colors.warning
+                            : colors.success,
                       }}
                     >
                       {riskScoreData.data.riskScore.score}
@@ -714,80 +697,61 @@ export default function DocumentDetailPage() {
                     /100
                   </div>
                   <div>
-                    <strong>Şiddet:</strong>{" "}
-                    <span
-                      style={{
-                        padding: "4px 8px",
-                        borderRadius: "4px",
-                        fontSize: "14px",
-                        fontWeight: "500",
-                        backgroundColor:
-                          riskScoreData.data.riskScore.severity === "high"
-                            ? "#dc262620"
-                            : riskScoreData.data.riskScore.severity === "medium"
-                            ? "#f59e0b20"
-                            : "#10b98120",
-                        color:
-                          riskScoreData.data.riskScore.severity === "high"
-                            ? "#dc2626"
-                            : riskScoreData.data.riskScore.severity === "medium"
-                            ? "#f59e0b"
-                            : "#10b981",
-                      }}
+                    <strong style={{ color: colors.text.secondary }}>Şiddet:</strong>{" "}
+                    <Badge
+                      variant={
+                        riskScoreData.data.riskScore.severity === "high"
+                          ? "danger"
+                          : riskScoreData.data.riskScore.severity === "medium"
+                          ? "warning"
+                          : "success"
+                      }
+                      size="sm"
                     >
                       {riskScoreData.data.riskScore.severity === "high"
                         ? "Yüksek"
                         : riskScoreData.data.riskScore.severity === "medium"
                         ? "Orta"
                         : "Düşük"}
-                    </span>
+                    </Badge>
                   </div>
                 </div>
-                <div style={{ fontSize: "14px", color: "#666" }}>
+                <div style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
                   Hesaplanma Tarihi: {new Date(riskScoreData.data.riskScore.generatedAt).toLocaleString("tr-TR")}
                 </div>
               </div>
 
               {riskScoreData.data.triggeredRules.length > 0 && (
                 <div>
-                  <h3 style={{ marginBottom: "12px" }}>Tetiklenen Kurallar</h3>
-                  <div style={{ display: "grid", gap: "8px" }}>
+                  <h3 style={{ marginBottom: spacing.md, fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.semibold, color: colors.text.primary }}>Tetiklenen Kurallar</h3>
+                  <div style={{ display: "grid", gap: spacing.sm }}>
                     {riskScoreData.data.triggeredRules.map((rule, index) => (
                       <div
                         key={index}
                         style={{
-                          padding: "12px",
-                          backgroundColor: "#fff",
-                          borderRadius: "4px",
-                          border: "1px solid #e0e0e0",
+                          padding: spacing.md,
+                          backgroundColor: colors.white,
+                          borderRadius: borderRadius.md,
+                          border: `1px solid ${colors.border}`,
                         }}
                       >
-                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
-                          <strong>{rule.code}</strong>
-                          <span
-                            style={{
-                              padding: "2px 6px",
-                              borderRadius: "4px",
-                              fontSize: "12px",
-                              backgroundColor:
-                                rule.severity === "high"
-                                  ? "#dc262620"
-                                  : rule.severity === "medium"
-                                  ? "#f59e0b20"
-                                  : "#10b98120",
-                              color:
-                                rule.severity === "high"
-                                  ? "#dc2626"
-                                  : rule.severity === "medium"
-                                  ? "#f59e0b"
-                                  : "#10b981",
-                            }}
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: spacing.xs, alignItems: "center", flexWrap: "wrap", gap: spacing.xs }}>
+                          <strong style={{ color: colors.text.primary }}>{rule.code}</strong>
+                          <Badge
+                            variant={
+                              rule.severity === "high"
+                                ? "danger"
+                                : rule.severity === "medium"
+                                ? "warning"
+                                : "success"
+                            }
+                            size="sm"
                           >
                             {rule.severity === "high" ? "Yüksek" : rule.severity === "medium" ? "Orta" : "Düşük"}
-                          </span>
+                          </Badge>
                         </div>
-                        <div style={{ fontSize: "14px", color: "#666" }}>{rule.description}</div>
-                        <div style={{ fontSize: "12px", color: "#999", marginTop: "4px" }}>
+                        <div style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>{rule.description}</div>
+                        <div style={{ fontSize: typography.fontSize.xs, color: colors.text.muted, marginTop: spacing.xs }}>
                           Ağırlık: {rule.weight}
                         </div>
                       </div>
@@ -797,7 +761,7 @@ export default function DocumentDetailPage() {
               )}
 
               {riskScoreData.data.triggeredRules.length === 0 && (
-                <div style={{ padding: "16px", textAlign: "center", color: "#666" }}>
+                <div style={{ padding: spacing.md, textAlign: "center", color: colors.text.secondary }}>
                   Bu belge için tetiklenen risk kuralı yok.
                 </div>
               )}
@@ -805,8 +769,8 @@ export default function DocumentDetailPage() {
           )}
 
           {!riskLoading && (!riskScoreData?.data || !riskScoreData.data.riskScore) && (
-            <div style={{ padding: "16px", backgroundColor: "#e2e3e5", borderRadius: "4px" }}>
-              <p>
+            <div style={{ padding: spacing.md, backgroundColor: colors.gray[200], borderRadius: borderRadius.md, border: `1px solid ${colors.border}` }}>
+              <p style={{ margin: 0, color: colors.text.secondary }}>
                 {documentData.status === "FAILED"
                   ? "Bu belge işlenirken bir hata oluştu, bu nedenle risk skoru hesaplanamadı."
                   : documentData.status === "PROCESSING"
@@ -816,8 +780,39 @@ export default function DocumentDetailPage() {
             </div>
           )}
         </div>
-      )}
+            ),
+          },
+        ]}
+        defaultTab="details"
+      />
+
+      <Modal
+        isOpen={deleteModal}
+        onClose={() => setDeleteModal(false)}
+        title="Belgeyi Sil"
+        size="sm"
+      >
+        <div style={{ marginBottom: spacing.lg }}>
+          <p>Bu belgeyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.</p>
+        </div>
+        <div style={{ display: "flex", gap: spacing.md, justifyContent: "flex-end" }}>
+          <Button variant="outline" onClick={() => setDeleteModal(false)}>
+            İptal
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              deleteMutation.mutate(documentId);
+              setDeleteModal(false);
+            }}
+            loading={deleteMutation.isPending}
+          >
+            Sil
+          </Button>
+        </div>
+      </Modal>
     </div>
+    </PageTransition>
   );
 }
 

@@ -69,3 +69,4 @@ After clearing cache and refreshing:
 
 The browser cached the old API response (when there were 0 high-risk documents). Even though the database now has 62 documents, the browser keeps using the cached response until you force a refresh.
 
+

@@ -19,21 +19,22 @@ describe("Tax Routes Integration Tests", () => {
 
   beforeEach(async () => {
     testUser = await createTestUser();
-    authToken = await getAuthToken(testUser.user.id, testUser.tenant.id);
+    authToken = await getAuthToken(testUser.user.email, "Test123!@#", app);
     testCompany = await createTestClientCompany({
       tenantId: testUser.tenant.id,
     });
   });
 
-  describe("GET /api/v1/tax/vat-analysis/:clientCompanyId", () => {
+  describe("POST /api/v1/tax/vat/analyze", () => {
     it("should get VAT analysis for client company", async () => {
       const response = await request(app)
-        .get(`/api/v1/tax/vat-analysis/${testCompany.id}`)
-        .query({
+        .post("/api/v1/tax/vat/analyze")
+        .set("Authorization", `Bearer ${authToken}`)
+        .send({
+          clientCompanyId: testCompany.id,
           startDate: "2024-01-01",
           endDate: "2024-12-31",
         })
-        .set("Authorization", `Bearer ${authToken}`)
         .expect(200);
 
       expect(response.body.data).toBeDefined();
@@ -53,10 +54,10 @@ describe("Tax Routes Integration Tests", () => {
     });
   });
 
-  describe("POST /api/v1/tax/vat-declaration", () => {
+  describe("POST /api/v1/tax/reports/vat-declaration", () => {
     it("should generate VAT declaration", async () => {
       const response = await request(app)
-        .post("/api/v1/tax/vat-declaration")
+        .post("/api/v1/tax/reports/vat-declaration")
         .set("Authorization", `Bearer ${authToken}`)
         .send({
           clientCompanyId: testCompany.id,

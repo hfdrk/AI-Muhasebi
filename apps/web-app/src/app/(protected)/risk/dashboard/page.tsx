@@ -9,6 +9,7 @@ import { useState } from "react";
 import RiskExplanationPanel from "@/components/risk-explanation-panel";
 import { Card } from "@/components/ui/Card";
 import { colors, spacing, borderRadius, shadows, transitions, typography } from "@/styles/design-system";
+import { toast } from "@/lib/toast";
 import RiskTrendChart from "@/components/risk/RiskTrendChart";
 import AlertFrequencyChart from "@/components/risk/AlertFrequencyChart";
 import RiskDistributionChart from "@/components/risk/RiskDistributionChart";
@@ -183,7 +184,7 @@ export default function RiskDashboardPage() {
               marginBottom: spacing.xs,
               fontSize: typography.fontSize["4xl"],
               fontWeight: typography.fontWeight.bold,
-              background: `linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)`,
+              background: colors.gradients.primary,
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -236,7 +237,7 @@ export default function RiskDashboardPage() {
                     alignItems: "center",
                     gap: spacing.sm,
                     padding: `${spacing.md} ${spacing.xl}`,
-                    background: `linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%)`,
+                    background: colors.gradients.primary,
                     color: colors.white,
                     borderRadius: borderRadius.lg,
                     textDecoration: "none",
@@ -271,7 +272,7 @@ export default function RiskDashboardPage() {
                     alignItems: "center",
                     gap: spacing.sm,
                     padding: `${spacing.md} ${spacing.xl}`,
-                    background: `linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%)`,
+                    background: colors.gradients.primary,
                     color: colors.white,
                     borderRadius: borderRadius.lg,
                     textDecoration: "none",
@@ -321,7 +322,7 @@ export default function RiskDashboardPage() {
               marginBottom: spacing.xs,
               fontSize: typography.fontSize["4xl"],
               fontWeight: typography.fontWeight.bold,
-              background: `linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)`,
+              background: colors.gradients.primary,
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -480,7 +481,7 @@ export default function RiskDashboardPage() {
                   style={{
                     fontSize: typography.fontSize["2xl"],
                     fontWeight: typography.fontWeight.bold,
-                    color: "#c2410c",
+                    color: colors.dangerDark,
                     marginBottom: spacing.xs,
                   }}
                 >
@@ -504,7 +505,7 @@ export default function RiskDashboardPage() {
                   style={{
                     fontSize: typography.fontSize["2xl"],
                     fontWeight: typography.fontWeight.bold,
-                    color: "#d97706",
+                    color: colors.warning,
                     marginBottom: spacing.xs,
                   }}
                 >
@@ -528,7 +529,7 @@ export default function RiskDashboardPage() {
                   style={{
                     fontSize: typography.fontSize["2xl"],
                     fontWeight: typography.fontWeight.bold,
-                    color: "#1e40af",
+                    color: colors.primaryDark,
                     marginBottom: spacing.xs,
                   }}
                 >
@@ -585,7 +586,7 @@ export default function RiskDashboardPage() {
                     style={{
                       fontSize: typography.fontSize.sm,
                       fontWeight: typography.fontWeight.medium,
-                      color: "#c2410c",
+                      color: colors.dangerDark,
                       marginBottom: spacing.sm,
                       display: "flex",
                       alignItems: "center",
@@ -599,7 +600,7 @@ export default function RiskDashboardPage() {
                     style={{
                       fontSize: typography.fontSize["4xl"],
                       fontWeight: typography.fontWeight.bold,
-                      color: "#c2410c",
+                      color: colors.dangerDark,
                       marginBottom: spacing.xs,
                     }}
                   >
@@ -636,7 +637,7 @@ export default function RiskDashboardPage() {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: spacing.xs,
-                  color: "#c2410c",
+                  color: colors.dangerDark,
                   fontSize: typography.fontSize.sm,
                   fontWeight: typography.fontWeight.medium,
                   marginTop: spacing.sm,
@@ -711,7 +712,7 @@ export default function RiskDashboardPage() {
                     style={{
                       fontSize: typography.fontSize.sm,
                       fontWeight: typography.fontWeight.medium,
-                      color: "#c2410c",
+                      color: colors.dangerDark,
                       marginBottom: spacing.sm,
                       display: "flex",
                       alignItems: "center",
@@ -725,7 +726,7 @@ export default function RiskDashboardPage() {
                     style={{
                       fontSize: typography.fontSize["4xl"],
                       fontWeight: typography.fontWeight.bold,
-                      color: "#c2410c",
+                      color: colors.dangerDark,
                       marginBottom: spacing.xs,
                     }}
                   >
@@ -763,7 +764,7 @@ export default function RiskDashboardPage() {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: spacing.xs,
-                  color: "#c2410c",
+                  color: colors.dangerDark,
                   fontSize: typography.fontSize.sm,
                   fontWeight: typography.fontWeight.medium,
                   marginTop: spacing.sm,
@@ -838,7 +839,7 @@ export default function RiskDashboardPage() {
                     style={{
                       fontSize: typography.fontSize.sm,
                       fontWeight: typography.fontWeight.medium,
-                      color: "#1e40af",
+                      color: colors.primaryDark,
                       marginBottom: spacing.sm,
                       display: "flex",
                       alignItems: "center",
@@ -852,7 +853,7 @@ export default function RiskDashboardPage() {
                     style={{
                       fontSize: typography.fontSize["4xl"],
                       fontWeight: typography.fontWeight.bold,
-                      color: "#1e40af",
+                      color: colors.primaryDark,
                       marginBottom: spacing.xs,
                     }}
                   >
@@ -889,7 +890,7 @@ export default function RiskDashboardPage() {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: spacing.xs,
-                  color: "#1e40af",
+                  color: colors.primaryDark,
                   fontSize: typography.fontSize.sm,
                   fontWeight: typography.fontWeight.medium,
                   marginTop: spacing.sm,
@@ -931,7 +932,7 @@ export default function RiskDashboardPage() {
                     style={{
                       fontSize: typography.fontSize.sm,
                       fontWeight: typography.fontWeight.medium,
-                      color: "#d97706",
+                      color: colors.warning,
                       marginBottom: spacing.sm,
                       display: "flex",
                       alignItems: "center",
@@ -945,7 +946,7 @@ export default function RiskDashboardPage() {
                     style={{
                       fontSize: typography.fontSize["4xl"],
                       fontWeight: typography.fontWeight.bold,
-                      color: "#d97706",
+                      color: colors.warning,
                       marginBottom: spacing.xs,
                     }}
                   >
@@ -982,7 +983,7 @@ export default function RiskDashboardPage() {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: spacing.xs,
-                  color: "#d97706",
+                  color: colors.warning,
                   fontSize: typography.fontSize.sm,
                   fontWeight: typography.fontWeight.medium,
                   marginTop: spacing.sm,
@@ -1067,7 +1068,7 @@ export default function RiskDashboardPage() {
                     alignItems: "center",
                     gap: spacing.xs,
                     padding: `${spacing.sm} ${spacing.md}`,
-                    background: `linear-gradient(135deg, #fca5a5 0%, #f87171 100%)`,
+                    background: colors.gradients.danger,
                     color: colors.white,
                     textDecoration: "none",
                     borderRadius: borderRadius.md,
@@ -1155,7 +1156,7 @@ export default function RiskDashboardPage() {
                             <span
                               style={{
                                 padding: `${spacing.xs} ${spacing.sm}`,
-                                backgroundColor: "#c2410c",
+                                backgroundColor: colors.dangerDark,
                                 color: colors.white,
                                 borderRadius: borderRadius.sm,
                                 fontSize: typography.fontSize.xs,
@@ -1258,7 +1259,7 @@ export default function RiskDashboardPage() {
                   transition: `all ${transitions.normal} ease`,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "#10b981";
+                  e.currentTarget.style.borderColor = colors.success;
                   e.currentTarget.style.boxShadow = shadows.sm;
                 }}
                 onMouseLeave={(e) => {
@@ -1273,7 +1274,7 @@ export default function RiskDashboardPage() {
                         width: "16px",
                         height: "16px",
                         borderRadius: "50%",
-                        backgroundColor: "#10b981",
+                        backgroundColor: colors.success,
                         boxShadow: `0 0 0 4px ${colors.successPastel}`,
                       }}
                     />
@@ -1292,7 +1293,7 @@ export default function RiskDashboardPage() {
                       style={{
                         fontWeight: typography.fontWeight.bold,
                         fontSize: typography.fontSize["2xl"],
-                        color: "#059669",
+                        color: colors.successDark,
                       }}
                     >
                       {dashboard.clientRiskDistribution.low}
@@ -1322,7 +1323,7 @@ export default function RiskDashboardPage() {
                     style={{
                       height: "100%",
                       width: `${totalClients > 0 ? (dashboard.clientRiskDistribution.low / totalClients) * 100 : 0}%`,
-                      background: `linear-gradient(135deg, #10b981 0%, #059669 100%)`,
+                      background: colors.gradients.success,
                       borderRadius: borderRadius.lg,
                       transition: "width 0.8s cubic-bezier(0.4, 0, 0.2, 1)",
                       display: "flex",
@@ -1360,7 +1361,7 @@ export default function RiskDashboardPage() {
                   transition: `all ${transitions.normal} ease`,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "#d97706";
+                  e.currentTarget.style.borderColor = colors.warning;
                   e.currentTarget.style.boxShadow = shadows.sm;
                 }}
                 onMouseLeave={(e) => {
@@ -1375,7 +1376,7 @@ export default function RiskDashboardPage() {
                         width: "16px",
                         height: "16px",
                         borderRadius: "50%",
-                        backgroundColor: "#d97706",
+                        backgroundColor: colors.warning,
                         boxShadow: `0 0 0 4px ${colors.warningPastel}`,
                       }}
                     />
@@ -1394,7 +1395,7 @@ export default function RiskDashboardPage() {
                       style={{
                         fontWeight: typography.fontWeight.bold,
                         fontSize: typography.fontSize["2xl"],
-                        color: "#b45309",
+                        color: colors.warning,
                       }}
                     >
                       {dashboard.clientRiskDistribution.medium}
@@ -1424,7 +1425,7 @@ export default function RiskDashboardPage() {
                     style={{
                       height: "100%",
                       width: `${totalClients > 0 ? (dashboard.clientRiskDistribution.medium / totalClients) * 100 : 0}%`,
-                      background: `linear-gradient(135deg, #f59e0b 0%, #d97706 100%)`,
+                      background: `linear-gradient(135deg, ${colors.warning} 0%, ${colors.warning} 100%)`,
                       borderRadius: borderRadius.lg,
                       transition: "width 0.8s cubic-bezier(0.4, 0, 0.2, 1)",
                       display: "flex",
@@ -1462,7 +1463,7 @@ export default function RiskDashboardPage() {
                   transition: `all ${transitions.normal} ease`,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "#c2410c";
+                  e.currentTarget.style.borderColor = colors.dangerDark;
                   e.currentTarget.style.boxShadow = shadows.sm;
                 }}
                 onMouseLeave={(e) => {
@@ -1477,7 +1478,7 @@ export default function RiskDashboardPage() {
                         width: "16px",
                         height: "16px",
                         borderRadius: "50%",
-                        backgroundColor: "#c2410c",
+                        backgroundColor: colors.dangerDark,
                         boxShadow: `0 0 0 4px ${colors.dangerPastel}`,
                       }}
                     />
@@ -1496,7 +1497,7 @@ export default function RiskDashboardPage() {
                       style={{
                         fontWeight: typography.fontWeight.bold,
                         fontSize: typography.fontSize["2xl"],
-                        color: "#991b1b",
+                        color: colors.dangerDark,
                       }}
                     >
                       {dashboard.clientRiskDistribution.high}
@@ -1526,7 +1527,7 @@ export default function RiskDashboardPage() {
                     style={{
                       height: "100%",
                       width: `${totalClients > 0 ? (dashboard.clientRiskDistribution.high / totalClients) * 100 : 0}%`,
-                      background: `linear-gradient(135deg, #ef4444 0%, #dc2626 100%)`,
+                      background: colors.gradients.danger,
                       borderRadius: borderRadius.lg,
                       transition: "width 0.8s cubic-bezier(0.4, 0, 0.2, 1)",
                       display: "flex",
@@ -1575,12 +1576,12 @@ export default function RiskDashboardPage() {
                   window.URL.revokeObjectURL(url);
                 } catch (error: any) {
                   console.error("Export failed:", error);
-                  alert(`Dışa aktarma başarısız oldu: ${error.message || "Bilinmeyen hata"}`);
+                  toast.error(`Dışa aktarma başarısız oldu: ${error.message || "Bilinmeyen hata"}`);
                 }
               }}
               style={{
                 padding: `${spacing.md} ${spacing.xl}`,
-                background: `linear-gradient(135deg, #6ee7b7 0%, #34d399 100%)`,
+                background: colors.gradients.success,
                 color: colors.white,
                 borderRadius: borderRadius.lg,
                 border: "none",
@@ -1609,7 +1610,7 @@ export default function RiskDashboardPage() {
               href="/risk/alerts"
               style={{
                 padding: `${spacing.md} ${spacing.xl}`,
-                background: `linear-gradient(135deg, #fca5a5 0%, #f87171 100%)`,
+                background: colors.gradients.danger,
                 color: colors.white,
                 borderRadius: borderRadius.lg,
                 textDecoration: "none",
@@ -1637,7 +1638,7 @@ export default function RiskDashboardPage() {
                   style={{
                     padding: `${spacing.xs} ${spacing.sm}`,
                     backgroundColor: colors.white,
-                    color: "#c2410c",
+                    color: colors.dangerDark,
                     borderRadius: borderRadius.full,
                     fontSize: typography.fontSize.xs,
                     fontWeight: typography.fontWeight.bold,
@@ -1662,10 +1663,10 @@ export default function RiskDashboardPage() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: spacing.sm,
-                border: `1px solid #93c5fd`,
+                border: `1px solid ${colors.primaryLighter}`,
                 transition: `all ${transitions.normal} ease`,
                 boxShadow: shadows.sm,
-                color: "#1e40af",
+                color: colors.primaryDark,
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = colors.primaryPastel;
@@ -1722,7 +1723,7 @@ export default function RiskDashboardPage() {
                           onClick={() => setTrendPeriod(period)}
                           style={{
                             padding: `${spacing.xs} ${spacing.sm}`,
-                            background: trendPeriod === period ? "#93c5fd" : colors.gray[200],
+                            background: trendPeriod === period ? colors.primaryLighter : colors.gray[200],
                             color: trendPeriod === period ? colors.white : colors.text.primary,
                             border: "none",
                             borderRadius: borderRadius.sm,
@@ -1870,8 +1871,8 @@ export default function RiskDashboardPage() {
                           <div
                             style={{
                               padding: `${spacing.sm} ${spacing.md}`,
-                              backgroundColor: "#fcd34d",
-                              color: "#78350f",
+                              backgroundColor: colors.warningLight,
+                              color: colors.text.primary,
                               borderRadius: borderRadius.md,
                               fontSize: typography.fontSize.sm,
                               fontWeight: typography.fontWeight.bold,
@@ -1936,10 +1937,10 @@ export default function RiskDashboardPage() {
                       fontWeight: typography.fontWeight.bold,
                       color:
                         forecast.riskVelocity.trend === "accelerating"
-                          ? "#f87171"
+                          ? colors.danger
                           : forecast.riskVelocity.trend === "decelerating"
-                            ? "#6ee7b7"
-                            : "#fbbf24",
+                            ? colors.success
+                            : colors.warning,
                     }}
                   >
                     {forecast.riskVelocity.trend === "accelerating"

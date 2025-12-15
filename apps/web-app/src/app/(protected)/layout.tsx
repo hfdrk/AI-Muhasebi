@@ -10,11 +10,12 @@ import { usePathname, useRouter } from "next/navigation";
 import { logout, getCurrentUser } from "@repo/api-client";
 import { useQuery } from "@tanstack/react-query";
 import { colors, spacing, shadows, borderRadius, transitions, zIndex, typography } from "../../styles/design-system";
+import { Icon } from "../../components/ui/Icon";
 
 interface NavItem {
   href: string;
   label: string;
-  icon: string;
+  icon: string; // Can be emoji (legacy) or icon name
   badge?: number;
   children?: NavItem[];
 }
@@ -221,7 +222,7 @@ function UserProfileDropdown({
                   e.currentTarget.style.backgroundColor = "transparent";
                 }}
               >
-                <span style={{ fontSize: "16px" }}>👤</span>
+                <Icon name="user" size={16} color={colors.text.primary} />
                 <span>Profil Ayarları</span>
               </button>
             </div>
@@ -263,7 +264,7 @@ function UserProfileDropdown({
                   e.currentTarget.style.color = colors.danger;
                 }}
               >
-                <span style={{ fontSize: "16px" }}>🚪</span>
+                <Icon name="logout" size={16} color={colors.danger} />
                 <span>Çıkış Yap</span>
               </button>
             </div>
@@ -356,21 +357,21 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
 
   // Main navigation items
   const mainNavItems: NavItem[] = [
-    { href: "/anasayfa", label: "Ana Sayfa", icon: "🏠" },
-    { href: "/musteriler", label: "Müşteriler", icon: "👥" },
-    { href: "/faturalar", label: "Faturalar", icon: "📄" },
-    { href: "/e-fatura", label: "E-Fatura", icon: "📋" },
-    { href: "/e-arsiv", label: "E-Arşiv", icon: "📦" },
-    { href: "/e-defter", label: "E-Defter", icon: "📚" },
-    { href: "/islemler", label: "İşlemler", icon: "💼" },
-    { href: "/belgeler", label: "Belgeler", icon: "📁" },
-    { href: "/gorevler", label: "Görevler", icon: "✅" },
+    { href: "/anasayfa", label: "Ana Sayfa", icon: "home" },
+    { href: "/musteriler", label: "Müşteriler", icon: "users" },
+    { href: "/faturalar", label: "Faturalar", icon: "invoice" },
+    { href: "/e-fatura", label: "E-Fatura", icon: "invoice" },
+    { href: "/e-arsiv", label: "E-Arşiv", icon: "archive" },
+    { href: "/e-defter", label: "E-Defter", icon: "book" },
+    { href: "/islemler", label: "İşlemler", icon: "briefcase" },
+    { href: "/belgeler", label: "Belgeler", icon: "folder" },
+    { href: "/gorevler", label: "Görevler", icon: "checkCircle" },
   ];
 
   const riskNavItems: NavItem[] = [
-    { href: "/risk/dashboard", label: "Risk Panosu", icon: "📊" },
-    { href: "/risk/alerts", label: "Risk Uyarıları", icon: "⚠️", badge: 0 },
-    { href: "/risk/ml-fraud", label: "ML Dolandırıcılık", icon: "🤖" },
+    { href: "/risk/dashboard", label: "Risk Panosu", icon: "chart" },
+    { href: "/risk/alerts", label: "Risk Uyarıları", icon: "alert", badge: 0 },
+    { href: "/risk/ml-fraud", label: "ML Dolandırıcılık", icon: "robot" },
   ];
 
   // Get unread message count for badge
@@ -388,26 +389,26 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   const unreadMessageCount = threads.reduce((sum: number, thread: any) => sum + (thread.unreadCount || 0), 0);
 
   const otherNavItems: NavItem[] = [
-    { href: "/vergi", label: "Vergi", icon: "💰" },
-    { href: "/kvkk", label: "KVKK", icon: "🔒" },
-    { href: "/guvenlik", label: "Güvenlik", icon: "🔐" },
-    { href: "/analitik", label: "Analitik", icon: "📊" },
-    { href: "/raporlar", label: "Raporlar", icon: "📈" },
-    { href: "/entegrasyonlar", label: "Entegrasyonlar", icon: "🔌" },
-    { href: "/ai-asistan", label: "AI Asistan", icon: "🤖" },
-    { href: "/mesajlar", label: "Mesajlar", icon: "💬", badge: unreadMessageCount },
-    { href: "/sozlesmeler", label: "Sözleşmeler", icon: "📄" },
-    { href: "/bildirimler", label: "Bildirimler", icon: "🔔" },
+    { href: "/vergi", label: "Vergi", icon: "tax" },
+    { href: "/kvkk", label: "KVKK", icon: "lock" },
+    { href: "/guvenlik", label: "Güvenlik", icon: "security" },
+    { href: "/analitik", label: "Analitik", icon: "analytics" },
+    { href: "/raporlar", label: "Raporlar", icon: "report" },
+    { href: "/entegrasyonlar", label: "Entegrasyonlar", icon: "plug" },
+    { href: "/ai-asistan", label: "AI Asistan", icon: "robot" },
+    { href: "/mesajlar", label: "Mesajlar", icon: "message", badge: unreadMessageCount },
+    { href: "/sozlesmeler", label: "Sözleşmeler", icon: "contract" },
+    { href: "/bildirimler", label: "Bildirimler", icon: "notification" },
   ];
 
   const settingsItems: NavItem[] = [
-    { href: "/ayarlar/ofis", label: "Ofis Ayarları", icon: "🏢" },
-    { href: "/ayarlar/profil", label: "Profil Ayarları", icon: "👤" },
-    { href: "/ayarlar/kullanicilar", label: "Kullanıcı Yönetimi", icon: "👥" },
-    { href: "/ayarlar/email-sablonlari", label: "E-posta Şablonları", icon: "📧" },
-    { href: "/ayarlar/email-loglari", label: "E-posta Logları", icon: "📋" },
-    { href: "/ayarlar/abonelik", label: "Abonelik & Kullanım", icon: "💳" },
-    { href: "/ayarlar/denetim-kayitlari", label: "Denetim Kayıtları", icon: "📋" },
+    { href: "/ayarlar/ofis", label: "Ofis Ayarları", icon: "building" },
+    { href: "/ayarlar/profil", label: "Profil Ayarları", icon: "user" },
+    { href: "/ayarlar/kullanicilar", label: "Kullanıcı Yönetimi", icon: "users" },
+    { href: "/ayarlar/email-sablonlari", label: "E-posta Şablonları", icon: "mail" },
+    { href: "/ayarlar/email-loglari", label: "E-posta Logları", icon: "file" },
+    { href: "/ayarlar/abonelik", label: "Abonelik & Kullanım", icon: "creditCard" },
+    { href: "/ayarlar/denetim-kayitlari", label: "Denetim Kayıtları", icon: "file" },
   ];
 
   const toggleSection = (section: string) => {
@@ -487,7 +488,18 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
               justifyContent: "center",
             }}
           >
-            {item.icon}
+            {item.icon.length === 1 || item.icon.startsWith("🏠") || item.icon.startsWith("👥") ? (
+              // Legacy emoji support
+              item.icon
+            ) : (
+              // Icon component
+              <Icon 
+                name={item.icon as any} 
+                size={20} 
+                color={active ? colors.primary : colors.text.secondary}
+                strokeWidth={active ? 2.5 : 2}
+              />
+            )}
           </span>
           {!sidebarCollapsed && (
             <>
@@ -838,7 +850,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
                 }
               }}
             >
-              <span style={{ fontSize: "18px" }}>⚙️</span>
+              <Icon name="settings" size={18} color={isActive("/ayarlar") ? colors.primary : colors.text.secondary} />
               {!sidebarCollapsed && (
                 <>
                   <span style={{ flex: 1 }}>Ayarlar</span>
@@ -900,7 +912,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
                   }
                 }}
               >
-                <span style={{ fontSize: "18px" }}>👑</span>
+                <Icon name="crown" size={18} color={isActive("/admin") ? colors.primary : colors.text.secondary} />
                 {!sidebarCollapsed && <span>Yönetim Konsolu</span>}
               </Link>
             </div>

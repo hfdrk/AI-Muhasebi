@@ -8,6 +8,9 @@ import {
   type DocumentRequirement,
 } from "@repo/api-client";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Card } from "@/components/ui/Card";
+import { SkeletonTable } from "@/components/ui/Skeleton";
+import { spacing, colors, borderRadius } from "@/styles/design-system";
 import DocumentRequirementModal from "@/components/document-requirement-modal";
 import MissingDocumentsList from "@/components/missing-documents-list";
 
@@ -49,7 +52,7 @@ export default function MissingDocumentsPage() {
             onClick={handleCreateRequirement}
             style={{
               padding: "10px 20px",
-              backgroundColor: "#0066cc",
+              backgroundColor: colors.primary,
               color: "white",
               border: "none",
               borderRadius: "4px",
@@ -105,7 +108,11 @@ export default function MissingDocumentsPage() {
         </div>
 
         {isLoading ? (
-          <div style={{ padding: "24px", textAlign: "center" }}>Yükleniyor...</div>
+          <Card>
+            <div style={{ padding: spacing.lg }}>
+              <SkeletonTable rows={5} columns={4} />
+            </div>
+          </Card>
         ) : (
           <MissingDocumentsList
             requirements={requirements}
@@ -132,5 +139,6 @@ export default function MissingDocumentsPage() {
     </div>
   );
 }
+
 
 

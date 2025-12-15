@@ -6,6 +6,8 @@ import { securityClient, getCurrentUser } from "@repo/api-client";
 import Link from "next/link";
 import { Card } from "../../../components/ui/Card";
 import { Button } from "../../../components/ui/Button";
+import { Skeleton } from "../../../components/ui/Skeleton";
+import { PageTransition } from "../../../components/ui/PageTransition";
 import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../styles/design-system";
 
 export default function SecurityDashboardPage() {
@@ -37,8 +39,9 @@ export default function SecurityDashboardPage() {
   const lockoutStatus = lockoutData?.data;
 
   return (
-    <div
-      style={{
+    <PageTransition>
+      <div
+        style={{
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
@@ -225,9 +228,7 @@ export default function SecurityDashboardPage() {
               </div>
             </div>
           ) : (
-            <p style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm, margin: 0 }}>
-              Durum yükleniyor...
-            </p>
+            <Skeleton height="20px" width="100px" />
           )}
         </Card>
 
@@ -308,6 +309,7 @@ export default function SecurityDashboardPage() {
         }
       `}</style>
     </div>
+    </PageTransition>
   );
 }
 

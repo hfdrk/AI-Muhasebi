@@ -65,3 +65,4 @@ Open browser DevTools → Network tab → Filter by "search-by-risk"
 2. **Check backend logs** for the debug messages
 3. **Verify API response** in Network tab
 4. **Hard refresh** browser (Cmd+Shift+R or Ctrl+Shift+R)
+

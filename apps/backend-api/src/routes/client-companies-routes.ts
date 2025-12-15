@@ -47,7 +47,16 @@ router.get(
   "/my-company",
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const context = req.context!;
+      if (!req.context) {
+        return res.status(401).json({
+          error: {
+            code: "AUTHENTICATION_ERROR",
+            message: "Yetkilendirme gerekli.",
+          },
+        });
+      }
+
+      const context = req.context;
       const clientCompanyId = await getCustomerCompanyId(context);
 
       if (!clientCompanyId) {
@@ -71,13 +80,22 @@ router.get(
   requirePermission("clients:read"),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
+      if (!req.context || !req.context.tenantId) {
+        return res.status(401).json({
+          error: {
+            code: "AUTHENTICATION_ERROR",
+            message: "Yetkilendirme gerekli.",
+          },
+        });
+      }
+
       // For ReadOnly users, only return their own company
-      const customerCompanyId = await getCustomerCompanyId(req.context!);
+      const customerCompanyId = await getCustomerCompanyId(req.context);
       
       if (customerCompanyId) {
         // ReadOnly user - only return their own company
         const company = await clientCompanyService.getClientCompanyById(
-          req.context!.tenantId!,
+          req.context.tenantId,
           customerCompanyId
         );
         res.json({ 
@@ -101,7 +119,7 @@ router.get(
       };
 
       const result = await clientCompanyService.listClientCompanies(
-        req.context!.tenantId!,
+        req.context.tenantId,
         filters
       );
 
@@ -117,15 +135,24 @@ router.get(
   requirePermission("clients:read"),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
+      if (!req.context || !req.context.tenantId) {
+        return res.status(401).json({
+          error: {
+            code: "AUTHENTICATION_ERROR",
+            message: "Yetkilendirme gerekli.",
+          },
+        });
+      }
+
       // For ReadOnly users, only allow access to their own company
-      const customerCompanyId = await getCustomerCompanyId(req.context!);
+      const customerCompanyId = await getCustomerCompanyId(req.context);
       
       if (customerCompanyId && req.params.id !== customerCompanyId) {
         throw new AuthorizationError("Bu müşteri şirketine erişim yetkiniz yok.");
       }
 
       const client = await clientCompanyService.getClientCompanyById(
-        req.context!.tenantId!,
+        req.context.tenantId,
         req.params.id
       );
 

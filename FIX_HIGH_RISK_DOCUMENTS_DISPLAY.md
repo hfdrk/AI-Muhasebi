@@ -108,3 +108,4 @@ The frontend accesses: `data?.data.data` which should work with this structure.
 5. **Check Network tab** for API response
 
 The fix is in place - restart the backend to apply it!
+

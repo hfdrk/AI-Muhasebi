@@ -6,6 +6,8 @@ import { listClientCompanies } from "@repo/api-client";
 import { getMLFraudScore, checkMLFraud } from "@repo/api-client";
 import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
+import { Modal } from "../../../../components/ui/Modal";
+import { PageTransition } from "../../../../components/ui/PageTransition";
 import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
 
 const SEVERITY_COLORS: Record<string, string> = {
@@ -129,17 +131,17 @@ export default function MLFraudPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["ml-fraud-score", selectedCompanyId] });
       queryClient.invalidateQueries({ queryKey: ["recent-risk-alerts"] });
-      alert("ML dolandırıcılık kontrolü tamamlandı. Yüksek risk tespit edilirse uyarı oluşturulacaktır.");
+      toast.success("ML dolandırıcılık kontrolü tamamlandı. Yüksek risk tespit edilirse uyarı oluşturulacaktır.");
     },
     onError: (error: Error) => {
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 
+  const [fraudModal, setFraudModal] = useState<{ open: boolean; companyId: string | null }>({ open: false, companyId: null });
+
   const handleCheckFraud = (companyId: string) => {
-    if (confirm("Bu müşteri için ML dolandırıcılık kontrolü yapmak istediğinize emin misiniz?")) {
-      checkMutation.mutate(companyId);
-    }
+    setFraudModal({ open: true, companyId });
   };
 
   const getScoreColor = (score: number) => {
@@ -161,8 +163,9 @@ export default function MLFraudPage() {
   };
 
   return (
-    <div
-      style={{
+    <PageTransition>
+      <div
+        style={{
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
@@ -274,7 +277,7 @@ export default function MLFraudPage() {
                     marginBottom: spacing.sm,
                   }}
                 />
-                <p style={{ margin: 0, fontSize: typography.fontSize.sm }}>Yükleniyor...</p>
+                <Skeleton height="20px" width="100px" />
               </div>
             ) : filteredCompanies.length === 0 ? (
               <div
@@ -681,6 +684,34 @@ export default function MLFraudPage() {
           }
         }
       `}</style>
+
+      <Modal
+        isOpen={fraudModal.open}
+        onClose={() => setFraudModal({ open: false, companyId: null })}
+        title="ML Dolandırıcılık Kontrolü"
+        size="sm"
+      >
+        <div style={{ marginBottom: spacing.lg }}>
+          <p>Bu müşteri için ML dolandırıcılık kontrolü yapmak istediğinize emin misiniz?</p>
+        </div>
+        <div style={{ display: "flex", gap: spacing.md, justifyContent: "flex-end" }}>
+          <Button variant="outline" onClick={() => setFraudModal({ open: false, companyId: null })}>
+            İptal
+          </Button>
+          <Button
+            onClick={() => {
+              if (fraudModal.companyId) {
+                checkMutation.mutate(fraudModal.companyId);
+                setFraudModal({ open: false, companyId: null });
+              }
+            }}
+            loading={checkMutation.isPending}
+          >
+            Kontrol Et
+          </Button>
+        </div>
+      </Modal>
     </div>
+    </PageTransition>
   );
 }

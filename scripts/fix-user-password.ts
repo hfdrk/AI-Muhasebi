@@ -44,3 +44,4 @@ fixPassword()
   .finally(async () => {
     await prisma.$disconnect();
   });
+

@@ -4,6 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { notificationClient, type Notification, type NotificationType } from "@repo/api-client";
+import { Card } from "../../../components/ui/Card";
+import { Skeleton } from "../../../components/ui/Skeleton";
+import { PageTransition } from "../../../components/ui/PageTransition";
 import { colors, spacing, shadows, borderRadius } from "../../../styles/design-system";
 
 function formatTimeAgo(date: string): string {
@@ -135,7 +138,8 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+    <PageTransition>
+      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
       <div
         style={{
           display: "flex",
@@ -230,9 +234,13 @@ export default function NotificationsPage() {
 
       {/* Notifications List */}
       {isLoading ? (
-        <div style={{ textAlign: "center", padding: spacing.xxl, color: colors.text.secondary }}>
-          Yükleniyor...
-        </div>
+        <Card>
+          <div style={{ padding: spacing.xxl }}>
+            <Skeleton height="40px" width="100%" style={{ marginBottom: spacing.sm }} />
+            <Skeleton height="40px" width="100%" style={{ marginBottom: spacing.sm }} />
+            <Skeleton height="40px" width="100%" />
+          </div>
+        </Card>
       ) : notifications.length === 0 ? (
         <div
           style={{
@@ -403,6 +411,7 @@ export default function NotificationsPage() {
         </div>
       )}
     </div>
+    </PageTransition>
   );
 }
 

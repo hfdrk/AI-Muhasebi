@@ -6,6 +6,7 @@ import { kvkkClient, listTenantUsers } from "@repo/api-client";
 import Link from "next/link";
 import { Card } from "../../../components/ui/Card";
 import { Button } from "../../../components/ui/Button";
+import { SkeletonTable } from "../../../components/ui/Skeleton";
 import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../styles/design-system";
 
 export default function KVKKDashboardPage() {
@@ -87,7 +88,7 @@ export default function KVKKDashboardPage() {
                 margin: 0,
               }}
             >
-              Yükleniyor...
+              <SkeletonTable rows={5} columns={4} />
             </p>
           </div>
         </Card>

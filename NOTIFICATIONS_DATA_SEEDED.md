@@ -129,3 +129,4 @@ All notifications are properly linked to:
 - Tenant (required)
 - User (optional - null for tenant-wide notifications)
 - Related entities via metadata
+

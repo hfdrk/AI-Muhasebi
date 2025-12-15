@@ -7,6 +7,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getTransaction, updateTransaction, listClientCompanies, listLedgerAccounts } from "@repo/api-client";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import { Card } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { spacing, colors, borderRadius } from "@/styles/design-system";
 import Link from "next/link";
 
 const transactionLineSchema = z.object({
@@ -129,9 +133,14 @@ export default function EditTransactionPage() {
 
   if (transactionLoading) {
     return (
-      <div style={{ padding: "40px" }}>
-        <p>Yükleniyor...</p>
-      </div>
+      <PageTransition>
+        <Card>
+          <div style={{ padding: spacing.xxl }}>
+            <Skeleton height="40px" width="300px" style={{ marginBottom: spacing.md }} />
+            <Skeleton height="200px" width="100%" />
+          </div>
+        </Card>
+      </PageTransition>
     );
   }
 
@@ -147,7 +156,8 @@ export default function EditTransactionPage() {
   const totals = calculateTotals();
 
   return (
-    <div style={{ padding: "40px", maxWidth: "1200px" }}>
+    <PageTransition>
+      <div style={{ padding: "40px", maxWidth: "1200px" }}>
       <h1 style={{ marginBottom: "24px" }}>Mali Hareket Düzenle</h1>
 
       <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
@@ -258,7 +268,7 @@ export default function EditTransactionPage() {
               }
               style={{
                 padding: "8px 16px",
-                backgroundColor: "#28a745",
+                backgroundColor: colors.success,
                 color: "white",
                 border: "none",
                 borderRadius: "4px",
@@ -354,8 +364,8 @@ export default function EditTransactionPage() {
                           onClick={() => remove(index)}
                           style={{
                             padding: "4px 8px",
-                            color: "#dc3545",
-                            border: "1px solid #dc3545",
+                            color: colors.danger,
+                            border: `1px solid ${colors.danger}`,
                             borderRadius: "4px",
                             cursor: "pointer",
                             fontSize: "12px",
@@ -377,7 +387,7 @@ export default function EditTransactionPage() {
             </p>
           )}
 
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: "16px", padding: "16px", backgroundColor: "#f5f5f5", borderRadius: "4px" }}>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: "16px", padding: "16px", backgroundColor: colors.gray[100], borderRadius: borderRadius.sm }}>
             <div>
               <strong>Toplam Borç:</strong>{" "}
               {totals.totalDebit.toLocaleString("tr-TR", {
@@ -394,7 +404,7 @@ export default function EditTransactionPage() {
             </div>
             <div
               style={{
-                color: Math.abs(totals.totalDebit - totals.totalCredit) < 0.01 ? "#28a745" : "#dc3545",
+                color: Math.abs(totals.totalDebit - totals.totalCredit) < 0.01 ? colors.success : colors.danger,
                 fontWeight: "bold",
               }}
             >
@@ -412,7 +422,7 @@ export default function EditTransactionPage() {
             href={`/transactions/${transactionId}`}
             style={{
               padding: "8px 16px",
-              backgroundColor: "#f5f5f5",
+              backgroundColor: colors.gray[100],
               border: "1px solid #ddd",
               borderRadius: "4px",
               textDecoration: "none",
@@ -426,7 +436,7 @@ export default function EditTransactionPage() {
             disabled={isSubmitting || Math.abs(totals.totalDebit - totals.totalCredit) >= 0.01}
             style={{
               padding: "8px 16px",
-              backgroundColor: "#0066cc",
+              backgroundColor: colors.primary,
               color: "white",
               border: "none",
               borderRadius: "4px",
@@ -439,6 +449,7 @@ export default function EditTransactionPage() {
         </div>
       </form>
     </div>
+    </PageTransition>
   );
 }
 

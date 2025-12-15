@@ -7,6 +7,8 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { MessageComposer } from "@/components/message-composer";
 import { MessageBubble } from "@/components/message-bubble";
 import { Card } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { PageTransition } from "@/components/ui/PageTransition";
 import { colors, spacing } from "@/styles/design-system";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
@@ -74,14 +76,17 @@ export default function MessageThreadPage() {
 
   if (isLoading) {
     return (
-      <div>
-        <PageHeader title="Mesajlar" />
-        <Card>
-          <div style={{ padding: spacing.xl, textAlign: "center", color: colors.text.secondary }}>
-            Yükleniyor...
-          </div>
-        </Card>
-      </div>
+      <PageTransition>
+        <div>
+          <PageHeader title="Mesajlar" />
+          <Card>
+            <div style={{ padding: spacing.xl }}>
+              <Skeleton height="40px" width="100%" style={{ marginBottom: spacing.sm }} />
+              <Skeleton height="200px" width="100%" />
+            </div>
+          </Card>
+        </div>
+      </PageTransition>
     );
   }
 
@@ -106,7 +111,8 @@ export default function MessageThreadPage() {
   const displayName = thread.subject || otherParticipants.map((p) => p.userName).join(", ") || "Konuşma";
 
   return (
-    <div>
+    <PageTransition>
+      <div>
       <div style={{ display: "flex", alignItems: "center", gap: spacing.md, marginBottom: spacing.lg }}>
         <Link href="/mesajlar" style={{ color: colors.primary, textDecoration: "none", fontSize: "18px" }}>
           ←
@@ -175,7 +181,9 @@ export default function MessageThreadPage() {
         </div>
       </Card>
     </div>
+    </PageTransition>
   );
 }
+
 
 

@@ -10,6 +10,11 @@ import {
 import { reports as reportsI18n } from "@repo/i18n";
 import { getReportTypeLabel, getScheduleCronLabel, getStatusLabel, formatReportDate } from "@/lib/reports";
 import { colors, spacing } from "@/styles/design-system";
+import { Card } from "@/components/ui/Card";
+import { SkeletonTable } from "@/components/ui/Skeleton";
+import { Modal } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
+import { PageTransition } from "@/components/ui/PageTransition";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -17,6 +22,7 @@ export default function ScheduledReportsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
+  const [deleteModal, setDeleteModal] = useState<{ open: boolean; reportId: string | null }>({ open: false, reportId: null });
 
   const { data: userData } = useQuery({
     queryKey: ["currentUser"],
@@ -48,14 +54,19 @@ export default function ScheduledReportsPage() {
 
   if (isLoading) {
     return (
-      <div style={{ padding: spacing.xxl }}>
-        <p>Yükleniyor...</p>
-      </div>
+      <PageTransition>
+        <Card>
+          <div style={{ padding: spacing.lg }}>
+            <SkeletonTable rows={5} columns={6} />
+          </div>
+        </Card>
+      </PageTransition>
     );
   }
 
   return (
-    <div style={{ padding: spacing.xxl }}>
+    <PageTransition>
+      <div style={{ padding: spacing.xxl }}>
       <div style={{ marginBottom: spacing.xl, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
           <Link
@@ -218,12 +229,10 @@ export default function ScheduledReportsPage() {
                           >
                             Düzenle
                           </button>
-                          <button
-                            onClick={() => {
-                              if (confirm("Bu zamanlanmış raporu silmek istediğinize emin misiniz?")) {
-                                deleteMutation.mutate(report.id);
-                              }
-                            }}
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => setDeleteModal({ open: true, reportId: report.id })}
                             disabled={deleteMutation.isPending}
                             style={{
                               padding: `${spacing.xs} ${spacing.sm}`,
@@ -237,7 +246,7 @@ export default function ScheduledReportsPage() {
                             }}
                           >
                             Sil
-                          </button>
+                          </Button>
                         </div>
                       </td>
                     )}
@@ -248,7 +257,36 @@ export default function ScheduledReportsPage() {
           </div>
         </div>
       )}
+
+      <Modal
+        isOpen={deleteModal.open}
+        onClose={() => setDeleteModal({ open: false, reportId: null })}
+        title="Zamanlanmış Raporu Sil"
+        size="sm"
+      >
+        <div style={{ marginBottom: spacing.lg }}>
+          <p>Bu zamanlanmış raporu silmek istediğinize emin misiniz? Bu işlem geri alınamaz.</p>
+        </div>
+        <div style={{ display: "flex", gap: spacing.md, justifyContent: "flex-end" }}>
+          <Button variant="outline" onClick={() => setDeleteModal({ open: false, reportId: null })}>
+            İptal
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              if (deleteModal.reportId) {
+                deleteMutation.mutate(deleteModal.reportId);
+                setDeleteModal({ open: false, reportId: null });
+              }
+            }}
+            loading={deleteMutation.isPending}
+          >
+            Sil
+          </Button>
+        </div>
+      </Modal>
     </div>
+    </PageTransition>
   );
 }
 

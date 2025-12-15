@@ -4,6 +4,12 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listTasks, getTaskStatistics, updateTask, deleteTask, type Task } from "@repo/api-client";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Card } from "@/components/ui/Card";
+import { SkeletonTable } from "@/components/ui/Skeleton";
+import { Modal } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { spacing, colors } from "@/styles/design-system";
 import TaskModal from "@/components/task-modal";
 import TaskList from "@/components/task-list";
 import TaskDashboardWidget from "@/components/task-dashboard-widget";
@@ -11,6 +17,7 @@ import TaskDashboardWidget from "@/components/task-dashboard-widget";
 export default function TasksPage() {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteModal, setDeleteModal] = useState<{ open: boolean; taskId: string | null }>({ open: false, taskId: null });
   const [filters, setFilters] = useState<{
     status?: "pending" | "in_progress" | "completed" | "cancelled";
     priority?: "low" | "medium" | "high";
@@ -57,9 +64,7 @@ export default function TasksPage() {
   };
 
   const handleDeleteTask = async (taskId: string) => {
-    if (confirm("Bu görevi silmek istediğinizden emin misiniz?")) {
-      await deleteMutation.mutateAsync(taskId);
-    }
+    setDeleteModal({ open: true, taskId });
   };
 
   const handleStatusChange = async (taskId: string, status: Task["status"]) => {
@@ -70,7 +75,8 @@ export default function TasksPage() {
   const stats = statsData?.data;
 
   return (
-    <div style={{ padding: "24px", maxWidth: "1400px", margin: "0 auto" }}>
+    <PageTransition>
+      <div style={{ padding: "24px", maxWidth: "1400px", margin: "0 auto" }}>
       <PageHeader
         title="Görevler"
         actions={
@@ -78,7 +84,7 @@ export default function TasksPage() {
             onClick={handleCreateTask}
             style={{
               padding: "10px 20px",
-              backgroundColor: "#0066cc",
+              backgroundColor: colors.primary,
               color: "white",
               border: "none",
               borderRadius: "4px",
@@ -135,7 +141,11 @@ export default function TasksPage() {
         </div>
 
         {isLoading ? (
-          <div style={{ padding: "24px", textAlign: "center" }}>Yükleniyor...</div>
+          <Card>
+            <div style={{ padding: spacing.lg }}>
+              <SkeletonTable rows={5} columns={4} />
+            </div>
+          </Card>
         ) : (
           <TaskList
             tasks={tasks}
@@ -162,8 +172,38 @@ export default function TasksPage() {
           }}
         />
       )}
+
+      <Modal
+        isOpen={deleteModal.open}
+        onClose={() => setDeleteModal({ open: false, taskId: null })}
+        title="Görevi Sil"
+        size="sm"
+      >
+        <div style={{ marginBottom: spacing.lg }}>
+          <p>Bu görevi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.</p>
+        </div>
+        <div style={{ display: "flex", gap: spacing.md, justifyContent: "flex-end" }}>
+          <Button variant="outline" onClick={() => setDeleteModal({ open: false, taskId: null })}>
+            İptal
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              if (deleteModal.taskId) {
+                deleteMutation.mutate(deleteModal.taskId);
+                setDeleteModal({ open: false, taskId: null });
+              }
+            }}
+            loading={deleteMutation.isPending}
+          >
+            Sil
+          </Button>
+        </div>
+      </Modal>
     </div>
+    </PageTransition>
   );
 }
+
 
 

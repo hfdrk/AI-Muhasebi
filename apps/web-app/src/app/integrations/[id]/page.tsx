@@ -12,6 +12,7 @@ import {
 } from "@repo/api-client";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { toast } from "@/lib/toast";
 
 const STATUS_LABELS: Record<string, string> = {
   connected: "Bağlı",
@@ -70,7 +71,7 @@ export default function IntegrationDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["integration", integrationId] });
       queryClient.invalidateQueries({ queryKey: ["integration-jobs", integrationId] });
-      alert("Senkronizasyon başlatıldı.");
+      toast.success("Senkronizasyon başlatıldı.");
     },
   });
 

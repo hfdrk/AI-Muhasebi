@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getUsersOverview } from "@repo/api-client";
+import { Card } from "../../../../components/ui/Card";
+import { SkeletonTable } from "../../../../components/ui/Skeleton";
+import { PageTransition } from "../../../../components/ui/PageTransition";
 import { colors, spacing, shadows } from "../../../../styles/design-system";
 
 export default function AdminUsersPage() {
@@ -25,7 +28,15 @@ export default function AdminUsersPage() {
   });
 
   if (isLoading) {
-    return <div style={{ textAlign: "center", padding: spacing.xxl }}>Yükleniyor...</div>;
+    return (
+      <PageTransition>
+        <Card>
+          <div style={{ padding: spacing.lg }}>
+            <SkeletonTable rows={5} columns={6} />
+          </div>
+        </Card>
+      </PageTransition>
+    );
   }
 
   if (error) {
@@ -40,7 +51,8 @@ export default function AdminUsersPage() {
   const pagination = data?.meta.pagination;
 
   return (
-    <div>
+    <PageTransition>
+      <div>
       <h1 style={{ marginBottom: spacing.xl, fontSize: "28px", fontWeight: 600, color: colors.text.primary }}>
         Kullanıcılar
       </h1>
@@ -189,8 +201,10 @@ export default function AdminUsersPage() {
         </div>
       )}
     </div>
+    </PageTransition>
   );
 }
+
 
 
 

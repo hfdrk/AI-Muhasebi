@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
 import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
+import { toast } from "../../../../lib/toast";
 
 const CONSENT_TYPE_LABELS: Record<string, string> = {
   data_processing: "Veri İşleme",
@@ -71,11 +72,11 @@ export default function ConsentManagementPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["kvkk-consent", selectedUserId] });
-      alert("Onay başarıyla kaydedildi!");
+      toast.success("Onay başarıyla kaydedildi!");
       setConsentType("");
     },
     onError: (error: Error) => {
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 

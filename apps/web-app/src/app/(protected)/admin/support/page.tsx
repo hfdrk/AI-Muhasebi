@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getSupportIncidents } from "@repo/api-client";
+import { Card } from "../../../../components/ui/Card";
+import { SkeletonTable } from "../../../../components/ui/Skeleton";
+import { PageTransition } from "../../../../components/ui/PageTransition";
 import { colors, spacing, shadows } from "../../../../styles/design-system";
 
 export default function AdminSupportPage() {
@@ -21,7 +24,15 @@ export default function AdminSupportPage() {
   });
 
   if (isLoading) {
-    return <div style={{ textAlign: "center", padding: spacing.xxl }}>Yükleniyor...</div>;
+    return (
+      <PageTransition>
+        <Card>
+          <div style={{ padding: spacing.lg }}>
+            <SkeletonTable rows={5} columns={5} />
+          </div>
+        </Card>
+      </PageTransition>
+    );
   }
 
   if (error) {
@@ -69,7 +80,8 @@ export default function AdminSupportPage() {
   }
 
   return (
-    <div>
+    <PageTransition>
+      <div>
       <h1 style={{ marginBottom: spacing.xl, fontSize: "28px", fontWeight: 600, color: colors.text.primary }}>
         Destek / Olaylar
       </h1>
@@ -181,8 +193,10 @@ export default function AdminSupportPage() {
         </div>
       )}
     </div>
+    </PageTransition>
   );
 }
+
 
 
 

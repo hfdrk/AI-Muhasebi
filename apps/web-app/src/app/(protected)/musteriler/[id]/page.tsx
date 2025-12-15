@@ -9,6 +9,14 @@ import { BankAccountModal } from "../../../../components/bank-account-modal";
 import { DocumentList } from "../../../../components/document-list";
 import { DocumentUploadModal } from "../../../../components/document-upload-modal";
 import { useClientCompanyRiskScore } from "@/hooks/use-risk";
+import { colors, spacing, borderRadius, typography } from "@/styles/design-system";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Modal } from "@/components/ui/Modal";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { Tabs } from "@/components/ui/Tabs";
+import { toast } from "@/lib/toast";
 
 export default function ClientDetailPage() {
   const params = useParams();
@@ -18,6 +26,10 @@ export default function ClientDetailPage() {
   const [bankModalOpen, setBankModalOpen] = useState(false);
   const [documentModalOpen, setDocumentModalOpen] = useState(false);
   const [editingBankAccount, setEditingBankAccount] = useState<string | null>(null);
+  const [deleteBankModal, setDeleteBankModal] = useState<{ open: boolean; accountId: string | null }>({
+    open: false,
+    accountId: null,
+  });
   const queryClient = useQueryClient();
 
   const { data: client, isLoading: clientLoading } = useQuery({
@@ -36,6 +48,11 @@ export default function ClientDetailPage() {
     mutationFn: (accountId: string) => deleteBankAccount(clientId, accountId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bankAccounts", clientId] });
+      toast.success("Banka hesabı başarıyla silindi.");
+      setDeleteBankModal({ open: false, accountId: null });
+    },
+    onError: () => {
+      toast.error("Banka hesabı silinirken bir hata oluştu.");
     },
   });
 
@@ -43,17 +60,30 @@ export default function ClientDetailPage() {
 
   if (clientLoading) {
     return (
-      <div style={{ padding: "40px" }}>
-        <p>Yükleniyor...</p>
+      <div style={{ padding: spacing.xxl, maxWidth: "1400px", margin: "0 auto" }}>
+        <Card>
+          <div style={{ padding: spacing.lg }}>
+            <Skeleton height="40px" width="60%" style={{ marginBottom: spacing.md }} />
+            <Skeleton height="20px" width="80%" style={{ marginBottom: spacing.sm }} />
+            <Skeleton height="20px" width="90%" style={{ marginBottom: spacing.sm }} />
+            <Skeleton height="200px" width="100%" />
+          </div>
+        </Card>
       </div>
     );
   }
 
   if (!client?.data) {
     return (
-      <div style={{ padding: "40px" }}>
-        <p>Müşteri şirketi bulunamadı.</p>
-        <Link href="/musteriler">Müşteri listesine dön</Link>
+      <div style={{ padding: spacing.xxl, maxWidth: "1400px", margin: "0 auto" }}>
+        <Card>
+          <div style={{ textAlign: "center", padding: spacing.xxl }}>
+            <p style={{ color: colors.text.secondary, marginBottom: spacing.md }}>Müşteri şirketi bulunamadı.</p>
+            <Button asLink href="/musteriler" variant="outline">
+              Müşteri listesine dön
+            </Button>
+          </div>
+        </Card>
       </div>
     );
   }
@@ -61,122 +91,27 @@ export default function ClientDetailPage() {
   const clientData = client.data;
 
   return (
-    <div style={{ padding: "40px" }}>
+    <PageTransition>
+      <div style={{ padding: "40px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
         <h1>{clientData.name}</h1>
-        <div style={{ display: "flex", gap: "8px" }}>
-          <Link
-            href={`/musteriler/${clientId}/edit`}
-            style={{
-              padding: "8px 16px",
-              backgroundColor: "#0066cc",
-              color: "white",
-              textDecoration: "none",
-              borderRadius: "4px",
-            }}
-          >
+        <div style={{ display: "flex", gap: spacing.sm }}>
+          <Button asLink href={`/musteriler/${clientId}/edit`} variant="primary">
             Düzenle
-          </Link>
-          <Link
-            href="/musteriler"
-            style={{
-              padding: "8px 16px",
-              backgroundColor: "#f5f5f5",
-              color: "inherit",
-              textDecoration: "none",
-              borderRadius: "4px",
-            }}
-          >
+          </Button>
+          <Button asLink href="/musteriler" variant="outline">
             Geri
-          </Link>
+          </Button>
         </div>
       </div>
 
-      <div style={{ borderBottom: "1px solid #ddd", marginBottom: "24px" }}>
-        <div style={{ display: "flex", gap: "16px" }}>
-          <button
-            onClick={() => setActiveTab("general")}
-            style={{
-              padding: "8px 16px",
-              border: "none",
-              borderBottom: activeTab === "general" ? "2px solid #0066cc" : "2px solid transparent",
-              backgroundColor: "transparent",
-              cursor: "pointer",
-              color: activeTab === "general" ? "#0066cc" : "inherit",
-            }}
-          >
-            Genel Bilgiler
-          </button>
-          <button
-            onClick={() => setActiveTab("banks")}
-            style={{
-              padding: "8px 16px",
-              border: "none",
-              borderBottom: activeTab === "banks" ? "2px solid #0066cc" : "2px solid transparent",
-              backgroundColor: "transparent",
-              cursor: "pointer",
-              color: activeTab === "banks" ? "#0066cc" : "inherit",
-            }}
-          >
-            Banka Hesapları
-          </button>
-          <button
-            onClick={() => setActiveTab("invoices")}
-            style={{
-              padding: "8px 16px",
-              border: "none",
-              borderBottom: activeTab === "invoices" ? "2px solid #0066cc" : "2px solid transparent",
-              backgroundColor: "transparent",
-              cursor: "pointer",
-              color: activeTab === "invoices" ? "#0066cc" : "inherit",
-            }}
-          >
-            Faturalar
-          </button>
-          <button
-            onClick={() => setActiveTab("transactions")}
-            style={{
-              padding: "8px 16px",
-              border: "none",
-              borderBottom: activeTab === "transactions" ? "2px solid #0066cc" : "2px solid transparent",
-              backgroundColor: "transparent",
-              cursor: "pointer",
-              color: activeTab === "transactions" ? "#0066cc" : "inherit",
-            }}
-          >
-            Mali Hareketler
-          </button>
-          <button
-            onClick={() => setActiveTab("documents")}
-            style={{
-              padding: "8px 16px",
-              border: "none",
-              borderBottom: activeTab === "documents" ? "2px solid #0066cc" : "2px solid transparent",
-              backgroundColor: "transparent",
-              cursor: "pointer",
-              color: activeTab === "documents" ? "#0066cc" : "inherit",
-            }}
-          >
-            Belgeler
-          </button>
-          <button
-            onClick={() => setActiveTab("risk")}
-            style={{
-              padding: "8px 16px",
-              border: "none",
-              borderBottom: activeTab === "risk" ? "2px solid #0066cc" : "2px solid transparent",
-              backgroundColor: "transparent",
-              cursor: "pointer",
-              color: activeTab === "risk" ? "#0066cc" : "inherit",
-            }}
-          >
-            Risk Analizi
-          </button>
-        </div>
-      </div>
-
-      {activeTab === "general" && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+      <Tabs
+        items={[
+          {
+            id: "general",
+            label: "Genel Bilgiler",
+            content: (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: spacing.md }}>
           <div>
             <strong>Şirket Adı:</strong> {clientData.name}
           </div>
@@ -194,17 +129,9 @@ export default function ClientDetailPage() {
           </div>
           <div>
             <strong>Durum:</strong>{" "}
-            <span
-              style={{
-                padding: "4px 8px",
-                borderRadius: "4px",
-                backgroundColor: clientData.isActive ? "#d4edda" : "#f8d7da",
-                color: clientData.isActive ? "#155724" : "#721c24",
-                fontSize: "12px",
-              }}
-            >
+            <Badge variant={clientData.isActive ? "success" : "danger"} size="sm">
               {clientData.isActive ? "Aktif" : "Pasif"}
-            </span>
+            </Badge>
           </div>
           <div>
             <strong>İlgili Kişi:</strong> {clientData.contactPersonName || "-"}
@@ -234,93 +161,78 @@ export default function ClientDetailPage() {
             </>
           )}
         </div>
-      )}
-
-      {activeTab === "banks" && (
+            ),
+          },
+          {
+            id: "banks",
+            label: "Banka Hesapları",
+            content: (
         <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-            <h2>Banka Hesapları</h2>
-            <button
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.md }}>
+            <h2 style={{ margin: 0, fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.bold, color: colors.text.primary }}>Banka Hesapları</h2>
+            <Button
               onClick={() => {
                 setEditingBankAccount(null);
                 setBankModalOpen(true);
               }}
-              style={{
-                padding: "8px 16px",
-                backgroundColor: "#0066cc",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
             >
               Yeni Banka Hesabı Ekle
-            </button>
+            </Button>
           </div>
 
           {banksLoading ? (
-            <p>Yükleniyor...</p>
+            <Card>
+              <div style={{ padding: spacing.lg }}>
+                <Skeleton height="40px" width="100%" style={{ marginBottom: spacing.sm }} />
+                <Skeleton height="40px" width="100%" style={{ marginBottom: spacing.sm }} />
+                <Skeleton height="40px" width="100%" />
+              </div>
+            </Card>
           ) : bankAccounts?.data.length === 0 ? (
             <p>Henüz banka hesabı bulunmamaktadır.</p>
           ) : (
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ borderBottom: "2px solid #ddd" }}>
-                  <th style={{ padding: "12px", textAlign: "left" }}>Banka Adı</th>
-                  <th style={{ padding: "12px", textAlign: "left" }}>IBAN</th>
-                  <th style={{ padding: "12px", textAlign: "left" }}>Para Birimi</th>
-                  <th style={{ padding: "12px", textAlign: "left" }}>Birincil Hesap</th>
-                  <th style={{ padding: "12px", textAlign: "left" }}>Oluşturulma Tarihi</th>
-                  <th style={{ padding: "12px", textAlign: "left" }}>İşlemler</th>
+                <tr style={{ borderBottom: `2px solid ${colors.border}` }}>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary }}>Banka Adı</th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary }}>IBAN</th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary }}>Para Birimi</th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary }}>Birincil Hesap</th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary }}>Oluşturulma Tarihi</th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary }}>İşlemler</th>
                 </tr>
               </thead>
               <tbody>
                 {bankAccounts?.data.map((account) => (
-                  <tr key={account.id} style={{ borderBottom: "1px solid #eee" }}>
-                    <td style={{ padding: "12px" }}>{account.bankName}</td>
-                    <td style={{ padding: "12px" }}>{account.iban}</td>
-                    <td style={{ padding: "12px" }}>{account.currency}</td>
-                    <td style={{ padding: "12px" }}>
+                  <tr key={account.id} style={{ borderBottom: `1px solid ${colors.border}` }}>
+                    <td style={{ padding: spacing.md, color: colors.text.primary, fontSize: typography.fontSize.sm }}>{account.bankName}</td>
+                    <td style={{ padding: spacing.md, color: colors.text.primary, fontSize: typography.fontSize.sm }}>{account.iban}</td>
+                    <td style={{ padding: spacing.md, color: colors.text.primary, fontSize: typography.fontSize.sm }}>{account.currency}</td>
+                    <td style={{ padding: spacing.md, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
                       {account.isPrimary ? "✓" : "-"}
                     </td>
-                    <td style={{ padding: "12px" }}>
+                    <td style={{ padding: spacing.md, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>
                       {new Date(account.createdAt).toLocaleDateString("tr-TR")}
                     </td>
-                    <td style={{ padding: "12px" }}>
-                      <button
+                    <td style={{ padding: spacing.md }}>
+                      <Button
                         onClick={() => {
                           setEditingBankAccount(account.id);
                           setBankModalOpen(true);
                         }}
-                        style={{
-                          padding: "4px 8px",
-                          marginRight: "8px",
-                          color: "#0066cc",
-                          border: "1px solid #0066cc",
-                          borderRadius: "4px",
-                          cursor: "pointer",
-                          fontSize: "12px",
-                        }}
+                        variant="outline"
+                        size="sm"
+                        style={{ marginRight: spacing.xs }}
                       >
                         Düzenle
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (confirm("Bu banka hesabını silmek istediğinize emin misiniz?")) {
-                            deleteBankMutation.mutate(account.id);
-                          }
-                        }}
-                        style={{
-                          padding: "4px 8px",
-                          color: "#dc3545",
-                          border: "1px solid #dc3545",
-                          borderRadius: "4px",
-                          cursor: "pointer",
-                          fontSize: "12px",
-                        }}
+                      </Button>
+                      <Button
+                        onClick={() => setDeleteBankModal({ open: true, accountId: account.id })}
+                        variant="danger"
+                        size="sm"
                       >
                         Sil
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -338,57 +250,73 @@ export default function ClientDetailPage() {
             }}
           />
         </div>
-      )}
-
-      {activeTab === "invoices" && (
-        <div>
-          <p>Faturalar listesi buraya gelecek.</p>
-          <Link href={`/faturalar?clientCompanyId=${clientId}`}>Faturaları görüntüle</Link>
-        </div>
-      )}
-
-      {activeTab === "transactions" && (
-        <div>
-          <p>Mali hareketler listesi buraya gelecek.</p>
-          <Link href={`/islemler?clientCompanyId=${clientId}`}>Mali hareketleri görüntüle</Link>
-        </div>
-      )}
-
-      {activeTab === "documents" && (
-        <div>
-          <DocumentList
-            clientCompanyId={clientId}
-            onUploadClick={() => setDocumentModalOpen(true)}
-            canUpload={true}
-            canDelete={true}
-          />
-          <DocumentUploadModal
-            clientCompanyId={clientId}
-            isOpen={documentModalOpen}
-            onClose={() => setDocumentModalOpen(false)}
-          />
-        </div>
-      )}
-
-      {activeTab === "risk" && (
+            ),
+          },
+          {
+            id: "invoices",
+            label: "Faturalar",
+            content: (
+              <div>
+                <p>Faturalar listesi buraya gelecek.</p>
+                <Link href={`/faturalar?clientCompanyId=${clientId}`}>Faturaları görüntüle</Link>
+              </div>
+            ),
+          },
+          {
+            id: "transactions",
+            label: "Mali Hareketler",
+            content: (
+              <div>
+                <p>Mali hareketler listesi buraya gelecek.</p>
+                <Link href={`/islemler?clientCompanyId=${clientId}`}>Mali hareketleri görüntüle</Link>
+              </div>
+            ),
+          },
+          {
+            id: "documents",
+            label: "Belgeler",
+            content: (
+              <div>
+                <DocumentList
+                  clientCompanyId={clientId}
+                  onUploadClick={() => setDocumentModalOpen(true)}
+                  canUpload={true}
+                  canDelete={true}
+                />
+                <DocumentUploadModal
+                  clientCompanyId={clientId}
+                  isOpen={documentModalOpen}
+                  onClose={() => setDocumentModalOpen(false)}
+                />
+              </div>
+            ),
+          },
+          {
+            id: "risk",
+            label: "Risk Analizi",
+            content: (
         <div>
           <h2 style={{ marginBottom: "20px" }}>Müşteri Risk Analizi</h2>
           {riskLoading && (
-            <div style={{ padding: "16px" }}>
-              <p>Risk skoru yükleniyor...</p>
-            </div>
+            <Card>
+              <div style={{ padding: spacing.lg }}>
+                <Skeleton height="40px" width="100%" style={{ marginBottom: spacing.sm }} />
+                <Skeleton height="40px" width="100%" />
+              </div>
+            </Card>
           )}
 
           {riskError && (
-            <div style={{ padding: "16px", backgroundColor: "#fee2e2", borderRadius: "4px", color: "#dc2626" }}>
-              <p>Risk skoru yüklenirken bir hata oluştu: {riskError instanceof Error ? riskError.message : "Bilinmeyen hata"}</p>
-              <pre style={{ fontSize: "12px", marginTop: "8px" }}>{JSON.stringify(riskError, null, 2)}</pre>
-            </div>
+            <Card style={{ backgroundColor: colors.dangerLight, border: `1px solid ${colors.danger}` }}>
+              <p style={{ margin: 0, color: colors.danger, fontSize: typography.fontSize.sm }}>
+                Risk skoru yüklenirken bir hata oluştu: {riskError instanceof Error ? riskError.message : "Bilinmeyen hata"}
+              </p>
+            </Card>
           )}
 
           {/* Debug info - remove in production */}
           {process.env.NODE_ENV === "development" && riskScoreData && (
-            <div style={{ padding: "8px", backgroundColor: "#f0f0f0", fontSize: "12px", marginBottom: "8px" }}>
+            <div style={{ padding: "8px", backgroundColor: colors.gray[100], fontSize: "12px", marginBottom: "8px" }}>
               Debug: riskScoreData exists: {riskScoreData ? "yes" : "no"}, 
               riskScore: {riskScoreData?.data?.riskScore ? "exists" : "null"},
               breakdown: {JSON.stringify(riskScoreData?.data?.breakdown)}
@@ -396,7 +324,7 @@ export default function ClientDetailPage() {
           )}
 
           {!riskLoading && riskScoreData?.data && (
-            <div style={{ padding: "20px", backgroundColor: "#f5f5f5", borderRadius: "8px", marginBottom: "20px" }}>
+            <div style={{ padding: "20px", backgroundColor: colors.gray[100], borderRadius: borderRadius.md, marginBottom: "20px" }}>
               {riskScoreData.data.riskScore ? (
                 <>
                   <div style={{ marginBottom: "20px" }}>
@@ -409,10 +337,10 @@ export default function ClientDetailPage() {
                             fontWeight: "bold",
                             color:
                               riskScoreData.data.riskScore.severity === "high"
-                                ? "#dc2626"
+                                ? colors.dangerDark
                                 : riskScoreData.data.riskScore.severity === "medium"
-                                ? "#f59e0b"
-                                : "#10b981",
+                                ? colors.warning
+                                : colors.success,
                           }}
                         >
                           {riskScoreData.data.riskScore.score}
@@ -429,16 +357,16 @@ export default function ClientDetailPage() {
                             fontWeight: "500",
                             backgroundColor:
                               riskScoreData.data.riskScore.severity === "high"
-                                ? "#dc262620"
+                                ? `${colors.dangerDark}20`
                                 : riskScoreData.data.riskScore.severity === "medium"
-                                ? "#f59e0b20"
-                                : "#10b98120",
+                                ? `${colors.warning}20`
+                                : `${colors.success}20`,
                             color:
                               riskScoreData.data.riskScore.severity === "high"
-                                ? "#dc2626"
+                                ? colors.dangerDark
                                 : riskScoreData.data.riskScore.severity === "medium"
-                                ? "#f59e0b"
-                                : "#10b981",
+                                ? colors.warning
+                                : colors.success,
                           }}
                         >
                           {riskScoreData.data.riskScore.severity === "high"
@@ -520,8 +448,44 @@ export default function ClientDetailPage() {
             </div>
           )}
         </div>
-      )}
+            ),
+          },
+        ]}
+        defaultTab="general"
+        onChange={(tabId) => setActiveTab(tabId as typeof activeTab)}
+      />
+
+      {/* Delete Bank Account Modal */}
+      <Modal
+        isOpen={deleteBankModal.open}
+        onClose={() => setDeleteBankModal({ open: false, accountId: null })}
+        title="Banka Hesabını Sil"
+        size="sm"
+      >
+        <div style={{ marginBottom: spacing.lg }}>
+          <p style={{ color: colors.text.primary }}>
+            Bu banka hesabını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.
+          </p>
+        </div>
+        <div style={{ display: "flex", gap: spacing.md, justifyContent: "flex-end" }}>
+          <Button variant="outline" onClick={() => setDeleteBankModal({ open: false, accountId: null })}>
+            İptal
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              if (deleteBankModal.accountId) {
+                deleteBankMutation.mutate(deleteBankModal.accountId);
+              }
+            }}
+            loading={deleteBankMutation.isPending}
+          >
+            Sil
+          </Button>
+        </div>
+      </Modal>
     </div>
+    </PageTransition>
   );
 }
 

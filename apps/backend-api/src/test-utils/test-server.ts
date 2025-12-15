@@ -100,6 +100,14 @@ import searchRoutes from "../routes/search-routes";
 import savedFiltersRoutes from "../routes/saved-filters-routes";
 import adminRoutes from "../routes/admin-routes";
 import aiRoutes from "../routes/ai-routes";
+import kvkkRoutes from "../routes/kvkk-routes";
+import taxRoutes from "../routes/tax-routes";
+import securityRoutes from "../routes/security-routes";
+import analyticsRoutes from "../routes/analytics-routes";
+import eFaturaRoutes from "../routes/e-fatura-routes";
+import eArsivRoutes from "../routes/e-arsiv-routes";
+import eDefterRoutes from "../routes/e-defter-routes";
+import databaseOptimizationRoutes from "../routes/database-optimization-routes";
 import { healthCheck, readinessCheck, healthzCheck, readyzCheck } from "../routes/health-routes";
 
 /**
@@ -155,6 +163,14 @@ export function createTestApp(): express.Application {
   app.use("/api/v1/saved-filters", savedFiltersRoutes);
   app.use("/api/v1/admin", adminRoutes);
   app.use("/api/v1/ai", aiRoutes);
+  app.use("/api/v1/kvkk", kvkkRoutes);
+  app.use("/api/v1/tax", taxRoutes);
+  app.use("/api/v1/security", securityRoutes);
+  app.use("/api/v1/analytics", analyticsRoutes);
+  app.use("/api/v1/e-fatura", eFaturaRoutes);
+  app.use("/api/v1/e-arsiv", eArsivRoutes);
+  app.use("/api/v1/e-defter", eDefterRoutes);
+  app.use("/api/v1/database-optimization", databaseOptimizationRoutes);
 
   // Error handler (must be last)
   app.use(errorHandler);

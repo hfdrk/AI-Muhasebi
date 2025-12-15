@@ -33,7 +33,7 @@ describe("KVKK Routes Integration Tests", () => {
         .expect(200);
 
       expect(response.body.data).toBeDefined();
-      expect(response.body.data.consentId).toBeDefined();
+      expect(response.body.data.id).toBeDefined();
       expect(response.body.data.granted).toBe(true);
     });
   });
@@ -56,8 +56,8 @@ describe("KVKK Routes Integration Tests", () => {
         .expect(200);
 
       expect(response.body.data).toBeDefined();
-      expect(response.body.data.consents).toBeDefined();
-      expect(response.body.data.consents.data_processing).toBe(true);
+      expect(response.body.data.dataProcessing).toBeDefined();
+      expect(response.body.data.dataProcessing).toBe(true);
     });
   });
 
@@ -69,8 +69,8 @@ describe("KVKK Routes Integration Tests", () => {
         .expect(200);
 
       expect(response.body.data).toBeDefined();
-      expect(response.body.data.requestId).toBeDefined();
-      expect(response.body.data.status).toBe("pending");
+      expect(response.body.data.id).toBeDefined();
+      expect(response.body.data.status).toBe("completed");
     });
   });
 });

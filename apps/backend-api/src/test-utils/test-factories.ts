@@ -25,6 +25,11 @@ export async function createTestClientCompany(
     isActive = true,
   } = data;
 
+  // Validate tenantId
+  if (!tenantId || typeof tenantId !== "string" || tenantId.trim() === "") {
+    throw new Error("tenantId is required and must be a non-empty string");
+  }
+
   // Ensure tenant exists (prevents foreign key constraint errors)
   const tenant = await prisma.tenant.findUnique({
     where: { id: tenantId },
@@ -34,7 +39,7 @@ export async function createTestClientCompany(
       data: {
         id: tenantId,
         name: `Test Tenant ${tenantId}`,
-        slug: `test-tenant-${tenantId}`,
+        slug: `test-tenant-${tenantId}-${Date.now()}`,
         taxNumber: `123456789${Date.now() % 10000}`,
         settings: {},
       },
@@ -155,6 +160,11 @@ export async function createTestTransaction(data: CreateTransactionData) {
     description = "Test Transaction",
   } = data;
 
+  // Validate tenantId
+  if (!tenantId || typeof tenantId !== "string" || tenantId.trim() === "") {
+    throw new Error("tenantId is required and must be a non-empty string");
+  }
+
   // Ensure tenant exists (prevents foreign key constraint errors)
   const tenant = await prisma.tenant.findUnique({
     where: { id: tenantId },
@@ -164,7 +174,7 @@ export async function createTestTransaction(data: CreateTransactionData) {
       data: {
         id: tenantId,
         name: `Test Tenant ${tenantId}`,
-        slug: `test-tenant-${tenantId}`,
+        slug: `test-tenant-${tenantId}-${Date.now()}`,
         taxNumber: `123456789${Date.now() % 10000}`,
         settings: {},
       },
@@ -185,7 +195,7 @@ export async function createTestTransaction(data: CreateTransactionData) {
 export interface CreateDocumentData {
   tenantId: string;
   clientCompanyId: string;
-  uploadUserId: string;
+  uploadUserId?: string; // Optional - will create a test user if not provided
   type?: string;
   originalFileName?: string;
   storagePath?: string;
@@ -206,6 +216,11 @@ export async function createTestDocument(data: CreateDocumentData) {
     status = "UPLOADED",
   } = data;
 
+  // Validate tenantId
+  if (!tenantId || typeof tenantId !== "string" || tenantId.trim() === "") {
+    throw new Error("tenantId is required and must be a non-empty string");
+  }
+
   // Ensure tenant exists
   const tenant = await prisma.tenant.findUnique({
     where: { id: tenantId },
@@ -215,7 +230,7 @@ export async function createTestDocument(data: CreateDocumentData) {
       data: {
         id: tenantId,
         name: `Test Tenant ${tenantId}`,
-        slug: `test-tenant-${tenantId}`,
+        slug: `test-tenant-${tenantId}-${Date.now()}`,
         taxNumber: `123456789${Date.now() % 10000}`,
         settings: {},
       },
@@ -241,10 +256,28 @@ export async function createTestDocument(data: CreateDocumentData) {
     }
   }
 
-  // Ensure user exists - wait for it to be committed if it was just created
-  if (uploadUserId) {
+  // Ensure user exists - create one if not provided
+  let finalUploadUserId = uploadUserId;
+  if (!finalUploadUserId) {
+    // Verify tenant exists first
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: tenantId },
+    });
+    if (!tenant) {
+      throw new Error(`Tenant ${tenantId} not found. Create tenant before creating document.`);
+    }
+    
+    // Create a test user for this document
+    const { createTestUser } = await import("./test-auth.js");
+    const testUser = await createTestUser({
+      tenantId,
+      tenantName: tenant.name,
+    });
+    finalUploadUserId = testUser.user.id;
+  } else {
+    // Verify user exists - wait for it to be committed if it was just created
     let user = await prisma.user.findUnique({
-      where: { id: uploadUserId },
+      where: { id: finalUploadUserId },
     });
     if (!user) {
       // Retry up to 10 times with exponential backoff
@@ -253,12 +286,12 @@ export async function createTestDocument(data: CreateDocumentData) {
         const delay = Math.min(100 * Math.pow(2, i), 2000) + Math.random() * 100;
         await new Promise(resolve => setTimeout(resolve, delay));
         user = await prisma.user.findUnique({
-          where: { id: uploadUserId },
+          where: { id: finalUploadUserId },
         });
         if (user) break;
       }
       if (!user) {
-        throw new Error(`User ${uploadUserId} not found after retries. Create user before creating document.`);
+        throw new Error(`User ${finalUploadUserId} not found after retries. Create user before creating document.`);
       }
     }
   }
@@ -272,7 +305,7 @@ export async function createTestDocument(data: CreateDocumentData) {
         data: {
           tenantId,
           clientCompanyId,
-          uploadUserId,
+          uploadUserId: finalUploadUserId,
           type,
           originalFileName,
           storagePath,

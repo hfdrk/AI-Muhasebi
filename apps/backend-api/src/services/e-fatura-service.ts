@@ -1,7 +1,6 @@
 import { prisma } from "../lib/prisma";
 import { ETAConnector } from "../integrations/connectors/eta-connector";
-import { NotFoundError } from "@repo/core-domain";
-import { ValidationError } from "@repo/shared-utils";
+import { NotFoundError, ValidationError } from "@repo/shared-utils";
 import { logger } from "@repo/shared-utils";
 
 /**

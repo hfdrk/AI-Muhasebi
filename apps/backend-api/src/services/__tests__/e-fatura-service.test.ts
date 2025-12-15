@@ -12,15 +12,14 @@ vi.mock("../../integrations/connectors/eta-connector", async () => {
     ...actual,
     ETAConnector: vi.fn().mockImplementation(() => ({
       testConnection: vi.fn().mockResolvedValue({ success: true }),
-      submitInvoice: vi.fn().mockResolvedValue({
-        success: true,
-        externalId: "GIB-12345",
-        status: "submitted",
-      }),
-      checkInvoiceStatus: vi.fn().mockResolvedValue({
-        status: "accepted",
-        externalId: "GIB-12345",
-      }),
+      pushInvoices: vi.fn().mockResolvedValue([
+        {
+          success: true,
+          externalId: "GIB-12345",
+          message: "Fatura başarıyla gönderildi.",
+        },
+      ]),
+      fetchInvoices: vi.fn().mockResolvedValue([]),
     })),
   };
 });
@@ -62,6 +61,7 @@ describe("EFaturaService", () => {
           tenantId: testUser.tenant.id,
           providerId: provider.id,
           status: "active",
+          displayName: "E-Fatura Integration",
           config: {
             username: "test-user",
             password: "test-pass",
@@ -121,19 +121,17 @@ describe("EFaturaService", () => {
           tenantId: testUser.tenant.id,
           providerId: provider.id,
           status: "active",
+          displayName: "E-Fatura Integration",
           config: {},
         },
       });
 
-      // Add external ID to invoice
-      await prisma.invoice.update({
-        where: { id: testInvoice.id },
-        data: {
-          metadata: {
-            eFaturaExternalId: "GIB-12345",
-          },
-        },
-      });
+      // Submit invoice first to set up metadata
+      await eFaturaService.submitInvoice(
+        testUser.tenant.id,
+        testInvoice.id,
+        {}
+      );
 
       const result = await eFaturaService.checkInvoiceStatus(
         testUser.tenant.id,

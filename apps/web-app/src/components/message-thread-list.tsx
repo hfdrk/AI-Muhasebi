@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { messagingClient, type MessageThread } from "@repo/api-client";
 import { Card } from "@/components/ui/Card";
+import { SkeletonTable } from "@/components/ui/Skeleton";
 import { colors, spacing } from "@/styles/design-system";
 import Link from "next/link";
 
@@ -53,9 +54,7 @@ export function MessageThreadList({ clientCompanyId, onThreadSelect, selectedThr
   if (isLoading) {
     return (
       <Card>
-        <div style={{ padding: spacing.lg, textAlign: "center", color: colors.text.secondary }}>
-          Yükleniyor...
-        </div>
+        <SkeletonTable rows={5} columns={2} />
       </Card>
     );
   }

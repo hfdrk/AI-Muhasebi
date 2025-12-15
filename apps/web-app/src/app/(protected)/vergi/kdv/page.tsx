@@ -53,11 +53,11 @@ export default function VATOptimizationPage() {
       return taxClient.prepareVATReturn(selectedClientId, startDate, endDate);
     },
     onSuccess: (data) => {
-      alert("KDV beyannamesi hazırlandı!");
+      toast.success("KDV beyannamesi hazırlandı!");
       console.log("VAT Return:", data);
     },
     onError: (error: Error) => {
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 

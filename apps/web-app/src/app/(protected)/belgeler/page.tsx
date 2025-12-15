@@ -11,7 +11,10 @@ import { Card } from "@/components/ui/Card";
 import { Table, TableRow, TableCell } from "@/components/ui/Table";
 import { Select } from "@/components/ui/Select";
 import { DocumentUploadModal } from "@/components/document-upload-modal";
-import { colors, spacing } from "@/styles/design-system";
+import { SkeletonTable } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { colors, spacing, borderRadius } from "@/styles/design-system";
 import Link from "next/link";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -118,7 +121,8 @@ export default function DocumentsPage() {
   };
 
   return (
-    <div>
+    <PageTransition>
+      <div>
       <PageHeader
         title="Belgeler"
         subtitle="Yüklenen belgeleri görüntüleyin ve yönetin"
@@ -213,18 +217,20 @@ export default function DocumentsPage() {
       {/* Documents Table */}
       <Card>
         {isLoading ? (
-          <p style={{ color: colors.text.secondary }}>{commonI18n.labels.loading}</p>
-        ) : documents.length === 0 ? (
-          <div style={{ textAlign: "center", padding: spacing.xl }}>
-            <p style={{ color: colors.text.secondary, marginBottom: spacing.md }}>
-              {documentsI18n.list.emptyState}
-            </p>
-            {selectedClientId !== "all" && (
-              <Button onClick={() => setDocumentModalOpen(true)} variant="primary">
-                {documentsI18n.list.emptyStateAction}
-              </Button>
-            )}
+          <div style={{ padding: spacing.lg }}>
+            <SkeletonTable rows={5} columns={8} />
           </div>
+        ) : documents.length === 0 ? (
+          <EmptyState
+            icon="FileText"
+            title="Henüz belge bulunmuyor"
+            description={selectedClientId !== "all" 
+              ? "Bu müşteri için henüz belge yüklenmemiş. İlk belgeyi yükleyerek başlayın."
+              : "Henüz hiç belge yüklenmemiş. İlk belgenizi yükleyerek başlayın."}
+            actionLabel={selectedClientId !== "all" ? documentsI18n.list.emptyStateAction : "Belge Yükle"}
+            onAction={() => setDocumentModalOpen(true)}
+            variant="subtle"
+          />
         ) : (
           <>
             <Table
@@ -290,16 +296,16 @@ export default function DocumentsPage() {
                           fontWeight: 500,
                           backgroundColor:
                             (doc as any).riskSeverity === "high"
-                              ? "#fce8e8"
+                              ? colors.dangerPastel
                               : (doc as any).riskSeverity === "medium"
-                                ? "#fef5e7"
-                                : "#e6f7f0",
+                                ? colors.warningPastel
+                                : colors.successPastel,
                           color:
                             (doc as any).riskSeverity === "high"
-                              ? "#c2410c"
+                              ? colors.dangerDark
                               : (doc as any).riskSeverity === "medium"
-                                ? "#d97706"
-                                : "#059669",
+                                ? colors.warning
+                                : colors.successDark,
                         }}
                       >
                         {(doc as any).riskSeverity === "high"
@@ -386,6 +392,7 @@ export default function DocumentsPage() {
         onClose={() => setDocumentModalOpen(false)}
       />
     </div>
+    </PageTransition>
   );
 }
 

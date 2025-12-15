@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import { getSubscription, getUsage } from "@repo/api-client";
 import type { SubscriptionResponse, UsageResponse } from "@repo/api-client";
+import { Card } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { spacing, colors, borderRadius } from "@/styles/design-system";
 import { billing as billingTranslations } from "@repo/i18n";
 import { UpgradePlanModal } from "@/components/upgrade-plan-modal";
 
@@ -71,23 +75,28 @@ export default function BillingPage() {
   };
 
   const getUsageColor = (percentage: number) => {
-    if (percentage >= 100) return "#ef4444"; // red
-    if (percentage >= 70) return "#f59e0b"; // yellow
-    return "#10b981"; // green
+    if (percentage >= 100) return colors.danger; // red
+    if (percentage >= 70) return colors.warning; // yellow
+    return colors.success; // green
   };
 
   if (loading) {
     return (
-      <div style={{ padding: "2rem", textAlign: "center" }}>
-        <p>Yükleniyor...</p>
-      </div>
+      <PageTransition>
+        <Card>
+          <div style={{ padding: spacing.xxl }}>
+            <Skeleton height="40px" width="300px" style={{ marginBottom: spacing.md }} />
+            <Skeleton height="200px" width="100%" />
+          </div>
+        </Card>
+      </PageTransition>
     );
   }
 
   if (error) {
     return (
       <div style={{ padding: "2rem", textAlign: "center" }}>
-        <p style={{ color: "#ef4444" }}>{error}</p>
+        <p style={{ color: colors.danger }}>{error}</p>
       </div>
     );
   }
@@ -97,7 +106,8 @@ export default function BillingPage() {
   const canUpgrade = isTenantOwner && subscription && (subscription.plan === "FREE" || subscription.plan === "PRO");
 
   return (
-    <div style={{ padding: "2rem", maxWidth: "1200px", margin: "0 auto" }}>
+    <PageTransition>
+      <div style={{ padding: "2rem", maxWidth: "1200px", margin: "0 auto" }}>
       <h1 style={{ fontSize: "2rem", fontWeight: "bold", marginBottom: "2rem" }}>
         {billingTranslations.title}
       </h1>
@@ -127,7 +137,7 @@ export default function BillingPage() {
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "1rem" }}>
           <div>
-            <p style={{ color: "#6b7280", fontSize: "0.875rem", marginBottom: "0.25rem" }}>
+            <p style={{ color: colors.text.secondary, fontSize: "0.875rem", marginBottom: "0.25rem" }}>
               {billingTranslations.subscription.currentPlan}
             </p>
             <p style={{ fontSize: "1.125rem", fontWeight: "500" }}>
@@ -136,7 +146,7 @@ export default function BillingPage() {
           </div>
 
           <div>
-            <p style={{ color: "#6b7280", fontSize: "0.875rem", marginBottom: "0.25rem" }}>
+            <p style={{ color: colors.text.secondary, fontSize: "0.875rem", marginBottom: "0.25rem" }}>
               {billingTranslations.subscription.status}
             </p>
             <p style={{ fontSize: "1.125rem", fontWeight: "500" }}>
@@ -146,7 +156,7 @@ export default function BillingPage() {
 
           {subscription?.trial_until && (
             <div>
-              <p style={{ color: "#6b7280", fontSize: "0.875rem", marginBottom: "0.25rem" }}>
+              <p style={{ color: colors.text.secondary, fontSize: "0.875rem", marginBottom: "0.25rem" }}>
                 {billingTranslations.subscription.trialUntil}
               </p>
               <p style={{ fontSize: "1.125rem", fontWeight: "500" }}>
@@ -157,7 +167,7 @@ export default function BillingPage() {
 
           {subscription?.valid_until && (
             <div>
-              <p style={{ color: "#6b7280", fontSize: "0.875rem", marginBottom: "0.25rem" }}>
+              <p style={{ color: colors.text.secondary, fontSize: "0.875rem", marginBottom: "0.25rem" }}>
                 {billingTranslations.subscription.validUntil}
               </p>
               <p style={{ fontSize: "1.125rem", fontWeight: "500" }}>
@@ -168,8 +178,8 @@ export default function BillingPage() {
         </div>
 
         {(subscription?.plan === "FREE" || subscription?.plan === "PRO") && (
-          <div style={{ marginTop: "1rem", padding: "0.75rem", backgroundColor: "#f3f4f6", borderRadius: "4px" }}>
-            <p style={{ fontSize: "0.875rem", color: "#374151" }}>
+          <div style={{ marginTop: "1rem", padding: "0.75rem", backgroundColor: colors.gray[100], borderRadius: borderRadius.sm }}>
+            <p style={{ fontSize: "0.875rem", color: colors.text.primary }}>
               {billingTranslations.subscription.upgradeHint}
             </p>
           </div>
@@ -182,7 +192,7 @@ export default function BillingPage() {
             style={{
               marginTop: "1rem",
               padding: "0.5rem 1rem",
-              backgroundColor: canUpgrade ? "#3b82f6" : "#9ca3af",
+              backgroundColor: canUpgrade ? colors.primaryLight : colors.gray[400],
               color: "#fff",
               border: "none",
               borderRadius: "4px",
@@ -225,7 +235,7 @@ export default function BillingPage() {
         </h2>
 
         {!usage ? (
-          <p style={{ color: "#6b7280" }}>{billingTranslations.usage.noData}</p>
+          <p style={{ color: colors.text.secondary }}>{billingTranslations.usage.noData}</p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
             {[
@@ -243,7 +253,7 @@ export default function BillingPage() {
                 <div key={key}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
                     <span style={{ fontWeight: "500" }}>{label}</span>
-                    <span style={{ color: "#6b7280", fontSize: "0.875rem" }}>
+                    <span style={{ color: colors.text.secondary, fontSize: "0.875rem" }}>
                       {metric.used} / {metric.limit}
                     </span>
                   </div>
@@ -265,7 +275,7 @@ export default function BillingPage() {
                       }}
                     />
                   </div>
-                  <div style={{ marginTop: "0.25rem", fontSize: "0.75rem", color: "#6b7280" }}>
+                  <div style={{ marginTop: "0.25rem", fontSize: "0.75rem", color: colors.text.secondary }}>
                     {billingTranslations.usage.remaining}: {metric.remaining}
                   </div>
                 </div>
@@ -275,6 +285,7 @@ export default function BillingPage() {
         )}
       </div>
     </div>
+    </PageTransition>
   );
 }
 

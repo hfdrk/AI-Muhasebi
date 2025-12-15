@@ -37,3 +37,4 @@ I've updated the `.env` file with correct credentials, but **the backend server 
 - ✅ Data: 30 high-risk documents ready
 
 Once you restart the backend, everything will work!
+

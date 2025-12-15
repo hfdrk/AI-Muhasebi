@@ -11,6 +11,16 @@ import {
 } from "@repo/api-client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { Modal } from "@/components/ui/Modal";
+import { Tabs } from "@/components/ui/Tabs";
+import { SkeletonTable } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { colors, spacing, typography } from "@/styles/design-system";
+import { toast } from "@/lib/toast";
 
 const STATUS_LABELS: Record<string, string> = {
   connected: "Bağlı",
@@ -28,7 +38,11 @@ export default function IntegrationsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<"accounting" | "bank">("accounting");
-  const [notification, setNotification] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [deleteModal, setDeleteModal] = useState<{ open: boolean; id: string | null; name: string }>({
+    open: false,
+    id: null,
+    name: "",
+  });
 
   const { data: accountingData, isLoading: isLoadingAccounting, error: accountingError } = useQuery({
     queryKey: ["integrations", "accounting"],
@@ -46,24 +60,28 @@ export default function IntegrationsPage() {
     },
   });
 
-  // Log errors
+  // Log errors and show toasts
   if (accountingError) {
     console.error("[Integrations Page] Accounting query error:", accountingError);
+    if (activeTab === "accounting") {
+      toast.error("Muhasebe entegrasyonları yüklenirken bir hata oluştu.");
+    }
   }
   if (bankError) {
     console.error("[Integrations Page] Bank query error:", bankError);
+    if (activeTab === "bank") {
+      toast.error("Banka entegrasyonları yüklenirken bir hata oluştu.");
+    }
   }
 
   const deleteMutation = useMutation({
     mutationFn: deleteIntegration,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["integrations"] });
-      setNotification({ message: "Entegrasyon başarıyla silindi.", type: "success" });
-      setTimeout(() => setNotification(null), 3000);
+      toast.success("Entegrasyon başarıyla silindi.");
     },
     onError: () => {
-      setNotification({ message: "Entegrasyon silinirken bir hata oluştu.", type: "error" });
-      setTimeout(() => setNotification(null), 3000);
+      toast.error("Entegrasyon silinirken bir hata oluştu.");
     },
   });
 
@@ -72,12 +90,11 @@ export default function IntegrationsPage() {
       triggerSync(id, jobType),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["integrations"] });
-      setNotification({ message: "Senkronizasyon başlatıldı.", type: "success" });
-      setTimeout(() => setNotification(null), 3000);
+      toast.success("Senkronizasyon başlatıldı.");
     },
-    onError: () => {
-      setNotification({ message: "Senkronizasyon başlatılamadı.", type: "error" });
-      setTimeout(() => setNotification(null), 3000);
+    onError: (error: any) => {
+      const errorMessage = error?.message || error?.error?.message || "Senkronizasyon başlatılamadı.";
+      toast.error(errorMessage);
     },
   });
 
@@ -85,435 +102,288 @@ export default function IntegrationsPage() {
   const isLoading = activeTab === "accounting" ? isLoadingAccounting : isLoadingBank;
   
   // Handle nested response structure: { data: { data: [...], total, ... } }
-  const integrations = currentData?.data?.data || [];
+  // Also handle direct array response as fallback
+  const integrations = currentData?.data?.data || (Array.isArray(currentData?.data) ? currentData.data : []);
+  
+  // Debug logging
+  if (currentData && !isLoading) {
+    console.log("[Integrations Page] Current data:", currentData);
+    console.log("[Integrations Page] Integrations:", integrations);
+  }
 
-  const handleDelete = async (id: string, name: string) => {
-    if (confirm(`"${name}" entegrasyonunu silmek istediğinize emin misiniz?`)) {
-      await deleteMutation.mutateAsync(id);
+  const handleDeleteClick = (id: string, name: string) => {
+    setDeleteModal({ open: true, id, name });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (deleteModal.id) {
+      await deleteMutation.mutateAsync(deleteModal.id);
+      setDeleteModal({ open: false, id: null, name: "" });
     }
   };
 
   const handleSync = async (integration: TenantIntegration) => {
+    if (integration.status !== "connected") {
+      toast.error("Sadece bağlı entegrasyonlar senkronize edilebilir.");
+      return;
+    }
     const jobType = integration.providerId.includes("ACCOUNTING")
       ? "pull_invoices"
       : "pull_bank_transactions";
     await syncMutation.mutateAsync({ id: integration.id, jobType });
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusVariant = (status: string): "success" | "danger" | "warning" | "secondary" => {
     switch (status) {
       case "connected":
-        return { bg: "#d1fae5", text: "#065f46", border: "#10b981" };
+        return "success";
       case "error":
-        return { bg: "#fee2e2", text: "#991b1b", border: "#ef4444" };
+        return "danger";
       default:
-        return { bg: "#fef3c7", text: "#92400e", border: "#f59e0b" };
+        return "warning";
     }
   };
 
-  const getSyncStatusColor = (status: string) => {
+  const getSyncStatusVariant = (status: string): "success" | "danger" | "info" | "secondary" => {
     switch (status) {
       case "success":
-        return { bg: "#d1fae5", text: "#065f46" };
+        return "success";
       case "error":
-        return { bg: "#fee2e2", text: "#991b1b" };
+        return "danger";
       case "in_progress":
-        return { bg: "#dbeafe", text: "#1e40af" };
+        return "info";
       default:
-        return { bg: "#f3f4f6", text: "#6b7280" };
+        return "secondary";
     }
   };
 
   return (
-    <div style={{ padding: "32px", maxWidth: "1400px", margin: "0 auto" }}>
-      {notification && (
-        <div
-          style={{
-            position: "fixed",
-            top: "20px",
-            right: "20px",
-            padding: "16px 20px",
-            backgroundColor: notification.type === "success" ? "#d1fae5" : "#fee2e2",
-            color: notification.type === "success" ? "#065f46" : "#991b1b",
-            borderRadius: "8px",
-            boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-            zIndex: 1000,
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-            minWidth: "300px",
-          }}
-        >
-          <span>{notification.message}</span>
-          <button
-            onClick={() => setNotification(null)}
-            style={{
-              background: "none",
-              border: "none",
-              color: "inherit",
-              cursor: "pointer",
-              fontSize: "20px",
-              padding: "0",
-              lineHeight: "1",
-            }}
-          >
-            ×
-          </button>
-        </div>
-      )}
-
+    <PageTransition>
+    <div style={{ padding: spacing.xxl, maxWidth: "1400px", margin: "0 auto" }}>
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.xl }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: "32px", fontWeight: "700", color: "#111827" }}>
+          <h1 style={{ margin: 0, fontSize: typography.fontSize["3xl"], fontWeight: typography.fontWeight.bold, color: colors.text.primary, marginBottom: spacing.sm }}>
             İntegrasyonlar
           </h1>
-          <p style={{ margin: "8px 0 0 0", color: "#6b7280", fontSize: "16px" }}>
+          <p style={{ margin: 0, color: colors.text.secondary, fontSize: typography.fontSize.base }}>
             Muhasebe sistemleri ve banka bağlantılarını yönetin
           </p>
         </div>
-        <Link
-          href="/entegrasyonlar/new"
-          style={{
-            padding: "12px 24px",
-            backgroundColor: "#2563eb",
-            color: "white",
-            textDecoration: "none",
-            borderRadius: "8px",
-            fontWeight: "500",
-            fontSize: "16px",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "8px",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-            transition: "all 0.2s",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = "#1d4ed8";
-            e.currentTarget.style.transform = "translateY(-1px)";
-            e.currentTarget.style.boxShadow = "0 4px 6px rgba(0,0,0,0.15)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = "#2563eb";
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
-          }}
-        >
-          <span>+</span> Yeni İntegrasyon
-        </Link>
+        <Button asLink href="/entegrasyonlar/new" variant="primary">
+          Yeni İntegrasyon
+        </Button>
       </div>
 
       {/* Tabs */}
-      <div
-        style={{
-          display: "flex",
-          gap: "8px",
-          marginBottom: "32px",
-          borderBottom: "2px solid #e5e7eb",
-          paddingBottom: "0",
-        }}
-      >
-        <button
-          onClick={() => setActiveTab("accounting")}
-          style={{
-            padding: "12px 24px",
-            border: "none",
-            background: "none",
-            borderBottom: activeTab === "accounting" ? "3px solid #2563eb" : "3px solid transparent",
-            color: activeTab === "accounting" ? "#2563eb" : "#6b7280",
-            cursor: "pointer",
-            fontWeight: activeTab === "accounting" ? "600" : "400",
-            fontSize: "16px",
-            transition: "all 0.2s",
-            marginBottom: "-2px",
-          }}
-        >
-          Muhasebe Sistemleri
-        </button>
-        <button
-          onClick={() => setActiveTab("bank")}
-          style={{
-            padding: "12px 24px",
-            border: "none",
-            background: "none",
-            borderBottom: activeTab === "bank" ? "3px solid #2563eb" : "3px solid transparent",
-            color: activeTab === "bank" ? "#2563eb" : "#6b7280",
-            cursor: "pointer",
-            fontWeight: activeTab === "bank" ? "600" : "400",
-            fontSize: "16px",
-            transition: "all 0.2s",
-            marginBottom: "-2px",
-          }}
-        >
-          Banka Bağlantıları
-        </button>
-      </div>
-
-      {/* Content */}
-      {isLoading ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "24px" }}>
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              style={{
-                backgroundColor: "#f9fafb",
-                borderRadius: "12px",
-                padding: "24px",
-                border: "1px solid #e5e7eb",
-                minHeight: "200px",
-                animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-              }}
-            />
-          ))}
-        </div>
-      ) : integrations.length === 0 ? (
-        <div
-          style={{
-            textAlign: "center",
-            padding: "80px 40px",
-            backgroundColor: "#f9fafb",
-            borderRadius: "12px",
-            border: "2px dashed #d1d5db",
-          }}
-        >
-          <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔌</div>
-          <h3 style={{ margin: "0 0 8px 0", fontSize: "20px", fontWeight: "600", color: "#111827" }}>
-            Henüz entegrasyon bulunmamaktadır
-          </h3>
-          <p style={{ margin: "0 0 24px 0", color: "#6b7280", fontSize: "16px" }}>
-            İlk entegrasyonunuzu ekleyerek başlayın
-          </p>
-          <Link
-            href="/entegrasyonlar/new"
-            style={{
-              display: "inline-block",
-              padding: "12px 24px",
-              backgroundColor: "#2563eb",
-              color: "white",
-              textDecoration: "none",
-              borderRadius: "8px",
-              fontWeight: "500",
-              fontSize: "16px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              transition: "all 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#1d4ed8";
-              e.currentTarget.style.transform = "translateY(-1px)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#2563eb";
-              e.currentTarget.style.transform = "translateY(0)";
-            }}
-          >
-            İlk Entegrasyonu Ekle
-          </Link>
-        </div>
-      ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "24px" }}>
-          {integrations.map((integration: any) => {
-            const statusColors = getStatusColor(integration.status);
-            const syncStatusColors = getSyncStatusColor(integration.lastSyncStatus || "");
-
-            return (
-              <div
-                key={integration.id}
-                style={{
-                  backgroundColor: "white",
-                  borderRadius: "12px",
-                  padding: "24px",
-                  border: "1px solid #e5e7eb",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                  transition: "all 0.2s",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "16px",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
-                  e.currentTarget.style.transform = "translateY(0)";
-                }}
-              >
-                {/* Header */}
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
-                    <Link
-                      href={`/entegrasyonlar/${integration.id}`}
-                      style={{
-                        color: "#111827",
-                        textDecoration: "none",
-                        fontSize: "20px",
-                        fontWeight: "600",
-                        transition: "color 0.2s",
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = "#2563eb")}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = "#111827")}
-                    >
-                      {integration.displayName}
-                    </Link>
-                    <span
-                      style={{
-                        padding: "4px 10px",
-                        borderRadius: "12px",
-                        fontSize: "12px",
-                        fontWeight: "500",
-                        backgroundColor: statusColors.bg,
-                        color: statusColors.text,
-                        border: `1px solid ${statusColors.border}`,
-                      }}
-                    >
-                      {STATUS_LABELS[integration.status] || integration.status}
-                    </span>
-                  </div>
-                  <p style={{ margin: 0, color: "#6b7280", fontSize: "14px" }}>
-                    {integration.provider?.name || "Bilinmeyen Sağlayıcı"}
-                  </p>
-                </div>
-
-                {/* Status Info */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ color: "#6b7280", fontSize: "14px" }}>Son Senkron:</span>
-                    <span style={{ color: "#111827", fontSize: "14px", fontWeight: "500" }}>
-                      {integration.lastSyncAt
-                        ? new Date(integration.lastSyncAt).toLocaleDateString("tr-TR", {
-                            day: "2-digit",
-                            month: "short",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
-                        : "Henüz yok"}
-                    </span>
-                  </div>
-                  {integration.lastSyncStatus && (
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span style={{ color: "#6b7280", fontSize: "14px" }}>Durum:</span>
-                      <span
-                        style={{
-                          padding: "4px 10px",
-                          borderRadius: "12px",
-                          fontSize: "12px",
-                          fontWeight: "500",
-                          backgroundColor: syncStatusColors.bg,
-                          color: syncStatusColors.text,
-                        }}
-                      >
-                        {SYNC_STATUS_LABELS[integration.lastSyncStatus] || integration.lastSyncStatus}
-                      </span>
+      <Tabs
+        items={[
+          {
+            id: "accounting",
+            label: "Muhasebe Sistemleri",
+            icon: "Calculator",
+            content: (
+              <div style={{ marginTop: spacing.lg }}>
+                {isLoadingAccounting ? (
+                  <Card>
+                    <div style={{ padding: spacing.lg }}>
+                      <SkeletonTable rows={3} columns={1} />
                     </div>
-                  )}
-                </div>
-
-                {/* Actions */}
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "8px",
-                    paddingTop: "16px",
-                    borderTop: "1px solid #e5e7eb",
-                  }}
-                >
-                  <Link
-                    href={`/entegrasyonlar/${integration.id}`}
-                    style={{
-                      flex: 1,
-                      padding: "8px 16px",
-                      color: "#2563eb",
-                      textDecoration: "none",
-                      fontSize: "14px",
-                      fontWeight: "500",
-                      textAlign: "center",
-                      borderRadius: "6px",
-                      border: "1px solid #2563eb",
-                      backgroundColor: "white",
-                      transition: "all 0.2s",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#eff6ff";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "white";
-                    }}
-                  >
-                    Detaylar
-                  </Link>
-                  <button
-                    onClick={() => handleSync(integration)}
-                    disabled={syncMutation.isPending}
-                    style={{
-                      flex: 1,
-                      padding: "8px 16px",
-                      color: "white",
-                      border: "none",
-                      background: syncMutation.isPending ? "#9ca3af" : "#10b981",
-                      borderRadius: "6px",
-                      cursor: syncMutation.isPending ? "not-allowed" : "pointer",
-                      fontSize: "14px",
-                      fontWeight: "500",
-                      transition: "all 0.2s",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!syncMutation.isPending) {
-                        e.currentTarget.style.backgroundColor = "#059669";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!syncMutation.isPending) {
-                        e.currentTarget.style.backgroundColor = "#10b981";
-                      }
-                    }}
-                  >
-                    {syncMutation.isPending ? "..." : "Senkron"}
-                  </button>
-                  <button
-                    onClick={() => handleDelete(integration.id, integration.displayName)}
-                    disabled={deleteMutation.isPending}
-                    style={{
-                      padding: "8px 12px",
-                      color: "#ef4444",
-                      border: "1px solid #ef4444",
-                      background: "white",
-                      borderRadius: "6px",
-                      cursor: deleteMutation.isPending ? "not-allowed" : "pointer",
-                      fontSize: "14px",
-                      transition: "all 0.2s",
-                      opacity: deleteMutation.isPending ? 0.5 : 1,
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!deleteMutation.isPending) {
-                        e.currentTarget.style.backgroundColor = "#fee2e2";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!deleteMutation.isPending) {
-                        e.currentTarget.style.backgroundColor = "white";
-                      }
-                    }}
-                  >
-                    ✕
-                  </button>
-                </div>
+                  </Card>
+                ) : integrations.length === 0 ? (
+                  <EmptyState
+                    icon="Calculator"
+                    title="Henüz muhasebe sistemi entegrasyonu bulunmamaktadır"
+                    description="İlk entegrasyonunuzu ekleyerek başlayın"
+                    actionLabel="İlk Entegrasyonu Ekle"
+                    onAction={() => window.location.href = "/entegrasyonlar/new"}
+                  />
+                ) : (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))", gap: spacing.lg }}>
+                    {integrations.map((integration) => (
+                      <Card key={integration.id} hoverable>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: spacing.md }}>
+                          <div style={{ flex: 1 }}>
+                            <h3 style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: colors.text.primary, marginBottom: spacing.xs }}>
+                              {integration.displayName || integration.provider?.name || "Entegrasyon"}
+                            </h3>
+                            <Badge variant={getStatusVariant(integration.status)} size="sm" style={{ marginBottom: spacing.sm }}>
+                              {STATUS_LABELS[integration.status] || integration.status}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div style={{ marginBottom: spacing.md }}>
+                          <p style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary, marginBottom: spacing.xs }}>
+                            <strong>Sağlayıcı:</strong> {integration.provider?.name || integration.providerName || "-"}
+                          </p>
+                          {integration.lastSyncAt && (
+                            <p style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                              <strong>Son Senkronizasyon:</strong> {new Date(integration.lastSyncAt).toLocaleString("tr-TR")}
+                            </p>
+                          )}
+                          {integration.lastSyncStatus && (
+                            <p style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary, marginTop: spacing.xs }}>
+                              <strong>Senkron Durumu:</strong>{" "}
+                              <Badge variant={getSyncStatusVariant(integration.lastSyncStatus)} size="sm">
+                                {SYNC_STATUS_LABELS[integration.lastSyncStatus] || integration.lastSyncStatus}
+                              </Badge>
+                            </p>
+                          )}
+                        </div>
+                        <div style={{ display: "flex", gap: spacing.sm, flexWrap: "wrap" }}>
+                          <Button
+                            asLink
+                            href={`/entegrasyonlar/${integration.id}`}
+                            variant="outline"
+                            size="sm"
+                          >
+                            Detaylar
+                          </Button>
+                          <Button
+                            onClick={() => handleSync(integration)}
+                            disabled={syncMutation.isPending || integration.status !== "connected"}
+                            variant="outline"
+                            size="sm"
+                            loading={syncMutation.isPending}
+                            title={integration.status !== "connected" ? "Sadece bağlı entegrasyonlar senkronize edilebilir" : undefined}
+                          >
+                            Senkronize Et
+                          </Button>
+                          <Button
+                            onClick={() => handleDeleteClick(integration.id, integration.displayName || integration.provider?.name || "Entegrasyon")}
+                            variant="danger"
+                            size="sm"
+                          >
+                            Sil
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </div>
-            );
-          })}
-        </div>
-      )}
+            ),
+          },
+          {
+            id: "bank",
+            label: "Banka Bağlantıları",
+            icon: "CreditCard",
+            content: (
+              <div style={{ marginTop: spacing.lg }}>
+                {isLoadingBank ? (
+                  <Card>
+                    <div style={{ padding: spacing.lg }}>
+                      <SkeletonTable rows={3} columns={1} />
+                    </div>
+                  </Card>
+                ) : integrations.length === 0 ? (
+                  <EmptyState
+                    icon="CreditCard"
+                    title="Henüz banka bağlantısı bulunmamaktadır"
+                    description="İlk bağlantınızı ekleyerek başlayın"
+                    actionLabel="İlk Bağlantıyı Ekle"
+                    onAction={() => window.location.href = "/entegrasyonlar/new"}
+                  />
+                ) : (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))", gap: spacing.lg }}>
+                    {integrations.map((integration) => (
+                      <Card key={integration.id} hoverable>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: spacing.md }}>
+                          <div style={{ flex: 1 }}>
+                            <h3 style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: colors.text.primary, marginBottom: spacing.xs }}>
+                              {integration.displayName || integration.provider?.name || "Entegrasyon"}
+                            </h3>
+                            <Badge variant={getStatusVariant(integration.status)} size="sm" style={{ marginBottom: spacing.sm }}>
+                              {STATUS_LABELS[integration.status] || integration.status}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div style={{ marginBottom: spacing.md }}>
+                          <p style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary, marginBottom: spacing.xs }}>
+                            <strong>Sağlayıcı:</strong> {integration.provider?.name || integration.providerName || "-"}
+                          </p>
+                          {integration.lastSyncAt && (
+                            <p style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                              <strong>Son Senkronizasyon:</strong> {new Date(integration.lastSyncAt).toLocaleString("tr-TR")}
+                            </p>
+                          )}
+                          {integration.lastSyncStatus && (
+                            <p style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary, marginTop: spacing.xs }}>
+                              <strong>Senkron Durumu:</strong>{" "}
+                              <Badge variant={getSyncStatusVariant(integration.lastSyncStatus)} size="sm">
+                                {SYNC_STATUS_LABELS[integration.lastSyncStatus] || integration.lastSyncStatus}
+                              </Badge>
+                            </p>
+                          )}
+                        </div>
+                        <div style={{ display: "flex", gap: spacing.sm, flexWrap: "wrap" }}>
+                          <Button
+                            asLink
+                            href={`/entegrasyonlar/${integration.id}`}
+                            variant="outline"
+                            size="sm"
+                          >
+                            Detaylar
+                          </Button>
+                          <Button
+                            onClick={() => handleSync(integration)}
+                            disabled={syncMutation.isPending || integration.status !== "connected"}
+                            variant="outline"
+                            size="sm"
+                            loading={syncMutation.isPending}
+                            title={integration.status !== "connected" ? "Sadece bağlı entegrasyonlar senkronize edilebilir" : undefined}
+                          >
+                            Senkronize Et
+                          </Button>
+                          <Button
+                            onClick={() => handleDeleteClick(integration.id, integration.displayName || integration.provider?.name || "Entegrasyon")}
+                            variant="danger"
+                            size="sm"
+                          >
+                            Sil
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ),
+          },
+        ]}
+        defaultTab={activeTab}
+        onChange={(tabId) => setActiveTab(tabId as "accounting" | "bank")}
+      />
 
-      {/* Add pulse animation for loading */}
-      <style jsx>{`
-        @keyframes pulse {
-          0%, 100% {
-            opacity: 1;
-          }
-          50% {
-            opacity: 0.5;
-          }
-        }
-      `}</style>
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={deleteModal.open}
+        onClose={() => setDeleteModal({ open: false, id: null, name: "" })}
+        title="Entegrasyonu Sil"
+        size="sm"
+      >
+        <div style={{ marginBottom: spacing.lg }}>
+          <p style={{ color: colors.text.primary, marginBottom: spacing.md }}>
+            <strong>"{deleteModal.name}"</strong> entegrasyonunu silmek istediğinize emin misiniz? Bu işlem geri alınamaz.
+          </p>
+        </div>
+        <div style={{ display: "flex", gap: spacing.md, justifyContent: "flex-end" }}>
+          <Button
+            variant="outline"
+            onClick={() => setDeleteModal({ open: false, id: null, name: "" })}
+          >
+            İptal
+          </Button>
+          <Button
+            variant="danger"
+            onClick={handleDeleteConfirm}
+            loading={deleteMutation.isPending}
+          >
+            Sil
+          </Button>
+        </div>
+      </Modal>
     </div>
+    </PageTransition>
   );
 }

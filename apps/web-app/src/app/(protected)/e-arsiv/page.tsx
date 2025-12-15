@@ -4,6 +4,12 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listInvoices, archiveInvoiceToEArsiv, searchArchivedInvoices, autoArchiveOldInvoices } from "@repo/api-client";
 import Link from "next/link";
+import { toast } from "../../../lib/toast";
+import { SkeletonTable } from "../../../components/ui/Skeleton";
+import { Badge } from "../../../components/ui/Badge";
+import { Modal } from "../../../components/ui/Modal";
+import { Button } from "../../../components/ui/Button";
+import { spacing, colors, borderRadius } from "../../../styles/design-system";
 
 const STATUS_LABELS: Record<string, string> = {
   taslak: "Taslak",
@@ -13,6 +19,8 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function EArsivPage() {
+  const [archiveModal, setArchiveModal] = useState<{ open: boolean; invoiceId: string | null }>({ open: false, invoiceId: null });
+  const [autoArchiveModal, setAutoArchiveModal] = useState(false);
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<"archive" | "search">("archive");
   const [searchFilters, setSearchFilters] = useState({
@@ -50,10 +58,10 @@ export default function EArsivPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
       queryClient.invalidateQueries({ queryKey: ["archived-invoices"] });
-      alert("Fatura E-Arşiv sistemine başarıyla arşivlendi.");
+      toast.success("Fatura E-Arşiv sistemine başarıyla arşivlendi.");
     },
     onError: (error: Error) => {
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 
@@ -62,23 +70,19 @@ export default function EArsivPage() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
       queryClient.invalidateQueries({ queryKey: ["archived-invoices"] });
-      alert(data.data.message);
+      toast.success(data.data.message);
     },
     onError: (error: Error) => {
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 
   const handleArchive = (invoiceId: string) => {
-    if (confirm("Bu faturayı E-Arşiv sistemine arşivlemek istediğinize emin misiniz?")) {
-      archiveMutation.mutate(invoiceId);
-    }
+    setArchiveModal({ open: true, invoiceId });
   };
 
   const handleAutoArchive = () => {
-    if (confirm("90 günden eski faturaları otomatik olarak arşivlemek istediğinize emin misiniz?")) {
-      autoArchiveMutation.mutate();
-    }
+    setAutoArchiveModal(true);
   };
 
   const handleSearch = () => {
@@ -86,24 +90,25 @@ export default function EArsivPage() {
   };
 
   return (
-    <div style={{ padding: "40px", maxWidth: "1400px" }}>
+    <PageTransition>
+      <div style={{ padding: "40px", maxWidth: "1400px" }}>
       <div style={{ marginBottom: "30px" }}>
         <h1 style={{ fontSize: "28px", fontWeight: "bold", marginBottom: "10px" }}>E-Arşiv Yönetimi</h1>
-        <p style={{ color: "#6b7280" }}>
+        <p style={{ color: colors.text.secondary }}>
           Faturaları E-Arşiv sistemine arşivleyin ve arşivlenmiş faturaları arayın.
         </p>
       </div>
 
       {/* Tabs */}
-      <div style={{ display: "flex", gap: "10px", marginBottom: "30px", borderBottom: "2px solid #e5e7eb" }}>
+      <div style={{ display: "flex", gap: "10px", marginBottom: "30px", borderBottom: `2px solid ${colors.border}` }}>
         <button
           onClick={() => setActiveTab("archive")}
           style={{
             padding: "12px 24px",
             border: "none",
             backgroundColor: "transparent",
-            borderBottom: activeTab === "archive" ? "2px solid #3b82f6" : "2px solid transparent",
-            color: activeTab === "archive" ? "#3b82f6" : "#6b7280",
+            borderBottom: activeTab === "archive" ? `2px solid ${colors.primaryLight}` : "2px solid transparent",
+            color: activeTab === "archive" ? colors.primaryLight : colors.text.secondary,
             fontWeight: activeTab === "archive" ? "600" : "400",
             cursor: "pointer",
             marginBottom: "-2px",
@@ -117,8 +122,8 @@ export default function EArsivPage() {
             padding: "12px 24px",
             border: "none",
             backgroundColor: "transparent",
-            borderBottom: activeTab === "search" ? "2px solid #3b82f6" : "2px solid transparent",
-            color: activeTab === "search" ? "#3b82f6" : "#6b7280",
+            borderBottom: activeTab === "search" ? `2px solid ${colors.primaryLight}` : "2px solid transparent",
+            color: activeTab === "search" ? colors.primaryLight : colors.text.secondary,
             fontWeight: activeTab === "search" ? "600" : "400",
             cursor: "pointer",
             marginBottom: "-2px",
@@ -131,8 +136,8 @@ export default function EArsivPage() {
       {activeTab === "archive" && (
         <>
           <div style={{ marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ padding: "15px", backgroundColor: "#f3f4f6", borderRadius: "8px", flex: 1 }}>
-              <p style={{ margin: 0, color: "#374151" }}>
+            <div style={{ padding: "15px", backgroundColor: colors.gray[100], borderRadius: borderRadius.md, flex: 1 }}>
+              <p style={{ margin: 0, color: colors.text.primary }}>
                 E-Arşiv sistemine arşivlenebilecek faturalar. Faturaları arşivlemek için aşağıdaki listeden seçin.
               </p>
             </div>
@@ -142,7 +147,7 @@ export default function EArsivPage() {
               style={{
                 marginLeft: "20px",
                 padding: "10px 20px",
-                backgroundColor: "#10b981",
+                backgroundColor: colors.success,
                 color: "white",
                 border: "none",
                 borderRadius: "6px",
@@ -155,8 +160,8 @@ export default function EArsivPage() {
           </div>
 
           {isLoading ? (
-            <div style={{ padding: "40px", textAlign: "center" }}>
-              <p>Yükleniyor...</p>
+            <div style={{ padding: "40px" }}>
+              <SkeletonTable rows={5} columns={4} />
             </div>
           ) : invoices.length === 0 ? (
             <div style={{ padding: "40px", textAlign: "center", backgroundColor: "#f9fafb", borderRadius: "8px" }}>
@@ -224,18 +229,12 @@ export default function EArsivPage() {
                           }).format(Number(invoice.totalAmount))}
                         </td>
                         <td style={{ padding: "12px", textAlign: "center" }}>
-                          <span
-                            style={{
-                              padding: "4px 12px",
-                              borderRadius: "12px",
-                              fontSize: "12px",
-                              fontWeight: "500",
-                              backgroundColor: isArchived ? "#d1fae5" : "#fef3c7",
-                              color: isArchived ? "#065f46" : "#92400e",
-                            }}
+                          <Badge
+                            variant={isArchived ? "success" : "warning"}
+                            size="sm"
                           >
                             {isArchived ? "Arşivlendi" : STATUS_LABELS[invoice.status] || invoice.status}
-                          </span>
+                          </Badge>
                         </td>
                         <td style={{ padding: "12px", textAlign: "center" }}>
                           {!isArchived ? (
@@ -247,7 +246,7 @@ export default function EArsivPage() {
                               disabled={archiveMutation.isPending}
                               style={{
                                 padding: "6px 16px",
-                                backgroundColor: "#10b981",
+                                backgroundColor: colors.success,
                                 color: "white",
                                 border: "none",
                                 borderRadius: "6px",
@@ -367,8 +366,8 @@ export default function EArsivPage() {
           </div>
 
           {searchLoading ? (
-            <div style={{ padding: "40px", textAlign: "center" }}>
-              <p>Yükleniyor...</p>
+            <div style={{ padding: "40px" }}>
+              <SkeletonTable rows={5} columns={4} />
             </div>
           ) : archivedInvoices.length === 0 ? (
             <div style={{ padding: "40px", textAlign: "center", backgroundColor: "#f9fafb", borderRadius: "8px" }}>
@@ -448,7 +447,60 @@ export default function EArsivPage() {
           )}
         </>
       )}
+
+      <Modal
+        isOpen={archiveModal.open}
+        onClose={() => setArchiveModal({ open: false, invoiceId: null })}
+        title="E-Arşiv'e Arşivle"
+        size="sm"
+      >
+        <div style={{ marginBottom: spacing.lg }}>
+          <p>Bu faturayı E-Arşiv sistemine arşivlemek istediğinize emin misiniz?</p>
+        </div>
+        <div style={{ display: "flex", gap: spacing.md, justifyContent: "flex-end" }}>
+          <Button variant="outline" onClick={() => setArchiveModal({ open: false, invoiceId: null })}>
+            İptal
+          </Button>
+          <Button
+            onClick={() => {
+              if (archiveModal.invoiceId) {
+                archiveMutation.mutate(archiveModal.invoiceId);
+                setArchiveModal({ open: false, invoiceId: null });
+              }
+            }}
+            loading={archiveMutation.isPending}
+          >
+            Arşivle
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={autoArchiveModal}
+        onClose={() => setAutoArchiveModal(false)}
+        title="Otomatik Arşivle"
+        size="sm"
+      >
+        <div style={{ marginBottom: spacing.lg }}>
+          <p>90 günden eski faturaları otomatik olarak arşivlemek istediğinize emin misiniz?</p>
+        </div>
+        <div style={{ display: "flex", gap: spacing.md, justifyContent: "flex-end" }}>
+          <Button variant="outline" onClick={() => setAutoArchiveModal(false)}>
+            İptal
+          </Button>
+          <Button
+            onClick={() => {
+              autoArchiveMutation.mutate();
+              setAutoArchiveModal(false);
+            }}
+            loading={autoArchiveMutation.isPending}
+          >
+            Arşivle
+          </Button>
+        </div>
+      </Modal>
     </div>
+    </PageTransition>
   );
 }
 

@@ -8,6 +8,7 @@ import { createInvoice, listClientCompanies } from "@repo/api-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { colors, spacing, borderRadius } from "@/styles/design-system";
 
 const invoiceLineSchema = z.object({
   lineNumber: z.number().int().positive(),
@@ -406,7 +407,7 @@ export default function NewInvoicePage() {
               }}
               style={{
                 padding: "8px 16px",
-                backgroundColor: "#28a745",
+                backgroundColor: colors.success,
                 color: "white",
                 border: "none",
                 borderRadius: "4px",
@@ -527,7 +528,7 @@ export default function NewInvoicePage() {
                         padding: "4px 8px",
                         border: "1px solid #ddd",
                         borderRadius: "4px",
-                        backgroundColor: "#f5f5f5",
+                        backgroundColor: colors.gray[100],
                       }}
                     />
                   </td>
@@ -541,8 +542,8 @@ export default function NewInvoicePage() {
                         }}
                         style={{
                           padding: "4px 8px",
-                          color: "#dc3545",
-                          border: "1px solid #dc3545",
+                          color: colors.danger,
+                          border: `1px solid ${colors.danger}`,
                           borderRadius: "4px",
                           cursor: "pointer",
                           fontSize: "12px",
@@ -562,7 +563,7 @@ export default function NewInvoicePage() {
           )}
         </div>
 
-        <div style={{ display: "flex", justifyContent: "space-between", padding: "16px", backgroundColor: "#f5f5f5", borderRadius: "4px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", padding: "16px", backgroundColor: colors.gray[100], borderRadius: borderRadius.sm }}>
           <div>
             <strong>Toplam Tutar:</strong>{" "}
             {watch("totalAmount")?.toLocaleString("tr-TR", {
@@ -586,7 +587,7 @@ export default function NewInvoicePage() {
             href="/faturalar"
             style={{
               padding: "8px 16px",
-              backgroundColor: "#f5f5f5",
+              backgroundColor: colors.gray[100],
               border: "1px solid #ddd",
               borderRadius: "4px",
               textDecoration: "none",
@@ -600,7 +601,7 @@ export default function NewInvoicePage() {
             disabled={isSubmitting}
             style={{
               padding: "8px 16px",
-              backgroundColor: "#0066cc",
+              backgroundColor: colors.primary,
               color: "white",
               border: "none",
               borderRadius: "4px",

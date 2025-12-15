@@ -6,6 +6,9 @@ import { listInvoices, submitInvoiceToEFatura, checkEFaturaStatus, retryFailedEF
 import Link from "next/link";
 import { Card } from "../../../components/ui/Card";
 import { Button } from "../../../components/ui/Button";
+import { SkeletonCard } from "../../../components/ui/Skeleton";
+import { Modal } from "../../../components/ui/Modal";
+import { toast } from "../../../lib/toast";
 import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../styles/design-system";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -34,6 +37,8 @@ const EFATURA_STATUS_COLORS: Record<string, { bg: string; text: string }> = {
 export default function EFaturaPage() {
   const queryClient = useQueryClient();
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
+  const [submitModal, setSubmitModal] = useState<{ open: boolean; invoiceId: string | null }>({ open: false, invoiceId: null });
+  const [retryModal, setRetryModal] = useState(false);
 
   // Fetch invoices that can be submitted (status: kesildi)
   const { data: invoicesData, isLoading } = useQuery({
@@ -65,11 +70,11 @@ export default function EFaturaPage() {
       queryClient.invalidateQueries({ queryKey: ["invoices", { status: "kesildi" }] });
       // Also refetch immediately to get updated metadata
       queryClient.refetchQueries({ queryKey: ["invoices", { status: "kesildi" }] });
-      alert("Fatura E-Fatura sistemine başarıyla gönderildi.");
+      toast.success("Fatura E-Fatura sistemine başarıyla gönderildi.");
     },
     onError: (error: Error) => {
       console.error("[E-Fatura] onError called:", error);
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 
@@ -77,26 +82,19 @@ export default function EFaturaPage() {
     mutationFn: () => retryFailedEFaturaSubmissions(),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
-      alert(data.data.message);
+      toast.success(data.data.message);
     },
     onError: (error: Error) => {
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 
   const handleSubmit = (invoiceId: string) => {
-    if (confirm("Bu faturayı E-Fatura sistemine göndermek istediğinize emin misiniz?")) {
-      // Use setTimeout to ensure this runs after any event propagation
-      setTimeout(() => {
-        submitMutation.mutate(invoiceId);
-      }, 0);
-    }
+    setSubmitModal({ open: true, invoiceId });
   };
 
   const handleRetryFailed = () => {
-    if (confirm("Başarısız E-Fatura gönderimlerini tekrar denemek istediğinize emin misiniz?")) {
-      retryMutation.mutate();
-    }
+    setRetryModal(true);
   };
 
   if (isLoading) {
@@ -131,7 +129,7 @@ export default function EFaturaPage() {
                 margin: 0,
               }}
             >
-              Yükleniyor...
+              <SkeletonCard />
             </p>
           </div>
         </Card>
@@ -147,8 +145,9 @@ export default function EFaturaPage() {
   }
 
   return (
-    <div
-      style={{
+    <PageTransition>
+      <div
+        style={{
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
@@ -488,13 +487,7 @@ export default function EFaturaPage() {
                               }
                               
                               // Directly call the mutation instead of going through handleSubmit
-                              if (confirm("Bu faturayı E-Fatura sistemine göndermek istediğinize emin misiniz?")) {
-                                try {
-                                  submitMutation.mutate(invoice.id);
-                                } catch (error) {
-                                  console.error("[E-Fatura] Mutation error:", error);
-                                }
-                              }
+                              setSubmitModal({ open: true, invoiceId: invoice.id });
                               
                               // Explicitly return false to prevent any default behavior
                               return false;
@@ -544,6 +537,59 @@ export default function EFaturaPage() {
           </div>
         </Card>
       )}
+
+      <Modal
+        isOpen={submitModal.open}
+        onClose={() => setSubmitModal({ open: false, invoiceId: null })}
+        title="E-Fatura Gönder"
+        size="sm"
+      >
+        <div style={{ marginBottom: spacing.lg }}>
+          <p>Bu faturayı E-Fatura sistemine göndermek istediğinize emin misiniz?</p>
+        </div>
+        <div style={{ display: "flex", gap: spacing.md, justifyContent: "flex-end" }}>
+          <Button variant="outline" onClick={() => setSubmitModal({ open: false, invoiceId: null })}>
+            İptal
+          </Button>
+          <Button
+            onClick={() => {
+              if (submitModal.invoiceId) {
+                submitMutation.mutate(submitModal.invoiceId);
+                setSubmitModal({ open: false, invoiceId: null });
+              }
+            }}
+            loading={submitMutation.isPending}
+          >
+            Gönder
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={retryModal}
+        onClose={() => setRetryModal(false)}
+        title="Başarısız Gönderimleri Tekrar Dene"
+        size="sm"
+      >
+        <div style={{ marginBottom: spacing.lg }}>
+          <p>Başarısız E-Fatura gönderimlerini tekrar denemek istediğinize emin misiniz?</p>
+        </div>
+        <div style={{ display: "flex", gap: spacing.md, justifyContent: "flex-end" }}>
+          <Button variant="outline" onClick={() => setRetryModal(false)}>
+            İptal
+          </Button>
+          <Button
+            onClick={() => {
+              retryMutation.mutate();
+              setRetryModal(false);
+            }}
+            loading={retryMutation.isPending}
+          >
+            Tekrar Dene
+          </Button>
+        </div>
+      </Modal>
     </div>
+    </PageTransition>
   );
 }

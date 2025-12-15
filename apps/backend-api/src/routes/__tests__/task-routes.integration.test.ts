@@ -1,10 +1,11 @@
-import request from "supertest";
-import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
-import { createTestServer } from "../../test-utils/test-server";
-import { getAuthToken, createTestUser, createTestTenant } from "../../test-utils/test-helpers";
-import { PrismaClient } from "@prisma/client";
+// Import env setup FIRST
+import "../../test-utils/env-setup.js";
 
-const prisma = new PrismaClient();
+import request from "supertest";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { createTestApp } from "../../test-utils/test-server";
+import { getAuthToken, createTestUser } from "../../test-utils/test-auth";
+import { createTestTenant, getTestPrisma } from "../../test-utils";
 
 describe("Task Routes Integration Tests", () => {
   let app: any;
@@ -12,14 +13,18 @@ describe("Task Routes Integration Tests", () => {
   let testUser: any;
   let testToken: string;
   let testClientCompany: any;
+  const prisma = getTestPrisma();
 
   beforeAll(async () => {
-    app = createTestServer();
+    app = createTestApp();
 
     // Create test tenant and user
-    testTenant = await createTestTenant();
-    testUser = await createTestUser(testTenant.id, "TenantOwner");
-    testToken = await getAuthToken(testUser.user.email, "Test123!@#", app);
+    testTenant = await createTestTenant("Test Tenant", "test-tenant");
+    testUser = await createTestUser({
+      tenantId: testTenant.id,
+      role: "TenantOwner",
+    });
+    testToken = await getAuthToken(testUser.user.email, "Test123!@#");
 
     // Create test client company
     testClientCompany = await prisma.clientCompany.create({
@@ -39,7 +44,6 @@ describe("Task Routes Integration Tests", () => {
     await prisma.userTenantMembership.deleteMany({ where: { tenantId: testTenant.id } });
     await prisma.user.deleteMany({ where: { id: testUser.user.id } });
     await prisma.tenant.deleteMany({ where: { id: testTenant.id } });
-    await prisma.$disconnect();
   });
 
   describe("POST /api/v1/tasks", () => {

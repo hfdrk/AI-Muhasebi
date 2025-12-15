@@ -55,3 +55,4 @@ DATABASE_URL="postgresql://ai_muhasebi:ai_muhasebi_dev@localhost:5432/ai_muhaseb
    curl http://localhost:3800/health
    ```
    Should show: `{"status":"ok","db":"ok"}`
+

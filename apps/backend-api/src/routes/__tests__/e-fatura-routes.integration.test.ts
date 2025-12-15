@@ -21,7 +21,7 @@ describe("E-Fatura Routes Integration Tests", () => {
 
   beforeEach(async () => {
     testUser = await createTestUser();
-    authToken = await getAuthToken(testUser.user.id, testUser.tenant.id);
+    authToken = await getAuthToken(testUser.user.email, "Test123!@#", app);
     testCompany = await createTestClientCompany({
       tenantId: testUser.tenant.id,
     });
@@ -52,6 +52,7 @@ describe("E-Fatura Routes Integration Tests", () => {
           tenantId: testUser.tenant.id,
           providerId: provider.id,
           status: "active",
+          displayName: "E-Fatura Integration",
           config: {},
         },
       });
@@ -85,8 +86,9 @@ describe("E-Fatura Routes Integration Tests", () => {
         tenantId: testUser.tenant.id,
       });
       const readOnlyToken = await getAuthToken(
-        readOnlyUser.user.id,
-        testUser.tenant.id
+        readOnlyUser.user.email,
+        "Test123!@#",
+        app
       );
 
       await request(app)
@@ -101,6 +103,40 @@ describe("E-Fatura Routes Integration Tests", () => {
 
   describe("GET /api/v1/e-fatura/status/:invoiceId", () => {
     it("should check invoice status", async () => {
+      // First submit the invoice to E-Fatura
+      const prisma = getTestPrisma();
+      const provider = await prisma.integrationProvider.upsert({
+        where: { code: "ETA" },
+        update: {},
+        create: {
+          code: "ETA",
+          name: "E-Fatura",
+          type: "accounting",
+          configSchema: {},
+        },
+      });
+
+      await prisma.tenantIntegration.create({
+        data: {
+          tenantId: testUser.tenant.id,
+          providerId: provider.id,
+          status: "active",
+          displayName: "E-Fatura Integration",
+          config: {},
+        },
+      });
+
+      // Submit invoice first
+      await request(app)
+        .post("/api/v1/e-fatura/submit")
+        .set("Authorization", `Bearer ${authToken}`)
+        .send({
+          invoiceId: testInvoice.id,
+          config: {},
+        })
+        .expect(200);
+
+      // Then check status
       const response = await request(app)
         .get(`/api/v1/e-fatura/status/${testInvoice.id}`)
         .set("Authorization", `Bearer ${authToken}`)

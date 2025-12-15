@@ -11,6 +11,7 @@ import {
 } from "@repo/api-client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { toast } from "@/lib/toast";
 
 const STATUS_LABELS: Record<string, string> = {
   connected: "Bağlı",
@@ -94,7 +95,7 @@ export default function IntegrationsPage() {
       ? "pull_invoices"
       : "pull_bank_transactions";
     await syncMutation.mutateAsync({ id: integration.id, jobType });
-    alert("Senkronizasyon başlatıldı.");
+    toast.success("Senkronizasyon başlatıldı.");
   };
 
   return (

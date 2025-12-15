@@ -50,3 +50,4 @@ All 6 client companies now have:
 - ✅ Active membership in the tenant
 
 The User Management page should now display all 6 customer users!
+

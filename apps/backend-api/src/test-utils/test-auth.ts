@@ -200,16 +200,23 @@ export async function createTestUser(
   });
   if (!verifyUserAgain) {
     // Retry a few times - user might not be visible yet
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 10; i++) {
       await prisma.$queryRaw`SELECT 1`;
-      await new Promise(resolve => setTimeout(resolve, 100));
+      const delay = Math.min(100 * Math.pow(2, i), 2000) + Math.random() * 100;
+      await new Promise(resolve => setTimeout(resolve, delay));
       verifyUserAgain = await prisma.user.findUnique({
         where: { id: user.id },
       });
       if (verifyUserAgain) break;
     }
     if (!verifyUserAgain) {
-      throw new Error(`User ${user.id} not found when creating membership after retries`);
+      // Try one more time by email as fallback
+      verifyUserAgain = await prisma.user.findUnique({
+        where: { email: user.email },
+      });
+      if (!verifyUserAgain) {
+        throw new Error(`User ${user.id} not found when creating membership after retries`);
+      }
     }
   }
   

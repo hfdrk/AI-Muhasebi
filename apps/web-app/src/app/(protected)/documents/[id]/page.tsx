@@ -7,6 +7,13 @@ import Link from "next/link";
 import { useState } from "react";
 import { useDocumentRiskScore } from "@/hooks/use-risk";
 import { Button } from "@/components/ui/Button";
+import { Modal } from "@/components/ui/Modal";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { Tabs } from "@/components/ui/Tabs";
+import { Badge } from "@/components/ui/Badge";
+import { toast } from "@/lib/toast";
+import { colors, spacing, borderRadius, typography } from "@/styles/design-system";
 
 const TYPE_LABELS: Record<string, string> = {
   INVOICE: "Fatura",
@@ -27,7 +34,7 @@ export default function DocumentDetailPage() {
   const router = useRouter();
   const documentId = params.id as string;
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"details" | "ai" | "risk">("details");
+  const [deleteModal, setDeleteModal] = useState(false);
 
   const { data: document, isLoading } = useQuery({
     queryKey: ["document", documentId],
@@ -64,7 +71,8 @@ export default function DocumentDetailPage() {
         const url = window.URL.createObjectURL(blob);
         const a = window.document.createElement("a");
         a.href = url;
-        a.download = documentData.originalFileName || `document-${documentId}`;
+        const fileName = document?.data?.originalFileName || `document-${documentId}`;
+        a.download = fileName;
         window.document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
@@ -72,14 +80,15 @@ export default function DocumentDetailPage() {
         if (a.parentNode) {
           a.parentNode.removeChild(a);
         }
+        toast.success("Dosya başarıyla indirildi.");
       } catch (error) {
         console.error("Error downloading file:", error);
-        alert("Dosya indirilirken bir hata oluştu.");
+        toast.error("Dosya indirilirken bir hata oluştu.");
       }
     },
     onError: (error: Error) => {
       console.error("Download error:", error);
-      alert(`Dosya indirilemedi: ${error.message}`);
+      toast.error(`Dosya indirilemedi: ${error.message}`);
     },
   });
 
@@ -87,23 +96,37 @@ export default function DocumentDetailPage() {
     mutationFn: (id: string) => retryDocumentProcessing(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["document", documentId] });
-      alert("Belge yeniden işleme için kuyruğa eklendi. İşlem birkaç dakika içinde başlayacak.");
+      toast.success("Belge yeniden işleme için kuyruğa eklendi. İşlem birkaç dakika içinde başlayacak.");
     },
     onError: (error: Error) => {
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 
   const handleDelete = () => {
-    if (confirm("Bu belgeyi silmek istediğinize emin misiniz?")) {
-      deleteMutation.mutate(documentId);
-    }
+    setDeleteModal(true);
   };
 
   if (isLoading) {
     return (
-      <div style={{ padding: "40px" }}>
-        <p>Yükleniyor...</p>
+      <div style={{ padding: spacing.xxl, maxWidth: "1200px" }}>
+        <div style={{ marginBottom: spacing.xl }}>
+          <Skeleton height="40px" width="300px" variant="text" />
+        </div>
+        <div style={{ display: "flex", gap: spacing.md, marginBottom: spacing.lg }}>
+          <Skeleton height="40px" width="120px" variant="rectangular" />
+          <Skeleton height="40px" width="120px" variant="rectangular" />
+        </div>
+        <div style={{ backgroundColor: colors.white, padding: spacing.lg, borderRadius: borderRadius.lg, marginBottom: spacing.lg }}>
+          <Skeleton height="24px" width="200px" variant="text" style={{ marginBottom: spacing.md }} />
+          <Skeleton height="20px" width="100%" variant="text" style={{ marginBottom: spacing.sm }} />
+          <Skeleton height="20px" width="90%" variant="text" style={{ marginBottom: spacing.sm }} />
+          <Skeleton height="20px" width="95%" variant="text" />
+        </div>
+        <div style={{ backgroundColor: colors.white, padding: spacing.lg, borderRadius: borderRadius.lg }}>
+          <Skeleton height="24px" width="200px" variant="text" style={{ marginBottom: spacing.md }} />
+          <Skeleton height="150px" width="100%" variant="rectangular" />
+        </div>
       </div>
     );
   }
@@ -120,7 +143,8 @@ export default function DocumentDetailPage() {
   const documentData = document.data;
 
   return (
-    <div style={{ padding: "40px", maxWidth: "1200px" }}>
+    <PageTransition>
+      <div style={{ padding: "40px", maxWidth: "1200px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
         <h1>Belge Detayı</h1>
         <div style={{ display: "flex", gap: "8px" }}>
@@ -225,57 +249,19 @@ export default function DocumentDetailPage() {
         {documentData.processingErrorMessage && (
           <div style={{ gridColumn: "1 / -1" }}>
             <strong>İşleme Hatası:</strong>{" "}
-            <span style={{ color: "#dc3545" }}>{documentData.processingErrorMessage}</span>
+            <span style={{ color: colors.danger }}>{documentData.processingErrorMessage}</span>
           </div>
         )}
       </div>
 
       {/* Tabs */}
-      <div style={{ borderBottom: "1px solid #ddd", marginBottom: "24px" }}>
-        <div style={{ display: "flex", gap: "16px" }}>
-          <button
-            onClick={() => setActiveTab("details")}
-            style={{
-              padding: "8px 16px",
-              border: "none",
-              borderBottom: activeTab === "details" ? "2px solid #0066cc" : "2px solid transparent",
-              backgroundColor: "transparent",
-              cursor: "pointer",
-              color: activeTab === "details" ? "#0066cc" : "inherit",
-            }}
-          >
-            Detaylar
-          </button>
-          <button
-            onClick={() => setActiveTab("ai")}
-            style={{
-              padding: "8px 16px",
-              border: "none",
-              borderBottom: activeTab === "ai" ? "2px solid #0066cc" : "2px solid transparent",
-              backgroundColor: "transparent",
-              cursor: "pointer",
-              color: activeTab === "ai" ? "#0066cc" : "inherit",
-            }}
-          >
-            AI Analiz
-          </button>
-          <button
-            onClick={() => setActiveTab("risk")}
-            style={{
-              padding: "8px 16px",
-              border: "none",
-              borderBottom: activeTab === "risk" ? "2px solid #0066cc" : "2px solid transparent",
-              backgroundColor: "transparent",
-              cursor: "pointer",
-              color: activeTab === "risk" ? "#0066cc" : "inherit",
-            }}
-          >
-            Risk Analizi
-          </button>
-        </div>
-      </div>
-
-      {activeTab === "details" && (
+      <Tabs
+        items={[
+          {
+            id: "details",
+            label: "Detaylar",
+            icon: "FileText",
+            content: (
         <div>
           {documentData.status === "PROCESSING" && (
             <div style={{ padding: "16px", backgroundColor: "#fff3cd", borderRadius: "4px", marginBottom: "24px" }}>
@@ -345,31 +331,20 @@ export default function DocumentDetailPage() {
               </div>
               <div>
                 <strong style={{ display: "block", marginBottom: "4px", color: "#666" }}>Durum</strong>
-                <span
-                  style={{
-                    padding: "4px 8px",
-                    borderRadius: "4px",
-                    fontSize: "12px",
-                    backgroundColor:
-                      documentData.status === "PROCESSED"
-                        ? "#d4edda"
-                        : documentData.status === "FAILED"
-                        ? "#f8d7da"
-                        : documentData.status === "PROCESSING"
-                        ? "#fff3cd"
-                        : "#e2e3e5",
-                    color:
-                      documentData.status === "PROCESSED"
-                        ? "#155724"
-                        : documentData.status === "FAILED"
-                        ? "#721c24"
-                        : documentData.status === "PROCESSING"
-                        ? "#856404"
-                        : "#383d41",
-                  }}
+                <Badge
+                  variant={
+                    documentData.status === "PROCESSED"
+                      ? "success"
+                      : documentData.status === "FAILED"
+                      ? "danger"
+                      : documentData.status === "PROCESSING"
+                      ? "warning"
+                      : "secondary"
+                  }
+                  size="sm"
                 >
                   {STATUS_LABELS[documentData.status] || documentData.status}
-                </span>
+                </Badge>
               </div>
               <div>
                 <strong style={{ display: "block", marginBottom: "4px", color: "#666" }}>Yükleme Tarihi</strong>
@@ -447,9 +422,13 @@ export default function DocumentDetailPage() {
             </div>
           </div>
         </div>
-      )}
-
-      {activeTab === "ai" && (
+            ),
+          },
+          {
+            id: "ai",
+            label: "AI Analiz",
+            icon: "Brain",
+            content: (
         <div>
           {documentData.status === "PROCESSING" && (
             <div style={{ padding: "16px", backgroundColor: "#fff3cd", borderRadius: "4px", marginBottom: "24px" }}>
@@ -488,8 +467,12 @@ export default function DocumentDetailPage() {
           )}
 
           {aiLoading && (
-            <div style={{ padding: "16px" }}>
-              <p>AI analizi yükleniyor...</p>
+            <div style={{ padding: spacing.md }}>
+              <Skeleton height="24px" width="200px" variant="text" style={{ marginBottom: spacing.md }} />
+              <Skeleton height="20px" width="100%" variant="text" style={{ marginBottom: spacing.sm }} />
+              <Skeleton height="20px" width="90%" variant="text" style={{ marginBottom: spacing.sm }} />
+              <Skeleton height="20px" width="95%" variant="text" style={{ marginBottom: spacing.md }} />
+              <Skeleton height="150px" width="100%" variant="rectangular" />
             </div>
           )}
 
@@ -674,13 +657,20 @@ export default function DocumentDetailPage() {
             </div>
           )}
         </div>
-      )}
-
-      {activeTab === "risk" && (
+            ),
+          },
+          {
+            id: "risk",
+            label: "Risk Analizi",
+            icon: "AlertTriangle",
+            content: (
         <div>
           {riskLoading && (
-            <div style={{ padding: "16px" }}>
-              <p>Risk skoru yükleniyor...</p>
+            <div style={{ padding: spacing.md }}>
+              <Skeleton height="24px" width="200px" variant="text" style={{ marginBottom: spacing.md }} />
+              <Skeleton height="100px" width="100%" variant="rectangular" style={{ marginBottom: spacing.md }} />
+              <Skeleton height="20px" width="100%" variant="text" style={{ marginBottom: spacing.sm }} />
+              <Skeleton height="20px" width="90%" variant="text" />
             </div>
           )}
 
@@ -810,8 +800,39 @@ export default function DocumentDetailPage() {
             </div>
           )}
         </div>
-      )}
+            ),
+          },
+        ]}
+        defaultTab="details"
+      />
+
+      <Modal
+        isOpen={deleteModal}
+        onClose={() => setDeleteModal(false)}
+        title="Belgeyi Sil"
+        size="sm"
+      >
+        <div style={{ marginBottom: spacing.lg }}>
+          <p>Bu belgeyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.</p>
+        </div>
+        <div style={{ display: "flex", gap: spacing.md, justifyContent: "flex-end" }}>
+          <Button variant="outline" onClick={() => setDeleteModal(false)}>
+            İptal
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              deleteMutation.mutate(documentId);
+              setDeleteModal(false);
+            }}
+            loading={deleteMutation.isPending}
+          >
+            Sil
+          </Button>
+        </div>
+      </Modal>
     </div>
+    </PageTransition>
   );
 }
 

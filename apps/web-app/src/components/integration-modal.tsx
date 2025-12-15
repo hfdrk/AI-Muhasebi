@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listProviders, createIntegration, updateIntegration, testConnection, type IntegrationProvider } from "@repo/api-client";
+import { toast } from "@/lib/toast";
 
 interface IntegrationModalProps {
   isOpen: boolean;
@@ -61,7 +62,7 @@ export default function IntegrationModal({
     },
     onError: (error: any) => {
       console.error("Error creating integration:", error);
-      alert(error.message || "Entegrasyon oluşturulurken bir hata oluştu.");
+      toast.error(error.message || "Entegrasyon oluşturulurken bir hata oluştu.");
     },
   });
 
@@ -116,7 +117,7 @@ export default function IntegrationModal({
     }
 
     if (!selectedProvider) {
-      alert("Lütfen bir sağlayıcı seçin.");
+      toast.warning("Lütfen bir sağlayıcı seçin.");
       return;
     }
 

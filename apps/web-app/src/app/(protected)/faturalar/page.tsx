@@ -7,6 +7,16 @@ import { invoices as invoicesI18n, common as commonI18n } from "@repo/i18n";
 import { SavedFiltersDropdown } from "../../../components/saved-filters-dropdown";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
+import { SkeletonTable } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Badge } from "@/components/ui/Badge";
+import { TableRow, TableCell } from "@/components/ui/Table";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { colors, spacing, typography, borderRadius } from "@/styles/design-system";
 
 const STATUS_LABELS: Record<string, string> = {
   taslak: "Taslak",
@@ -115,6 +125,7 @@ export default function InvoicesPage() {
   const pagination = data?.data || { total: 0, page: 1, pageSize: 20, totalPages: 1 };
 
   return (
+    <PageTransition>
     <div style={{ padding: "40px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
         <h1>{invoicesI18n.title}</h1>
@@ -122,26 +133,25 @@ export default function InvoicesPage() {
           href="/faturalar/new"
           style={{
             padding: "8px 16px",
-            backgroundColor: "#0066cc",
-            color: "white",
+            backgroundColor: colors.primary,
+            color: colors.white,
             textDecoration: "none",
-            borderRadius: "4px",
+            borderRadius: borderRadius.sm,
           }}
         >
           {invoicesI18n.list.addNew}
         </Link>
       </div>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", marginBottom: "24px", alignItems: "flex-start" }}>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", flex: 1 }}>
-          <div>
-            <label style={{ display: "block", marginBottom: "4px", fontSize: "14px" }}>Şirket</label>
-            <select
+      <Card style={{ marginBottom: spacing.lg }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: spacing.md, padding: spacing.md, alignItems: "flex-start" }}>
+          <div style={{ flex: "1 1 200px" }}>
+            <Select
+              label="Şirket"
               value={companyFilter}
               onChange={(e) => {
                 setCompanyFilter(e.target.value);
                 setPage(1);
-                // Update URL with company filter
                 const params = new URLSearchParams(searchParams.toString());
                 if (e.target.value === "all") {
                   params.delete("clientCompanyId");
@@ -150,239 +160,201 @@ export default function InvoicesPage() {
                 }
                 router.push(`/faturalar?${params.toString()}`);
               }}
-              style={{
-                padding: "8px 12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                fontSize: "16px",
-                minWidth: "200px",
-              }}
-            >
-              <option value="all">Tüm Şirketler</option>
-              {companies.map((company) => (
-                <option key={company.id} value={company.id}>
-                  {company.name}
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: "all", label: "Tüm Şirketler" },
+                ...((companies || []).map((company: any) => ({
+                  value: company.id,
+                  label: company.name,
+                }))),
+              ]}
+            />
           </div>
-        <div>
-          <label style={{ display: "block", marginBottom: "4px", fontSize: "14px" }}>Başlangıç Tarihi</label>
-          <input
-            type="date"
-            value={issueDateFrom}
-            onChange={(e) => {
-              setIssueDateFrom(e.target.value);
-              setPage(1);
-            }}
-            style={{
-              padding: "8px 12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "16px",
-            }}
-          />
+          <div style={{ flex: "1 1 200px" }}>
+            <Input
+              type="date"
+              label="Başlangıç Tarihi"
+              value={issueDateFrom}
+              onChange={(e) => {
+                setIssueDateFrom(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
+          <div style={{ flex: "1 1 200px" }}>
+            <Input
+              type="date"
+              label="Bitiş Tarihi"
+              value={issueDateTo}
+              onChange={(e) => {
+                setIssueDateTo(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
+          <div style={{ flex: "1 1 200px" }}>
+            <Select
+              label="Tür"
+              value={typeFilter}
+              onChange={(e) => {
+                setTypeFilter(e.target.value);
+                setPage(1);
+              }}
+              options={[
+                { value: "all", label: "Tümü" },
+                { value: "SATIŞ", label: "Satış" },
+                { value: "ALIŞ", label: "Alış" },
+              ]}
+            />
+          </div>
+          <div style={{ flex: "1 1 200px" }}>
+            <Select
+              label="Durum"
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setPage(1);
+              }}
+              options={[
+                { value: "all", label: "Tümü" },
+                { value: "taslak", label: "Taslak" },
+                { value: "kesildi", label: "Kesildi" },
+                { value: "iptal", label: "İptal" },
+                { value: "muhasebeleştirilmiş", label: "Muhasebeleştirilmiş" },
+              ]}
+            />
+          </div>
+          <div style={{ alignSelf: "flex-end" }}>
+            <SavedFiltersDropdown
+              target={SAVED_FILTER_TARGETS.INVOICES}
+              currentFilters={currentFilters}
+              onFilterSelect={handleFilterSelect}
+            />
+          </div>
         </div>
-        <div>
-          <label style={{ display: "block", marginBottom: "4px", fontSize: "14px" }}>Bitiş Tarihi</label>
-          <input
-            type="date"
-            value={issueDateTo}
-            onChange={(e) => {
-              setIssueDateTo(e.target.value);
-              setPage(1);
-            }}
-            style={{
-              padding: "8px 12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "16px",
-            }}
-          />
-        </div>
-        <div>
-          <label style={{ display: "block", marginBottom: "4px", fontSize: "14px" }}>Tür</label>
-          <select
-            value={typeFilter}
-            onChange={(e) => {
-              setTypeFilter(e.target.value);
-              setPage(1);
-            }}
-            style={{
-              padding: "8px 12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "16px",
-            }}
-          >
-            <option value="all">Tümü</option>
-            <option value="SATIŞ">Satış</option>
-            <option value="ALIŞ">Alış</option>
-          </select>
-        </div>
-        <div>
-          <label style={{ display: "block", marginBottom: "4px", fontSize: "14px" }}>Durum</label>
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setPage(1);
-            }}
-            style={{
-              padding: "8px 12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "16px",
-            }}
-          >
-            <option value="all">Tümü</option>
-            <option value="taslak">Taslak</option>
-            <option value="kesildi">Kesildi</option>
-            <option value="iptal">İptal</option>
-            <option value="muhasebeleştirilmiş">Muhasebeleştirilmiş</option>
-          </select>
-        </div>
-        </div>
-        <div style={{ alignSelf: "flex-end" }}>
-          <SavedFiltersDropdown
-            target={SAVED_FILTER_TARGETS.INVOICES}
-            currentFilters={currentFilters}
-            onFilterSelect={handleFilterSelect}
-          />
-        </div>
-      </div>
+      </Card>
 
-      {isLoading ? (
-        <p>{commonI18n.labels.loading}</p>
-      ) : invoices.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "40px" }}>
-          <p>{invoicesI18n.list.emptyState}</p>
-          <Link
-            href="/faturalar/new"
-            style={{
-              display: "inline-block",
-              marginTop: "16px",
-              padding: "8px 16px",
-              backgroundColor: "#0066cc",
-              color: "white",
-              textDecoration: "none",
-              borderRadius: "4px",
-            }}
-          >
-            {invoicesI18n.list.emptyStateAction}
-          </Link>
-        </div>
-      ) : (
-        <>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ borderBottom: "2px solid #ddd" }}>
-                <th style={{ padding: "12px", textAlign: "left" }}>Şirket Adı</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>Fatura No</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>Tür</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>Düzenleme Tarihi</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>Vade Tarihi</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>Toplam Tutar</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>Para Birimi</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>Durum</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>İşlemler</th>
-              </tr>
-            </thead>
-            <tbody>
-              {invoices.map((invoice) => (
-                <tr key={invoice.id} style={{ borderBottom: "1px solid #eee" }}>
-                  <td style={{ padding: "12px" }}>
-                    {invoice.clientCompanyName || "-"}
-                  </td>
-                  <td style={{ padding: "12px" }}>
-                    <Link
-                      href={`/faturalar/${invoice.id}`}
-                      style={{ color: "#0066cc", textDecoration: "none" }}
-                    >
-                      {invoice.externalId || invoice.id.substring(0, 8)}
-                    </Link>
-                  </td>
-                  <td style={{ padding: "12px" }}>{TYPE_LABELS[invoice.type] || invoice.type}</td>
-                  <td style={{ padding: "12px" }}>
-                    {new Date(invoice.issueDate).toLocaleDateString("tr-TR")}
-                  </td>
-                  <td style={{ padding: "12px" }}>
-                    {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString("tr-TR") : "-"}
-                  </td>
-                  <td style={{ padding: "12px" }}>
-                    {invoice.totalAmount.toLocaleString("tr-TR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </td>
-                  <td style={{ padding: "12px" }}>{invoice.currency}</td>
-                  <td style={{ padding: "12px" }}>
-                    <span
-                      style={{
-                        padding: "4px 8px",
-                        borderRadius: "4px",
-                        backgroundColor: invoice.status === "kesildi" ? "#d4edda" : "#f8d7da",
-                        color: invoice.status === "kesildi" ? "#155724" : "#721c24",
-                        fontSize: "12px",
-                      }}
-                    >
-                      {STATUS_LABELS[invoice.status] || invoice.status}
-                    </span>
-                  </td>
-                  <td style={{ padding: "12px" }}>
-                    <Link
-                      href={`/faturalar/${invoice.id}/edit`}
-                      style={{
-                        padding: "4px 8px",
-                        color: "#0066cc",
-                        textDecoration: "none",
-                        fontSize: "14px",
-                      }}
-                    >
-                      Düzenle
-                    </Link>
-                  </td>
+      <Card>
+        {isLoading ? (
+          <div style={{ padding: spacing.lg }}>
+            <SkeletonTable rows={5} columns={9} />
+          </div>
+        ) : invoices.length === 0 ? (
+          <EmptyState
+            icon="FileX"
+            title={invoicesI18n.list.emptyState}
+            description="İlk faturanızı oluşturarak başlayın"
+            actionLabel={invoicesI18n.list.emptyStateAction}
+            onAction={() => window.location.href = "/faturalar/new"}
+          />
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ borderBottom: `2px solid ${colors.border}`, backgroundColor: colors.gray[50] }}>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                    Şirket Adı
+                  </th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                    Fatura No
+                  </th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                    Tür
+                  </th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                    Düzenleme Tarihi
+                  </th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                    Vade Tarihi
+                  </th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                    Toplam Tutar
+                  </th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                    Para Birimi
+                  </th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                    Durum
+                  </th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                    İşlemler
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {invoices.map((invoice) => (
+                  <TableRow key={invoice.id}>
+                    <TableCell>
+                      {invoice.clientCompanyName || "-"}
+                    </TableCell>
+                    <TableCell>
+                      <Link
+                        href={`/faturalar/${invoice.id}`}
+                        style={{ color: colors.primary, textDecoration: "none", fontWeight: typography.fontWeight.medium }}
+                      >
+                        {invoice.externalId || invoice.id.substring(0, 8)}
+                      </Link>
+                    </TableCell>
+                    <TableCell>{TYPE_LABELS[invoice.type] || invoice.type}</TableCell>
+                    <TableCell>
+                      {new Date(invoice.issueDate).toLocaleDateString("tr-TR")}
+                    </TableCell>
+                    <TableCell>
+                      {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString("tr-TR") : "-"}
+                    </TableCell>
+                    <TableCell>
+                      {invoice.totalAmount.toLocaleString("tr-TR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </TableCell>
+                    <TableCell>{invoice.currency}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={invoice.status === "kesildi" ? "success" : invoice.status === "iptal" ? "danger" : "secondary"}
+                        size="sm"
+                      >
+                        {STATUS_LABELS[invoice.status] || invoice.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Button asLink href={`/faturalar/${invoice.id}/edit`} variant="ghost" size="sm">
+                        Düzenle
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
 
-          {pagination.totalPages > 1 && (
-            <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginTop: "24px" }}>
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                style={{
-                  padding: "8px 16px",
-                  border: "1px solid #ddd",
-                  borderRadius: "4px",
-                  cursor: page === 1 ? "not-allowed" : "pointer",
-                  opacity: page === 1 ? 0.5 : 1,
-                }}
-              >
-                Önceki
-              </button>
-              <span style={{ padding: "8px 16px", display: "flex", alignItems: "center" }}>
-                Sayfa {pagination.page} / {pagination.totalPages}
-              </span>
-              <button
-                onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
-                disabled={page === pagination.totalPages}
-                style={{
-                  padding: "8px 16px",
-                  border: "1px solid #ddd",
-                  borderRadius: "4px",
-                  cursor: page === pagination.totalPages ? "not-allowed" : "pointer",
-                  opacity: page === pagination.totalPages ? 0.5 : 1,
-                }}
-              >
-                Sonraki
-              </button>
-            </div>
-          )}
-        </>
+      {/* Pagination */}
+      {!isLoading && invoices.length > 0 && pagination.totalPages > 1 && (
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: spacing.md, marginTop: spacing.lg }}>
+          <Button
+            variant="outline"
+            onClick={() => setPage(page - 1)}
+            disabled={page === 1}
+            size="sm"
+          >
+            Önceki
+          </Button>
+          <span style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm }}>
+            Sayfa {page} / {pagination.totalPages}
+          </span>
+          <Button
+            variant="outline"
+            onClick={() => setPage(page + 1)}
+            disabled={page === pagination.totalPages}
+            size="sm"
+          >
+            Sonraki
+          </Button>
+        </div>
       )}
     </div>
+    </PageTransition>
   );
 }
 

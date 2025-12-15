@@ -10,6 +10,11 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
   process.env.JWT_SECRET = "test-jwt-secret-key-for-testing-only-min-32-chars";
 }
 
+// Set EMAIL_TRANSPORT to stub for tests (unless explicitly set)
+if (!process.env.EMAIL_TRANSPORT) {
+  process.env.EMAIL_TRANSPORT = "stub";
+}
+
 // CRITICAL: Set DATABASE_URL to test database URL BEFORE any Prisma clients are created
 // This ensures the main prisma client in lib/prisma.ts uses the test database
 // The actual URL will be resolved properly in global-setup.ts, but we need a default here

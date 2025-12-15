@@ -141,3 +141,4 @@ createMissingCustomerUsers()
   .finally(async () => {
     await prisma.$disconnect();
   });
+

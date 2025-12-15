@@ -35,11 +35,11 @@ export default function TaxReportingPage() {
       return taxClient.generateVATDeclaration(selectedClientId, startDate, endDate);
     },
     onSuccess: (data) => {
-      alert("KDV beyannamesi başarıyla oluşturuldu!");
+      toast.success("KDV beyannamesi başarıyla oluşturuldu!");
       console.log("VAT Declaration:", data);
     },
     onError: (error: Error) => {
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 
@@ -50,11 +50,11 @@ export default function TaxReportingPage() {
       return taxClient.generateCorporateTaxReport(selectedClientId, year);
     },
     onSuccess: (data) => {
-      alert("Kurumlar vergisi raporu başarıyla oluşturuldu!");
+      toast.success("Kurumlar vergisi raporu başarıyla oluşturuldu!");
       console.log("Corporate Tax Report:", data);
     },
     onError: (error: Error) => {
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 
@@ -65,11 +65,11 @@ export default function TaxReportingPage() {
       return taxClient.generateWithholdingTaxReport(selectedClientId, startDate, endDate);
     },
     onSuccess: (data) => {
-      alert("Stopaj vergisi raporu başarıyla oluşturuldu!");
+      toast.success("Stopaj vergisi raporu başarıyla oluşturuldu!");
       console.log("Withholding Tax Report:", data);
     },
     onError: (error: Error) => {
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 
@@ -80,22 +80,22 @@ export default function TaxReportingPage() {
       return taxClient.generateMonthlyTaxSummary(selectedClientId, year, month);
     },
     onSuccess: (data) => {
-      alert("Aylık vergi özeti başarıyla oluşturuldu!");
+      toast.success("Aylık vergi özeti başarıyla oluşturuldu!");
       console.log("Monthly Tax Summary:", data);
     },
     onError: (error: Error) => {
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 
   const handleGenerateReport = () => {
     if (!selectedClientId) {
-      alert("Lütfen bir müşteri seçin");
+      toast.warning("Lütfen bir müşteri seçin");
       return;
     }
 
     if (!reportType) {
-      alert("Lütfen bir rapor türü seçin");
+      toast.warning("Lütfen bir rapor türü seçin");
       return;
     }
 

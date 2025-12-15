@@ -4,6 +4,10 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listClientCompanies, generateEDefter, submitEDefter, listEDefterLedgers } from "@repo/api-client";
 import Link from "next/link";
+import { toast } from "../../../lib/toast";
+import { SkeletonTable } from "../../../components/ui/Skeleton";
+import { Badge } from "../../../components/ui/Badge";
+import { colors, spacing, borderRadius } from "../../../styles/design-system";
 
 const PERIOD_TYPE_LABELS: Record<string, string> = {
   monthly: "Aylık",
@@ -24,6 +28,8 @@ export default function EDefterPage() {
   const [periodStart, setPeriodStart] = useState("");
   const [periodEnd, setPeriodEnd] = useState("");
   const [periodType, setPeriodType] = useState<"monthly" | "quarterly" | "yearly">("monthly");
+  const [generateModal, setGenerateModal] = useState(false);
+  const [submitModal, setSubmitModal] = useState<{ open: boolean; ledgerId: string | null }>({ open: false, ledgerId: null });
 
   // Fetch client companies
   const { data: companiesData, isLoading: companiesLoading } = useQuery({
@@ -51,13 +57,13 @@ export default function EDefterPage() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["e-defter-ledgers", selectedCompanyId] });
-      alert("E-Defter başarıyla oluşturuldu.");
+      toast.success("E-Defter başarıyla oluşturuldu.");
       setPeriodStart("");
       setPeriodEnd("");
     },
     onError: (error: Error) => {
       console.error("E-Defter generation error:", error);
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 
@@ -65,10 +71,10 @@ export default function EDefterPage() {
     mutationFn: (ledgerId: string) => submitEDefter(selectedCompanyId, ledgerId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["e-defter-ledgers", selectedCompanyId] });
-      alert("E-Defter başarıyla GIB'a gönderildi.");
+      toast.success("E-Defter başarıyla GIB'a gönderildi.");
     },
     onError: (error: Error) => {
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 
@@ -77,26 +83,22 @@ export default function EDefterPage() {
     e?.stopPropagation();
     
     if (!selectedCompanyId) {
-      alert("Lütfen bir müşteri şirketi seçin.");
+      toast.warning("Lütfen bir müşteri şirketi seçin.");
       return;
     }
     if (!periodStart || !periodEnd) {
-      alert("Lütfen dönem başlangıç ve bitiş tarihlerini seçin.");
+      toast.warning("Lütfen dönem başlangıç ve bitiş tarihlerini seçin.");
       return;
     }
     if (new Date(periodStart) > new Date(periodEnd)) {
-      alert("Başlangıç tarihi bitiş tarihinden sonra olamaz.");
+      toast.warning("Başlangıç tarihi bitiş tarihinden sonra olamaz.");
       return;
     }
-    if (confirm("E-Defter oluşturmak istediğinize emin misiniz?")) {
-      generateMutation.mutate();
-    }
+    setGenerateModal(true);
   };
 
   const handleSubmit = (ledgerId: string) => {
-    if (confirm("Bu E-Defter'i GIB'a göndermek istediğinize emin misiniz?")) {
-      submitMutation.mutate(ledgerId);
-    }
+    setSubmitModal({ open: true, ledgerId });
   };
 
   // Set default dates based on period type
@@ -135,16 +137,17 @@ export default function EDefterPage() {
   }, []);
 
   return (
-    <div style={{ padding: "40px", maxWidth: "1400px" }}>
+    <PageTransition>
+      <div style={{ padding: "40px", maxWidth: "1400px" }}>
       <div style={{ marginBottom: "30px" }}>
         <h1 style={{ fontSize: "28px", fontWeight: "bold", marginBottom: "10px" }}>E-Defter Yönetimi</h1>
-        <p style={{ color: "#6b7280" }}>
+        <p style={{ color: colors.text.secondary }}>
           Elektronik defter oluşturun ve GIB'a gönderin. E-Defter, Türk Vergi Usul Kanunu'na göre zorunludur.
         </p>
       </div>
 
       {/* Generate Section */}
-      <div style={{ marginBottom: "40px", padding: "24px", backgroundColor: "#f9fafb", borderRadius: "8px" }}>
+      <div style={{ marginBottom: "40px", padding: "24px", backgroundColor: colors.gray[50], borderRadius: borderRadius.md }}>
         <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "20px" }}>E-Defter Oluştur</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "20px", marginBottom: "20px" }}>
           <div>
@@ -157,7 +160,7 @@ export default function EDefterPage() {
               style={{
                 width: "100%",
                 padding: "10px",
-                border: "1px solid #d1d5db",
+                border: `1px solid ${colors.border}`,
                 borderRadius: "6px",
                 fontSize: "14px",
                 backgroundColor: "white",
@@ -181,7 +184,7 @@ export default function EDefterPage() {
               style={{
                 width: "100%",
                 padding: "10px",
-                border: "1px solid #d1d5db",
+                border: `1px solid ${colors.border}`,
                 borderRadius: "6px",
                 fontSize: "14px",
                 backgroundColor: "white",
@@ -203,7 +206,7 @@ export default function EDefterPage() {
               style={{
                 width: "100%",
                 padding: "10px",
-                border: "1px solid #d1d5db",
+                border: `1px solid ${colors.border}`,
                 borderRadius: "6px",
                 fontSize: "14px",
               }}
@@ -220,7 +223,7 @@ export default function EDefterPage() {
               style={{
                 width: "100%",
                 padding: "10px",
-                border: "1px solid #d1d5db",
+                border: `1px solid ${colors.border}`,
                 borderRadius: "6px",
                 fontSize: "14px",
               }}
@@ -233,7 +236,7 @@ export default function EDefterPage() {
           disabled={generateMutation.isPending || !selectedCompanyId || !periodStart || !periodEnd}
           style={{
             padding: "12px 24px",
-            backgroundColor: generateMutation.isPending || !selectedCompanyId || !periodStart || !periodEnd ? "#9ca3af" : "#3b82f6",
+            backgroundColor: generateMutation.isPending || !selectedCompanyId || !periodStart || !periodEnd ? colors.gray[400] : colors.primaryLight,
             color: "white",
             border: "none",
             borderRadius: "6px",
@@ -252,11 +255,11 @@ export default function EDefterPage() {
           <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "20px" }}>Oluşturulan E-Defterler</h2>
           {ledgersLoading ? (
             <div style={{ padding: "40px", textAlign: "center" }}>
-              <p>Yükleniyor...</p>
+              <SkeletonTable rows={5} columns={4} />
             </div>
           ) : ledgers.length === 0 ? (
-            <div style={{ padding: "40px", textAlign: "center", backgroundColor: "#f9fafb", borderRadius: "8px" }}>
-              <p style={{ color: "#6b7280", fontSize: "16px" }}>Henüz E-Defter oluşturulmamış.</p>
+            <div style={{ padding: "40px", textAlign: "center", backgroundColor: colors.gray[50], borderRadius: borderRadius.md }}>
+              <p style={{ color: colors.text.secondary, fontSize: "16px" }}>Henüz E-Defter oluşturulmamış.</p>
             </div>
           ) : (
             <div style={{ backgroundColor: "white", borderRadius: "8px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
@@ -312,34 +315,24 @@ export default function EDefterPage() {
                       </td>
                       <td style={{ padding: "12px" }}>
                         {ledger.submissionStatus ? (
-                          <span
-                            style={{
-                              padding: "4px 12px",
-                              borderRadius: "12px",
-                              fontSize: "12px",
-                              fontWeight: "500",
-                              backgroundColor:
-                                ledger.submissionStatus === "accepted"
-                                  ? "#d1fae5"
-                                  : ledger.submissionStatus === "rejected"
-                                  ? "#fee2e2"
-                                  : ledger.submissionStatus === "submitted"
-                                  ? "#dbeafe"
-                                  : "#fef3c7",
-                              color:
-                                ledger.submissionStatus === "accepted"
-                                  ? "#065f46"
-                                  : ledger.submissionStatus === "rejected"
-                                  ? "#991b1b"
-                                  : ledger.submissionStatus === "submitted"
-                                  ? "#1e40af"
-                                  : "#92400e",
-                            }}
+                          <Badge
+                            variant={
+                              ledger.submissionStatus === "accepted"
+                                ? "success"
+                                : ledger.submissionStatus === "rejected"
+                                ? "danger"
+                                : ledger.submissionStatus === "submitted"
+                                ? "primary"
+                                : "warning"
+                            }
+                            size="sm"
                           >
                             {SUBMISSION_STATUS_LABELS[ledger.submissionStatus] || ledger.submissionStatus}
-                          </span>
+                          </Badge>
                         ) : (
-                          <span style={{ color: "#6b7280" }}>Taslak</span>
+                          <Badge variant="secondary" size="sm">
+                            Taslak
+                          </Badge>
                         )}
                       </td>
                       <td style={{ padding: "12px", textAlign: "center" }}>
@@ -382,7 +375,60 @@ export default function EDefterPage() {
           <p style={{ color: "#6b7280", fontSize: "16px" }}>E-Defter oluşturmak için önce bir müşteri şirketi seçin.</p>
         </div>
       )}
+
+      <Modal
+        isOpen={generateModal}
+        onClose={() => setGenerateModal(false)}
+        title="E-Defter Oluştur"
+        size="sm"
+      >
+        <div style={{ marginBottom: spacing.lg }}>
+          <p>E-Defter oluşturmak istediğinize emin misiniz?</p>
+        </div>
+        <div style={{ display: "flex", gap: spacing.md, justifyContent: "flex-end" }}>
+          <Button variant="outline" onClick={() => setGenerateModal(false)}>
+            İptal
+          </Button>
+          <Button
+            onClick={() => {
+              generateMutation.mutate();
+              setGenerateModal(false);
+            }}
+            loading={generateMutation.isPending}
+          >
+            Oluştur
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={submitModal.open}
+        onClose={() => setSubmitModal({ open: false, ledgerId: null })}
+        title="E-Defter'i GIB'a Gönder"
+        size="sm"
+      >
+        <div style={{ marginBottom: spacing.lg }}>
+          <p>Bu E-Defter'i GIB'a göndermek istediğinize emin misiniz?</p>
+        </div>
+        <div style={{ display: "flex", gap: spacing.md, justifyContent: "flex-end" }}>
+          <Button variant="outline" onClick={() => setSubmitModal({ open: false, ledgerId: null })}>
+            İptal
+          </Button>
+          <Button
+            onClick={() => {
+              if (submitModal.ledgerId) {
+                submitMutation.mutate(submitModal.ledgerId);
+                setSubmitModal({ open: false, ledgerId: null });
+              }
+            }}
+            loading={submitMutation.isPending}
+          >
+            Gönder
+          </Button>
+        </div>
+      </Modal>
     </div>
+    </PageTransition>
   );
 }
 

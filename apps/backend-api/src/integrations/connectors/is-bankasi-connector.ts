@@ -172,3 +172,4 @@ export class IsBankasiConnector implements BankIntegrationConnector {
 }
 
 
+

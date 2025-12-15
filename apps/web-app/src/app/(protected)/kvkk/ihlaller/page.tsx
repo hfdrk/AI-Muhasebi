@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
 import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
+import { toast } from "../../../../lib/toast";
 
 const SEVERITY_LABELS: Record<string, string> = {
   low: "Düşük",
@@ -40,7 +41,7 @@ export default function BreachManagementPage() {
       return kvkkClient.recordBreach(description, affectedUsers, severity);
     },
     onSuccess: (data) => {
-      alert("Veri ihlali başarıyla kaydedildi!");
+      toast.success("Veri ihlali başarıyla kaydedildi!");
       console.log("Data Breach:", data);
       setDescription("");
       setAffectedUsers(0);
@@ -48,7 +49,7 @@ export default function BreachManagementPage() {
       queryClient.invalidateQueries({ queryKey: ["kvkk-breaches"] });
     },
     onError: (error: Error) => {
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 

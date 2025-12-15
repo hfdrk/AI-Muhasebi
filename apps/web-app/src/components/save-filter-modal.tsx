@@ -26,17 +26,17 @@ export function SaveFilterModal({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["savedFilters", target] });
       onClose();
-      alert(savedFiltersI18n.saved);
+      toast.success(savedFiltersI18n.saved);
     },
     onError: (error: any) => {
-      alert(error.message || "Filtre kaydedilirken bir hata oluştu.");
+      toast.error(error.message || "Filtre kaydedilirken bir hata oluştu.");
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      alert("Filtre adı gerekli.");
+      toast.warning("Filtre adı gerekli.");
       return;
     }
 

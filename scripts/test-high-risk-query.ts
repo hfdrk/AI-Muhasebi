@@ -137,3 +137,4 @@ testHighRiskQuery()
   .finally(async () => {
     await prisma.$disconnect();
   });
+

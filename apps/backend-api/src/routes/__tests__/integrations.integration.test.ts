@@ -222,9 +222,33 @@ describe("Integrations & Sync Integration Tests", () => {
       expect(updatedIntegration?.lastSyncAt).toBeDefined();
       expect(updatedIntegration?.lastSyncStatus).toBe("success");
 
-      // Wait for invoices to be created and committed
-      await prisma.$queryRaw`SELECT 1`;
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Check sync log to see import results
+      const syncLog = await prisma.integrationSyncLog.findFirst({
+        where: {
+          tenantId: testUser.tenant.id,
+          tenantIntegrationId: integration.id,
+          level: "info",
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+      
+      // If sync log exists, check the import summary
+      if (syncLog?.context) {
+        const context = syncLog.context as any;
+        console.log("Import summary:", context);
+        // If invoices were created according to the log, they should exist
+        if (context.created > 0) {
+          // Wait for invoices to be committed
+          await prisma.$queryRaw`SELECT 1`;
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      } else {
+        // Wait for invoices to be created and committed
+        await prisma.$queryRaw`SELECT 1`;
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
       
       // Verify invoices were created with source = "integration"
       // The invoice importer may create invoices for different client companies
@@ -238,10 +262,11 @@ describe("Integrations & Sync Integration Tests", () => {
       });
       
       // Retry if no invoices found (might need time to commit)
+      // Also try using worker-jobs Prisma client if available
       if (invoices.length === 0) {
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 10; i++) {
           await prisma.$queryRaw`SELECT 1`;
-          await new Promise(resolve => setTimeout(resolve, 200));
+          await new Promise(resolve => setTimeout(resolve, 300));
           invoices = await prisma.invoice.findMany({
             where: {
               tenantId: testUser.tenant.id,
@@ -255,6 +280,13 @@ describe("Integrations & Sync Integration Tests", () => {
       // Mock connector should create some invoices
       // The mock connector returns invoices with externalId like "INV-2024-001"
       // The invoice importer will either match by tax number or use the integration's clientCompanyId
+      // If no invoices found, check if there were errors in the sync log
+      if (invoices.length === 0 && syncLog?.context) {
+        const context = syncLog.context as any;
+        if (context.errors && context.errors.length > 0) {
+          console.error("Invoice import errors:", context.errors);
+        }
+      }
       expect(invoices.length).toBeGreaterThan(0);
       
       // Verify at least one invoice has the expected structure

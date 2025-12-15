@@ -52,8 +52,17 @@ router.get(
   requirePermission("invoices:read"),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
+      if (!req.context || !req.context.tenantId) {
+        return res.status(401).json({
+          error: {
+            code: "AUTHENTICATION_ERROR",
+            message: "Yetkilendirme gerekli.",
+          },
+        });
+      }
+
       // Enforce customer isolation for ReadOnly users
-      const isolationFilter = await enforceCustomerIsolation(req.context!, {
+      const isolationFilter = await enforceCustomerIsolation(req.context, {
         clientCompanyId: req.query.clientCompanyId as string | undefined,
       });
 
@@ -85,7 +94,7 @@ router.get(
         pageSize: req.query.pageSize ? parseInt(req.query.pageSize as string) : undefined,
       };
 
-      const result = await invoiceService.listInvoices(req.context!.tenantId!, filters);
+      const result = await invoiceService.listInvoices(req.context.tenantId, filters);
 
       res.json({ data: result });
     } catch (error) {

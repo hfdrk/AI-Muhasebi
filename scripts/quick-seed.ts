@@ -149,3 +149,4 @@ quickSeed()
   .finally(async () => {
     await prisma.$disconnect();
   });
+

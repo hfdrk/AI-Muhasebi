@@ -4,6 +4,10 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listTenantUsers, changeUserRole, updateUserStatus, getCurrentUser } from "@repo/api-client";
 import { InviteUserModal } from "@/components/invite-user-modal";
+import { Card } from "@/components/ui/Card";
+import { SkeletonTable } from "@/components/ui/Skeleton";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { spacing } from "@/styles/design-system";
 import { settings as settingsTranslations } from "@repo/i18n";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -98,7 +102,8 @@ export default function UsersPage() {
   const users = data?.data || [];
 
   return (
-    <div style={{ padding: "40px" }}>
+    <PageTransition>
+      <div style={{ padding: "40px" }}>
       {toastMessage && (
         <div
           style={{
@@ -153,7 +158,11 @@ export default function UsersPage() {
       )}
 
       {isLoading ? (
-        <p>Yükleniyor...</p>
+        <Card>
+          <div style={{ padding: spacing.lg }}>
+            <SkeletonTable rows={5} columns={5} />
+          </div>
+        </Card>
       ) : (
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
@@ -238,6 +247,7 @@ export default function UsersPage() {
         }}
       />
     </div>
+    </PageTransition>
   );
 }
 

@@ -14,6 +14,10 @@ import {
   getCurrentUser,
 } from "@repo/api-client";
 import { getReportTypeLabel, getScheduleCronLabel, getStatusLabel, formatReportDate, requiresClientCompany } from "@/lib/reports";
+import { Card } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { SkeletonTable } from "@/components/ui/Skeleton";
+import { PageTransition } from "@/components/ui/PageTransition";
 import { colors, spacing } from "@/styles/design-system";
 import Link from "next/link";
 
@@ -158,9 +162,14 @@ export default function ScheduledReportDetailPage() {
 
   if (reportLoading) {
     return (
-      <div style={{ padding: spacing.xxl }}>
-        <p>Yükleniyor...</p>
-      </div>
+      <PageTransition>
+        <Card>
+          <div style={{ padding: spacing.xxl }}>
+            <Skeleton height="40px" width="300px" style={{ marginBottom: spacing.md }} />
+            <Skeleton height="200px" width="100%" />
+          </div>
+        </Card>
+      </PageTransition>
     );
   }
 
@@ -178,6 +187,7 @@ export default function ScheduledReportDetailPage() {
   const clients = clientsData?.data.data || [];
 
   return (
+    <PageTransition>
     <div style={{ padding: spacing.xxl }}>
       <div style={{ marginBottom: spacing.xl, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
@@ -576,7 +586,7 @@ export default function ScheduledReportDetailPage() {
         <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: spacing.lg }}>Çalışma Geçmişi</h2>
 
         {logsLoading ? (
-          <p style={{ color: colors.text.secondary }}>Yükleniyor...</p>
+          <SkeletonTable rows={3} columns={4} />
         ) : logs.length === 0 ? (
           <p style={{ color: colors.text.secondary }}>Kayıt bulunamadı.</p>
         ) : (
@@ -613,6 +623,7 @@ export default function ScheduledReportDetailPage() {
         )}
       </div>
     </div>
+    </PageTransition>
   );
 }
 

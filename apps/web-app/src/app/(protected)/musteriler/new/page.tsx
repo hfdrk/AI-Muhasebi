@@ -8,6 +8,7 @@ import { createClientCompany } from "@repo/api-client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
+import { colors, spacing, borderRadius } from "@/styles/design-system";
 
 const clientCompanySchema = z.object({
   name: z.string().min(1, "Şirket adı gerekli."),
@@ -81,7 +82,7 @@ export default function NewClientPage() {
                 <Link
                   href="/ayarlar/abonelik"
                   style={{
-                    color: "#3b82f6",
+                    color: colors.primaryLight,
                     textDecoration: "underline",
                     fontSize: "14px",
                   }}
@@ -298,7 +299,7 @@ export default function NewClientPage() {
             href="/musteriler"
             style={{
               padding: "8px 16px",
-              backgroundColor: "#f5f5f5",
+              backgroundColor: colors.gray[100],
               border: "1px solid #ddd",
               borderRadius: "4px",
               textDecoration: "none",
@@ -312,7 +313,7 @@ export default function NewClientPage() {
             disabled={isSubmitting}
             style={{
               padding: "8px 16px",
-              backgroundColor: "#0066cc",
+              backgroundColor: colors.primary,
               color: "white",
               border: "none",
               borderRadius: "4px",

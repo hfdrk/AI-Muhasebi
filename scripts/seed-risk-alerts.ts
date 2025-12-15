@@ -384,3 +384,4 @@ seedRiskAlerts()
   .finally(async () => {
     await prisma.$disconnect();
   });
+

@@ -48,3 +48,4 @@ If login still fails after restarting backend:
 - **Database**: `ai_muhasebi`
 - **User**: `ai_muhasebi`
 - **Status**: ✅ Running and ready
+

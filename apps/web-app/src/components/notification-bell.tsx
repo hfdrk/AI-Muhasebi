@@ -6,6 +6,8 @@ import { notificationClient, type Notification, getCurrentUser } from "@repo/api
 import { useRouter } from "next/navigation";
 import { colors, spacing, shadows, borderRadius, transitions, typography, zIndex } from "../styles/design-system";
 import Link from "next/link";
+import { Icon } from "./ui/Icon";
+import { Tooltip } from "./ui/Tooltip";
 
 function formatTimeAgo(date: string): string {
   const now = new Date();
@@ -153,49 +155,52 @@ export function NotificationBell() {
 
   return (
     <div style={{ position: "relative" }} data-notification-bell>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        style={{
-          position: "relative",
-          padding: "10px",
-          backgroundColor: isOpen ? colors.primaryLighter : colors.gray[50],
-          border: `1px solid ${isOpen ? colors.primary : colors.border}`,
-          borderRadius: borderRadius.md,
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: colors.text.secondary,
-          fontSize: "20px",
-          transition: `all ${transitions.normal} ease`,
-          minWidth: "44px",
-          minHeight: "44px",
-          boxShadow: isOpen ? shadows.md : shadows.sm,
-        }}
-        onMouseEnter={(e) => {
-          if (!isOpen) {
-            e.currentTarget.style.backgroundColor = colors.primaryLighter;
-            e.currentTarget.style.borderColor = colors.primary;
-            e.currentTarget.style.boxShadow = shadows.md;
-            e.currentTarget.style.transform = "scale(1.05)";
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (!isOpen) {
-            e.currentTarget.style.backgroundColor = colors.gray[50];
-            e.currentTarget.style.borderColor = colors.border;
-            e.currentTarget.style.boxShadow = shadows.sm;
-            e.currentTarget.style.transform = "scale(1)";
-          }
-        }}
-        title="Bildirimler"
-      >
-        <span style={{ 
-          filter: unreadCount > 0 ? "none" : "grayscale(0.3)",
-          transition: "filter 0.2s ease"
-        }}>
-          🔔
-        </span>
+      <Tooltip content={unreadCount > 0 ? `${unreadCount} okunmamış bildirim` : "Bildirimler"}>
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          style={{
+            position: "relative",
+            padding: "10px",
+            backgroundColor: isOpen ? colors.primaryLighter : colors.gray[50],
+            border: `1px solid ${isOpen ? colors.primary : colors.border}`,
+            borderRadius: borderRadius.md,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: colors.text.secondary,
+            fontSize: "20px",
+            transition: `all ${transitions.normal} ease`,
+            minWidth: "44px",
+            minHeight: "44px",
+            boxShadow: isOpen ? shadows.md : shadows.sm,
+          }}
+          onMouseEnter={(e) => {
+            if (!isOpen) {
+              e.currentTarget.style.backgroundColor = colors.primaryLighter;
+              e.currentTarget.style.borderColor = colors.primary;
+              e.currentTarget.style.boxShadow = shadows.md;
+              e.currentTarget.style.transform = "scale(1.05)";
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isOpen) {
+              e.currentTarget.style.backgroundColor = colors.gray[50];
+              e.currentTarget.style.borderColor = colors.border;
+              e.currentTarget.style.boxShadow = shadows.sm;
+              e.currentTarget.style.transform = "scale(1)";
+            }
+          }}
+        >
+        <Icon 
+          name="bell" 
+          size={20} 
+          color={colors.text.secondary}
+          style={{
+            filter: unreadCount > 0 ? "none" : "grayscale(0.3)",
+            transition: "filter 0.2s ease"
+          }}
+        />
         {unreadCount > 0 && (
           <span
             style={{
@@ -221,6 +226,7 @@ export function NotificationBell() {
           </span>
         )}
       </button>
+      </Tooltip>
 
       {isOpen && (
         <>

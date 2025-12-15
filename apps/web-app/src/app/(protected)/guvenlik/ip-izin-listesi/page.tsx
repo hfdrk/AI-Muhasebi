@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
 import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
+import { toast } from "../../../../lib/toast";
 
 export default function IPWhitelistPage() {
   const [ipAddress, setIpAddress] = useState<string>("");
@@ -30,13 +31,13 @@ export default function IPWhitelistPage() {
       return securityClient.addIPWhitelist(ipAddress.trim(), description || undefined);
     },
     onSuccess: () => {
-      alert("IP adresi başarıyla izin listesine eklendi!");
+      toast.success("IP adresi başarıyla izin listesine eklendi!");
       setIpAddress("");
       setDescription("");
       queryClient.invalidateQueries({ queryKey: ["ip-whitelist-check"] });
     },
     onError: (error: Error) => {
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 

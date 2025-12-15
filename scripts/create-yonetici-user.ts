@@ -78,3 +78,4 @@ createYoneticiUser()
   .finally(async () => {
     await prisma.$disconnect();
   });
+

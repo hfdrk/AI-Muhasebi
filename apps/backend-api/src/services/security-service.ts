@@ -76,7 +76,7 @@ export class SecurityService {
         memberships: {
           some: {
             tenantId,
-            isActive: true,
+            status: "active",
           },
         },
       },
@@ -136,7 +136,7 @@ export class SecurityService {
         memberships: {
           some: {
             tenantId,
-            isActive: true,
+            status: "active",
           },
         },
       },
@@ -239,7 +239,7 @@ export class SecurityService {
         memberships: {
           some: {
             tenantId,
-            isActive: true,
+            status: "active",
           },
         },
       },

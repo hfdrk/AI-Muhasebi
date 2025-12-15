@@ -17,7 +17,7 @@ describe("Analytics Routes Integration Tests", () => {
 
   beforeEach(async () => {
     testUser = await createTestUser();
-    authToken = await getAuthToken(testUser.user.id, testUser.tenant.id);
+    authToken = await getAuthToken(testUser.user.email, "Test123!@#", app);
   });
 
   describe("GET /api/v1/analytics/financial-trends", () => {

@@ -28,3 +28,4 @@ CREATE INDEX "email_logs_created_at_idx" ON "email_logs"("created_at");
 -- AddForeignKey
 ALTER TABLE "email_logs" ADD CONSTRAINT "email_logs_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
+

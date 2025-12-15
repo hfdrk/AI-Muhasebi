@@ -7,6 +7,16 @@ import { clients as clientsI18n, common as commonI18n } from "@repo/i18n";
 import { SavedFiltersDropdown } from "../../../components/saved-filters-dropdown";
 // import { useRouter } from "next/navigation"; // Reserved for future use
 import Link from "next/link";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
+import { SkeletonTable } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Badge } from "@/components/ui/Badge";
+import { TableRow, TableCell } from "@/components/ui/Table";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { colors, spacing, typography } from "@/styles/design-system";
 
 export default function ClientsPage() {
   // const router = useRouter(); // Reserved for future use
@@ -77,190 +87,161 @@ export default function ClientsPage() {
   const pagination = data?.data || { total: 0, page: 1, pageSize: 20, totalPages: 1 };
 
   return (
-    <div style={{ padding: "40px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-        <h1>{clientsI18n.title}</h1>
+    <PageTransition>
+    <div style={{ padding: spacing.xxl, maxWidth: "1600px", margin: "0 auto" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.xl }}>
+        <div>
+          <h1 style={{ fontSize: typography.fontSize["3xl"], fontWeight: typography.fontWeight.bold, color: colors.text.primary, marginBottom: spacing.sm }}>
+            {clientsI18n.title}
+          </h1>
+          <p style={{ color: colors.text.secondary, fontSize: typography.fontSize.base }}>
+            Müşteri şirketlerinizi görüntüleyin ve yönetin
+          </p>
+        </div>
         {!isReadOnly && (
-          <Link
-            href="/musteriler/new"
-            style={{
-              padding: "8px 16px",
-              backgroundColor: "#0066cc",
-              color: "white",
-              textDecoration: "none",
-              borderRadius: "4px",
-            }}
-          >
+          <Button asLink href="/musteriler/new" variant="primary">
             {clientsI18n.list.addNew}
-          </Link>
+          </Button>
         )}
       </div>
 
-      <div style={{ display: "flex", gap: "16px", marginBottom: "24px", alignItems: "flex-start" }}>
-        <div style={{ flex: 1, display: "flex", gap: "16px" }}>
-          <input
-            type="text"
-            placeholder={clientsI18n.list.searchPlaceholder}
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            style={{
-              flex: 1,
-              padding: "8px 12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "16px",
-            }}
-          />
-          <select
-            value={isActiveFilter === undefined ? "all" : isActiveFilter ? "active" : "inactive"}
-            onChange={(e) => {
-              const value = e.target.value;
-              setIsActiveFilter(value === "all" ? undefined : value === "active");
-              setPage(1);
-            }}
-            style={{
-              padding: "8px 12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "16px",
-            }}
-          >
-            <option value="all">Tümü</option>
-            <option value="active">Aktif</option>
-            <option value="inactive">Pasif</option>
-          </select>
-        </div>
-        <SavedFiltersDropdown
-          target={SAVED_FILTER_TARGETS.CLIENT_COMPANIES}
-          currentFilters={currentFilters}
-          onFilterSelect={handleFilterSelect}
-        />
-      </div>
-
-      {isLoading ? (
-        <p>{commonI18n.labels.loading}</p>
-      ) : clients.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "40px" }}>
-          <p>{clientsI18n.list.emptyState}</p>
-          {!isReadOnly && (
-            <Link
-              href="/musteriler/new"
-              style={{
-                display: "inline-block",
-                marginTop: "16px",
-                padding: "8px 16px",
-                backgroundColor: "#0066cc",
-                color: "white",
-                textDecoration: "none",
-                borderRadius: "4px",
+      <Card style={{ marginBottom: spacing.lg }}>
+        <div style={{ display: "flex", gap: spacing.md, padding: spacing.md, alignItems: "flex-start" }}>
+          <div style={{ flex: 1, display: "flex", gap: spacing.md }}>
+            <Input
+              type="text"
+              placeholder={clientsI18n.list.searchPlaceholder}
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
               }}
-            >
-              {clientsI18n.list.emptyStateAction}
-            </Link>
-          )}
+              style={{ flex: 1 }}
+            />
+            <Select
+              value={isActiveFilter === undefined ? "all" : isActiveFilter ? "active" : "inactive"}
+              onChange={(e) => {
+                const value = e.target.value;
+                setIsActiveFilter(value === "all" ? undefined : value === "active");
+                setPage(1);
+              }}
+              options={[
+                { value: "all", label: "Tümü" },
+                { value: "active", label: "Aktif" },
+                { value: "inactive", label: "Pasif" },
+              ]}
+            />
+          </div>
+          <SavedFiltersDropdown
+            target={SAVED_FILTER_TARGETS.CLIENT_COMPANIES}
+            currentFilters={currentFilters}
+            onFilterSelect={handleFilterSelect}
+          />
         </div>
-      ) : (
-        <>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ borderBottom: "2px solid #ddd" }}>
-                <th style={{ padding: "12px", textAlign: "left" }}>Şirket Adı</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>Vergi Numarası</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>Sektör</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>Durum</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>Oluşturulma Tarihi</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>İşlemler</th>
-              </tr>
-            </thead>
-            <tbody>
-              {clients.map((client) => (
-                <tr key={client.id} style={{ borderBottom: "1px solid #eee" }}>
-                  <td style={{ padding: "12px" }}>
-                    <Link
-                      href={`/musteriler/${client.id}`}
-                      style={{ color: "#0066cc", textDecoration: "none" }}
-                    >
-                      {client.name}
-                    </Link>
-                  </td>
-                  <td style={{ padding: "12px" }}>{client.taxNumber}</td>
-                  <td style={{ padding: "12px" }}>{client.sector || "-"}</td>
-                  <td style={{ padding: "12px" }}>
-                    <span
-                      style={{
-                        padding: "4px 8px",
-                        borderRadius: "4px",
-                        backgroundColor: client.isActive ? "#d4edda" : "#f8d7da",
-                        color: client.isActive ? "#155724" : "#721c24",
-                        fontSize: "12px",
-                      }}
-                    >
-                      {client.isActive ? "Aktif" : "Pasif"}
-                    </span>
-                  </td>
-                  <td style={{ padding: "12px" }}>
-                    {new Date(client.createdAt).toLocaleDateString("tr-TR")}
-                  </td>
-                  <td style={{ padding: "12px" }}>
-                    {!isReadOnly && (
-                      <Link
-                        href={`/musteriler/${client.id}/edit`}
-                        style={{
-                          padding: "4px 8px",
-                          color: "#0066cc",
-                          textDecoration: "none",
-                          fontSize: "14px",
-                        }}
-                      >
-                        {commonI18n.buttons.edit}
-                      </Link>
-                    )}
-                    {isReadOnly && <span style={{ color: "#999" }}>-</span>}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      </Card>
 
-          {pagination.totalPages > 1 && (
-            <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginTop: "24px" }}>
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                style={{
-                  padding: "8px 16px",
-                  border: "1px solid #ddd",
-                  borderRadius: "4px",
-                  cursor: page === 1 ? "not-allowed" : "pointer",
-                  opacity: page === 1 ? 0.5 : 1,
-                }}
-              >
-                Önceki
-              </button>
-              <span style={{ padding: "8px 16px", display: "flex", alignItems: "center" }}>
-                Sayfa {pagination.page} / {pagination.totalPages}
-              </span>
-              <button
-                onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
-                disabled={page === pagination.totalPages}
-                style={{
-                  padding: "8px 16px",
-                  border: "1px solid #ddd",
-                  borderRadius: "4px",
-                  cursor: page === pagination.totalPages ? "not-allowed" : "pointer",
-                  opacity: page === pagination.totalPages ? 0.5 : 1,
-                }}
-              >
-                Sonraki
-              </button>
-            </div>
-          )}
-        </>
+      <Card>
+        {isLoading ? (
+          <div style={{ padding: spacing.lg }}>
+            <SkeletonTable rows={5} columns={6} />
+          </div>
+        ) : clients.length === 0 ? (
+          <EmptyState
+            icon="Users"
+            title={clientsI18n.list.emptyState}
+            description="İlk müşteri şirketinizi ekleyerek başlayın"
+            actionLabel={!isReadOnly ? clientsI18n.list.emptyStateAction : undefined}
+            onAction={!isReadOnly ? () => window.location.href = "/musteriler/new" : undefined}
+          />
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ borderBottom: `2px solid ${colors.border}`, backgroundColor: colors.gray[50] }}>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                    Şirket Adı
+                  </th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                    Vergi Numarası
+                  </th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                    Sektör
+                  </th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                    Durum
+                  </th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                    Oluşturulma Tarihi
+                  </th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                    İşlemler
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {clients.map((client) => (
+                  <TableRow key={client.id}>
+                    <TableCell>
+                      <Link
+                        href={`/musteriler/${client.id}`}
+                        style={{ color: colors.primary, textDecoration: "none", fontWeight: typography.fontWeight.medium }}
+                      >
+                        {client.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell>{client.taxNumber}</TableCell>
+                    <TableCell>{client.sector || "-"}</TableCell>
+                    <TableCell>
+                      <Badge variant={client.isActive ? "success" : "danger"} size="sm">
+                        {client.isActive ? "Aktif" : "Pasif"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(client.createdAt).toLocaleDateString("tr-TR")}
+                    </TableCell>
+                    <TableCell>
+                      {!isReadOnly ? (
+                        <Button asLink href={`/musteriler/${client.id}/edit`} variant="ghost" size="sm">
+                          {commonI18n.buttons.edit}
+                        </Button>
+                      ) : (
+                        <span style={{ color: colors.text.muted }}>-</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
+      {/* Pagination */}
+      {!isLoading && clients.length > 0 && pagination.totalPages > 1 && (
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: spacing.md, marginTop: spacing.lg }}>
+          <Button
+            variant="outline"
+            onClick={() => setPage(page - 1)}
+            disabled={page === 1}
+            size="sm"
+          >
+            Önceki
+          </Button>
+          <span style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm }}>
+            Sayfa {page} / {pagination.totalPages}
+          </span>
+          <Button
+            variant="outline"
+            onClick={() => setPage(page + 1)}
+            disabled={page === pagination.totalPages}
+            size="sm"
+          >
+            Sonraki
+          </Button>
+        </div>
       )}
     </div>
+    </PageTransition>
   );
 }
 

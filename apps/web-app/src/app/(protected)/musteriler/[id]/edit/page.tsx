@@ -7,6 +7,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getClientCompany, updateClientCompany } from "@repo/api-client";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import { Card } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { spacing, colors, borderRadius } from "@/styles/design-system";
 import Link from "next/link";
 
 const clientCompanySchema = z.object({
@@ -90,9 +94,14 @@ export default function EditClientPage() {
 
   if (isLoading) {
     return (
-      <div style={{ padding: "40px" }}>
-        <p>Yükleniyor...</p>
-      </div>
+      <PageTransition>
+        <Card>
+          <div style={{ padding: spacing.xxl }}>
+            <Skeleton height="40px" width="300px" style={{ marginBottom: spacing.md }} />
+            <Skeleton height="200px" width="100%" />
+          </div>
+        </Card>
+      </PageTransition>
     );
   }
 
@@ -106,7 +115,8 @@ export default function EditClientPage() {
   }
 
   return (
-    <div style={{ padding: "40px", maxWidth: "800px" }}>
+    <PageTransition>
+      <div style={{ padding: "40px", maxWidth: "800px" }}>
       <h1 style={{ marginBottom: "24px" }}>Müşteri Şirketi Düzenle</h1>
 
       <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -304,7 +314,7 @@ export default function EditClientPage() {
             href={`/musteriler/${clientId}`}
             style={{
               padding: "8px 16px",
-              backgroundColor: "#f5f5f5",
+              backgroundColor: colors.gray[100],
               border: "1px solid #ddd",
               borderRadius: "4px",
               textDecoration: "none",
@@ -318,7 +328,7 @@ export default function EditClientPage() {
             disabled={isSubmitting}
             style={{
               padding: "8px 16px",
-              backgroundColor: "#0066cc",
+              backgroundColor: colors.primary,
               color: "white",
               border: "none",
               borderRadius: "4px",
@@ -331,6 +341,7 @@ export default function EditClientPage() {
         </div>
       </form>
     </div>
+    </PageTransition>
   );
 }
 

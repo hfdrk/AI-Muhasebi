@@ -11,6 +11,14 @@ import { DocumentUploadModal } from "../../../../components/document-upload-moda
 import { useClientCompanyRiskScore } from "@/hooks/use-risk";
 import RiskExplanationPanel from "@/components/risk-explanation-panel";
 import RiskTrendChart from "@/components/risk-trend-chart";
+import { Modal } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { Card } from "@/components/ui/Card";
+import { Card } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { spacing } from "@/styles/design-system";
 
 export default function ClientDetailPage() {
   const params = useParams();
@@ -45,9 +53,14 @@ export default function ClientDetailPage() {
 
   if (clientLoading) {
     return (
-      <div style={{ padding: "40px" }}>
-        <p>Yükleniyor...</p>
-      </div>
+      <PageTransition>
+        <Card>
+          <div style={{ padding: spacing.xxl }}>
+            <Skeleton height="40px" width="300px" style={{ marginBottom: spacing.md }} />
+            <Skeleton height="200px" width="100%" />
+          </div>
+        </Card>
+      </PageTransition>
     );
   }
 
@@ -63,7 +76,8 @@ export default function ClientDetailPage() {
   const clientData = client.data;
 
   return (
-    <div style={{ padding: "40px" }}>
+    <PageTransition>
+      <div style={{ padding: "40px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
         <h1>{clientData.name}</h1>
         <div style={{ display: "flex", gap: "8px" }}>
@@ -71,7 +85,7 @@ export default function ClientDetailPage() {
             href={`/mesajlar/yeni?clientCompanyId=${clientId}`}
             style={{
               padding: "8px 16px",
-              backgroundColor: "#7C3AED",
+              backgroundColor: colors.primary,
               color: "white",
               textDecoration: "none",
               borderRadius: "4px",
@@ -86,7 +100,7 @@ export default function ClientDetailPage() {
             href={`/clients/${clientId}/edit`}
             style={{
               padding: "8px 16px",
-              backgroundColor: "#0066cc",
+              backgroundColor: colors.primary,
               color: "white",
               textDecoration: "none",
               borderRadius: "4px",
@@ -98,7 +112,7 @@ export default function ClientDetailPage() {
             href="/musteriler"
             style={{
               padding: "8px 16px",
-              backgroundColor: "#f5f5f5",
+              backgroundColor: colors.gray[100],
               color: "inherit",
               textDecoration: "none",
               borderRadius: "4px",
@@ -116,10 +130,10 @@ export default function ClientDetailPage() {
             style={{
               padding: "8px 16px",
               border: "none",
-              borderBottom: activeTab === "general" ? "2px solid #0066cc" : "2px solid transparent",
+              borderBottom: activeTab === "general" ? `2px solid ${colors.primary}` : "2px solid transparent",
               backgroundColor: "transparent",
               cursor: "pointer",
-              color: activeTab === "general" ? "#0066cc" : "inherit",
+              color: activeTab === "general" ? colors.primary : "inherit",
             }}
           >
             Genel Bilgiler
@@ -129,10 +143,10 @@ export default function ClientDetailPage() {
             style={{
               padding: "8px 16px",
               border: "none",
-              borderBottom: activeTab === "banks" ? "2px solid #0066cc" : "2px solid transparent",
+              borderBottom: activeTab === "banks" ? `2px solid ${colors.primary}` : "2px solid transparent",
               backgroundColor: "transparent",
               cursor: "pointer",
-              color: activeTab === "banks" ? "#0066cc" : "inherit",
+              color: activeTab === "banks" ? colors.primary : "inherit",
             }}
           >
             Banka Hesapları
@@ -142,10 +156,10 @@ export default function ClientDetailPage() {
             style={{
               padding: "8px 16px",
               border: "none",
-              borderBottom: activeTab === "invoices" ? "2px solid #0066cc" : "2px solid transparent",
+              borderBottom: activeTab === "invoices" ? `2px solid ${colors.primary}` : "2px solid transparent",
               backgroundColor: "transparent",
               cursor: "pointer",
-              color: activeTab === "invoices" ? "#0066cc" : "inherit",
+              color: activeTab === "invoices" ? colors.primary : "inherit",
             }}
           >
             Faturalar
@@ -155,10 +169,10 @@ export default function ClientDetailPage() {
             style={{
               padding: "8px 16px",
               border: "none",
-              borderBottom: activeTab === "transactions" ? "2px solid #0066cc" : "2px solid transparent",
+              borderBottom: activeTab === "transactions" ? `2px solid ${colors.primary}` : "2px solid transparent",
               backgroundColor: "transparent",
               cursor: "pointer",
-              color: activeTab === "transactions" ? "#0066cc" : "inherit",
+              color: activeTab === "transactions" ? colors.primary : "inherit",
             }}
           >
             Mali Hareketler
@@ -168,10 +182,10 @@ export default function ClientDetailPage() {
             style={{
               padding: "8px 16px",
               border: "none",
-              borderBottom: activeTab === "documents" ? "2px solid #0066cc" : "2px solid transparent",
+              borderBottom: activeTab === "documents" ? `2px solid ${colors.primary}` : "2px solid transparent",
               backgroundColor: "transparent",
               cursor: "pointer",
-              color: activeTab === "documents" ? "#0066cc" : "inherit",
+              color: activeTab === "documents" ? colors.primary : "inherit",
             }}
           >
             Belgeler
@@ -181,10 +195,10 @@ export default function ClientDetailPage() {
             style={{
               padding: "8px 16px",
               border: "none",
-              borderBottom: activeTab === "risk" ? "2px solid #0066cc" : "2px solid transparent",
+              borderBottom: activeTab === "risk" ? `2px solid ${colors.primary}` : "2px solid transparent",
               backgroundColor: "transparent",
               cursor: "pointer",
-              color: activeTab === "risk" ? "#0066cc" : "inherit",
+              color: activeTab === "risk" ? colors.primary : "inherit",
             }}
           >
             Risk Analizi
@@ -264,7 +278,7 @@ export default function ClientDetailPage() {
               }}
               style={{
                 padding: "8px 16px",
-                backgroundColor: "#0066cc",
+                backgroundColor: colors.primary,
                 color: "white",
                 border: "none",
                 borderRadius: "4px",
@@ -276,7 +290,12 @@ export default function ClientDetailPage() {
           </div>
 
           {banksLoading ? (
-            <p>Yükleniyor...</p>
+            <Card>
+              <div style={{ padding: spacing.lg }}>
+                <Skeleton height="40px" width="100%" style={{ marginBottom: spacing.sm }} />
+                <Skeleton height="40px" width="100%" />
+              </div>
+            </Card>
           ) : bankAccounts?.data.length === 0 ? (
             <p>Henüz banka hesabı bulunmamaktadır.</p>
           ) : (
@@ -304,40 +323,32 @@ export default function ClientDetailPage() {
                       {new Date(account.createdAt).toLocaleDateString("tr-TR")}
                     </td>
                     <td style={{ padding: "12px" }}>
-                      <button
+                      <Button
                         onClick={() => {
                           setEditingBankAccount(account.id);
                           setBankModalOpen(true);
                         }}
-                        style={{
-                          padding: "4px 8px",
-                          marginRight: "8px",
-                          color: "#0066cc",
-                          border: "1px solid #0066cc",
-                          borderRadius: "4px",
-                          cursor: "pointer",
-                          fontSize: "12px",
-                        }}
+                        variant="outline"
+                        size="sm"
+                        style={{ marginRight: spacing.xs }}
                       >
                         Düzenle
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (confirm("Bu banka hesabını silmek istediğinize emin misiniz?")) {
-                            deleteBankMutation.mutate(account.id);
-                          }
-                        }}
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => setDeleteBankModal({ open: true, accountId: account.id })}
                         style={{
                           padding: "4px 8px",
-                          color: "#dc3545",
-                          border: "1px solid #dc3545",
+                          color: colors.danger,
+                          border: `1px solid ${colors.danger}`,
                           borderRadius: "4px",
                           cursor: "pointer",
                           fontSize: "12px",
                         }}
                       >
                         Sil
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -391,9 +402,12 @@ export default function ClientDetailPage() {
         <div>
           <h2 style={{ marginBottom: "20px" }}>Müşteri Risk Analizi</h2>
           {riskLoading && (
-            <div style={{ padding: "16px" }}>
-              <p>Risk skoru yükleniyor...</p>
-            </div>
+            <Card>
+              <div style={{ padding: spacing.lg }}>
+                <Skeleton height="40px" width="100%" style={{ marginBottom: spacing.sm }} />
+                <Skeleton height="200px" width="100%" />
+              </div>
+            </Card>
           )}
 
           {!riskLoading && riskScoreData?.data && (
@@ -532,7 +546,36 @@ export default function ClientDetailPage() {
           )}
         </div>
       )}
+
+      <Modal
+        isOpen={deleteBankModal.open}
+        onClose={() => setDeleteBankModal({ open: false, accountId: null })}
+        title="Banka Hesabını Sil"
+        size="sm"
+      >
+        <div style={{ marginBottom: spacing.lg }}>
+          <p>Bu banka hesabını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.</p>
+        </div>
+        <div style={{ display: "flex", gap: spacing.md, justifyContent: "flex-end" }}>
+          <Button variant="outline" onClick={() => setDeleteBankModal({ open: false, accountId: null })}>
+            İptal
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              if (deleteBankModal.accountId) {
+                deleteBankMutation.mutate(deleteBankModal.accountId);
+                setDeleteBankModal({ open: false, accountId: null });
+              }
+            }}
+            loading={deleteBankMutation.isPending}
+          >
+            Sil
+          </Button>
+        </div>
+      </Modal>
     </div>
+    </PageTransition>
   );
 }
 

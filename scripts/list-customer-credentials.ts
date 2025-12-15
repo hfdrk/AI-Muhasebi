@@ -105,3 +105,4 @@ listCustomerCredentials()
   .finally(async () => {
     await prisma.$disconnect();
   });
+

@@ -2,6 +2,9 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { getPlatformMetrics } from "@repo/api-client";
+import { Card } from "../../../../components/ui/Card";
+import { Skeleton } from "../../../../components/ui/Skeleton";
+import { PageTransition } from "../../../../components/ui/PageTransition";
 import { colors, spacing, shadows } from "../../../../styles/design-system";
 
 export default function AdminOverviewPage() {
@@ -26,9 +29,14 @@ export default function AdminOverviewPage() {
 
   if (isLoading) {
     return (
-      <div style={{ textAlign: "center", padding: spacing.xxl }}>
-        <p>Yükleniyor...</p>
-      </div>
+      <PageTransition>
+        <Card>
+          <div style={{ padding: spacing.xxl }}>
+            <Skeleton height="40px" width="300px" style={{ marginBottom: spacing.md }} />
+            <Skeleton height="200px" width="100%" />
+          </div>
+        </Card>
+      </PageTransition>
     );
   }
 
@@ -43,7 +51,8 @@ export default function AdminOverviewPage() {
   }
 
   return (
-    <div>
+    <PageTransition>
+      <div>
       <h1 style={{ marginBottom: spacing.xl, fontSize: "28px", fontWeight: 600, color: colors.text.primary }}>
         Yönetim Konsolu - Genel Bakış
       </h1>
@@ -76,8 +85,10 @@ export default function AdminOverviewPage() {
         ))}
       </div>
     </div>
+    </PageTransition>
   );
 }
+
 
 
 

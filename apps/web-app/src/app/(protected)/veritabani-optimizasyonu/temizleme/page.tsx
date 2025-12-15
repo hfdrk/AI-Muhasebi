@@ -6,10 +6,14 @@ import { dbOptimizationClient } from "@repo/api-client";
 import Link from "next/link";
 import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
+import { Modal } from "../../../../components/ui/Modal";
+import { PageTransition } from "../../../../components/ui/PageTransition";
 import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
+import { toast } from "../../../../lib/toast";
 
 export default function VacuumPage() {
   const [tableNames, setTableNames] = useState<string>("");
+  const [vacuumModal, setVacuumModal] = useState(false);
   const queryClient = useQueryClient();
 
   // Vacuum tables mutation
@@ -22,23 +26,25 @@ export default function VacuumPage() {
       return dbOptimizationClient.vacuumTables(tables.length > 0 ? tables : undefined);
     },
     onSuccess: (data) => {
-      alert(
-        `Vakum işlemi tamamlandı!\nTemizlenen tablolar: ${data.data.vacuumed.length}\nHatalar: ${data.data.errors.length}`
-      );
+      const message = `Vakum işlemi tamamlandı! Temizlenen tablolar: ${data.data.vacuumed.length}, Hatalar: ${data.data.errors.length}`;
       if (data.data.errors.length > 0) {
+        toast.warning(message);
         console.error("Vacuum errors:", data.data.errors);
+      } else {
+        toast.success(message);
       }
       setTableNames("");
       queryClient.invalidateQueries({ queryKey: ["table-sizes"] });
     },
     onError: (error: Error) => {
-      alert(`Hata: ${error.message}`);
+      toast.error(`Hata: ${error.message}`);
     },
   });
 
   return (
-    <div
-      style={{
+    <PageTransition>
+      <div
+        style={{
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
@@ -180,15 +186,7 @@ export default function VacuumPage() {
           <div>
             <Button
               variant="primary"
-              onClick={() => {
-                if (
-                  confirm(
-                    "Vakum işlemini başlatmak istediğinize emin misiniz? Bu işlem biraz zaman alabilir."
-                  )
-                ) {
-                  vacuumMutation.mutate();
-                }
-              }}
+              onClick={() => setVacuumModal(true)}
               loading={vacuumMutation.isPending}
             >
               🧹 Vakum İşlemini Başlat
@@ -244,6 +242,7 @@ export default function VacuumPage() {
         }
       `}</style>
     </div>
+    </PageTransition>
   );
 }
 

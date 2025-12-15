@@ -6,7 +6,10 @@ import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getTenantSettings, updateTenantSettings, getCurrentUser } from "@repo/api-client";
 import { useState, useEffect } from "react";
-import { colors, spacing } from "@/styles/design-system";
+import { Card } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { colors, spacing, borderRadius } from "@/styles/design-system";
 import Link from "next/link";
 
 const tenantSettingsSchema = z.object({
@@ -122,7 +125,8 @@ export default function OfficeSettingsPage() {
   }
 
   return (
-    <div style={{ padding: spacing.xxl }}>
+    <PageTransition>
+      <div style={{ padding: spacing.xxl }}>
       <div style={{ marginBottom: spacing.xxl }}>
         <h1 style={{ fontSize: "28px", fontWeight: 600, marginBottom: spacing.sm, color: colors.text.primary }}>
           Ofis Ayarları
@@ -152,10 +156,10 @@ export default function OfficeSettingsPage() {
           style={{
             padding: spacing.md,
             marginBottom: spacing.lg,
-            backgroundColor: "#f8d7da",
-            color: "#721c24",
-            borderRadius: "4px",
-            border: "1px solid #f5c6cb",
+            backgroundColor: colors.dangerLight,
+            color: colors.dangerDark,
+            borderRadius: borderRadius.sm,
+            border: `1px solid ${colors.danger}`,
           }}
         >
           {errorMessage}
@@ -163,7 +167,12 @@ export default function OfficeSettingsPage() {
       )}
 
       {isLoading ? (
-        <div style={{ padding: spacing.xxl, textAlign: "center" }}>Yükleniyor...</div>
+        <Card>
+          <div style={{ padding: spacing.xxl }}>
+            <Skeleton height="40px" width="300px" style={{ marginBottom: spacing.md }} />
+            <Skeleton height="200px" width="100%" />
+          </div>
+        </Card>
       ) : (
         <form onSubmit={handleSubmit(onSubmit)}>
           <div
@@ -400,6 +409,7 @@ export default function OfficeSettingsPage() {
         </form>
       )}
     </div>
+    </PageTransition>
   );
 }
 

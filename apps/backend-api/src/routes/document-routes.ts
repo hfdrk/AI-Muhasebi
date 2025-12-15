@@ -268,12 +268,21 @@ router.get(
 
       console.log(`[Document Routes] /search-by-risk called with filters:`, filters);
 
+      if (!req.context || !req.context.tenantId) {
+        return res.status(401).json({
+          error: {
+            code: "AUTHENTICATION_ERROR",
+            message: "Yetkilendirme gerekli.",
+          },
+        });
+      }
+
       // Enforce customer isolation for ReadOnly users
-      const isolationFilter = await enforceCustomerIsolation(req.context!, {
+      const isolationFilter = await enforceCustomerIsolation(req.context, {
         clientCompanyId: filters.clientCompanyId || undefined,
       });
 
-      const result = await documentService.listDocuments(req.context!.tenantId!, {
+      const result = await documentService.listDocuments(req.context.tenantId, {
         clientCompanyId: isolationFilter.clientCompanyId || filters.clientCompanyId,
         hasRiskFlags: filters.hasRiskFlags,
         riskFlagCode: filters.riskFlagCode,
@@ -319,12 +328,21 @@ router.get(
 
       const parsedFilters = schema.parse(req.query);
 
+      if (!req.context || !req.context.tenantId) {
+        return res.status(401).json({
+          error: {
+            code: "AUTHENTICATION_ERROR",
+            message: "Yetkilendirme gerekli.",
+          },
+        });
+      }
+
       // Enforce customer isolation for ReadOnly users
-      const isolationFilter = await enforceCustomerIsolation(req.context!, {
+      const isolationFilter = await enforceCustomerIsolation(req.context, {
         clientCompanyId: parsedFilters.clientCompanyId || undefined,
       });
 
-      const result = await documentService.listDocuments(req.context!.tenantId!, {
+      const result = await documentService.listDocuments(req.context.tenantId, {
         clientCompanyId: isolationFilter.clientCompanyId || parsedFilters.clientCompanyId,
         type: parsedFilters.type,
         status: parsedFilters.status,

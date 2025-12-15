@@ -4,7 +4,11 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { getTenantsOverview, startImpersonation } from "@repo/api-client";
+import { Card } from "../../../../components/ui/Card";
+import { SkeletonTable } from "../../../../components/ui/Skeleton";
+import { PageTransition } from "../../../../components/ui/PageTransition";
 import { colors, spacing, shadows } from "../../../../styles/design-system";
+import { toast } from "../../../../lib/toast";
 
 export default function AdminTenantsPage() {
   const router = useRouter();
@@ -28,17 +32,26 @@ export default function AdminTenantsPage() {
       // Store impersonation token and reload
       if (response.data.impersonationToken) {
         localStorage.setItem("impersonationToken", response.data.impersonationToken);
+        toast.success("İmpersonasyon başlatıldı. Yönlendiriliyorsunuz...");
         // Redirect to dashboard with impersonation context
         window.location.href = "/dashboard";
       }
     } catch (error) {
       console.error("Impersonation failed:", error);
-      alert("İmpersonasyon başlatılamadı: " + (error instanceof Error ? error.message : "Bilinmeyen hata"));
+      toast.error("İmpersonasyon başlatılamadı: " + (error instanceof Error ? error.message : "Bilinmeyen hata"));
     }
   };
 
   if (isLoading) {
-    return <div style={{ textAlign: "center", padding: spacing.xxl }}>Yükleniyor...</div>;
+    return (
+      <PageTransition>
+        <Card>
+          <div style={{ padding: spacing.lg }}>
+            <SkeletonTable rows={5} columns={6} />
+          </div>
+        </Card>
+      </PageTransition>
+    );
   }
 
   if (error) {
@@ -53,7 +66,8 @@ export default function AdminTenantsPage() {
   const pagination = data?.meta.pagination;
 
   return (
-    <div>
+    <PageTransition>
+      <div>
       <h1 style={{ marginBottom: spacing.xl, fontSize: "28px", fontWeight: 600, color: colors.text.primary }}>
         Kiracılar
       </h1>
@@ -229,6 +243,7 @@ export default function AdminTenantsPage() {
         </div>
       )}
     </div>
+    </PageTransition>
   );
 }
 

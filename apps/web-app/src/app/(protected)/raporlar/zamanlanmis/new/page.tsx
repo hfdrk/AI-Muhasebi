@@ -13,6 +13,8 @@ import {
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { requiresClientCompany } from "@/lib/reports";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { PageTransition } from "@/components/ui/PageTransition";
 import { colors, spacing } from "@/styles/design-system";
 import Link from "next/link";
 
@@ -158,7 +160,8 @@ export default function NewScheduledReportPage() {
   const clients = clientsData?.data.data || [];
 
   return (
-    <div style={{ padding: spacing.xxl }}>
+    <PageTransition>
+      <div style={{ padding: spacing.xxl }}>
       <div style={{ marginBottom: spacing.xl }}>
         <Link
           href="/raporlar/zamanlanmis"
@@ -221,7 +224,7 @@ export default function NewScheduledReportPage() {
                 <Link
                   href="/ayarlar/abonelik"
                   style={{
-                    color: "#3b82f6",
+                    color: colors.primaryLight,
                     textDecoration: "underline",
                     fontSize: "14px",
                   }}
@@ -257,7 +260,7 @@ export default function NewScheduledReportPage() {
             </label>
             {isLoadingDefinitions ? (
               <div style={{ padding: spacing.sm, color: colors.text.secondary, fontSize: "14px" }}>
-                Rapor türleri yükleniyor...
+                <Skeleton height="20px" width="150px" />
               </div>
             ) : reportDefinitionsError ? (
               <div style={{ padding: spacing.sm, color: "#c33", fontSize: "14px" }}>
@@ -552,6 +555,7 @@ export default function NewScheduledReportPage() {
         </div>
       </form>
     </div>
+    </PageTransition>
   );
 }
 

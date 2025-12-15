@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { colors, spacing } from "@/styles/design-system";
+import { toast } from "@/lib/toast";
 
 export default function ClientSettingsPage() {
   const queryClient = useQueryClient();
@@ -25,10 +26,10 @@ export default function ClientSettingsPage() {
     mutationFn: (settings: any) => updateUserSettings(settings),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["currentUser"] });
-      alert("Ayarlar başarıyla güncellendi!");
+      toast.success("Ayarlar başarıyla güncellendi!");
     },
     onError: (error: Error) => {
-      alert(`Ayarlar güncellenirken hata oluştu: ${error.message}`);
+      toast.error(`Ayarlar güncellenirken hata oluştu: ${error.message}`);
     },
   });
 

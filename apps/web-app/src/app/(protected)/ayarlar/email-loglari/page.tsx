@@ -6,6 +6,8 @@ import { emailLogClient, type EmailLog, type EmailAnalytics } from "@repo/api-cl
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { SkeletonTable } from "@/components/ui/Skeleton";
+import { PageTransition } from "@/components/ui/PageTransition";
 import { colors, spacing } from "@/styles/design-system";
 
 function formatDate(date: Date | string | null): string {
@@ -83,8 +85,9 @@ export default function EmailLogsPage() {
   const analytics = analyticsData?.data;
 
   return (
-    <div>
-      <PageHeader title="E-posta Logları" />
+    <PageTransition>
+      <div>
+        <PageHeader title="E-posta Logları" />
 
       {/* Analytics Cards */}
       {analytics && (
@@ -188,7 +191,9 @@ export default function EmailLogsPage() {
       {/* Email Logs Table */}
       <Card>
         {logsLoading ? (
-          <div style={{ padding: spacing.xl, textAlign: "center", color: colors.text.secondary }}>Yükleniyor...</div>
+          <div style={{ padding: spacing.lg }}>
+            <SkeletonTable rows={5} columns={6} />
+          </div>
         ) : logsError ? (
           <div style={{ padding: spacing.xl, textAlign: "center", color: colors.error }}>
             <div style={{ fontSize: "48px", marginBottom: spacing.md }}>⚠️</div>
@@ -258,6 +263,8 @@ export default function EmailLogsPage() {
         )}
       </Card>
     </div>
+    </PageTransition>
   );
 }
+
 
