@@ -17,9 +17,9 @@ router.use(authMiddleware);
 router.use(tenantMiddleware);
 
 const inviteUserSchema = z.object({
-  email: z.string().email("Geçerli bir e-posta adresi giriniz."),
+  email: z.string().email("Geçerli bir e-posta adresi giriniz.").max(255, "E-posta adresi en fazla 255 karakter olabilir."),
   role: z.enum(["TenantOwner", "Accountant", "Staff", "ReadOnly"]),
-  name: z.string().optional(),
+  name: z.string().max(255, "İsim en fazla 255 karakter olabilir.").optional(),
 });
 
 const changeRoleSchema = z.object({
@@ -31,7 +31,7 @@ const updateStatusSchema = z.object({
 });
 
 const acceptInvitationSchema = z.object({
-  password: z.string().min(1, "Şifre gerekli.").optional(),
+  password: z.string().min(1, "Şifre gerekli.").max(255, "Şifre en fazla 255 karakter olabilir.").optional(),
 });
 
 const updateUserSchema = z.object({
@@ -208,4 +208,5 @@ router.patch(
 );
 
 export default router;
+
 

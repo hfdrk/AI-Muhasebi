@@ -44,6 +44,18 @@ export default function DataDeletionRequestsPage() {
 
   const users = usersData?.data || [];
 
+  // Fetch deletion requests history
+  const { data: deletionRequestsData, isLoading: deletionRequestsLoading } = useQuery({
+    queryKey: ["kvkk-data-deletion-requests"],
+    queryFn: () => kvkkClient.listDataDeletionRequests(),
+    enabled: !!tenantId,
+  });
+
+  const deletionRequests = deletionRequestsData?.data || [];
+
+  // Create user map for display
+  const userMap = new Map(users.map((user: any) => [user.id, user]));
+
   // Fetch data retention for selected user
   const { data: retentionData } = useQuery({
     queryKey: ["kvkk-retention", selectedUserId],
@@ -64,8 +76,8 @@ export default function DataDeletionRequestsPage() {
     },
     onSuccess: (data) => {
       setConfirmModal(true);
-      console.log("Data Deletion Request:", data);
       queryClient.invalidateQueries({ queryKey: ["kvkk-data-deletion"] });
+      queryClient.invalidateQueries({ queryKey: ["kvkk-data-deletion-requests"] });
     },
     onError: (error: Error) => {
       toast.error(`Hata: ${error.message}`);
@@ -291,13 +303,125 @@ export default function DataDeletionRequestsPage() {
         </div>
       </Card>
 
-      {/* Request History Placeholder */}
-      <Card variant="elevated" title="Talep Geçmişi">
-        <div style={{ padding: spacing.lg, textAlign: "center" }}>
-          <p style={{ color: colors.text.secondary, margin: 0 }}>
-            Talep geçmişi özelliği yakında eklenecektir.
-          </p>
-        </div>
+      {/* Request History */}
+      <Card variant="elevated" style={{ marginBottom: spacing.lg }}>
+        <h2
+          style={{
+            margin: `0 0 ${spacing.md} 0`,
+            fontSize: typography.fontSize.xl,
+            fontWeight: typography.fontWeight.semibold,
+            color: colors.text.primary,
+          }}
+        >
+          Talep Geçmişi
+        </h2>
+        {deletionRequestsLoading ? (
+          <div style={{ padding: spacing.lg, textAlign: "center" }}>
+            <p style={{ color: colors.text.secondary, margin: 0 }}>Yükleniyor...</p>
+          </div>
+        ) : deletionRequests.length === 0 ? (
+          <div style={{ padding: spacing.lg, textAlign: "center" }}>
+            <p style={{ color: colors.text.secondary, margin: 0 }}>
+              Henüz veri silme talebi bulunmuyor.
+            </p>
+          </div>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ backgroundColor: colors.gray[100], borderBottom: `1px solid ${colors.border}` }}>
+                  <th style={{ padding: spacing.sm, textAlign: "left", fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
+                    Kullanıcı
+                  </th>
+                  <th style={{ padding: spacing.sm, textAlign: "left", fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
+                    Durum
+                  </th>
+                  <th style={{ padding: spacing.sm, textAlign: "left", fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
+                    Talep Tarihi
+                  </th>
+                  <th style={{ padding: spacing.sm, textAlign: "left", fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
+                    Tamamlanma Tarihi
+                  </th>
+                  <th style={{ padding: spacing.sm, textAlign: "left", fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
+                    Notlar
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {deletionRequests.map((request: any) => {
+                  const user = userMap.get(request.userId);
+                  const statusColor = 
+                    request.status === "completed" ? colors.success
+                    : request.status === "rejected" ? colors.danger
+                    : request.status === "processing" ? colors.warning
+                    : colors.info;
+                  
+                  return (
+                    <tr key={request.id || request.requestId} style={{ borderBottom: `1px solid ${colors.border}` }}>
+                      <td style={{ padding: spacing.sm }}>
+                        {user ? (
+                          <div>
+                            <div style={{ fontWeight: typography.fontWeight.medium }}>
+                              {user.name || user.fullName}
+                            </div>
+                            <div style={{ fontSize: typography.fontSize.xs, color: colors.text.secondary }}>
+                              {user.email}
+                            </div>
+                          </div>
+                        ) : (
+                          <span style={{ color: colors.text.secondary }}>Bilinmeyen Kullanıcı</span>
+                        )}
+                      </td>
+                      <td style={{ padding: spacing.sm }}>
+                        <span
+                          style={{
+                            padding: "4px 8px",
+                            borderRadius: borderRadius.sm,
+                            fontSize: typography.fontSize.xs,
+                            backgroundColor: `${statusColor}20`,
+                            color: statusColor,
+                            fontWeight: typography.fontWeight.medium,
+                          }}
+                        >
+                          {STATUS_LABELS[request.status] || request.status}
+                        </span>
+                      </td>
+                      <td style={{ padding: spacing.sm, color: colors.text.secondary }}>
+                        {new Date(request.requestedAt).toLocaleDateString("tr-TR", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </td>
+                      <td style={{ padding: spacing.sm, color: colors.text.secondary }}>
+                        {request.completedAt
+                          ? new Date(request.completedAt).toLocaleDateString("tr-TR", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : "-"}
+                      </td>
+                      <td style={{ padding: spacing.sm, color: colors.text.secondary, maxWidth: "300px" }}>
+                        {request.rejectionReason ? (
+                          <div style={{ fontSize: typography.fontSize.xs }}>
+                            <strong>Red Nedeni:</strong> {request.rejectionReason}
+                          </div>
+                        ) : (
+                          "-"
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Card>
 
       <style jsx global>{`

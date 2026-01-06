@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { messagingClient, listClientCompanies, getCurrentUser } from "@repo/api-client";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
@@ -11,7 +12,7 @@ import { colors, spacing } from "@/styles/design-system";
 import Link from "next/link";
 import { toast } from "@/lib/toast";
 
-export default function NewMessagePage() {
+function NewMessagePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const clientCompanyIdFromQuery = searchParams.get("clientCompanyId");
@@ -159,6 +160,14 @@ export default function NewMessagePage() {
         </form>
       </Card>
     </div>
+  );
+}
+
+export default function NewMessagePage() {
+  return (
+    <Suspense fallback={<div>Yükleniyor...</div>}>
+      <NewMessagePageContent />
+    </Suspense>
   );
 }
 

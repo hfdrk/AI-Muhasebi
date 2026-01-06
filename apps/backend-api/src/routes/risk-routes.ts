@@ -12,6 +12,7 @@ import { mlFraudDetectorService } from "../services/ml-fraud-detector-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
 import { requirePermission } from "../middleware/rbac-middleware";
+import { logger } from "@repo/shared-utils";
 import type { AuthenticatedRequest } from "../types/request-context";
 import type { Response, NextFunction } from "express";
 
@@ -30,7 +31,7 @@ router.get(
       const result = await riskService.getDocumentRiskScore(req.context!.tenantId!, req.params.id);
       res.json({ data: result });
     } catch (error: any) {
-      console.error("Error getting document risk score:", error);
+      logger.error("Error getting document risk score:", { error });
       const statusCode = error.statusCode || 500;
       const message = error.message || "Belge risk skoru alınırken bir hata oluştu.";
       res.status(statusCode).json({ error: { message } });
@@ -320,4 +321,5 @@ router.post(
 );
 
 export default router;
+
 

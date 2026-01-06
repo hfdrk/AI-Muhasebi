@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { AuthorizationError } from "@repo/shared-utils";
+import { AuthorizationError, logger } from "@repo/shared-utils";
 import { hasPermission, hasAnyPermission, hasAllPermissions } from "@repo/core-domain";
 import type { AuthenticatedRequest } from "../types/request-context";
 import type { TenantRole, Permission } from "@repo/core-domain";
@@ -42,7 +42,7 @@ export function requirePermission(...permissions: Permission[]) {
       if (error instanceof AuthorizationError) {
         throw error;
       }
-      console.error("Error checking permissions:", error);
+      logger.error("Error checking permissions:", { error });
       throw new AuthorizationError("Yetki kontrolü sırasında hata oluştu.");
     }
   };
@@ -70,7 +70,7 @@ export function requireAnyPermission(...permissions: Permission[]) {
       if (error instanceof AuthorizationError) {
         throw error;
       }
-      console.error("Error checking permissions:", error);
+      logger.error("Error checking permissions:", { error });
       throw new AuthorizationError("Yetki kontrolü sırasında hata oluştu.");
     }
   };

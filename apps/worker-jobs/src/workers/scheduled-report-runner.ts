@@ -219,6 +219,28 @@ export class ScheduledReportRunner {
   /**
    * Process a single scheduled report
    */
+  async runScheduledReport(reportId: string): Promise<void> {
+    const report = await prisma.scheduledReport.findUnique({
+      where: { id: reportId },
+      include: {
+        clientCompany: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!report) {
+      throw new Error(`Scheduled report ${reportId} not found`);
+    }
+
+    const reportingService = await getReportingService();
+    const exportService = await getExportService();
+    await this.processScheduledReport(report, reportingService, exportService);
+  }
+
   private async processScheduledReport(
     report: any,
     reportingService: any,

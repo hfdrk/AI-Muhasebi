@@ -49,7 +49,10 @@ async function apiRequest<T>(
       }
     }
     const error = await response.json().catch(() => ({ error: { message: "Bir hata oluştu." } }));
-    throw new Error(error.error?.message || "Şu anda servise ulaşılamıyor. Lütfen daha sonra tekrar deneyin.");
+    // Ensure error message is a string
+    const errorMessage = error?.error?.message;
+    const message = typeof errorMessage === "string" ? errorMessage : "Şu anda servise ulaşılamıyor. Lütfen daha sonra tekrar deneyin.";
+    throw new Error(message);
   }
 
   // Check if response should be returned as blob

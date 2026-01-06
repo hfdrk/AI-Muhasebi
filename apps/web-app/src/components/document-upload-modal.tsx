@@ -7,13 +7,14 @@ import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { uploadDocument, uploadZipFile, listInvoices, listTransactions, listClientCompanies } from "@repo/api-client";
 
+// Use any for File type to avoid SSR issues - validation happens client-side
 const uploadSchema = z.object({
   clientCompanyId: z.string().min(1, "Müşteri seçimi zorunludur."),
   type: z.enum(["INVOICE", "BANK_STATEMENT", "RECEIPT", "OTHER"]),
   relatedInvoiceId: z.string().optional().nullable(),
   relatedTransactionId: z.string().optional().nullable(),
-  file: z.instanceof(File).refine((file) => file.size > 0, "Lütfen bir dosya seçin."),
-  zipFile: z.instanceof(File).optional(),
+  file: z.any().refine((file) => file && file.size > 0, "Lütfen bir dosya seçin."),
+  zipFile: z.any().optional(),
 });
 
 const zipUploadSchema = z.object({
@@ -21,7 +22,7 @@ const zipUploadSchema = z.object({
   type: z.enum(["INVOICE", "BANK_STATEMENT", "RECEIPT", "OTHER"]).optional(),
   relatedInvoiceId: z.string().optional().nullable(),
   relatedTransactionId: z.string().optional().nullable(),
-  zipFile: z.instanceof(File).refine((file) => file.size > 0, "Lütfen bir ZIP dosyası seçin."),
+  zipFile: z.any().refine((file) => file && file.size > 0, "Lütfen bir ZIP dosyası seçin."),
 });
 
 type UploadForm = z.infer<typeof uploadSchema>;

@@ -1,4 +1,5 @@
 export type AuditAction =
+  | "LOGIN_BLOCKED"
   | "LOGIN_SUCCESS"
   | "LOGIN_FAILED"
   | "LOGOUT"
@@ -24,7 +25,9 @@ export type AuditAction =
   | "ADMIN_USER_VIEWED"
   | "AI_CHAT"
   | "AI_SUMMARY_DAILY_RISK"
-  | "AI_SUMMARY_PORTFOLIO";
+  | "AI_SUMMARY_PORTFOLIO"
+  | "DOCUMENT_BATCH_UPLOADED"
+  | "DOCUMENT_BATCH_ANALYZED";
 
 export interface AuditLog {
   id: string;

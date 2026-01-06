@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import { NotFoundError } from "@repo/core-domain";
+import { NotFoundError } from "@repo/shared-utils";
 import { logger } from "@repo/shared-utils";
 
 /**
@@ -90,9 +90,9 @@ export class KVKKComplianceService {
     };
 
     if (existingIndex >= 0) {
-      kvkkConsents[existingIndex] = consent;
+      kvkkConsents[existingIndex] = consent as unknown as Record<string, unknown>;
     } else {
-      kvkkConsents.push(consent);
+      kvkkConsents.push(consent as unknown as Record<string, unknown>);
     }
 
     await prisma.user.update({
@@ -227,6 +227,21 @@ export class KVKKComplianceService {
       data: userData,
     };
 
+    // Store in user metadata
+    const userMetadata = (user.metadata as Record<string, unknown>) || {};
+    const kvkkRequests = (userMetadata.kvkkDataRequests as Array<Record<string, unknown>>) || [];
+    kvkkRequests.push(request as unknown as Record<string, unknown>);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        metadata: {
+          ...userMetadata,
+          kvkkDataRequests: kvkkRequests,
+        },
+      },
+    });
+
     logger.info(`KVKK data access request completed for user ${userId}`);
 
     return request;
@@ -259,13 +274,13 @@ export class KVKKComplianceService {
       where: {
         userId,
         tenantId,
-        isActive: true,
+        status: "active",
       },
     });
 
     if (activeMemberships.length > 0) {
       // Cannot delete if user has active memberships
-      return {
+      const request: KVKKDataRequest = {
         id: `request-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         userId,
         requestType: "deletion",
@@ -274,6 +289,23 @@ export class KVKKComplianceService {
         completedAt: new Date(),
         rejectionReason: "Kullanıcının aktif üyelikleri var. Önce üyelikler sonlandırılmalıdır.",
       };
+
+      // Store in user metadata even if rejected
+      const userMetadata = (user.metadata as Record<string, unknown>) || {};
+      const kvkkRequests = (userMetadata.kvkkDataRequests as Array<Record<string, unknown>>) || [];
+      kvkkRequests.push(request as unknown as Record<string, unknown>);
+
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          metadata: {
+            ...userMetadata,
+            kvkkDataRequests: kvkkRequests,
+          },
+        },
+      });
+
+      return request;
     }
 
     // Anonymize user data (soft delete)
@@ -299,6 +331,21 @@ export class KVKKComplianceService {
       requestedAt: new Date(),
       completedAt: new Date(),
     };
+
+    // Store in user metadata
+    const userMetadata = (user.metadata as Record<string, unknown>) || {};
+    const kvkkRequests = (userMetadata.kvkkDataRequests as Array<Record<string, unknown>>) || [];
+    kvkkRequests.push(request as unknown as Record<string, unknown>);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        metadata: {
+          ...userMetadata,
+          kvkkDataRequests: kvkkRequests,
+        },
+      },
+    });
 
     logger.info(`KVKK data deletion request completed for user ${userId}`);
 
@@ -333,7 +380,7 @@ export class KVKKComplianceService {
     if (tenant) {
       const tenantMetadata = (tenant.metadata as Record<string, unknown>) || {};
       const breaches = (tenantMetadata.kvkkBreaches as Array<Record<string, unknown>>) || [];
-      breaches.push(breach);
+      breaches.push(breach as unknown as Record<string, unknown>);
 
       await prisma.tenant.update({
         where: { id: tenantId },
@@ -362,6 +409,9 @@ export class KVKKComplianceService {
     tenantId: string,
     userId: string
   ): Promise<{
+    userId: string;
+    retentionPeriod: number;
+    expiresAt: string;
     compliant: boolean;
     issues: Array<{
       type: string;
@@ -390,8 +440,9 @@ export class KVKKComplianceService {
       actionRequired: string;
     }> = [];
 
-    // Check if user data exceeds retention period (typically 10 years for accounting data)
+    // Calculate retention period (10 years for accounting data)
     const retentionPeriodYears = 10;
+    const retentionPeriodDays = retentionPeriodYears * 365;
     const retentionDate = new Date();
     retentionDate.setFullYear(retentionDate.getFullYear() - retentionPeriodYears);
 
@@ -422,7 +473,13 @@ export class KVKKComplianceService {
       }
     }
 
+    const expiresAt = new Date(user.createdAt);
+    expiresAt.setFullYear(expiresAt.getFullYear() + retentionPeriodYears);
+
     return {
+      userId,
+      retentionPeriod: retentionPeriodDays,
+      expiresAt: expiresAt.toISOString(),
       compliant: issues.length === 0,
       issues,
     };
@@ -465,6 +522,132 @@ export class KVKKComplianceService {
       resourceId: log.resourceId,
       ipAddress: log.metadata?.ipAddress as string | undefined,
     }));
+  }
+
+  /**
+   * List data access requests for a tenant
+   */
+  async listDataAccessRequests(tenantId: string): Promise<KVKKDataRequest[]> {
+    // Get all users in tenant
+    const users = await prisma.user.findMany({
+      where: {
+        memberships: {
+          some: {
+            tenantId,
+          },
+        },
+      },
+    });
+
+    const requests: KVKKDataRequest[] = [];
+
+    for (const user of users) {
+      const userMetadata = (user.metadata as Record<string, unknown>) || {};
+      const kvkkRequests = (userMetadata.kvkkDataRequests as Array<Record<string, unknown>>) || [];
+      
+      for (const req of kvkkRequests) {
+        if (req.requestType === "access" && req.id) {
+          try {
+            requests.push({
+              id: req.id as string,
+              userId: user.id,
+              requestType: "access",
+              status: (req.status as KVKKDataRequest["status"]) || "pending",
+              requestedAt: req.requestedAt ? new Date(req.requestedAt as string) : new Date(),
+              completedAt: req.completedAt ? new Date(req.completedAt as string) : null,
+              data: req.data as Record<string, unknown> | undefined,
+              rejectionReason: req.rejectionReason as string | undefined,
+            });
+          } catch (error) {
+            logger.warn(`Error parsing data access request for user ${user.id}:`, error);
+          }
+        }
+      }
+    }
+
+    return requests.sort((a, b) => b.requestedAt.getTime() - a.requestedAt.getTime());
+  }
+
+  /**
+   * List data deletion requests for a tenant
+   */
+  async listDataDeletionRequests(tenantId: string): Promise<KVKKDataRequest[]> {
+    // Get all users in tenant
+    const users = await prisma.user.findMany({
+      where: {
+        memberships: {
+          some: {
+            tenantId,
+          },
+        },
+      },
+    });
+
+    const requests: KVKKDataRequest[] = [];
+
+    for (const user of users) {
+      const userMetadata = (user.metadata as Record<string, unknown>) || {};
+      const kvkkRequests = (userMetadata.kvkkDataRequests as Array<Record<string, unknown>>) || [];
+      
+      for (const req of kvkkRequests) {
+        if (req.requestType === "deletion" && req.id) {
+          try {
+            requests.push({
+              id: req.id as string,
+              userId: user.id,
+              requestType: "deletion",
+              status: (req.status as KVKKDataRequest["status"]) || "pending",
+              requestedAt: req.requestedAt ? new Date(req.requestedAt as string) : new Date(),
+              completedAt: req.completedAt ? new Date(req.completedAt as string) : null,
+              data: req.data as Record<string, unknown> | undefined,
+              rejectionReason: req.rejectionReason as string | undefined,
+            });
+          } catch (error) {
+            logger.warn(`Error parsing data deletion request for user ${user.id}:`, error);
+          }
+        }
+      }
+    }
+
+    return requests.sort((a, b) => b.requestedAt.getTime() - a.requestedAt.getTime());
+  }
+
+  /**
+   * List breach records for a tenant
+   */
+  async listBreaches(tenantId: string): Promise<KVKKBreachRecord[]> {
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: tenantId },
+    });
+
+    if (!tenant) {
+      return [];
+    }
+
+    const tenantMetadata = (tenant.metadata as Record<string, unknown>) || {};
+    const breaches = (tenantMetadata.kvkkBreaches as Array<Record<string, unknown>>) || [];
+
+    return breaches
+      .filter((b) => b.id && b.description)
+      .map((b) => {
+        try {
+          return {
+            id: b.id as string,
+            tenantId,
+            description: b.description as string,
+            affectedUsers: (b.affectedUsers as number) || 0,
+            detectedAt: b.detectedAt ? new Date(b.detectedAt as string) : new Date(),
+            reportedAt: b.reportedAt ? new Date(b.reportedAt as string) : null,
+            severity: (b.severity as KVKKBreachRecord["severity"]) || "medium",
+            status: (b.status as KVKKBreachRecord["status"]) || "detected",
+          };
+        } catch (error) {
+          logger.warn(`Error parsing breach record ${b.id}:`, error);
+          return null;
+        }
+      })
+      .filter((b): b is KVKKBreachRecord => b !== null)
+      .sort((a, b) => b.detectedAt.getTime() - a.detectedAt.getTime());
   }
 }
 

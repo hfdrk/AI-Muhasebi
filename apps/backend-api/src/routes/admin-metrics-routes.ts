@@ -3,7 +3,7 @@ import { authMiddleware } from "../middleware/auth-middleware";
 import { requirePlatformAdmin } from "../middleware/platform-admin-middleware";
 import { adminService } from "../services/admin-service";
 
-const router = Router();
+const router: Router = Router();
 
 // All routes require authentication and platform admin role
 router.use(authMiddleware);
@@ -23,6 +23,8 @@ router.get("/overview", async (req, res, next) => {
 });
 
 export default router;
+
+
 
 
 

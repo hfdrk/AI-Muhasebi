@@ -17,11 +17,11 @@ router.use(authMiddleware);
 router.use(tenantMiddleware);
 
 const updateTenantSchema = z.object({
-  name: z.string().min(1, "Ofis adı gerekli.").optional(),
-  taxNumber: z.string().optional().nullable(),
-  phone: z.string().optional().nullable(),
-  email: z.string().email("Geçerli bir e-posta adresi giriniz.").optional().nullable().or(z.literal("")),
-  address: z.string().optional().nullable(),
+  name: z.string().min(1, "Ofis adı gerekli.").max(255, "Ofis adı en fazla 255 karakter olabilir.").optional(),
+  taxNumber: z.string().max(50, "Vergi numarası en fazla 50 karakter olabilir.").optional().nullable(),
+  phone: z.string().max(50, "Telefon numarası en fazla 50 karakter olabilir.").optional().nullable(),
+  email: z.string().email("Geçerli bir e-posta adresi giriniz.").max(255, "E-posta adresi en fazla 255 karakter olabilir.").optional().nullable().or(z.literal("")),
+  address: z.string().max(1000, "Adres en fazla 1000 karakter olabilir.").optional().nullable(),
   settings: z.record(z.string(), z.unknown()).optional().nullable(),
 });
 
@@ -62,4 +62,5 @@ router.patch(
 );
 
 export default router;
+
 

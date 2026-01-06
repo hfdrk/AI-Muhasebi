@@ -15,7 +15,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
             refetchOnWindowFocus: false,
             retry: (failureCount, error: any) => {
               // Don't retry on 401 (authentication errors)
-              if (error?.message?.includes("401") || error?.message?.includes("Yetkilendirme")) {
+              const errorMessage = typeof error?.message === "string" ? error.message : String(error?.message || "");
+              if (errorMessage.includes("401") || errorMessage.includes("Yetkilendirme")) {
                 return false;
               }
               // Retry up to 2 times for other errors
@@ -23,7 +24,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
             },
             onError: (error: any) => {
               // Suppress console errors for 401 (expected when not authenticated)
-              if (error?.message?.includes("401") || error?.message?.includes("Yetkilendirme")) {
+              const errorMessage = typeof error?.message === "string" ? error.message : String(error?.message || "");
+              if (errorMessage.includes("401") || errorMessage.includes("Yetkilendirme")) {
                 return; // Don't log expected auth errors
               }
               // Log other errors
@@ -33,7 +35,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
           mutations: {
             onError: (error: any) => {
               // Suppress console errors for 401
-              if (error?.message?.includes("401") || error?.message?.includes("Yetkilendirme")) {
+              const errorMessage = typeof error?.message === "string" ? error.message : String(error?.message || "");
+              if (errorMessage.includes("401") || errorMessage.includes("Yetkilendirme")) {
                 return;
               }
               console.error("Mutation error:", error);

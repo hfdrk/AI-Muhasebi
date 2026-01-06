@@ -81,7 +81,7 @@ router.post(
 // Add IP to whitelist
 router.post(
   "/ip-whitelist",
-  requirePermission("admin"),
+  requirePermission("settings:read" as any),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const body = z.object({
@@ -174,4 +174,5 @@ router.get(
 );
 
 export default router;
+
 

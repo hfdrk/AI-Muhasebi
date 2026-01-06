@@ -17,15 +17,15 @@ router.use(authMiddleware);
 router.use(tenantMiddleware);
 
 const createClientCompanySchema = z.object({
-  name: z.string().min(1, "Şirket adı gerekli."),
+  name: z.string().min(1, "Şirket adı gerekli.").max(255, "Şirket adı en fazla 255 karakter olabilir."),
   legalType: z.enum(["Şahıs", "Limited", "Anonim", "Kollektif", "Komandit"]),
-  taxNumber: z.string().min(1, "Vergi numarası gerekli."),
-  tradeRegistryNumber: z.string().optional().nullable(),
-  sector: z.string().optional().nullable(),
-  contactPersonName: z.string().optional().nullable(),
-  contactPhone: z.string().optional().nullable(),
-  contactEmail: z.string().email("Geçerli bir e-posta adresi giriniz.").optional().nullable().or(z.literal("")),
-  address: z.string().optional().nullable(),
+  taxNumber: z.string().min(1, "Vergi numarası gerekli.").max(50, "Vergi numarası en fazla 50 karakter olabilir."),
+  tradeRegistryNumber: z.string().max(100, "Ticaret sicil numarası en fazla 100 karakter olabilir.").optional().nullable(),
+  sector: z.string().max(255, "Sektör en fazla 255 karakter olabilir.").optional().nullable(),
+  contactPersonName: z.string().max(255, "İletişim kişisi adı en fazla 255 karakter olabilir.").optional().nullable(),
+  contactPhone: z.string().max(50, "Telefon numarası en fazla 50 karakter olabilir.").optional().nullable(),
+  contactEmail: z.string().email("Geçerli bir e-posta adresi giriniz.").max(255, "E-posta adresi en fazla 255 karakter olabilir.").optional().nullable().or(z.literal("")),
+  address: z.string().max(1000, "Adres en fazla 1000 karakter olabilir.").optional().nullable(),
   startDate: z.string().datetime().optional().nullable(),
   isActive: z.boolean().optional(),
 });
@@ -33,10 +33,10 @@ const createClientCompanySchema = z.object({
 const updateClientCompanySchema = createClientCompanySchema.partial().omit({ taxNumber: true });
 
 const createBankAccountSchema = z.object({
-  bankName: z.string().min(1, "Banka adı gerekli."),
-  iban: z.string().min(1, "IBAN gerekli."),
-  accountNumber: z.string().optional().nullable(),
-  currency: z.string().default("TRY"),
+  bankName: z.string().min(1, "Banka adı gerekli.").max(255, "Banka adı en fazla 255 karakter olabilir."),
+  iban: z.string().min(1, "IBAN gerekli.").max(50, "IBAN en fazla 50 karakter olabilir."),
+  accountNumber: z.string().max(100, "Hesap numarası en fazla 100 karakter olabilir.").optional().nullable(),
+  currency: z.string().max(10, "Para birimi en fazla 10 karakter olabilir.").default("TRY"),
   isPrimary: z.boolean().optional(),
 });
 
@@ -174,7 +174,7 @@ router.post(
         {
           ...body,
           startDate: body.startDate ? new Date(body.startDate) : null,
-        }
+        } as any
       );
 
       res.status(201).json({ data: client });
@@ -248,7 +248,7 @@ router.post(
       const account = await bankAccountService.createBankAccount(
         req.context!.tenantId!,
         req.params.id,
-        body
+        body as any
       );
 
       res.status(201).json({ data: account });
@@ -299,4 +299,5 @@ router.delete(
 );
 
 export default router;
+
 

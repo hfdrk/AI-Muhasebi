@@ -1,6 +1,6 @@
 import { Readable } from "stream";
 import { prisma } from "../lib/prisma";
-import { ValidationError } from "@repo/shared-utils";
+import { ValidationError, logger } from "@repo/shared-utils";
 import { getStorage, getStorageConfig } from "@repo/config";
 import { sanitizeFileName } from "@repo/shared-utils";
 import { zipExtractionService, type ExtractedFile } from "./zip-extraction-service";
@@ -95,7 +95,7 @@ export class BatchUploadService {
           fileName: file.name,
           error: error.message || "Bilinmeyen hata",
         });
-        console.error(`Error uploading file ${file.name} from batch:`, error);
+        logger.error(`Error uploading file ${file.name} from batch:`, { error });
       }
     }
 

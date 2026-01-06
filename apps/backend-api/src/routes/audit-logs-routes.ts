@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
+import { logger } from "@repo/shared-utils";
 import { prisma } from "../lib/prisma";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
@@ -143,7 +144,7 @@ router.get(
         },
       });
     } catch (error: any) {
-      console.error("Error listing audit logs:", error);
+      logger.error("Error listing audit logs:", { error });
       if (error instanceof z.ZodError) {
         const statusCode = 400;
         const message = "Geçersiz sorgu parametreleri.";
@@ -158,5 +159,6 @@ router.get(
 );
 
 export default router;
+
 
 

@@ -5,7 +5,7 @@ import { adminService } from "../services/admin-service";
 import { auditService } from "../services/audit-service";
 import type { AuthenticatedRequest } from "../types/request-context";
 
-const router = Router();
+const router: Router = Router();
 
 // All routes require authentication and platform admin role
 router.use(authMiddleware);
@@ -52,6 +52,8 @@ router.get("/", async (req: AuthenticatedRequest, res, next) => {
 });
 
 export default router;
+
+
 
 
 

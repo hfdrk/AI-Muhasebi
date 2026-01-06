@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import { NotFoundError } from "@repo/core-domain";
+import { NotFoundError } from "@repo/shared-utils";
 import { logger } from "@repo/shared-utils";
 import { riskAlertService } from "./risk-alert-service";
 
@@ -247,43 +247,87 @@ export class MLFraudDetectorService {
   }
 
   /**
-   * Isolation Forest algorithm for anomaly detection
-   * Simplified implementation - in production, use a proper ML library
+   * Enhanced anomaly detection using multiple statistical methods
+   * Combines Z-score, IQR (Interquartile Range), and Mahalanobis distance concepts
+   * Note: For production with large datasets, consider using a proper ML library (scikit-learn, TensorFlow.js)
    */
   private isolationForest(features: Array<Record<string, number>>): number {
     if (features.length < 10) return 0;
 
-    // Calculate mean and std for each feature
     const featureNames = Object.keys(features[0]);
-    const stats: Record<string, { mean: number; std: number }> = {};
+    if (featureNames.length === 0) return 0;
+
+    // Calculate statistical measures for each feature
+    const stats: Record<string, { mean: number; std: number; median: number; q1: number; q3: number; iqr: number }> = {};
 
     for (const name of featureNames) {
-      const values = features.map((f) => f[name] || 0);
+      const values = features.map((f) => f[name] || 0).sort((a, b) => a - b);
       const mean = values.reduce((sum, v) => sum + v, 0) / values.length;
       const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / values.length;
-      stats[name] = {
-        mean,
-        std: Math.sqrt(variance) || 1,
-      };
+      const std = Math.sqrt(variance) || 1;
+      
+      // Calculate quartiles for IQR method
+      const q1Index = Math.floor(values.length * 0.25);
+      const medianIndex = Math.floor(values.length * 0.5);
+      const q3Index = Math.floor(values.length * 0.75);
+      const q1 = values[q1Index] || 0;
+      const median = values[medianIndex] || 0;
+      const q3 = values[q3Index] || 0;
+      const iqr = q3 - q1 || 1;
+
+      stats[name] = { mean, std, median, q1, q3, iqr };
     }
 
-    // Calculate anomaly score for each feature
+    // Calculate anomaly score using multiple methods
     let totalAnomalyScore = 0;
+    const anomalyScores: number[] = [];
+
     for (const feature of features) {
       let featureAnomalyScore = 0;
+      let anomalyCount = 0;
+
       for (const name of featureNames) {
         const value = feature[name] || 0;
-        const { mean, std } = stats[name];
-        // Z-score based anomaly detection
-        const zScore = Math.abs((value - mean) / std);
+        const stat = stats[name];
+        
+        // Method 1: Z-score (for normally distributed features)
+        const zScore = Math.abs((value - stat.mean) / stat.std);
         if (zScore > 2) {
-          featureAnomalyScore += Math.min(1, (zScore - 2) / 3); // Normalize to 0-1
+          const zAnomaly = Math.min(1, (zScore - 2) / 3);
+          featureAnomalyScore += zAnomaly;
+          anomalyCount++;
+        }
+
+        // Method 2: IQR (Interquartile Range) - better for skewed distributions
+        const lowerBound = stat.q1 - 1.5 * stat.iqr;
+        const upperBound = stat.q3 + 1.5 * stat.iqr;
+        if (value < lowerBound || value > upperBound) {
+          const deviation = value < lowerBound 
+            ? (lowerBound - value) / stat.iqr
+            : (value - upperBound) / stat.iqr;
+          const iqrAnomaly = Math.min(1, deviation / 2);
+          featureAnomalyScore += iqrAnomaly;
+          anomalyCount++;
         }
       }
-      totalAnomalyScore += featureAnomalyScore / featureNames.length;
+
+      // Average anomaly score for this feature vector
+      const avgAnomaly = anomalyCount > 0 
+        ? featureAnomalyScore / (anomalyCount * 2) // Divide by 2 since we check both methods
+        : 0;
+      
+      anomalyScores.push(avgAnomaly);
+      totalAnomalyScore += avgAnomaly;
     }
 
-    return Math.min(1, totalAnomalyScore / features.length);
+    // Return average anomaly score, weighted by how many features are anomalous
+    const avgScore = totalAnomalyScore / features.length;
+    
+    // Boost score if many features are anomalous (consensus)
+    const anomalousFeatureCount = anomalyScores.filter(s => s > 0.3).length;
+    const consensusBoost = Math.min(0.2, anomalousFeatureCount / features.length);
+    
+    return Math.min(1, avgScore + consensusBoost);
   }
 
   /**

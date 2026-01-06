@@ -1,6 +1,7 @@
 import { Router, type Router as ExpressRouter } from "express";
 import { z } from "zod";
 import type { Response } from "express";
+import { logger } from "@repo/shared-utils";
 import { documentAIService } from "../services/document-ai-service";
 import { documentService } from "../services/document-service";
 import { authMiddleware } from "../middleware/auth-middleware";
@@ -42,7 +43,7 @@ router.get(
     try {
       const filters = schema.parse(req.query);
 
-      console.log(`[DocumentAI Routes] /search-by-risk called with filters:`, filters);
+      logger.debug(`[DocumentAI Routes] /search-by-risk called with filters:`, { filters });
 
       const result = await documentService.listDocuments(req.context!.tenantId!, {
         clientCompanyId: filters.clientCompanyId,
@@ -55,7 +56,7 @@ router.get(
         pageSize: filters.pageSize,
       });
 
-      console.log(`[DocumentAI Routes] /search-by-risk result:`, {
+      logger.debug(`[DocumentAI Routes] /search-by-risk result:`, {
         documentsCount: result.data.length,
         total: result.total,
         page: result.page,
@@ -105,11 +106,12 @@ router.get(
         });
       }
       // Log unexpected errors
-      console.error("Error fetching AI analysis:", error);
+      logger.error("Error fetching AI analysis:", { error });
       throw error;
     }
   }
 );
 
 export default router;
+
 

@@ -14,7 +14,7 @@ router.use(authMiddleware);
 router.use(tenantMiddleware);
 
 const createSavedFilterSchema = z.object({
-  name: z.string().min(1, "Filtre adı gerekli."),
+  name: z.string().min(1, "Filtre adı gerekli.").max(255, "Filtre adı en fazla 255 karakter olabilir."),
   target: z.enum([
     "CLIENT_COMPANIES",
     "INVOICES",
@@ -27,7 +27,7 @@ const createSavedFilterSchema = z.object({
 });
 
 const updateSavedFilterSchema = z.object({
-  name: z.string().min(1, "Filtre adı gerekli.").optional(),
+  name: z.string().min(1, "Filtre adı gerekli.").max(255, "Filtre adı en fazla 255 karakter olabilir.").optional(),
   filters: z.any().optional(), // Accept any JSON object
   isDefault: z.boolean().optional(),
 });
@@ -84,7 +84,7 @@ router.post(
       const filter = await savedFilterService.createSavedFilter(
         req.context.tenantId,
         req.context.user.id,
-        body
+        body as any
       );
 
       res.status(201).json({ data: filter });
@@ -167,4 +167,5 @@ router.delete(
 );
 
 export default router;
+
 

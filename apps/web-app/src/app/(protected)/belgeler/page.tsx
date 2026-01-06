@@ -16,6 +16,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { colors, spacing, borderRadius } from "@/styles/design-system";
 import Link from "next/link";
+import { Suspense } from "react";
 
 const TYPE_LABELS: Record<string, string> = {
   INVOICE: "Fatura",
@@ -49,7 +50,7 @@ function formatFileSize(bytes: number | bigint): string {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export default function DocumentsPage() {
+function DocumentsPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [documentModalOpen, setDocumentModalOpen] = useState(false);
@@ -393,6 +394,14 @@ export default function DocumentsPage() {
       />
     </div>
     </PageTransition>
+  );
+}
+
+export default function DocumentsPage() {
+  return (
+    <Suspense fallback={<div>Yükleniyor...</div>}>
+      <DocumentsPageContent />
+    </Suspense>
   );
 }
 

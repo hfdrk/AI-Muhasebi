@@ -5,7 +5,7 @@ import { tenantMiddleware } from "../middleware/tenant-middleware";
 import { requirePermission } from "../middleware/rbac-middleware";
 import type { AuthenticatedRequest } from "../types/request-context";
 
-const router = Router();
+const router: Router = Router();
 
 // All routes require authentication and tenant context
 router.use(authMiddleware);
@@ -112,6 +112,8 @@ router.get(
 );
 
 export default router;
+
+
 
 
 

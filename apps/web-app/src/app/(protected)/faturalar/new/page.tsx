@@ -6,6 +6,7 @@ import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createInvoice, listClientCompanies } from "@repo/api-client";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { colors, spacing, borderRadius } from "@/styles/design-system";
@@ -38,7 +39,7 @@ const invoiceSchema = z.object({
 
 type InvoiceForm = z.infer<typeof invoiceSchema>;
 
-export default function NewInvoicePage() {
+function NewInvoicePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
@@ -614,6 +615,14 @@ export default function NewInvoicePage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function NewInvoicePage() {
+  return (
+    <Suspense fallback={<div>Yükleniyor...</div>}>
+      <NewInvoicePageContent />
+    </Suspense>
   );
 }
 

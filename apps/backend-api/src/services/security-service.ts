@@ -1,9 +1,8 @@
 import { prisma } from "../lib/prisma";
-import { NotFoundError, ValidationError } from "@repo/core-domain";
+import { NotFoundError, ValidationError } from "@repo/shared-utils";
 import { logger } from "@repo/shared-utils";
-// Note: Requires packages: otplib, qrcode
-// Install with: npm install otplib qrcode @types/qrcode
-// For now, using simplified implementation that can be enhanced with these packages
+import { authenticator } from "otplib";
+import { qrCodeService } from "./qr-code-service";
 
 /**
  * Enhanced Security Service
@@ -86,15 +85,21 @@ export class SecurityService {
       throw new NotFoundError("Kullanıcı bulunamadı.");
     }
 
-    // Generate secret (simplified - in production use otplib)
-    const secret = this.generateSecret();
+    // Generate secret using otplib
+    const secret = authenticator.generateSecret();
     const serviceName = "AI Muhasebi";
     const accountName = user.email;
 
-    // Generate QR code URL (simplified - in production use qrcode library)
-    const otpAuthUrl = `otpauth://totp/${encodeURIComponent(serviceName)}:${encodeURIComponent(accountName)}?secret=${secret}&issuer=${encodeURIComponent(serviceName)}`;
-    // QR code generation would require qrcode package
-    const qrCode = `data:image/svg+xml;base64,${Buffer.from(`<svg>QR Code for ${otpAuthUrl}</svg>`).toString("base64")}`;
+    // Generate otpauth URL for authenticator apps
+    const otpAuthUrl = authenticator.keyuri(accountName, serviceName, secret);
+
+    // Generate QR code using QR code service
+    const qrResult = await qrCodeService.generateSimpleQR(otpAuthUrl, {
+      size: 256,
+      errorCorrectionLevel: "M",
+      format: "dataurl",
+    });
+    const qrCode = qrResult.image;
 
     // Generate backup codes
     const backupCodes = this.generateBackupCodes();
@@ -113,6 +118,8 @@ export class SecurityService {
         metadata: userMetadata,
       },
     });
+
+    logger.info(`2FA setup initiated for user ${userId}`);
 
     return {
       enabled: false,
@@ -154,7 +161,7 @@ export class SecurityService {
     }
 
     const secret = twoFactorAuth.secret as string;
-    // TOTP verification (simplified - in production use otplib.authenticator.verify)
+    // TOTP verification using otplib
     const isValid = this.verifyTOTP(token, secret);
 
     if (!isValid) {
@@ -200,7 +207,7 @@ export class SecurityService {
 
     const secret = twoFactorAuth.secret as string;
 
-    // Check TOTP token (simplified - in production use otplib.authenticator.verify)
+    // Check TOTP token using otplib
     const isValidTOTP = this.verifyTOTP(token, secret);
 
     if (isValidTOTP) {
@@ -299,14 +306,14 @@ export class SecurityService {
       createdAt: new Date(),
     };
 
-    ipWhitelist.push(whitelistEntry);
+    (ipWhitelist as any[]).push(whitelistEntry);
 
     await prisma.tenant.update({
       where: { id: tenantId },
       data: {
         metadata: {
           ...tenantMetadata,
-          ipWhitelist,
+          ipWhitelist: ipWhitelist as unknown as Record<string, unknown>,
         },
       },
     });
@@ -538,30 +545,16 @@ export class SecurityService {
   }
 
   /**
-   * Generate TOTP secret (simplified implementation)
-   * In production, use: import { authenticator } from "otplib"; authenticator.generateSecret();
-   */
-  private generateSecret(): string {
-    // Generate a 32-character base32 secret
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-    let secret = "";
-    for (let i = 0; i < 32; i++) {
-      secret += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return secret;
-  }
-
-  /**
-   * Verify TOTP token (simplified implementation)
-   * In production, use: import { authenticator } from "otplib"; authenticator.verify({ token, secret });
-   * 
-   * This is a placeholder - proper TOTP verification requires the otplib library
+   * Verify TOTP token using otplib
    */
   private verifyTOTP(token: string, secret: string): boolean {
-    // Placeholder implementation
-    // In production, this should use otplib.authenticator.verify({ token, secret })
-    // For now, accept any 6-digit code (this should be replaced with proper TOTP verification)
-    return /^\d{6}$/.test(token);
+    try {
+      // Verify the token with a window of ±1 time step (30 seconds tolerance)
+      return authenticator.verify({ token, secret });
+    } catch (error) {
+      logger.warn(`TOTP verification error: ${error instanceof Error ? error.message : String(error)}`);
+      return false;
+    }
   }
 }
 

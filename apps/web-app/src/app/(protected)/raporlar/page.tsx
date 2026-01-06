@@ -123,6 +123,24 @@ export default function ReportsPage() {
       </Card>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: spacing.lg }}>
+        {/* Executive Summary - New Featured Card */}
+        <Link href="/raporlar/yonetici-ozeti" style={{ textDecoration: "none", color: "inherit" }}>
+          <Card hoverable style={{ background: `linear-gradient(135deg, ${colors.primaryLighter} 0%, ${colors.white} 100%)`, border: `2px solid ${colors.primary}` }}>
+            <div style={{ display: "flex", alignItems: "center", gap: spacing.sm, marginBottom: spacing.sm }}>
+              <span style={{ fontSize: "24px" }}>📊</span>
+              <h2 style={{ fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.semibold, color: colors.primary, margin: 0 }}>
+                Yönetici Özeti
+              </h2>
+              <span style={{ fontSize: typography.fontSize.xs, backgroundColor: colors.success, color: colors.white, padding: `2px ${spacing.sm}`, borderRadius: borderRadius.full, fontWeight: typography.fontWeight.semibold }}>
+                YENİ
+              </span>
+            </div>
+            <p style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm, lineHeight: 1.6 }}>
+              Gelişmiş KPI'lar, dönem karşılaştırmaları, hedef takibi ve interaktif grafiklerle kapsamlı yönetici panosu.
+            </p>
+          </Card>
+        </Link>
+
         <Link href="/raporlar/anlik" style={{ textDecoration: "none", color: "inherit" }}>
           <Card hoverable>
             <h2 style={{ fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.semibold, marginBottom: spacing.sm, color: colors.primary }}>

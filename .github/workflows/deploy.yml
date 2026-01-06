@@ -2,7 +2,9 @@ name: Deploy
 
 on:
   push:
-    branches: [main, staging]
+    branches:
+      - main
+      - staging
     tags:
       - "v*"
   workflow_dispatch:
@@ -12,44 +14,98 @@ on:
         required: true
         type: choice
         options:
-          - dev
           - staging
-          - prod
+          - production
+
+env:
+  NODE_VERSION: "18"
+  PNPM_VERSION: "8.15.0"
 
 jobs:
-  deploy-dev:
-    name: Deploy to Dev
+  determine-environment:
+    name: Determine Environment
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'dev')
+    outputs:
+      environment: ${{ steps.set-env.outputs.environment }}
+    steps:
+      - id: set-env
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/staging" ]; then
+            echo "environment=staging" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+          else
+            echo "environment=staging" >> $GITHUB_OUTPUT
+          fi
+
+  build-and-push:
+    name: Build and Push Docker Images
+    runs-on: ubuntu-latest
+    needs: determine-environment
+    if: github.event_name != 'pull_request'
     steps:
       - uses: actions/checkout@v4
-      - name: Deploy to Dev
-        run: |
-          echo "Deploy to dev environment"
-          # Deployment steps will be added in future tasks
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Login to Docker Hub
+        if: needs.determine-environment.outputs.environment == 'production'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      
+      - name: Build and push backend-api
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/backend-api/Dockerfile
+          push: ${{ needs.determine-environment.outputs.environment == 'production' }}
+          tags: |
+            ${{ secrets.DOCKER_REGISTRY }}/backend-api:${{ needs.determine-environment.outputs.environment }}
+            ${{ secrets.DOCKER_REGISTRY }}/backend-api:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Build and push web-app
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/web-app/Dockerfile
+          push: ${{ needs.determine-environment.outputs.environment == 'production' }}
+          tags: |
+            ${{ secrets.DOCKER_REGISTRY }}/web-app:${{ needs.determine-environment.outputs.environment }}
+            ${{ secrets.DOCKER_REGISTRY }}/web-app:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Build and push worker-jobs
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/worker-jobs/Dockerfile
+          push: ${{ needs.determine-environment.outputs.environment == 'production' }}
+          tags: |
+            ${{ secrets.DOCKER_REGISTRY }}/worker-jobs:${{ needs.determine-environment.outputs.environment }}
+            ${{ secrets.DOCKER_REGISTRY }}/worker-jobs:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-  deploy-staging:
-    name: Deploy to Staging
+  deploy:
+    name: Deploy
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/staging' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
-    steps:
-      - uses: actions/checkout@v4
-      - name: Deploy to Staging
-        run: |
-          echo "Deploy to staging environment"
-          # Deployment steps will be added in future tasks
-
-  deploy-prod:
-    name: Deploy to Production
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod')
+    needs: [determine-environment, build-and-push]
+    if: github.event_name != 'pull_request'
     environment:
-      name: production
-      url: https://app.ai-muhasebi.com
+      name: ${{ needs.determine-environment.outputs.environment }}
     steps:
       - uses: actions/checkout@v4
-      - name: Deploy to Production
+      
+      - name: Deploy to ${{ needs.determine-environment.outputs.environment }}
         run: |
-          echo "Deploy to production environment"
-          # Deployment steps will be added in future tasks
-
+          echo "Deployment to ${{ needs.determine-environment.outputs.environment }} would happen here"
+          echo "This step should be customized based on your deployment target"
+          echo "Examples: Kubernetes, AWS ECS, Railway, Render, etc."

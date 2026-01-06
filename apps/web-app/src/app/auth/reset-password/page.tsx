@@ -6,6 +6,7 @@ import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import { resetPassword } from "@repo/api-client";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { useState } from "react";
 
 const resetPasswordSchema = z
@@ -20,7 +21,7 @@ const resetPasswordSchema = z
 
 type ResetPasswordForm = z.infer<typeof resetPasswordSchema>;
 
-export default function ResetPasswordPage() {
+function ResetPasswordPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -145,6 +146,14 @@ export default function ResetPasswordPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div>Yükleniyor...</div>}>
+      <ResetPasswordPageContent />
+    </Suspense>
   );
 }
 

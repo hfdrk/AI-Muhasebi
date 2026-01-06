@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { logger } from "@repo/shared-utils";
 
 // Check if we're in test mode BEFORE resolving database URL
 // In test mode, DATABASE_URL should be set by env-setup.ts or test-db.ts
@@ -15,7 +16,7 @@ if (!isTestMode && (!process.env.DATABASE_URL || process.env.DATABASE_URL.includ
     // If URL resolution fails, use fallback (ai_muhasebi:ai_muhasebi_dev matches container)
     if (!process.env.DATABASE_URL) {
       process.env.DATABASE_URL = `postgresql://ai_muhasebi:ai_muhasebi_dev@localhost:5432/ai_muhasebi`;
-      console.warn("Using fallback DATABASE_URL: ai_muhasebi@localhost:5432/ai_muhasebi");
+      logger.warn("Using fallback DATABASE_URL: ai_muhasebi@localhost:5432/ai_muhasebi");
     }
   }
 }
@@ -27,11 +28,22 @@ const globalForPrisma = globalThis as unknown as {
 
 function createPrismaClient(): PrismaClient {
   const dbUrl = process.env.DATABASE_URL || "postgresql://ai_muhasebi:ai_muhasebi_dev@localhost:5432/ai_muhasebi";
-  console.log(`📦 Creating Prisma client with database: ${dbUrl.replace(/:[^:@]+@/, ":****@")}`);
+  logger.info(`Creating Prisma client with database: ${dbUrl.replace(/:[^:@]+@/, ":****@")}`);
   
   try {
+    // Connection pool configuration for production
+    const connectionLimit = process.env.DATABASE_POOL_SIZE 
+      ? parseInt(process.env.DATABASE_POOL_SIZE, 10) 
+      : process.env.NODE_ENV === "production" ? 10 : 5;
+    
     const client = new PrismaClient({
       log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+      datasources: {
+        db: {
+          url: dbUrl + (dbUrl.includes("?") ? "&" : "?") + 
+            `connection_limit=${connectionLimit}&pool_timeout=20`,
+        },
+      },
     });
     
     // Verify the client has the expected methods
@@ -41,7 +53,7 @@ function createPrismaClient(): PrismaClient {
     
     return client;
   } catch (error: any) {
-    console.error("Failed to create Prisma client:", error.message);
+    logger.error("Failed to create Prisma client:", { error: error.message });
     throw error; // Don't swallow the error - we need to know if client creation fails
   }
 }
@@ -80,7 +92,7 @@ function getPrismaClient(): PrismaClient {
         );
       }
     } catch (error: any) {
-      console.error("Error creating Prisma client:", error);
+      logger.error("Error creating Prisma client:", { error });
       throw new Error(
         `Failed to create Prisma client: ${error.message}. ` +
         `DATABASE_URL: ${dbUrl.replace(/:[^:@]+@/, ":****@")}`
@@ -109,7 +121,7 @@ export const prisma = new Proxy({} as PrismaClient, {
     // This can happen if Prisma client wasn't regenerated after schema changes
     if (value === undefined && typeof prop === 'string' && prop[0] === prop[0].toLowerCase()) {
       // It's likely a model name (camelCase), log a warning
-      console.warn(`Prisma model '${prop}' is undefined. Make sure Prisma client is regenerated.`);
+      logger.warn(`Prisma model '${prop}' is undefined. Make sure Prisma client is regenerated.`);
     }
     
     return value;

@@ -12,6 +12,7 @@ import { Select } from "@/components/ui/Select";
 import { DocumentUploadModal } from "@/components/document-upload-modal";
 import { SkeletonTable } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { PageTransition } from "@/components/ui/PageTransition";
 import { colors, spacing } from "@/styles/design-system";
 import Link from "next/link";
 

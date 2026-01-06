@@ -2,14 +2,20 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  listSavedFilters,
-  updateSavedFilter,
-  deleteSavedFilter,
-  type SavedFilter,
-} from "@repo/api-client";
-import { savedFilters as savedFiltersI18n } from "@repo/i18n";
+// Use type-only import to avoid server-side module resolution issues
+import type { SavedFilter } from "@repo/api-client";
 import { SaveFilterModal } from "./save-filter-modal";
+
+// Use hardcoded strings to avoid i18n import issues
+const savedFiltersI18n = {
+  title: "Kayıtlı Filtreler",
+  emptyState: "Henüz kayıtlı filtre yok",
+  setDefault: "Varsayılan Yap",
+  delete: "Sil",
+  saveFilter: "Filtreyi Kaydet",
+  deleteConfirm: "Bu filtreyi silmek istediğinizden emin misiniz?",
+  defaultApplied: "Varsayılan filtre uygulandı: {name}",
+};
 
 interface SavedFiltersDropdownProps {
   target: string;
@@ -28,22 +34,30 @@ export function SavedFiltersDropdown({
 
   const { data: savedFiltersData } = useQuery({
     queryKey: ["savedFilters", target],
-    queryFn: () => listSavedFilters(target),
+    queryFn: async () => {
+      const { listSavedFilters } = await import("@repo/api-client");
+      return listSavedFilters(target);
+    },
   });
 
   const savedFilters = savedFiltersData?.data || [];
   const defaultFilter = savedFilters.find((f) => f.isDefault);
 
   const updateMutation = useMutation({
-    mutationFn: (id: string) =>
-      updateSavedFilter(id, { isDefault: true }),
+    mutationFn: async (id: string) => {
+      const { updateSavedFilter } = await import("@repo/api-client");
+      return updateSavedFilter(id, { isDefault: true });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["savedFilters", target] });
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteSavedFilter(id),
+    mutationFn: async (id: string) => {
+      const { deleteSavedFilter } = await import("@repo/api-client");
+      return deleteSavedFilter(id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["savedFilters", target] });
     },
@@ -232,7 +246,9 @@ export function SavedFiltersDropdown({
             color: "#1976d2",
           }}
         >
-          {savedFiltersI18n.defaultApplied.replace("{name}", defaultFilter.name)}
+          {typeof savedFiltersI18n.defaultApplied === "string" && typeof defaultFilter.name === "string"
+            ? savedFiltersI18n.defaultApplied.replace("{name}", defaultFilter.name)
+            : `Varsayılan filtre uygulandı: ${defaultFilter.name || "Bilinmeyen"}`}
         </div>
       )}
     </>

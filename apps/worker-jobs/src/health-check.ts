@@ -6,7 +6,14 @@
  * This can be used by orchestration systems to verify worker health.
  */
 
-import "dotenv/config";
+// Note: dotenv/config is only needed in development
+// In production, environment variables are set by Docker
+try {
+  require("dotenv/config");
+} catch {
+  // dotenv not available in production, which is fine
+}
+
 import { validateEnv } from "@repo/config";
 import { prisma } from "./lib/prisma";
 

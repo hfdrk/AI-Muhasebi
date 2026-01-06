@@ -12,6 +12,7 @@
 import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
 import { getConfig } from "@repo/config";
+import { logger } from "@repo/shared-utils";
 import { emailTemplateService, type TemplateVariables } from "./email-template-service";
 import { retryQueueService } from "./retry-queue-service";
 import { emailLogService } from "./email-log-service";
@@ -45,13 +46,13 @@ export class EmailService {
     const config = getConfig();
 
     if (!config.SMTP_HOST) {
-      console.warn(
+      logger.warn(
         "[EmailService] SMTP_HOST not configured. Email sending will be disabled. Set EMAIL_TRANSPORT=stub to suppress this warning."
       );
       return;
     }
 
-    const smtpConfig: nodemailer.TransportOptions = {
+    const smtpConfig: any = {
       host: config.SMTP_HOST,
       port: config.SMTP_PORT || 587,
       secure: config.SMTP_SECURE,
@@ -79,7 +80,7 @@ export class EmailService {
 
     // Stub mode - just log
     if (this.transportType === "stub") {
-      console.log("[EmailService] [STUB MODE] Would send email:", {
+      logger.info("[EmailService] [STUB MODE] Would send email:", {
         to,
         subject,
         bodyLength: body.length,
@@ -118,7 +119,7 @@ export class EmailService {
 
         const info = await this.transporter.sendMail(mailOptions);
 
-        console.log("[EmailService] Email sent successfully:", {
+        logger.info("[EmailService] Email sent successfully:", {
           messageId: info.messageId,
           to,
           subject,
@@ -136,13 +137,13 @@ export class EmailService {
           });
         } catch (logError: any) {
           // Don't fail email send if logging fails
-          console.error("[EmailService] Failed to log email:", logError.message);
+          logger.error("[EmailService] Failed to log email:", { error: logError.message });
         }
 
         return; // Success, exit retry loop
       } catch (error: any) {
         lastError = error;
-        console.error(`[EmailService] Email send attempt ${attempt}/${retries} failed:`, {
+        logger.error(`[EmailService] Email send attempt ${attempt}/${retries} failed:`, {
           error: error.message,
           to,
           subject,
@@ -171,7 +172,7 @@ export class EmailService {
         error: lastError?.message || "Unknown error",
       });
     } catch (logError: any) {
-      console.error("[EmailService] Failed to log failed email:", logError.message);
+      logger.error("[EmailService] Failed to log failed email:", { error: logError.message });
     }
 
     // All retries failed - add to retry queue
@@ -190,9 +191,9 @@ export class EmailService {
         3, // max attempts
         60000 // 1 minute delay
       );
-      console.log("[EmailService] Email queued for retry after all attempts failed");
+      logger.info("[EmailService] Email queued for retry after all attempts failed");
     } catch (queueError: any) {
-      console.error("[EmailService] Failed to queue email for retry:", queueError.message);
+      logger.error("[EmailService] Failed to queue email for retry:", { error: queueError.message });
     }
 
     // Still throw error so caller knows it failed
@@ -236,7 +237,7 @@ export class EmailService {
       });
     } catch (error: any) {
       // Fallback to plain text if template fails
-      console.warn("[EmailService] Template rendering failed, using plain text:", error.message);
+      logger.warn("[EmailService] Template rendering failed, using plain text:", { error: error.message });
       const subject = `[Sistem] ${title}`;
       const body = `${message}\n\nBu bir otomatik bildirimdir.`;
 
@@ -280,7 +281,7 @@ export class EmailService {
    */
   async verifyConnection(): Promise<boolean> {
     if (this.transportType === "stub") {
-      console.log("[EmailService] Stub mode - connection verification skipped");
+      logger.info("[EmailService] Stub mode - connection verification skipped");
       return true;
     }
 
@@ -290,10 +291,10 @@ export class EmailService {
 
     try {
       await this.transporter.verify();
-      console.log("[EmailService] SMTP connection verified successfully");
+      logger.info("[EmailService] SMTP connection verified successfully");
       return true;
     } catch (error: any) {
-      console.error("[EmailService] SMTP connection verification failed:", error.message);
+      logger.error("[EmailService] SMTP connection verification failed:", { error: error.message });
       return false;
     }
   }

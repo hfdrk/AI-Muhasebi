@@ -6,6 +6,7 @@ import { listInvoices, listClientCompanies, listSavedFilters, SAVED_FILTER_TARGE
 import { invoices as invoicesI18n, common as commonI18n } from "@repo/i18n";
 import { SavedFiltersDropdown } from "../../../components/saved-filters-dropdown";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -30,7 +31,7 @@ const TYPE_LABELS: Record<string, string> = {
   ALIŞ: "Alış",
 };
 
-export default function InvoicesPage() {
+function InvoicesPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const clientCompanyId = searchParams.get("clientCompanyId") || undefined;
@@ -355,6 +356,14 @@ export default function InvoicesPage() {
       )}
     </div>
     </PageTransition>
+  );
+}
+
+export default function InvoicesPage() {
+  return (
+    <Suspense fallback={<div>Yükleniyor...</div>}>
+      <InvoicesPageContent />
+    </Suspense>
   );
 }
 

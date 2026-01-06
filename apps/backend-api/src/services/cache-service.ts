@@ -8,6 +8,8 @@
  * Install: npm install redis @types/redis
  */
 
+import { logger } from "@repo/shared-utils";
+
 interface CacheEntry<T> {
   value: T;
   expiresAt: number;
@@ -34,13 +36,14 @@ export class CacheService {
     if (redisUrl) {
       try {
         // Dynamic import to avoid requiring redis package if not installed
+        // @ts-ignore - redis types may not be available
         const redis = await import("redis");
         this.redisClient = redis.createClient({ url: redisUrl });
         await this.redisClient.connect();
         this.useRedis = true;
-        console.log("✅ Redis cache enabled");
+        logger.info("Redis cache enabled");
       } catch (error) {
-        console.warn("⚠️ Redis not available, using in-memory cache:", error);
+        logger.warn("Redis not available, using in-memory cache:", { error });
         this.useRedis = false;
       }
     }
@@ -58,7 +61,7 @@ export class CacheService {
           return JSON.parse(value) as T;
         }
       } catch (error) {
-        console.warn("Redis get error, falling back to memory:", error);
+        logger.warn("Redis get error, falling back to memory:", { error });
       }
     }
 
@@ -88,7 +91,7 @@ export class CacheService {
         await this.redisClient.setEx(key, ttlSeconds, JSON.stringify(value));
         return;
       } catch (error) {
-        console.warn("Redis set error, falling back to memory:", error);
+        logger.warn("Redis set error, falling back to memory:", { error });
       }
     }
 
@@ -106,7 +109,7 @@ export class CacheService {
       try {
         await this.redisClient.del(key);
       } catch (error) {
-        console.warn("Redis delete error:", error);
+        logger.warn("Redis delete error:", { error });
       }
     }
 

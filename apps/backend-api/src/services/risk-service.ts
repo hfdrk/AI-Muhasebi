@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import { NotFoundError } from "@repo/shared-utils";
+import { NotFoundError, logger } from "@repo/shared-utils";
 import { riskRuleEngine } from "./risk-rule-engine";
 import type {
   DocumentRiskScore,
@@ -88,12 +88,12 @@ export class RiskService {
           }
         } catch (ruleError: any) {
           // Log but don't fail if a single rule lookup fails
-          console.warn(`Failed to get rule by code ${code}:`, ruleError.message);
+          logger.warn(`Failed to get rule by code ${code}:`, { error: ruleError.message });
         }
       }
     } catch (error: any) {
       // If rule service import fails, return empty triggered rules
-      console.error("Error loading risk rule service:", error);
+      logger.error("Error loading risk rule service:", { error });
     }
 
     return {
@@ -203,7 +203,7 @@ export class RiskService {
     // If company has risk score but documents don't have individual scores,
     // this is a data inconsistency - documents should have risk scores
     if (riskScore && documentScores.length === 0 && allDocuments.length > 0) {
-      console.warn(
+      logger.warn(
         `[RiskService] Data inconsistency: Company ${clientCompanyId} has risk score ${riskScore.score} (${riskScore.severity}) ` +
         `but ${allDocuments.length} documents don't have individual risk scores. ` +
         `This suggests document risk scores need to be calculated.`
@@ -216,7 +216,7 @@ export class RiskService {
 
     // Debug logging
     if (riskScore) {
-      console.log(
+      logger.debug(
         `[RiskService] Company ${clientCompanyId}: Total documents=${allDocuments.length}, ` +
         `Documents with risk scores=${documentScores.length}, ` +
         `Company risk score=${riskScore.score} (${riskScore.severity}), ` +
@@ -230,9 +230,9 @@ export class RiskService {
           severity: s.severity,
           calculatedSeverity: Number(s.score) <= 30 ? 'low' : Number(s.score) <= 65 ? 'medium' : 'high'
         }));
-        console.log(`[RiskService] Sample document scores:`, sampleScores);
+        logger.debug(`[RiskService] Sample document scores:`, { sampleScores });
       } else if (allDocuments.length > 0) {
-        console.warn(
+        logger.warn(
           `[RiskService] No document risk scores found for ${allDocuments.length} documents. ` +
           `Company risk score exists (${riskScore.score}), but document-level scores are missing.`
         );

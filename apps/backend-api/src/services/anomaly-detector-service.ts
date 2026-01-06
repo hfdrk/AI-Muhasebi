@@ -1,7 +1,7 @@
 import { prisma } from "../lib/prisma";
 
 export interface AnomalyFlag {
-  type: "EXPENSE_SPIKE" | "LARGE_TRANSACTION" | "UNUSUAL_ACCOUNT";
+  type: "EXPENSE_SPIKE" | "LARGE_TRANSACTION" | "UNUSUAL_ACCOUNT" | "CHART_MISMATCH";
   description: string;
   severity: "low" | "medium" | "high";
   value: number;

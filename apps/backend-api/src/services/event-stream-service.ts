@@ -6,6 +6,7 @@
  */
 
 import type { Response } from "express";
+import { logger } from "@repo/shared-utils";
 
 export type EventType = "message" | "notification" | "document_status" | "contract_expiration" | "ping";
 
@@ -63,7 +64,7 @@ export class EventStreamService {
       this.removeConnection(connectionId);
     });
 
-    console.log(`[EventStream] Connection added: ${connectionId} (Total: ${this.connections.size})`);
+    logger.info(`[EventStream] Connection added: ${connectionId} (Total: ${this.connections.size})`);
     return connectionId;
   }
 
@@ -79,7 +80,7 @@ export class EventStreamService {
         // Connection already closed
       }
       this.connections.delete(connectionId);
-      console.log(`[EventStream] Connection removed: ${connectionId} (Total: ${this.connections.size})`);
+      logger.info(`[EventStream] Connection removed: ${connectionId} (Total: ${this.connections.size})`);
     }
   }
 
@@ -97,7 +98,7 @@ export class EventStreamService {
       connection.response.write(`data: ${data}\n\n`);
       connection.lastPing = new Date();
     } catch (error: any) {
-      console.error(`[EventStream] Error sending event to ${connectionId}:`, error.message);
+      logger.error(`[EventStream] Error sending event to ${connectionId}:`, { error: error.message });
       this.removeConnection(connectionId);
     }
   }
@@ -114,7 +115,7 @@ export class EventStreamService {
       }
     }
     if (sent > 0) {
-      console.log(`[EventStream] Broadcasted ${event.type} to ${sent} connection(s) for user ${userId}`);
+      logger.info(`[EventStream] Broadcasted ${event.type} to ${sent} connection(s) for user ${userId}`);
     }
   }
 
@@ -130,7 +131,7 @@ export class EventStreamService {
       }
     }
     if (sent > 0) {
-      console.log(`[EventStream] Broadcasted ${event.type} to ${sent} connection(s) for tenant ${tenantId}`);
+      logger.info(`[EventStream] Broadcasted ${event.type} to ${sent} connection(s) for tenant ${tenantId}`);
     }
   }
 
@@ -147,7 +148,7 @@ export class EventStreamService {
       }
     }
     if (sent > 0) {
-      console.log(`[EventStream] Broadcasted ${event.type} to ${sent} connection(s) for users in tenant ${tenantId}`);
+      logger.info(`[EventStream] Broadcasted ${event.type} to ${sent} connection(s) for users in tenant ${tenantId}`);
     }
   }
 

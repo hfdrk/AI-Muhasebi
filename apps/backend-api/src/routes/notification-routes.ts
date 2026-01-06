@@ -1,5 +1,6 @@
 import { Router, type Response, type NextFunction, type Router as ExpressRouter } from "express";
 import { z } from "zod";
+import { logger } from "@repo/shared-utils";
 import { notificationService } from "../services/notification-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
@@ -43,7 +44,7 @@ router.get("/", async (req: AuthenticatedRequest, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error("Error listing notifications:", error);
+    logger.error("Error listing notifications:", { error });
     if (error instanceof z.ZodError) {
       const statusCode = 400;
       const message = "Geçersiz sorgu parametreleri.";
@@ -66,7 +67,7 @@ router.post("/read-all", async (req: AuthenticatedRequest, res: Response) => {
 
     res.json({ data: result });
   } catch (error: any) {
-    console.error("Error marking all notifications as read:", error);
+    logger.error("Error marking all notifications as read:", { error });
     const statusCode = error.statusCode || 500;
     const message = error.message || "Bildirimler okundu olarak işaretlenirken bir hata oluştu.";
     res.status(statusCode).json({ error: { message } });
@@ -89,4 +90,5 @@ router.post("/:id/read", async (req: AuthenticatedRequest, res: Response, next: 
 });
 
 export default router;
+
 

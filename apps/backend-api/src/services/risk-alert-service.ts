@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import { NotFoundError } from "@repo/shared-utils";
+import { NotFoundError, logger } from "@repo/shared-utils";
 import type {
   RiskAlert,
   CreateRiskAlertInput,
@@ -132,11 +132,11 @@ export class RiskAlertService {
         }
       } catch (emailError: any) {
         // Don't fail notification creation if email fails
-        console.error("[RiskAlertService] Failed to send notification email:", emailError);
+        logger.error("[RiskAlertService] Failed to send notification email:", { error: emailError });
       }
     } catch (notificationError: any) {
       // Don't fail alert creation if notification fails
-      console.error("[RiskAlertService] Failed to create notification:", notificationError);
+      logger.error("[RiskAlertService] Failed to create notification:", { error: notificationError });
     }
 
     return this.mapToRiskAlert(alert);

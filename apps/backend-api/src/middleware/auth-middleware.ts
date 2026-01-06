@@ -1,8 +1,9 @@
 import type { Request, Response, NextFunction } from "express";
-import { verifyToken } from "@repo/shared-utils";
+import { verifyToken, logger } from "@repo/shared-utils";
 import { AuthenticationError } from "@repo/shared-utils";
 import { prisma } from "../lib/prisma";
 import type { AuthenticatedRequest, RequestContext } from "../types/request-context";
+import { setUserContext } from "../lib/sentry";
 
 export async function authMiddleware(
   req: AuthenticatedRequest,
@@ -37,7 +38,7 @@ export async function authMiddleware(
       // Database errors should be logged but converted to auth error
       // In test mode, log the error for debugging
       if (process.env.NODE_ENV === "test" || process.env.VITEST) {
-        console.error("Auth middleware database error:", error.message);
+        logger.error("Auth middleware database error:", { error: error.message });
       }
       throw new AuthenticationError("Kullanıcı doğrulama hatası.");
     }
@@ -85,6 +86,9 @@ export async function authMiddleware(
       impersonatedUserId: decoded.impersonatedUserId,
     };
 
+    // Set user context for Sentry
+    setUserContext(user.id, decoded.tenantId, user.email);
+
     next();
   } catch (error) {
     if (error instanceof AuthenticationError) {
@@ -93,7 +97,7 @@ export async function authMiddleware(
     }
     // Log unexpected errors in test mode for debugging
     if (process.env.NODE_ENV === "test" || process.env.VITEST) {
-      console.error("Auth middleware unexpected error:", error);
+      logger.error("Auth middleware unexpected error:", { error });
     }
     next(new AuthenticationError("Geçersiz token."));
   }

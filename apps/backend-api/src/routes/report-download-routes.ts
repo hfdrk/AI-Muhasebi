@@ -64,7 +64,7 @@ router.post(
       const tenantId = req.context!.tenantId!;
 
       // Validate date filters
-      validateDateFilters(body.filters);
+      validateDateFilters(body.filters as any);
 
       // Generate report using ReportingService
       let reportResult;
@@ -77,7 +77,7 @@ router.post(
           reportResult = await reportingService.generateCompanyFinancialSummary(
             tenantId,
             body.client_company_id,
-            body.filters
+            body.filters as any
           );
           break;
 
@@ -88,14 +88,14 @@ router.post(
           reportResult = await reportingService.generateCompanyRiskSummary(
             tenantId,
             body.client_company_id,
-            body.filters
+            body.filters as any
           );
           break;
 
         case "TENANT_PORTFOLIO":
           reportResult = await reportingService.generateTenantPortfolioReport(
             tenantId,
-            body.filters
+            body.filters as any
           );
           break;
 
@@ -103,7 +103,7 @@ router.post(
           reportResult = await reportingService.generateDocumentActivityReport(
             tenantId,
             body.client_company_id || null,
-            body.filters
+            body.filters as any
           );
           break;
 
@@ -165,4 +165,5 @@ router.post(
 );
 
 export default router;
+
 

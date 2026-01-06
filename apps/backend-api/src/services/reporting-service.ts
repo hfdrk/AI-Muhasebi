@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import { NotFoundError, ValidationError } from "@repo/shared-utils";
+import { NotFoundError, ValidationError, logger } from "@repo/shared-utils";
 import { aiAssistantService } from "./ai-assistant-service";
 
 export interface ReportPeriod {
@@ -682,7 +682,7 @@ Lütfen 3-5 adet kısa ve öz iyileştirme önerisi sun. Her öneri bir satır o
         "Risk skorlarını düzenli kontrol edin",
       ];
     } catch (error) {
-      console.error("[ReportingService] Error generating suggestions:", error);
+      logger.error("[ReportingService] Error generating suggestions:", { error });
       // Return default suggestions on error
       return [
         "Düzenli fatura takibi yapın",
@@ -734,7 +734,7 @@ Lütfen 3-5 adet kısa ve öz risk azaltma önerisi sun. Her öneri bir satır o
         "Açık uyarıları çözün",
       ];
     } catch (error) {
-      console.error("[ReportingService] Error generating risk suggestions:", error);
+      logger.error("[ReportingService] Error generating risk suggestions:", { error });
       // Return default suggestions on error
       return [
         "Yüksek riskli belgeleri inceleyin",

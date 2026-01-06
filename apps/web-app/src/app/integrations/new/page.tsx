@@ -1,10 +1,11 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
+import { Suspense } from "react";
 import { useEffect } from "react";
 import IntegrationModal from "@/components/integration-modal";
 
-export default function NewIntegrationPage() {
+function NewIntegrationPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const type = (searchParams.get("type") as "accounting" | "bank") || undefined;
@@ -35,6 +36,14 @@ export default function NewIntegrationPage() {
       onClose={handleClose}
       type={type}
     />
+  );
+}
+
+export default function NewIntegrationPage() {
+  return (
+    <Suspense fallback={<div>Yükleniyor...</div>}>
+      <NewIntegrationPageContent />
+    </Suspense>
   );
 }
 

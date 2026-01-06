@@ -13,7 +13,7 @@ import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
 import { getConfig } from "@repo/config";
 import { emailTemplateService, type TemplateVariables } from "./email-template-service";
-import { emailLogService } from "../../backend-api/src/services/email-log-service";
+import { emailLogService } from "./email-log-service";
 
 export interface SendEmailAttachment {
   filename: string;
@@ -57,7 +57,7 @@ export class EmailService {
       return;
     }
 
-    const smtpConfig: nodemailer.TransportOptions = {
+    const smtpConfig: any = {
       host: config.SMTP_HOST,
       port: config.SMTP_PORT || 587,
       secure: config.SMTP_SECURE,

@@ -49,13 +49,13 @@ export class InvoiceImporter {
               select: { id: true },
             });
             if (preferredCompany) {
-              clientCompany = preferredCompany;
+              clientCompany! = preferredCompany;
             }
           }
 
           // If still no client company, create a new one
           if (!clientCompany) {
-            clientCompany = await prisma.clientCompany.create({
+            clientCompany! = await prisma.clientCompany.create({
               data: {
                 tenantId,
                 name: normalizedInvoice.clientCompanyName || "Bilinmeyen Müşteri",
@@ -71,7 +71,7 @@ export class InvoiceImporter {
           where: {
             tenantId,
             externalId: normalizedInvoice.externalId,
-            clientCompanyId: clientCompany.id,
+            clientCompanyId: clientCompany?.id || "",
           },
         });
 
@@ -116,7 +116,7 @@ export class InvoiceImporter {
           await prisma.invoice.create({
             data: {
               tenantId,
-              clientCompanyId: clientCompany.id,
+              clientCompanyId: clientCompany?.id || "",
               externalId: normalizedInvoice.externalId,
               type: normalizedInvoice.type || "SATIŞ",
               issueDate: normalizedInvoice.issueDate,

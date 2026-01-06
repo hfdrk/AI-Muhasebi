@@ -73,7 +73,7 @@ async function generateDailyRiskSummary(tenantId: string, date: Date): Promise<s
     userPrompt += "Bu tarihte yeni risk uyarısı yok.";
   } else {
     userPrompt += `Risk Uyarıları (${riskAlerts.length} adet):\n`;
-    riskAlerts.forEach((alert) => {
+    riskAlerts.forEach((alert: any) => {
       userPrompt += `- ${alert.severity.toUpperCase()}: ${alert.title}\n`;
       userPrompt += `  ${alert.message}\n`;
       if (alert.clientCompany) {
@@ -131,19 +131,19 @@ async function generatePortfolioOverview(tenantId: string): Promise<string> {
 
   if (riskAlertsSummary.length > 0) {
     userPrompt += "Açık Risk Uyarıları:\n";
-    riskAlertsSummary.forEach((group) => {
+    riskAlertsSummary.forEach((group: any) => {
       userPrompt += `- ${group.severity.toUpperCase()}: ${group._count.id} adet\n`;
     });
     userPrompt += "\n";
   }
 
   // Risk distribution
-  const highRiskCompanies = companies.filter((c) => {
+  const highRiskCompanies = companies.filter((c: any) => {
     const score = c.riskScores[0];
     return score && score.overallScore >= 70;
   });
 
-  const mediumRiskCompanies = companies.filter((c) => {
+  const mediumRiskCompanies = companies.filter((c: any) => {
     const score = c.riskScores[0];
     return score && score.overallScore >= 40 && score.overallScore < 70;
   });

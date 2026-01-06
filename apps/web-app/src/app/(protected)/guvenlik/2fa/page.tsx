@@ -6,6 +6,8 @@ import { securityClient, getCurrentUser } from "@repo/api-client";
 import Link from "next/link";
 import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
+import { Modal } from "../../../../components/ui/Modal";
+import { PageTransition } from "../../../../components/ui/PageTransition";
 import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
 import { toast } from "../../../../lib/toast";
 

@@ -13,10 +13,10 @@ router.use(authMiddleware);
 router.use(tenantMiddleware);
 
 const createDocumentRequirementSchema = z.object({
-  clientCompanyId: z.string().min(1, "Müşteri şirketi gerekli."),
-  documentType: z.string().min(1, "Belge tipi gerekli."),
+  clientCompanyId: z.string().min(1, "Müşteri şirketi gerekli.").max(100, "Müşteri şirketi ID en fazla 100 karakter olabilir."),
+  documentType: z.string().min(1, "Belge tipi gerekli.").max(100, "Belge tipi en fazla 100 karakter olabilir."),
   requiredByDate: z.string().datetime(),
-  description: z.string().optional().nullable(),
+  description: z.string().max(1000, "Açıklama en fazla 1000 karakter olabilir.").optional().nullable(),
 });
 
 const updateDocumentRequirementSchema = createDocumentRequirementSchema.partial().extend({
@@ -72,7 +72,7 @@ router.get(
 // Create requirement
 router.post(
   "/",
-  requirePermission("documents:manage"),
+  requirePermission("documents:create" as any),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const body = createDocumentRequirementSchema.parse(req.body);
@@ -106,7 +106,7 @@ router.post(
 // Update requirement
 router.patch(
   "/:id",
-  requirePermission("documents:manage"),
+  requirePermission("documents:create" as any),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const body = updateDocumentRequirementSchema.parse(req.body);
@@ -141,7 +141,7 @@ router.patch(
 // Delete requirement
 router.delete(
   "/:id",
-  requirePermission("documents:manage"),
+  requirePermission("documents:create" as any),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       await documentRequirementService.deleteRequirement(req.context!.tenantId!, req.params.id);
@@ -156,7 +156,7 @@ router.delete(
 // Check and update missing documents (admin endpoint)
 router.post(
   "/check-missing",
-  requirePermission("documents:manage"),
+  requirePermission("documents:create" as any),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const result = await documentRequirementService.checkAndUpdateMissingDocuments(
@@ -171,6 +171,7 @@ router.post(
 );
 
 export default router;
+
 
 
 

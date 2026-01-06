@@ -27,6 +27,11 @@ export type { LLMClient, LLMClientConfig } from "./llm-client/interface";
 export type { OpenAIClient } from "./llm-client/openai-client";
 export type { AnthropicClient } from "./llm-client/anthropic-client";
 export type { MockLLMClient } from "./llm-client/mock-client";
+// Embedding clients (types only for browser)
+export type { EmbeddingClient, EmbeddingClientConfig, EmbeddingProvider } from "./llm-client/embedding-clients/embedding-interface";
+export type { OpenAIEmbeddingClient } from "./llm-client/embedding-clients/openai-embedding-client";
+export type { AnthropicEmbeddingClient } from "./llm-client/embedding-clients/anthropic-embedding-client";
+export type { OllamaEmbeddingClient } from "./llm-client/embedding-clients/ollama-embedding-client";
 
 // NOTE: hasRealAIProvider is already exported above as a function declaration
 // No need to re-export as it's already hoisted and available

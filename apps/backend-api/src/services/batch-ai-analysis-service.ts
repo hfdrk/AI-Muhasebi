@@ -2,6 +2,8 @@ import { prisma } from "../lib/prisma";
 import { createLLMClient } from "@repo/shared-utils";
 import { NotFoundError, ValidationError } from "@repo/shared-utils";
 import { auditService } from "./audit-service";
+import { ragService } from "./rag-service";
+import { logger } from "@repo/shared-utils";
 
 export interface BatchAnalysisResult {
   analysisId: string;
@@ -98,8 +100,14 @@ export class BatchAIAnalysisService {
     clientCompanyId: string,
     documentIds: string[]
   ): Promise<string> {
-    const result = await this.analyzeBatchContents(tenantId, clientCompanyId, documentIds);
-    return result.summary;
+    try {
+      const result = await this.analyzeBatchContents(tenantId, clientCompanyId, documentIds);
+      return result.summary;
+    } catch (error: any) {
+      logger.error("[Batch AI Analysis] Error generating batch risk summary:", { error });
+      // Return a basic summary if AI analysis fails
+      return `Toplu belge analizi tamamlandı. ${documentIds.length} belge işlendi. Detaylı analiz için lütfen tekrar deneyin.`;
+    }
   }
 
   /**
@@ -132,7 +140,7 @@ export class BatchAIAnalysisService {
   }
 
   /**
-   * Generate AI analysis using LLM
+   * Generate AI analysis using LLM with RAG context
    */
   private async generateAIAnalysis(
     tenantId: string,
@@ -146,6 +154,32 @@ export class BatchAIAnalysisService {
 
     const companyName = clientCompany?.name || "Bilinmeyen Şirket";
 
+    // Use RAG to find similar historical batches for context
+    let historicalContext = "";
+    try {
+      const query = `Toplu belge yüklemeleri ve risk analizi - ${companyName}`;
+      const ragContext = await ragService.retrieveContext(query, tenantId, {
+        topK: 3,
+        includeMetadata: true,
+        filters: {
+          clientCompanyId,
+          documentType: "INVOICE",
+        },
+      });
+
+      if (ragContext.documents.length > 0) {
+        historicalContext = "\n\nBenzer Geçmiş Belgeler:\n";
+        ragContext.documents.forEach((doc, index) => {
+          historicalContext += `${index + 1}. ${doc.text?.substring(0, 200)}... (Benzerlik: ${(doc.similarity * 100).toFixed(1)}%)\n`;
+        });
+      }
+    } catch (ragError: any) {
+      // Log but continue without RAG context
+      logger.warn("Failed to retrieve RAG context for batch analysis", { tenantId }, {
+        error: ragError.message,
+      });
+    }
+
     const systemPrompt = `Sen bir muhasebe risk analiz uzmanısın. Toplu belge yüklemelerini analiz edip risk değerlendirmesi yapıyorsun.
 Türkçe, profesyonel ve detaylı raporlar hazırlıyorsun.`;
 
@@ -154,7 +188,7 @@ Türkçe, profesyonel ve detaylı raporlar hazırlıyorsun.`;
 Şirket: ${companyName}
 Toplam Belge Sayısı: ${documents.length}
 Yükleme Tarihi: ${new Date().toLocaleDateString("tr-TR")}
-
+${historicalContext}
 Belge Özetleri:
 ${documentSummaries.join("\n\n")}
 
@@ -164,6 +198,7 @@ Lütfen şunları analiz et:
 3. Anomaliler veya tutarsızlıklar
 4. Dikkat edilmesi gereken noktalar
 5. Öneriler ve aksiyon öğeleri
+${historicalContext ? "6. Geçmiş benzer belgelerle karşılaştırma" : ""}
 
 Detaylı bir Türkçe analiz raporu hazırla.`;
 
@@ -176,7 +211,7 @@ Detaylı bir Türkçe analiz raporu hazırla.`;
 
       return analysis;
     } catch (error: any) {
-      console.error("Error generating AI analysis:", error);
+      logger.error("Error generating AI analysis:", { error });
       // Fallback to basic analysis if AI fails
       return this.generateFallbackAnalysis(documents);
     }

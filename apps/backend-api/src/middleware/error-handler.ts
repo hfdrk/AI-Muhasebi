@@ -3,6 +3,7 @@ import { z } from "zod";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { AuthenticationError, AuthorizationError, ValidationError, NotFoundError } from "@repo/shared-utils";
 import { logger } from "@repo/shared-utils";
+import { captureException, setUserContext, clearUserContext } from "../lib/sentry";
 
 export function errorHandler(
   err: Error,
@@ -27,6 +28,32 @@ export function errorHandler(
     path: req.path,
     method: req.method,
   });
+
+  // Set user context for Sentry if available
+  if (context.userId) {
+    setUserContext(context.userId, context.tenantId);
+  }
+
+  // Capture non-client errors in Sentry (skip 4xx errors except 401/403)
+  const statusCode = res.statusCode || 500;
+  if (statusCode >= 500 || (statusCode >= 400 && statusCode < 500 && !(err instanceof AuthenticationError || err instanceof AuthorizationError))) {
+    captureException(err, {
+      request: {
+        method: req.method,
+        path: req.path,
+        query: req.query,
+        headers: {
+          // Don't log sensitive headers
+          authorization: req.headers.authorization ? "[REDACTED]" : undefined,
+          cookie: req.headers.cookie ? "[REDACTED]" : undefined,
+        },
+      },
+      ...context,
+    });
+  }
+
+  // Clear user context after error handling
+  clearUserContext();
 
   if (err instanceof AuthenticationError) {
     res.status(401).json({

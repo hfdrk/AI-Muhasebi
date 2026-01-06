@@ -2,6 +2,7 @@ import { prisma } from "../lib/prisma";
 import { logger } from "@repo/shared-utils";
 
 // Use dynamic imports to load services from backend-api at runtime
+// If not available (e.g., in Docker), skip this check gracefully
 async function getContractAnalysisService() {
   try {
     const module = await import("../../../backend-api/src/services/contract-analysis-service.js");
@@ -11,9 +12,9 @@ async function getContractAnalysisService() {
       const module = await import("../../../backend-api/src/services/contract-analysis-service");
       return module.contractAnalysisService;
     } catch (error2: unknown) {
-      const msg1 = error1 instanceof Error ? error1.message : String(error1);
-      const msg2 = error2 instanceof Error ? error2.message : String(error2);
-      throw new Error(`Failed to load ContractAnalysisService: ${msg1}, ${msg2}`);
+      // Service not available (e.g., in Docker container), return null to skip
+      logger.warn("[ContractExpirationChecker] ContractAnalysisService not available, skipping contract checks");
+      return null;
     }
   }
 }
@@ -26,6 +27,12 @@ export async function processContractExpirationChecks(): Promise<void> {
     logger.info("[ContractExpirationChecker] Starting contract expiration checks");
 
     const contractAnalysisService = await getContractAnalysisService();
+    
+    // Skip if service not available
+    if (!contractAnalysisService) {
+      logger.info("[ContractExpirationChecker] Skipping - ContractAnalysisService not available");
+      return;
+    }
 
     // Get all active tenants
     const tenants = await prisma.tenant.findMany({

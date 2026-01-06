@@ -90,6 +90,7 @@ model Tenant {
   retryQueueItems         RetryQueue[]
   MessageThread           MessageThread[]
   emailLogs               EmailLog[]
+  documentEmbeddings      DocumentEmbedding[]
 
   @@index([slug])
   @@map("tenants")
@@ -393,6 +394,7 @@ model Document {
   riskScore            DocumentRiskScore?
   riskAlerts           RiskAlert[]
   documentRequirements DocumentRequirement[]
+  embedding            DocumentEmbedding?
 
   @@index([tenantId])
   @@index([clientCompanyId])
@@ -477,6 +479,23 @@ model DocumentRiskFeatures {
   @@index([documentId])
   @@index([tenantId, riskScore])
   @@map("document_risk_features")
+}
+
+model DocumentEmbedding {
+  id         String   @id @default(cuid())
+  tenantId   String   @map("tenant_id")
+  documentId String   @unique @map("document_id")
+  embedding  Unsupported("vector(1536)") // pgvector - dimensions configurable
+  model      String   @db.VarChar(100) // openai:text-embedding-3-small, anthropic:claude-embed, ollama:llama2
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([documentId])
+  @@index([tenantId, model])
+  @@map("document_embeddings")
 }
 
 model RiskRule {

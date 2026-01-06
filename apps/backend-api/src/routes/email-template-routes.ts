@@ -1,5 +1,6 @@
 import { Router, type Response, type NextFunction, type Router as ExpressRouter } from "express";
 import { z } from "zod";
+import { logger } from "@repo/shared-utils";
 import { emailTemplateService } from "../services/email-template-service";
 import { emailService } from "../services/email-service";
 import { authMiddleware } from "../middleware/auth-middleware";
@@ -49,7 +50,7 @@ router.get("/", async (req: AuthenticatedRequest, res: Response) => {
 
     res.json({ data: templates });
   } catch (error: any) {
-    console.error("Error listing email templates:", error);
+    logger.error("Error listing email templates:", { error });
     const statusCode = error.statusCode || 500;
     const message = error.message || "Şablonlar alınırken bir hata oluştu.";
     res.status(statusCode).json({ error: { message } });
@@ -188,6 +189,7 @@ router.post("/:name/test", async (req: AuthenticatedRequest, res: Response, next
 });
 
 export default router;
+
 
 
 

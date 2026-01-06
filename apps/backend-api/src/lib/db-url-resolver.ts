@@ -6,6 +6,7 @@
 import { execSync } from "child_process";
 import { PrismaClient } from "@prisma/client";
 import path from "path";
+import { logger } from "@repo/shared-utils";
 
 const MAIN_DB_NAME = "ai_muhasebi";
 
@@ -168,7 +169,7 @@ export async function resolveDatabaseUrl(): Promise<string> {
         
         if (!result[0]?.exists) {
           await adminPrisma.$executeRawUnsafe(`CREATE DATABASE ${MAIN_DB_NAME}`);
-          console.log(`✅ Created main database: ${MAIN_DB_NAME}`);
+          logger.info(`Created main database: ${MAIN_DB_NAME}`);
         }
       } finally {
         await adminPrisma.$disconnect();
@@ -176,7 +177,7 @@ export async function resolveDatabaseUrl(): Promise<string> {
     } catch (error: any) {
       // If we can't create the database, continue anyway - it might already exist
       // or the user might need to create it manually
-      console.warn(`Warning: Could not verify/create database ${MAIN_DB_NAME}:`, error.message);
+      logger.warn(`Warning: Could not verify/create database ${MAIN_DB_NAME}:`, { error: error.message });
     }
     
     resolvedUrl = `postgresql://${credentials.user}:${credentials.password}@localhost:5432/${MAIN_DB_NAME}`;
@@ -186,16 +187,14 @@ export async function resolveDatabaseUrl(): Promise<string> {
     
     // Try to run migrations to ensure schema is up to date
     try {
-      // Get backend-api directory - try multiple methods for ESM/CommonJS compatibility
+      // Get backend-api directory - use CommonJS approach since we're compiling to CommonJS
       let backendApiDir: string;
-      try {
-        // ESM: use import.meta.url
-        const { fileURLToPath } = await import("url");
-        // @ts-ignore - import.meta is available in ESM but TypeScript may not recognize it
-        const currentFile = fileURLToPath(import.meta.url);
-        backendApiDir = path.resolve(path.dirname(currentFile), "../..");
-      } catch {
-        // CommonJS fallback or if import.meta is not available
+      // Use __dirname for CommonJS (available after compilation)
+      if (typeof __dirname !== "undefined") {
+        // We're in dist/lib, so go up to dist, then to apps/backend-api
+        backendApiDir = path.resolve(__dirname, "../../");
+      } else {
+        // Fallback to process.cwd()
         backendApiDir = path.resolve(process.cwd(), "apps/backend-api");
         // If that doesn't work, try relative to current working directory
         const fs = await import("fs");
@@ -206,7 +205,7 @@ export async function resolveDatabaseUrl(): Promise<string> {
         }
       }
       
-      console.log("🔄 Syncing database schema...");
+      logger.info("Syncing database schema...");
       execSync("npx prisma db push --skip-generate --accept-data-loss", {
         cwd: backendApiDir,
         stdio: "pipe", // Use pipe to avoid cluttering output
@@ -215,10 +214,10 @@ export async function resolveDatabaseUrl(): Promise<string> {
           DATABASE_URL: resolvedUrl,
         },
       });
-      console.log("✅ Database schema synced");
+      logger.info("Database schema synced");
     } catch (migrationError: any) {
       // Migration errors are non-fatal - database might already be up to date
-      console.warn("⚠️  Could not sync database schema (this is usually OK if schema is already up to date)");
+      logger.warn("Could not sync database schema (this is usually OK if schema is already up to date)");
     }
     
     return resolvedUrl;
@@ -270,8 +269,8 @@ export function getDatabaseUrlSync(): string {
     resolvedUrl = `postgresql://${creds.user}:${creds.password}@localhost:5432/${MAIN_DB_NAME}`;
     process.env.DATABASE_URL = resolvedUrl;
     
-    console.log(`🔧 Using database credentials: ${creds.user}@localhost:5432/${MAIN_DB_NAME}`);
-    console.log(`   (Will verify and update if needed during async resolution)`);
+    logger.info(`Using database credentials: ${creds.user}@localhost:5432/${MAIN_DB_NAME}`);
+    logger.info(`(Will verify and update if needed during async resolution)`);
     
     return resolvedUrl;
   } catch (error: any) {
@@ -279,7 +278,7 @@ export function getDatabaseUrlSync(): string {
     const fallbackUrl = `postgresql://ai_muhasebi:ai_muhasebi_dev@localhost:5432/${MAIN_DB_NAME}`;
     if (!process.env.DATABASE_URL) {
       process.env.DATABASE_URL = fallbackUrl;
-      console.warn(`⚠️  Using fallback DATABASE_URL: postgres@localhost:5432/${MAIN_DB_NAME}`);
+      logger.warn(`Using fallback DATABASE_URL: postgres@localhost:5432/${MAIN_DB_NAME}`);
     }
     return process.env.DATABASE_URL;
   }

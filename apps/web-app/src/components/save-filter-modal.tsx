@@ -3,7 +3,26 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createSavedFilter } from "@repo/api-client";
-import { savedFilters as savedFiltersI18n, common as commonI18n } from "@repo/i18n";
+
+// Use hardcoded strings to avoid i18n import issues
+const savedFiltersI18n = {
+  name: "Filtre Adı",
+  setAsDefault: "Varsayılan olarak ayarla",
+  save: "Kaydet",
+  cancel: "İptal",
+  saveFilter: "Filtreyi Kaydet",
+  filterName: "Filtre Adı",
+  filterNamePlaceholder: "Filtre adını girin",
+  saved: "Filtre başarıyla kaydedildi",
+};
+const commonI18n = {
+  labels: {
+    loading: "Yükleniyor...",
+  },
+  buttons: {
+    cancel: "İptal",
+  },
+};
 
 interface SaveFilterModalProps {
   target: string;

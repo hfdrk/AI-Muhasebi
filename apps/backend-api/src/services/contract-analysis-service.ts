@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma";
+import { logger } from "@repo/shared-utils";
 import { notificationService } from "./notification-service";
 import type { ParsedContractFields } from "@repo/core-domain";
 
@@ -67,7 +68,7 @@ export class ContractAnalysisService {
         }
       }
     } catch (error) {
-      console.error(`[ContractAnalysisService] Error parsing date: ${dateStr}`, error);
+      logger.error(`[ContractAnalysisService] Error parsing date: ${dateStr}`, { error });
     }
 
     return null;
@@ -309,7 +310,7 @@ export class ContractAnalysisService {
               documentId: contract.documentId,
               clientCompanyId: contract.clientCompanyId,
               contractNumber: contract.contractNumber,
-              expirationDate: contract.expirationDate ? (typeof contract.expirationDate === 'string' ? contract.expirationDate : contract.expirationDate.toISOString()) : null,
+              expirationDate: contract.expirationDate ? (typeof contract.expirationDate === 'string' ? contract.expirationDate : (contract.expirationDate as Date).toISOString()) : null,
             },
           });
 
@@ -330,17 +331,17 @@ export class ContractAnalysisService {
             }
           } catch (emailError: any) {
             // Don't fail notification creation if email fails
-            console.error(
+            logger.error(
               `[ContractAnalysisService] Failed to send email notification for expired contract: ${contract.contractId}`,
-              emailError
+              { error: emailError }
             );
           }
 
           alertsCreated++;
         } catch (error) {
-          console.error(
+          logger.error(
             `[ContractAnalysisService] Error creating notification for expired contract: ${contract.contractId}`,
-            error
+            { error }
           );
         }
       }
@@ -387,7 +388,7 @@ export class ContractAnalysisService {
               documentId: contract.documentId,
               clientCompanyId: contract.clientCompanyId,
               contractNumber: contract.contractNumber,
-              expirationDate: contract.expirationDate ? (typeof contract.expirationDate === 'string' ? contract.expirationDate : contract.expirationDate.toISOString()) : null,
+              expirationDate: contract.expirationDate ? (typeof contract.expirationDate === 'string' ? contract.expirationDate : (contract.expirationDate as Date).toISOString()) : null,
               daysUntilExpiration,
             },
           });
@@ -411,17 +412,17 @@ export class ContractAnalysisService {
             }
           } catch (emailError: any) {
             // Don't fail notification creation if email fails
-            console.error(
+            logger.error(
               `[ContractAnalysisService] Failed to send email notification for expiring contract: ${contract.contractId}`,
-              emailError
+              { error: emailError }
             );
           }
 
           alertsCreated++;
         } catch (error) {
-          console.error(
+          logger.error(
             `[ContractAnalysisService] Error creating notification for expiring contract: ${contract.contractId}`,
-            error
+            { error }
           );
         }
       }

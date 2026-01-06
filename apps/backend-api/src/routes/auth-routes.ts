@@ -10,18 +10,18 @@ const router: ExpressRouter = Router();
 
 const loginSchema = z.object({
   email: emailValidator,
-  password: z.string().min(1, "Şifre gerekli."),
+  password: z.string().min(1, "Şifre gerekli.").max(255, "Şifre en fazla 255 karakter olabilir."),
 });
 
 const registerSchema = z.object({
   user: z.object({
     email: emailValidator,
-    password: z.string().min(1, "Şifre gerekli."),
-    fullName: z.string().min(1, "Ad soyad gerekli."),
+    password: z.string().min(1, "Şifre gerekli.").max(255, "Şifre en fazla 255 karakter olabilir."),
+    fullName: z.string().min(1, "Ad soyad gerekli.").max(255, "Ad soyad en fazla 255 karakter olabilir."),
   }),
   tenant: z.object({
-    name: z.string().min(1, "Ofis adı gerekli."),
-    slug: z.string().min(1, "Ofis kısa adı gerekli.").regex(/^[a-z0-9-]+$/, "Kısa ad sadece küçük harf, rakam ve tire içerebilir."),
+    name: z.string().min(1, "Ofis adı gerekli.").max(255, "Ofis adı en fazla 255 karakter olabilir."),
+    slug: z.string().min(1, "Ofis kısa adı gerekli.").max(100, "Kısa ad en fazla 100 karakter olabilir.").regex(/^[a-z0-9-]+$/, "Kısa ad sadece küçük harf, rakam ve tire içerebilir."),
     taxNumber: z.string().optional(),
     phone: z.string().optional(),
     email: emailValidator.optional().or(z.literal("")),
@@ -34,8 +34,8 @@ const forgotPasswordSchema = z.object({
 });
 
 const resetPasswordSchema = z.object({
-  token: z.string().min(1, "Token gerekli."),
-  password: z.string().min(1, "Şifre gerekli."),
+  token: z.string().min(1, "Token gerekli.").max(500, "Token en fazla 500 karakter olabilir."),
+  password: z.string().min(1, "Şifre gerekli.").max(255, "Şifre en fazla 255 karakter olabilir."),
 });
 
 router.post("/login", async (req: Request, res: Response, next: NextFunction) => {
@@ -43,7 +43,7 @@ router.post("/login", async (req: Request, res: Response, next: NextFunction) =>
     const body = loginSchema.parse(req.body);
     const ipAddress = req.ip || req.socket.remoteAddress || undefined;
 
-    const result = await authService.login(body, ipAddress);
+    const result = await authService.login(body as any, ipAddress);
 
     // Set refresh token in httpOnly cookie
     res.cookie("refreshToken", result.refreshToken, {
@@ -78,7 +78,7 @@ router.post("/register", async (req: Request, res: Response, next: NextFunction)
     const body = registerSchema.parse(req.body);
     const ipAddress = req.ip || req.socket.remoteAddress || undefined;
 
-    const result = await authService.register(body, ipAddress);
+    const result = await authService.register(body as any, ipAddress);
 
     // Set refresh token in httpOnly cookie
     res.cookie("refreshToken", result.refreshToken, {
@@ -181,4 +181,5 @@ router.post("/logout", async (req: AuthenticatedRequest, res: Response, next: Ne
 });
 
 export default router;
+
 

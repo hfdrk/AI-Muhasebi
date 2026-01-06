@@ -1,5 +1,5 @@
 import AdmZip from "adm-zip";
-import { ValidationError } from "@repo/shared-utils";
+import { ValidationError, logger } from "@repo/shared-utils";
 import { getStorageConfig } from "@repo/config";
 import path from "path";
 
@@ -55,14 +55,14 @@ export class ZipExtractionService {
       // Security: prevent path traversal
       const safePath = this.sanitizePath(entry.entryName);
       if (!safePath) {
-        console.warn(`Skipping file with unsafe path: ${entry.entryName}`);
+        logger.warn(`Skipping file with unsafe path: ${entry.entryName}`);
         continue;
       }
 
       // Security: check file name length
       const fileName = path.basename(safePath);
       if (fileName.length > this.MAX_FILE_NAME_LENGTH) {
-        console.warn(`Skipping file with name too long: ${fileName}`);
+        logger.warn(`Skipping file with name too long: ${fileName}`);
         continue;
       }
 
@@ -71,7 +71,7 @@ export class ZipExtractionService {
       try {
         fileBuffer = entry.getData();
       } catch (error: any) {
-        console.warn(`Error extracting file ${entry.entryName}: ${error.message}`);
+        logger.warn(`Error extracting file ${entry.entryName}:`, { error: error.message });
         continue;
       }
 
@@ -117,7 +117,7 @@ export class ZipExtractionService {
     return files.filter((file) => {
       const isSupported = supportedMimeTypes.includes(file.mimeType);
       if (!isSupported) {
-        console.warn(`Skipping unsupported file type: ${file.name} (${file.mimeType})`);
+        logger.warn(`Skipping unsupported file type: ${file.name} (${file.mimeType})`);
       }
       return isSupported;
     });

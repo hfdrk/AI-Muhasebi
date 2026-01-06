@@ -87,7 +87,7 @@ async function smokeTest(): Promise<void> {
         const beforeStatus = job.status;
 
         try {
-          await integrationSyncProcessor.processIntegrationSyncJob(job.tenantId, job.id);
+          await integrationSyncProcessor.processSyncJob(job.id);
           
           // Check if job status changed
           const afterJob = await prisma.integrationSyncJob.findUnique({

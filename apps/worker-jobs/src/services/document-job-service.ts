@@ -16,7 +16,7 @@ export class DocumentJobService {
       orderBy: { createdAt: "asc" },
     });
 
-    return jobs.map((job) => ({
+    return jobs.map((job: any) => ({
       id: job.id,
       tenantId: job.tenantId,
       documentId: job.documentId,

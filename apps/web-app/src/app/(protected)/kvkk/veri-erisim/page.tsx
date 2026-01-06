@@ -48,6 +48,18 @@ export default function DataAccessRequestsPage() {
 
   const users = usersData?.data || [];
 
+  // Fetch access requests history
+  const { data: accessRequestsData, isLoading: accessRequestsLoading } = useQuery({
+    queryKey: ["kvkk-data-access-requests"],
+    queryFn: () => kvkkClient.listDataAccessRequests(),
+    enabled: !!tenantId,
+  });
+
+  const accessRequests = accessRequestsData?.data || [];
+
+  // Create user map for display
+  const userMap = new Map(users.map((user: any) => [user.id, user]));
+
   // Request data access mutation
   const requestAccessMutation = useMutation({
     mutationFn: () => {
@@ -56,8 +68,8 @@ export default function DataAccessRequestsPage() {
     },
     onSuccess: (data) => {
       toast.success("Veri erişim talebi başarıyla oluşturuldu!");
-      console.log("Data Access Request:", data);
       queryClient.invalidateQueries({ queryKey: ["kvkk-data-access"] });
+      queryClient.invalidateQueries({ queryKey: ["kvkk-data-access-requests"] });
     },
     onError: (error: Error) => {
       toast.error(`Hata: ${error.message}`);
@@ -201,13 +213,138 @@ export default function DataAccessRequestsPage() {
         </div>
       </Card>
 
-      {/* Request History Placeholder */}
-      <Card variant="elevated" title="Talep Geçmişi">
-        <div style={{ padding: spacing.lg, textAlign: "center" }}>
-          <p style={{ color: colors.text.secondary, margin: 0 }}>
-            Talep geçmişi özelliği yakında eklenecektir.
-          </p>
-        </div>
+      {/* Request History */}
+      <Card variant="elevated" style={{ marginBottom: spacing.lg }}>
+        <h2
+          style={{
+            margin: `0 0 ${spacing.md} 0`,
+            fontSize: typography.fontSize.xl,
+            fontWeight: typography.fontWeight.semibold,
+            color: colors.text.primary,
+          }}
+        >
+          Talep Geçmişi
+        </h2>
+        {accessRequestsLoading ? (
+          <div style={{ padding: spacing.lg, textAlign: "center" }}>
+            <p style={{ color: colors.text.secondary, margin: 0 }}>Yükleniyor...</p>
+          </div>
+        ) : accessRequests.length === 0 ? (
+          <div style={{ padding: spacing.lg, textAlign: "center" }}>
+            <p style={{ color: colors.text.secondary, margin: 0 }}>
+              Henüz veri erişim talebi bulunmuyor.
+            </p>
+          </div>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ backgroundColor: colors.gray[100], borderBottom: `1px solid ${colors.border}` }}>
+                  <th style={{ padding: spacing.sm, textAlign: "left", fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
+                    Kullanıcı
+                  </th>
+                  <th style={{ padding: spacing.sm, textAlign: "left", fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
+                    Durum
+                  </th>
+                  <th style={{ padding: spacing.sm, textAlign: "left", fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
+                    Talep Tarihi
+                  </th>
+                  <th style={{ padding: spacing.sm, textAlign: "left", fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
+                    Tamamlanma Tarihi
+                  </th>
+                  <th style={{ padding: spacing.sm, textAlign: "left", fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
+                    İşlemler
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {accessRequests.map((request: any) => {
+                  const user = userMap.get(request.userId);
+                  const statusColor = 
+                    request.status === "completed" ? colors.success
+                    : request.status === "rejected" ? colors.danger
+                    : request.status === "processing" ? colors.warning
+                    : colors.info;
+                  
+                  return (
+                    <tr key={request.id || request.requestId} style={{ borderBottom: `1px solid ${colors.border}` }}>
+                      <td style={{ padding: spacing.sm }}>
+                        {user ? (
+                          <div>
+                            <div style={{ fontWeight: typography.fontWeight.medium }}>
+                              {user.name || user.fullName}
+                            </div>
+                            <div style={{ fontSize: typography.fontSize.xs, color: colors.text.secondary }}>
+                              {user.email}
+                            </div>
+                          </div>
+                        ) : (
+                          <span style={{ color: colors.text.secondary }}>Bilinmeyen Kullanıcı</span>
+                        )}
+                      </td>
+                      <td style={{ padding: spacing.sm }}>
+                        <span
+                          style={{
+                            padding: "4px 8px",
+                            borderRadius: borderRadius.sm,
+                            fontSize: typography.fontSize.xs,
+                            backgroundColor: `${statusColor}20`,
+                            color: statusColor,
+                            fontWeight: typography.fontWeight.medium,
+                          }}
+                        >
+                          {STATUS_LABELS[request.status] || request.status}
+                        </span>
+                      </td>
+                      <td style={{ padding: spacing.sm, color: colors.text.secondary }}>
+                        {new Date(request.requestedAt).toLocaleDateString("tr-TR", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </td>
+                      <td style={{ padding: spacing.sm, color: colors.text.secondary }}>
+                        {request.completedAt
+                          ? new Date(request.completedAt).toLocaleDateString("tr-TR", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : "-"}
+                      </td>
+                      <td style={{ padding: spacing.sm }}>
+                        {request.status === "completed" && request.data ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const dataStr = JSON.stringify(request.data, null, 2);
+                              const dataBlob = new Blob([dataStr], { type: "application/json" });
+                              const url = URL.createObjectURL(dataBlob);
+                              const link = document.createElement("a");
+                              link.href = url;
+                              link.download = `veri-erişim-${request.id || request.requestId}.json`;
+                              link.click();
+                              URL.revokeObjectURL(url);
+                            }}
+                          >
+                            İndir
+                          </Button>
+                        ) : (
+                          "-"
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Card>
 
       <style jsx global>{`

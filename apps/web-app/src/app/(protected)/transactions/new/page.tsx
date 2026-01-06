@@ -6,6 +6,7 @@ import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createTransaction, listClientCompanies, listLedgerAccounts } from "@repo/api-client";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { useState } from "react";
 import Link from "next/link";
 import { colors, spacing, borderRadius } from "@/styles/design-system";
@@ -39,7 +40,7 @@ const transactionSchema = z.object({
 
 type TransactionForm = z.infer<typeof transactionSchema>;
 
-export default function NewTransactionPage() {
+function NewTransactionPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
@@ -423,6 +424,14 @@ export default function NewTransactionPage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function NewTransactionPage() {
+  return (
+    <Suspense fallback={<div>Yükleniyor...</div>}>
+      <NewTransactionPageContent />
+    </Suspense>
   );
 }
 

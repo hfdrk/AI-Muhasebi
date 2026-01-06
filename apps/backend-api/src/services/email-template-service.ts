@@ -5,7 +5,10 @@
  * Templates are stored in the templates/email/ directory
  */
 
+// @ts-ignore - handlebars types may not be available
 import Handlebars from "handlebars";
+// @ts-ignore
+import type { TemplateDelegate } from "handlebars";
 import { readFileSync } from "fs";
 import { join } from "path";
 
@@ -14,7 +17,7 @@ export interface TemplateVariables {
 }
 
 export class EmailTemplateService {
-  private templateCache: Map<string, HandlebarsTemplateDelegate> = new Map();
+  private templateCache: Map<string, TemplateDelegate> = new Map();
   private templatesDir: string;
 
   constructor() {
@@ -25,7 +28,7 @@ export class EmailTemplateService {
   /**
    * Get template from cache or load from file
    */
-  private getTemplate(templateName: string): HandlebarsTemplateDelegate {
+  private getTemplate(templateName: string): TemplateDelegate {
     // Check cache first
     if (this.templateCache.has(templateName)) {
       return this.templateCache.get(templateName)!;

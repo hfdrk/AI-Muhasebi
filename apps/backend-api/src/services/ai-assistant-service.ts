@@ -1,6 +1,8 @@
 import { prisma } from "../lib/prisma";
-import { createLLMClient, hasRealAIProvider } from "@repo/shared-utils";
+import { createLLMClient, hasRealAIProvider, logger } from "@repo/shared-utils";
+import { getConfig } from "@repo/config";
 import { auditService } from "./audit-service";
+import { ragService } from "./rag-service";
 
 export type AIAssistantType = "CHAT" | "DAILY_RISK_SUMMARY" | "PORTFOLIO_OVERVIEW";
 
@@ -8,6 +10,22 @@ export interface ChatContextFilters {
   type?: "GENEL" | "RAPOR" | "RISK";
   dateRange?: { from: Date; to: Date };
   companyId?: string;
+}
+
+export interface ConversationMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface EnhancedChatInput {
+  tenantId: string;
+  userId: string;
+  question: string;
+  type?: "GENEL" | "RAPOR" | "RISK";
+  contextFilters?: ChatContextFilters;
+  conversationHistory?: ConversationMessage[];
+  useHybridSearch?: boolean;
+  useReranking?: boolean;
 }
 
 export class AIAssistantService {
@@ -18,9 +36,9 @@ export class AIAssistantService {
       this._llmClient = createLLMClient();
       // Log which client is being used (without exposing API keys)
       const clientType = this._llmClient.constructor.name;
-      console.log(`[AI Assistant] Using LLM client: ${clientType}`);
+      logger.info(`[AI Assistant] Using LLM client: ${clientType}`);
       if (clientType === "MockLLMClient") {
-        console.warn("[AI Assistant] WARNING: Using MockLLMClient. Set OPENAI_API_KEY or ANTHROPIC_API_KEY to use real AI.");
+        logger.warn("[AI Assistant] WARNING: Using MockLLMClient. Set OPENAI_API_KEY or ANTHROPIC_API_KEY to use real AI.");
       }
     }
     return this._llmClient;
@@ -38,8 +56,8 @@ export class AIAssistantService {
   }): Promise<string> {
     const { tenantId, userId, question, type, contextFilters } = input;
 
-    // Fetch relevant data based on question and filters
-    const contextData = await this.buildContextData(tenantId, question, type, contextFilters);
+    // Fetch relevant data using RAG (semantic search) + keyword fallback
+    const contextData = await this.retrieveRAGContext(tenantId, question, type, contextFilters);
 
     // Build system prompt
     const systemPrompt = `Sen bir muhasebe asistanısın. Türkçe yanıt ver. Kullanıcının muhasebe ofisindeki verileri hakkında sorularına yanıt veriyorsun.
@@ -78,13 +96,13 @@ Yanıtlarını Türkçe, profesyonel ve yardımcı bir tonla ver.`;
         });
       } catch (auditError: any) {
         // Don't fail the request if audit logging fails
-        console.error("Audit logging failed:", auditError.message);
+        logger.error("Audit logging failed:", { error: auditError.message });
       }
 
       return answer;
     } catch (error: any) {
       // Log the actual error for debugging
-      console.error("[AI Assistant] Error generating chat response:", {
+      logger.error("[AI Assistant] Error generating chat response:", {
         error: error.message,
         stack: error.stack,
         tenantId,
@@ -109,7 +127,7 @@ Yanıtlarını Türkçe, profesyonel ve yardımcı bir tonla ver.`;
         });
       } catch (auditError: any) {
         // Don't fail if audit logging fails
-        console.error("Audit logging failed:", auditError.message);
+        logger.error("Audit logging failed:", { error: auditError.message });
       }
 
       // Re-throw with user-friendly message
@@ -204,7 +222,7 @@ Yanıtlarını Türkçe, profesyonel ve yardımcı bir tonla ver.`;
       return summary;
     } catch (error: any) {
       // Log the actual error for debugging
-      console.error("[AI Assistant] Error generating daily risk summary:", error);
+      logger.error("[AI Assistant] Error generating daily risk summary:", { error });
       
       await auditService.log({
         tenantId,
@@ -311,7 +329,7 @@ Yanıtlarını Türkçe, profesyonel ve yardımcı bir tonla ver.`;
       return summary;
     } catch (error: any) {
       // Log the actual error for debugging
-      console.error("[AI Assistant] Error generating portfolio overview:", error);
+      logger.error("[AI Assistant] Error generating portfolio overview:", { error });
       
       await auditService.log({
         tenantId,
@@ -333,16 +351,56 @@ Yanıtlarını Türkçe, profesyonel ve yardımcı bir tonla ver.`;
   }
 
   /**
-   * Build context data for chat based on question
+   * Retrieve context using RAG (Retrieval Augmented Generation)
+   * Uses semantic search to find relevant documents, then supplements with keyword-based queries
    */
-  private async buildContextData(
+  private async retrieveRAGContext(
     tenantId: string,
     question: string,
     type?: "GENEL" | "RAPOR" | "RISK",
     filters?: ChatContextFilters
   ): Promise<any> {
-    const questionLower = question.toLowerCase();
     const context: any = {};
+    const config = getConfig();
+
+    try {
+      // Check if RAG is enabled before using it
+      if (!config.RAG_ENABLED) {
+        logger.debug("RAG is disabled, skipping semantic search", { tenantId });
+        // Continue to keyword-based fallback below
+      } else {
+        // Use RAG to find semantically similar documents
+        const ragContext = await ragService.retrieveContext(question, tenantId, {
+          topK: 5,
+          includeMetadata: true,
+          filters: {
+            clientCompanyId: filters?.companyId,
+            documentType: type === "RAPOR" ? "INVOICE" : undefined,
+            dateRange: filters?.dateRange,
+          },
+        });
+
+        // Add RAG-retrieved documents to context
+        if (ragContext.documents.length > 0) {
+          context.ragDocuments = ragContext.documents.map((doc) => ({
+            id: doc.documentId,
+            text: doc.text,
+            similarity: doc.similarity,
+            type: doc.metadata?.type,
+            clientCompanyId: doc.metadata?.clientCompanyId,
+          }));
+        }
+      }
+    } catch (ragError: any) {
+      // Log but continue with keyword-based fallback
+      logger.warn("RAG retrieval failed, using keyword fallback", { tenantId }, {
+        error: ragError.message,
+        questionLength: question.length,
+      });
+    }
+
+    // Supplement with keyword-based queries for structured data
+    const questionLower = question.toLowerCase();
 
     // Risk-related questions
     if (type === "RISK" || questionLower.includes("risk") || questionLower.includes("uyarı")) {
@@ -417,11 +475,27 @@ Yanıtlarını Türkçe, profesyonel ve yardımcı bir tonla ver.`;
   }
 
   /**
-   * Build chat prompt with context
+   * Build enhanced chat prompt with RAG context
    */
   private buildChatPrompt(question: string, contextData: any, type?: string): string {
     let prompt = `Kullanıcı sorusu: ${question}\n\n`;
 
+    // Add RAG-retrieved documents first (most relevant)
+    if (contextData.ragDocuments && contextData.ragDocuments.length > 0) {
+      prompt += "İlgili Belgeler (Semantik Arama Sonuçları):\n";
+      contextData.ragDocuments.forEach((doc: any, index: number) => {
+        prompt += `${index + 1}. Belge ID: ${doc.id} (Benzerlik: ${(doc.similarity * 100).toFixed(1)}%)\n`;
+        if (doc.text) {
+          prompt += `   İçerik: ${doc.text.substring(0, 500)}${doc.text.length > 500 ? "..." : ""}\n`;
+        }
+        if (doc.type) {
+          prompt += `   Tip: ${doc.type}\n`;
+        }
+      });
+      prompt += "\n";
+    }
+
+    // Add structured data (risk alerts, invoices, companies)
     if (contextData.riskAlerts && contextData.riskAlerts.length > 0) {
       prompt += "Risk Uyarıları:\n";
       contextData.riskAlerts.forEach((alert: any) => {
@@ -456,7 +530,8 @@ Yanıtlarını Türkçe, profesyonel ve yardımcı bir tonla ver.`;
       prompt += "\n";
     }
 
-    prompt += "Yukarıdaki verilere dayanarak kullanıcının sorusuna Türkçe yanıt ver.";
+    prompt += "Yukarıdaki verilere dayanarak kullanıcının sorusuna Türkçe yanıt ver. ";
+    prompt += "İlgili belgelerden (semantik arama sonuçları) gelen bilgileri öncelikli olarak kullan.";
 
     return prompt;
   }
@@ -571,9 +646,223 @@ Yanıtlarını Türkçe, profesyonel ve yardımcı bir tonla ver.`;
       });
       return answer;
     } catch (error: any) {
-      console.error("[AI Assistant] Error generating text:", error);
+      logger.error("[AI Assistant] Error generating text:", { error });
       throw error;
     }
+  }
+
+  /**
+   * Enhanced chat response with multi-turn conversation, hybrid search, and re-ranking
+   */
+  async generateEnhancedChatResponse(input: EnhancedChatInput): Promise<{
+    answer: string;
+    sourcesUsed: Array<{
+      documentId: string;
+      similarity: number;
+      rerankScore?: number;
+    }>;
+    searchMetrics: {
+      hybridResultsCount?: number;
+      ragDocumentsUsed: number;
+      processingTimeMs: number;
+    };
+  }> {
+    const startTime = Date.now();
+    const {
+      tenantId,
+      userId,
+      question,
+      type,
+      contextFilters,
+      conversationHistory,
+      useHybridSearch = true,
+      useReranking = false,
+    } = input;
+
+    try {
+      // Use enhanced RAG context retrieval
+      const ragContext = await ragService.retrieveEnhancedContext(question, tenantId, {
+        topK: 5,
+        includeMetadata: true,
+        useHybridSearch,
+        useReranking,
+        conversationHistory,
+        filters: {
+          clientCompanyId: contextFilters?.companyId,
+          documentType: type === "RAPOR" ? "INVOICE" : undefined,
+          dateRange: contextFilters?.dateRange,
+        },
+      });
+
+      // Fetch additional structured data (risk alerts, invoices, companies)
+      const structuredContext = await this.retrieveRAGContext(tenantId, question, type, contextFilters);
+
+      // Merge RAG documents with structured context
+      const mergedContext = {
+        ...structuredContext,
+        ragDocuments: ragContext.documents.map((doc) => ({
+          id: doc.documentId,
+          text: doc.text,
+          similarity: doc.similarity,
+          rerankScore: doc.rerankScore,
+          type: doc.metadata?.type,
+          clientCompanyId: doc.metadata?.clientCompanyId,
+        })),
+      };
+
+      // Build system prompt with conversation context
+      let systemPrompt = `Sen bir muhasebe asistanısın. Türkçe yanıt ver. Kullanıcının muhasebe ofisindeki verileri hakkında sorularına yanıt veriyorsun.
+Veriler sadece bu kiracıya (tenant) ait. Asla başka kiracıların verilerinden bahsetme.
+Yanıtlarını Türkçe, profesyonel ve yardımcı bir tonla ver.`;
+
+      // Add conversation history context
+      if (conversationHistory && conversationHistory.length > 0) {
+        systemPrompt += `\n\nKonuşma geçmişi mevcut. Önceki mesajları dikkate al ve tutarlı bir şekilde yanıt ver.`;
+      }
+
+      // Build user prompt with all context
+      const userPrompt = this.buildEnhancedChatPrompt(question, mergedContext, type, conversationHistory);
+
+      const answer = await this.llmClient.generateText({
+        systemPrompt,
+        userPrompt,
+        maxTokens: 2000,
+      });
+
+      const processingTimeMs = Date.now() - startTime;
+
+      // Log audit
+      try {
+        await auditService.log({
+          tenantId,
+          userId,
+          action: "AI_CHAT_ENHANCED",
+          resourceType: "AI_ASSISTANT",
+          resourceId: null,
+          metadata: {
+            type: type || "GENEL",
+            filters: contextFilters || {},
+            useHybridSearch,
+            useReranking,
+            conversationHistoryLength: conversationHistory?.length || 0,
+            ragDocumentsUsed: ragContext.documents.length,
+            processingTimeMs,
+            hasRealAIProvider: hasRealAIProvider(),
+          },
+        });
+      } catch (auditError: any) {
+        logger.error("Audit logging failed:", { error: auditError.message });
+      }
+
+      return {
+        answer,
+        sourcesUsed: ragContext.documents.map((doc) => ({
+          documentId: doc.documentId,
+          similarity: doc.similarity,
+          rerankScore: doc.rerankScore,
+        })),
+        searchMetrics: {
+          hybridResultsCount: ragContext.hybridResults,
+          ragDocumentsUsed: ragContext.documents.length,
+          processingTimeMs,
+        },
+      };
+    } catch (error: any) {
+      const processingTimeMs = Date.now() - startTime;
+      logger.error("[AI Assistant] Error generating enhanced chat response:", {
+        error: error.message,
+        stack: error.stack,
+        tenantId,
+        userId,
+        processingTimeMs,
+      });
+
+      throw new Error(`AI yanıtı oluşturulurken bir hata oluştu: ${error.message}`);
+    }
+  }
+
+  /**
+   * Build enhanced chat prompt with conversation history
+   */
+  private buildEnhancedChatPrompt(
+    question: string,
+    contextData: any,
+    type?: string,
+    conversationHistory?: ConversationMessage[]
+  ): string {
+    let prompt = "";
+
+    // Add conversation history if available
+    if (conversationHistory && conversationHistory.length > 0) {
+      prompt += "Önceki Konuşma:\n";
+      conversationHistory.slice(-6).forEach((msg) => {
+        const role = msg.role === "user" ? "Kullanıcı" : "Asistan";
+        prompt += `${role}: ${msg.content.substring(0, 300)}${msg.content.length > 300 ? "..." : ""}\n`;
+      });
+      prompt += "\n---\n\n";
+    }
+
+    prompt += `Mevcut Soru: ${question}\n\n`;
+
+    // Add RAG-retrieved documents first (most relevant)
+    if (contextData.ragDocuments && contextData.ragDocuments.length > 0) {
+      prompt += "İlgili Belgeler (Akıllı Arama Sonuçları):\n";
+      contextData.ragDocuments.forEach((doc: any, index: number) => {
+        const scoreInfo = doc.rerankScore !== undefined
+          ? `Alaka: ${doc.rerankScore}/10`
+          : `Benzerlik: ${(doc.similarity * 100).toFixed(1)}%`;
+
+        prompt += `${index + 1}. Belge ID: ${doc.id} (${scoreInfo})\n`;
+        if (doc.text) {
+          prompt += `   İçerik: ${doc.text.substring(0, 400)}${doc.text.length > 400 ? "..." : ""}\n`;
+        }
+        if (doc.type) {
+          prompt += `   Tip: ${doc.type}\n`;
+        }
+      });
+      prompt += "\n";
+    }
+
+    // Add structured data (risk alerts, invoices, companies) - same as before
+    if (contextData.riskAlerts && contextData.riskAlerts.length > 0) {
+      prompt += "Risk Uyarıları:\n";
+      contextData.riskAlerts.forEach((alert: any) => {
+        prompt += `- ${alert.title} (${alert.severity}): ${alert.message}\n`;
+        if (alert.clientCompany) {
+          prompt += `  Şirket: ${alert.clientCompany.name}\n`;
+        }
+      });
+      prompt += "\n";
+    }
+
+    if (contextData.invoices && contextData.invoices.length > 0) {
+      prompt += "Son Faturalar:\n";
+      contextData.invoices.forEach((invoice: any) => {
+        prompt += `- ${invoice.invoiceNumber}: ${invoice.totalAmount} ${invoice.currency}\n`;
+        if (invoice.clientCompany) {
+          prompt += `  Şirket: ${invoice.clientCompany.name}\n`;
+        }
+      });
+      prompt += "\n";
+    }
+
+    if (contextData.companies && contextData.companies.length > 0) {
+      prompt += "Müşteri Şirketleri:\n";
+      contextData.companies.forEach((company: any) => {
+        prompt += `- ${company.name} (${company.taxNumber})\n`;
+        if (company.riskScores && company.riskScores.length > 0) {
+          const score = company.riskScores[0];
+          prompt += `  Risk Skoru: ${score.overallScore}\n`;
+        }
+      });
+      prompt += "\n";
+    }
+
+    prompt += "Yukarıdaki verilere ve konuşma geçmişine dayanarak kullanıcının sorusuna Türkçe yanıt ver. ";
+    prompt += "İlgili belgelerden (akıllı arama sonuçları) gelen bilgileri öncelikli olarak kullan. ";
+    prompt += "Yanıtında hangi kaynakları kullandığını belirtmene gerek yok.";
+
+    return prompt;
   }
 }
 

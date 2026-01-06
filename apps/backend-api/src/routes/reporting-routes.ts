@@ -31,7 +31,7 @@ const checkReportingEnabled = (req: AuthenticatedRequest, res: Response, next: N
 };
 
 const generateReportSchema = z.object({
-  report_code: z.string().min(1, "Rapor kodu gerekli."),
+  report_code: z.string().min(1, "Rapor kodu gerekli.").max(100, "Rapor kodu en fazla 100 karakter olabilir."),
   client_company_id: z.string().optional(),
   filters: z.object({
     start_date: z.string().datetime("Geçerli bir başlangıç tarihi giriniz."),
@@ -105,7 +105,7 @@ router.post(
       const tenantId = req.context!.tenantId!;
 
       // Validate date filters
-      validateDateFilters(body.filters);
+      validateDateFilters(body.filters as any);
 
       let result;
 
@@ -117,7 +117,7 @@ router.post(
           result = await reportingService.generateCompanyFinancialSummary(
             tenantId,
             body.client_company_id,
-            body.filters
+            body.filters as any
           );
           break;
 
@@ -128,14 +128,14 @@ router.post(
           result = await reportingService.generateCompanyRiskSummary(
             tenantId,
             body.client_company_id,
-            body.filters
+            body.filters as any
           );
           break;
 
         case "TENANT_PORTFOLIO":
           result = await reportingService.generateTenantPortfolioReport(
             tenantId,
-            body.filters
+            body.filters as any
           );
           break;
 
@@ -143,7 +143,7 @@ router.post(
           result = await reportingService.generateDocumentActivityReport(
             tenantId,
             body.client_company_id || null,
-            body.filters
+            body.filters as any
           );
           break;
 
@@ -154,7 +154,7 @@ router.post(
           result = await reportingService.generateAuditPreparationReport(
             tenantId,
             body.client_company_id,
-            body.filters
+            body.filters as any
           );
           break;
 
@@ -183,4 +183,5 @@ router.post(
 );
 
 export default router;
+
 

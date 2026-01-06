@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { NextFunction } from "express";
-import { ValidationError } from "@repo/shared-utils";
+import { ValidationError, logger } from "@repo/shared-utils";
 import { scheduledReportService } from "../services/scheduled-report-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
@@ -30,9 +30,9 @@ const checkScheduledReportsEnabled = (req: AuthenticatedRequest, res: Response, 
 };
 
 const createScheduledReportSchema = z.object({
-  name: z.string().min(1, "Rapor adı gerekli."),
-  report_code: z.string().min(1, "Rapor kodu gerekli."),
-  client_company_id: z.string().optional().nullable(),
+  name: z.string().min(1, "Rapor adı gerekli.").max(255, "Rapor adı en fazla 255 karakter olabilir."),
+  report_code: z.string().min(1, "Rapor kodu gerekli.").max(100, "Rapor kodu en fazla 100 karakter olabilir."),
+  client_company_id: z.string().max(100, "Müşteri şirketi ID en fazla 100 karakter olabilir.").optional().nullable(),
   format: z.enum(["pdf", "excel"]),
   schedule_cron: z.enum(["daily", "weekly", "monthly"]),
   filters: z.record(z.string(), z.unknown()).optional().default({}),
@@ -41,8 +41,8 @@ const createScheduledReportSchema = z.object({
 });
 
 const updateScheduledReportSchema = z.object({
-  name: z.string().min(1, "Rapor adı gerekli.").optional(),
-  client_company_id: z.string().optional().nullable(),
+  name: z.string().min(1, "Rapor adı gerekli.").max(255, "Rapor adı en fazla 255 karakter olabilir.").optional(),
+  client_company_id: z.string().max(100, "Müşteri şirketi ID en fazla 100 karakter olabilir.").optional().nullable(),
   format: z.enum(["pdf", "excel"]).optional(),
   schedule_cron: z.enum(["daily", "weekly", "monthly"]).optional(),
   filters: z.record(z.string(), z.unknown()).optional(),
@@ -121,12 +121,12 @@ router.post(
   requirePermission("reports:create"),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      console.log("[POST /scheduled-reports] Received request body:", JSON.stringify(req.body, null, 2));
+      logger.debug("[POST /scheduled-reports] Received request", { body: req.body });
       const body = createScheduledReportSchema.parse(req.body);
-      console.log("[POST /scheduled-reports] Parsed body:", JSON.stringify(body, null, 2));
+      logger.debug("[POST /scheduled-reports] Parsed body", { body });
       const tenantId = req.context!.tenantId!;
       const userId = req.context!.user.id;
-      console.log("[POST /scheduled-reports] Tenant ID:", tenantId, "User ID:", userId);
+      logger.debug("[POST /scheduled-reports] Processing", { tenantId, userId });
 
       const report = await scheduledReportService.createScheduledReport({
         tenantId,
@@ -161,11 +161,10 @@ router.post(
         return next(new ValidationError(firstError?.message || "Geçersiz bilgiler."));
       }
       // Log the actual error for debugging
-      console.error("[POST /scheduled-reports] Error:", error);
-      if (error instanceof Error) {
-        console.error("Error message:", error.message);
-        console.error("Error stack:", error.stack);
-      }
+      logger.error("[POST /scheduled-reports] Error:", {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       next(error);
     }
   }
@@ -235,4 +234,5 @@ router.delete(
 );
 
 export default router;
+
 

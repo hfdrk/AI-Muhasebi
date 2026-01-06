@@ -11,6 +11,7 @@ import { logout, getCurrentUser } from "@repo/api-client";
 import { useQuery } from "@tanstack/react-query";
 import { colors, spacing, shadows, borderRadius, transitions, zIndex, typography } from "../../styles/design-system";
 import { Icon } from "../../components/ui/Icon";
+import { BottomNavigation } from "../../components/mobile/bottom-navigation";
 
 interface NavItem {
   href: string;
@@ -388,6 +389,19 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   const threads = threadsData?.data?.data || [];
   const unreadMessageCount = threads.reduce((sum: number, thread: any) => sum + (thread.unreadCount || 0), 0);
 
+  // Get unread notification count for badge
+  const { data: notificationsData } = useQuery({
+    queryKey: ["notifications", "unread-count"],
+    queryFn: async () => {
+      const { notificationClient } = await import("@repo/api-client");
+      return notificationClient.listNotifications({ is_read: false, limit: 100 });
+    },
+    enabled: !!currentUser,
+    refetchInterval: 30000, // Poll every 30 seconds
+  });
+
+  const unreadNotificationCount = notificationsData?.meta?.total || notificationsData?.data?.length || 0;
+
   const otherNavItems: NavItem[] = [
     { href: "/vergi", label: "Vergi", icon: "tax" },
     { href: "/kvkk", label: "KVKK", icon: "lock" },
@@ -398,7 +412,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     { href: "/ai-asistan", label: "AI Asistan", icon: "robot" },
     { href: "/mesajlar", label: "Mesajlar", icon: "message", badge: unreadMessageCount },
     { href: "/sozlesmeler", label: "Sözleşmeler", icon: "contract" },
-    { href: "/bildirimler", label: "Bildirimler", icon: "notification" },
+    { href: "/bildirimler", label: "Bildirimler", icon: "notification", badge: unreadNotificationCount },
   ];
 
   const settingsItems: NavItem[] = [
@@ -1036,11 +1050,12 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
         <main
           style={{
             flex: 1,
-            padding: isMobile 
+            padding: isMobile
               ? spacing.md
               : isTablet
               ? spacing.lg
               : spacing.xxl,
+            paddingBottom: isMobile ? "100px" : undefined, // Extra padding for bottom navigation
             maxWidth: "1600px",
             margin: "0 auto",
             width: "100%",
@@ -1057,6 +1072,14 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
           </div>
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      {isMobile && (
+        <BottomNavigation
+          notificationCount={unreadNotificationCount}
+          messageCount={unreadMessageCount}
+        />
+      )}
 
       {/* Add fade-in animation */}
       <style jsx global>{`

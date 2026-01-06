@@ -50,6 +50,12 @@ export interface FetchTransactionsOptions {
   [key: string]: unknown;
 }
 
+export interface PushResult {
+  success: boolean;
+  externalId?: string;
+  error?: string;
+}
+
 export interface AccountingIntegrationConnector {
   testConnection(config: Record<string, unknown>): Promise<{ success: boolean; message?: string }>;
   fetchInvoices(
@@ -57,6 +63,10 @@ export interface AccountingIntegrationConnector {
     untilDate: Date,
     options?: FetchInvoicesOptions
   ): Promise<NormalizedInvoice[]>;
+  pushInvoices?(
+    invoices: PushInvoiceInput[],
+    config: Record<string, unknown>
+  ): Promise<PushResult[]>;
 }
 
 export interface BankIntegrationConnector {
@@ -66,6 +76,72 @@ export interface BankIntegrationConnector {
     untilDate: Date,
     options?: FetchTransactionsOptions
   ): Promise<NormalizedBankTransaction[]>;
+  pushTransactions?(
+    transactions: PushTransactionInput[],
+    config: Record<string, unknown>
+  ): Promise<PushResult[]>;
+}
+
+/**
+ * E-Fatura specific connector interface
+ * Extends accounting connector with E-Fatura specific methods
+ */
+export interface EFaturaConnector extends AccountingIntegrationConnector {
+  sendEFatura(invoice: PushInvoiceInput, config: Record<string, unknown>): Promise<{
+    success: boolean;
+    uuid?: string;
+    ettn?: string;
+    status?: string;
+    error?: string;
+  }>;
+  getEFaturaStatus(uuid: string, config: Record<string, unknown>): Promise<{
+    status: string;
+    statusDate?: Date;
+    rejectionReason?: string;
+  }>;
+  cancelEFatura?(uuid: string, config: Record<string, unknown>): Promise<{
+    success: boolean;
+    error?: string;
+  }>;
+}
+
+export interface PushInvoiceInput {
+  externalId: string;
+  invoiceId?: string;
+  clientCompanyExternalId?: string | null;
+  clientCompanyName?: string | null;
+  clientCompanyTaxNumber?: string | null;
+  issueDate: Date;
+  dueDate: Date | null;
+  totalAmount: number;
+  currency: string;
+  taxAmount: number;
+  netAmount?: number | null;
+  counterpartyName?: string | null;
+  counterpartyTaxNumber?: string | null;
+  status?: string;
+  type?: "SATIŞ" | "ALIŞ";
+  lines: Array<{
+    lineNumber: number;
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    lineTotal: number;
+    vatRate: number;
+    vatAmount: number;
+  }>;
+}
+
+export interface PushTransactionInput {
+  externalId: string;
+  transactionId?: string;
+  accountIdentifier: string;
+  bookingDate: Date;
+  valueDate?: Date | null;
+  description: string;
+  amount: number;
+  currency: string;
+  balanceAfter?: number | null;
 }
 
 

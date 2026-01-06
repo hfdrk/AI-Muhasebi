@@ -1,4 +1,8 @@
 import "dotenv/config";
+// Initialize Sentry early, before other imports
+import { initSentry } from "./lib/sentry";
+initSentry();
+
 // Resolve database URL BEFORE any other imports that might use Prisma
 import { resolveDatabaseUrl, getDatabaseUrlSync } from "./lib/db-url-resolver";
 
@@ -6,13 +10,15 @@ import { resolveDatabaseUrl, getDatabaseUrlSync } from "./lib/db-url-resolver";
 try {
   getDatabaseUrlSync();
 } catch (error: any) {
-  console.warn("Warning: Could not resolve database URL synchronously:", error.message);
-  console.warn("Will attempt async resolution. Using DATABASE_URL from environment or defaults");
+  logger.warn("Warning: Could not resolve database URL synchronously:", { error: error.message });
+  logger.warn("Will attempt async resolution. Using DATABASE_URL from environment or defaults");
 }
 
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import { validateEnv, getConfig } from "@repo/config";
 import { logger } from "@repo/shared-utils";
 import { errorHandler } from "./middleware/error-handler";
@@ -60,42 +66,89 @@ import kvkkRoutes from "./routes/kvkk-routes";
 import securityRoutes from "./routes/security-routes";
 import databaseOptimizationRoutes from "./routes/database-optimization-routes";
 import analyticsRoutes from "./routes/analytics-routes";
+import swaggerRoutes from "./routes/swagger-routes";
+import taxCalendarRoutes from "./routes/tax-calendar-routes";
+import turkishAccountingAIRoutes from "./routes/turkish-accounting-ai-routes";
 
 // Resolve database URL asynchronously and update if needed
 resolveDatabaseUrl()
   .then((url) => {
-    console.log("✅ Database URL resolved successfully");
+    logger.info("Database URL resolved successfully");
     // Update Prisma client if needed (it will use the new DATABASE_URL on next query)
   })
   .catch((error) => {
-    console.warn("Warning: Could not resolve database URL automatically:", error.message);
-    console.warn("Using DATABASE_URL from environment or defaults");
-    console.warn("Current DATABASE_URL:", process.env.DATABASE_URL?.replace(/:[^:@]+@/, ":****@"));
+    logger.warn("Warning: Could not resolve database URL automatically:", { error: error.message });
+    logger.warn("Using DATABASE_URL from environment or defaults");
+    logger.warn("Current DATABASE_URL:", { url: process.env.DATABASE_URL?.replace(/:[^:@]+@/, ":****@") });
   });
 
 // Validate environment variables at startup
 try {
   validateEnv();
 } catch (error: any) {
-  console.error("❌ Environment validation failed:", error.message);
-  console.error("Please check your .env file and ensure all required variables are set.");
+  logger.error("Environment validation failed:", { error: error.message });
+  logger.error("Please check your .env file and ensure all required variables are set.");
   process.exit(1);
 }
 
 const app = express();
 const PORT = process.env.PORT || 3800;
 
+// Security headers with helmet
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", "data:", "https:"],
+        connectSrc: ["'self'"],
+        fontSrc: ["'self'", "data:"],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'self'"],
+        frameSrc: ["'none'"],
+      },
+    },
+    hsts: {
+      maxAge: 31536000, // 1 year
+      includeSubDomains: true,
+      preload: true,
+    },
+    crossOriginEmbedderPolicy: false, // Allow embedding if needed
+  })
+);
+
 // CORS configuration
+const corsOrigin = process.env.CORS_ORIGIN || process.env.FRONTEND_URL || "http://localhost:3000";
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: process.env.NODE_ENV === "production" ? corsOrigin : corsOrigin.split(","),
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Tenant-Id"],
   })
 );
 
-app.use(express.json());
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: process.env.NODE_ENV === "production" ? 100 : 1000, // Limit each IP to 100 requests per windowMs in production
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: "Too many requests from this IP, please try again later.",
+  skip: (req) => {
+    // Skip rate limiting for health checks
+    return req.path === "/healthz" || req.path === "/readyz" || req.path === "/health" || req.path === "/ready";
+  },
+});
+
+// Apply rate limiting to API routes
+app.use("/api/", limiter);
+
+// Request size limits
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
 // Request logging middleware (before routes)
@@ -107,6 +160,9 @@ app.get("/ready", readinessCheck);
 // Kubernetes-style health endpoints (no auth, lightweight)
 app.get("/healthz", healthzCheck);
 app.get("/readyz", readyzCheck);
+
+// API Documentation (Swagger/OpenAPI)
+app.use("/api-docs", swaggerRoutes);
 
 // Config check endpoint (development only)
 if (process.env.NODE_ENV !== "production") {
@@ -167,6 +223,8 @@ app.use("/api/v1/kvkk", kvkkRoutes);
 app.use("/api/v1/security", securityRoutes);
 app.use("/api/v1/db-optimization", databaseOptimizationRoutes);
 app.use("/api/v1/analytics", analyticsRoutes);
+app.use("/api/v1/tax-calendar", taxCalendarRoutes);
+app.use("/api/v1/turkish-accounting-ai", turkishAccountingAIRoutes);
 
 // Error handler (must be last)
 app.use(errorHandler);
@@ -216,4 +274,41 @@ process.on("uncaughtException", (error) => {
   });
   process.exit(1);
 });
+
+// Graceful shutdown
+let isShuttingDown = false;
+
+const gracefulShutdown = async (signal: string) => {
+  if (isShuttingDown) {
+    return;
+  }
+  isShuttingDown = true;
+
+  logger.info(`Received ${signal}, starting graceful shutdown`);
+
+  // Stop accepting new connections
+  server.close(() => {
+    logger.info("HTTP server closed");
+  });
+
+  // Close database connections
+  try {
+    const { prisma } = await import("./lib/prisma");
+    await prisma.$disconnect();
+    logger.info("Database connections closed");
+  } catch (error: any) {
+    logger.error("Error closing database connections", undefined, {
+      error: error.message,
+    });
+  }
+
+  // Give in-flight requests time to complete (max 30 seconds)
+  setTimeout(() => {
+    logger.info("Graceful shutdown complete");
+    process.exit(0);
+  }, 30000);
+};
+
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 

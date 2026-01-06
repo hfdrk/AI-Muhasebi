@@ -105,7 +105,7 @@ router.post(
 // Record data breach
 router.post(
   "/breach",
-  requirePermission("admin"),
+  requirePermission("settings:read" as any),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const body = z.object({
@@ -156,7 +156,7 @@ router.get(
 // Get data access audit log
 router.get(
   "/audit-log",
-  requirePermission("audit:read"),
+  requirePermission("reports:read" as any),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const userId = req.query.userId as string | undefined;
@@ -171,5 +171,54 @@ router.get(
   }
 );
 
+// List data access requests
+router.get(
+  "/data-access",
+  requirePermission("users:read"),
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const requests = await kvkkComplianceService.listDataAccessRequests(
+        req.context!.tenantId!
+      );
+      res.json({ data: requests });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// List data deletion requests
+router.get(
+  "/data-deletion",
+  requirePermission("users:read"),
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const requests = await kvkkComplianceService.listDataDeletionRequests(
+        req.context!.tenantId!
+      );
+      res.json({ data: requests });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// List breaches
+router.get(
+  "/breach",
+  requirePermission("settings:read" as any),
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const breaches = await kvkkComplianceService.listBreaches(
+        req.context!.tenantId!
+      );
+      res.json({ data: breaches });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 export default router;
+
 

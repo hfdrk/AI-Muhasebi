@@ -9,6 +9,7 @@ import { SkeletonTable } from "../../../components/ui/Skeleton";
 import { Badge } from "../../../components/ui/Badge";
 import { Modal } from "../../../components/ui/Modal";
 import { Button } from "../../../components/ui/Button";
+import { PageTransition } from "../../../components/ui/PageTransition";
 import { spacing, colors, borderRadius } from "../../../styles/design-system";
 
 const STATUS_LABELS: Record<string, string> = {

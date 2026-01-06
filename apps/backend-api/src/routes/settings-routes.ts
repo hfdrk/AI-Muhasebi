@@ -6,7 +6,7 @@ import { requireRole } from "../middleware/rbac-middleware";
 import { TENANT_ROLES } from "@repo/core-domain";
 import type { AuthenticatedRequest } from "../types/request-context";
 import type { Response } from "express";
-import { ValidationError } from "@repo/shared-utils";
+import { ValidationError, logger } from "@repo/shared-utils";
 
 import { Router, type Router as ExpressRouter } from "express";
 const router: ExpressRouter = Router();
@@ -41,7 +41,7 @@ tenantSettingsRouter.get("/", async (req: AuthenticatedRequest, res: Response) =
 
     res.json({ data: settings });
   } catch (error: any) {
-    console.error("Error getting tenant settings:", error);
+    logger.error("Error getting tenant settings:", { error });
     const statusCode = error.statusCode || 500;
     const message = error.message || "Ofis ayarları alınırken bir hata oluştu.";
     res.status(statusCode).json({ error: { message } });
@@ -56,11 +56,11 @@ tenantSettingsRouter.put(
     try {
       const tenantId = req.context!.tenantId!;
       const body = updateTenantSettingsSchema.parse(req.body);
-      const settings = await settingsService.updateTenantSettings(tenantId, body);
+      const settings = await settingsService.updateTenantSettings(tenantId, body as any);
 
       res.json({ data: settings });
     } catch (error: any) {
-      console.error("Error updating tenant settings:", error);
+      logger.error("Error updating tenant settings:", { error });
       if (error instanceof z.ZodError) {
         const statusCode = 400;
         const message = error.issues[0]?.message || "Geçersiz bilgiler.";
@@ -95,7 +95,7 @@ userSettingsRouter.get("/", async (req: AuthenticatedRequest, res: Response) => 
 
     res.json({ data: effectiveSettings });
   } catch (error: any) {
-    console.error("Error getting user settings:", error);
+    logger.error("Error getting user settings:", { error });
     const statusCode = error.statusCode || 500;
     const message = error.message || "Kullanıcı ayarları alınırken bir hata oluştu.";
     res.status(statusCode).json({ error: { message } });
@@ -115,7 +115,7 @@ userSettingsRouter.put("/", async (req: AuthenticatedRequest, res: Response) => 
 
     res.json({ data: effectiveSettings });
   } catch (error: any) {
-    console.error("Error updating user settings:", error);
+    logger.error("Error updating user settings:", { error });
     if (error instanceof z.ZodError) {
       const statusCode = 400;
       const message = error.issues[0]?.message || "Geçersiz bilgiler.";
@@ -133,6 +133,7 @@ router.use("/tenant", tenantSettingsRouter);
 router.use("/user", userSettingsRouter);
 
 export default router;
+
 
 
 

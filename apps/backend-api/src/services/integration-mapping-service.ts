@@ -152,20 +152,144 @@ export class IntegrationMappingService {
 
   /**
    * Apply transformation rule to a value
+   * 
+   * Supported transformations:
+   * - uppercase, lowercase, trim: String case/whitespace
+   * - date:format:YYYY-MM-DD: Date formatting (supports various formats)
+   * - number:format:0.00: Number formatting (supports decimal places)
+   * - regex:pattern:replacement: Regex-based replacement
+   * - replace:old:new: Simple string replacement
    */
   private applyTransformation(value: unknown, transformation: string): unknown {
-    // Simple transformation examples
-    // TODO: Implement more complex transformations
-    switch (transformation) {
+    if (value === null || value === undefined) {
+      return value;
+    }
+
+    // Parse transformation with parameters (format: "type:param1:param2")
+    const parts = transformation.split(":");
+    const transformType = parts[0];
+
+    switch (transformType) {
       case "uppercase":
         return typeof value === "string" ? value.toUpperCase() : value;
       case "lowercase":
         return typeof value === "string" ? value.toLowerCase() : value;
       case "trim":
         return typeof value === "string" ? value.trim() : value;
+
+      case "date": {
+        // Date formatting: date:format:YYYY-MM-DD
+        if (typeof value !== "string" && !(value instanceof Date)) {
+          return value;
+        }
+
+        const date = value instanceof Date ? value : new Date(value as string);
+        if (isNaN(date.getTime())) {
+          return value; // Invalid date, return original
+        }
+
+        const format = parts[1] || "YYYY-MM-DD";
+        return this.formatDate(date, format);
+      }
+
+      case "number": {
+        // Number formatting: number:format:0.00
+        if (typeof value !== "number" && typeof value !== "string") {
+          return value;
+        }
+
+        const num = typeof value === "number" ? value : parseFloat(value as string);
+        if (isNaN(num)) {
+          return value; // Invalid number, return original
+        }
+
+        const format = parts[1] || "0.00";
+        return this.formatNumber(num, format);
+      }
+
+      case "regex": {
+        // Regex replacement: regex:pattern:replacement
+        if (typeof value !== "string") {
+          return value;
+        }
+
+        const pattern = parts[1];
+        const replacement = parts[2] || "";
+
+        if (!pattern) {
+          return value;
+        }
+
+        try {
+          const regex = new RegExp(pattern, "g");
+          return (value as string).replace(regex, replacement);
+        } catch (error) {
+          // Invalid regex, return original
+          return value;
+        }
+      }
+
+      case "replace": {
+        // Simple string replacement: replace:old:new
+        if (typeof value !== "string") {
+          return value;
+        }
+
+        const oldStr = parts[1];
+        const newStr = parts[2] || "";
+
+        if (!oldStr) {
+          return value;
+        }
+
+        return (value as string).replace(new RegExp(oldStr.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"), newStr);
+      }
+
       default:
         return value;
     }
+  }
+
+  /**
+   * Format date according to format string
+   */
+  private formatDate(date: Date, format: string): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const seconds = String(date.getSeconds()).padStart(2, "0");
+
+    return format
+      .replace(/YYYY/g, String(year))
+      .replace(/MM/g, month)
+      .replace(/DD/g, day)
+      .replace(/HH/g, hours)
+      .replace(/mm/g, minutes)
+      .replace(/ss/g, seconds);
+  }
+
+  /**
+   * Format number according to format string
+   */
+  private formatNumber(num: number, format: string): string | number {
+    // Parse format like "0.00" or "0,00" (Turkish decimal separator)
+    const decimalPlaces = (format.match(/\.(\d+)/) || [])[1];
+    if (decimalPlaces) {
+      const places = parseInt(decimalPlaces, 10);
+      const formatted = num.toFixed(places);
+      // Replace decimal separator if format uses comma
+      return format.includes(",") ? formatted.replace(".", ",") : formatted;
+    }
+
+    // Integer format
+    if (format.includes("0") && !format.includes(".")) {
+      return Math.round(num).toString();
+    }
+
+    // Default: return number as-is
+    return num;
   }
 }
 

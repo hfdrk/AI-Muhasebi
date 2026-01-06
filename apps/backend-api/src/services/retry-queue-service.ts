@@ -5,6 +5,7 @@
  */
 
 import { prisma } from "../lib/prisma";
+import { logger } from "@repo/shared-utils";
 
 export interface RetryQueueItem {
   id: string;
@@ -176,7 +177,7 @@ export class RetryQueueService {
       await emailService.sendEmail(payload as any);
       return true;
     } catch (error) {
-      console.error("[RetryQueue] Email retry failed:", error);
+      logger.error("[RetryQueue] Email retry failed:", { error });
       return false;
     }
   }
@@ -190,7 +191,7 @@ export class RetryQueueService {
       const tenantId = payload.tenantId as string;
 
       if (!jobType || !tenantId) {
-        console.error("[RetryQueue] Invalid job payload: missing jobType or tenantId", payload);
+        logger.error("[RetryQueue] Invalid job payload: missing jobType or tenantId", { payload });
         return false;
       }
 
@@ -200,7 +201,7 @@ export class RetryQueueService {
           const { documentProcessor } = await import("../../../worker-jobs/src/processors/document-processor");
           const documentId = payload.documentId as string;
           if (!documentId) {
-            console.error("[RetryQueue] Invalid document job payload: missing documentId", payload);
+            logger.error("[RetryQueue] Invalid document job payload: missing documentId", { payload });
             return false;
           }
           await documentProcessor.processDocument(tenantId, documentId);
@@ -213,7 +214,7 @@ export class RetryQueueService {
           const entityId = payload.entityId as string;
 
           if (!entityType || !entityId) {
-            console.error("[RetryQueue] Invalid risk calculation job payload: missing entityType or entityId", payload);
+            logger.error("[RetryQueue] Invalid risk calculation job payload: missing entityType or entityId", { payload });
             return false;
           }
 
@@ -222,18 +223,18 @@ export class RetryQueueService {
           } else if (entityType === "company") {
             await riskCalculationProcessor.processCompanyRiskCalculation(tenantId, entityId);
           } else {
-            console.error("[RetryQueue] Unknown entity type for risk calculation", entityType);
+            logger.error("[RetryQueue] Unknown entity type for risk calculation", { entityType });
             return false;
           }
           return true;
         }
 
         default:
-          console.warn(`[RetryQueue] Unknown job type: ${jobType}`);
+          logger.warn(`[RetryQueue] Unknown job type: ${jobType}`);
           return false;
       }
     } catch (error: any) {
-      console.error("[RetryQueue] Job retry failed:", error);
+      logger.error("[RetryQueue] Job retry failed:", { error });
       return false;
     }
   }
@@ -246,7 +247,7 @@ export class RetryQueueService {
       const jobId = payload.jobId as string;
 
       if (!jobId) {
-        console.error("[RetryQueue] Invalid sync payload: missing jobId", payload);
+        logger.error("[RetryQueue] Invalid sync payload: missing jobId", { payload });
         return false;
       }
 
@@ -255,7 +256,7 @@ export class RetryQueueService {
       await integrationSyncProcessor.processSyncJob(jobId);
       return true;
     } catch (error: any) {
-      console.error("[RetryQueue] Sync retry failed:", error);
+      logger.error("[RetryQueue] Sync retry failed:", { error });
       return false;
     }
   }

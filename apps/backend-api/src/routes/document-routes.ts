@@ -2,7 +2,7 @@ import { Router, type Router as ExpressRouter } from "express";
 import multer from "multer";
 import { z } from "zod";
 import type { NextFunction, Response } from "express";
-import { ValidationError } from "@repo/shared-utils";
+import { ValidationError, logger } from "@repo/shared-utils";
 import { prisma } from "../lib/prisma";
 import { documentService } from "../services/document-service";
 import { documentJobService } from "../services/document-job-service";
@@ -266,7 +266,7 @@ router.get(
 
       const filters = schema.parse(req.query);
 
-      console.log(`[Document Routes] /search-by-risk called with filters:`, filters);
+      logger.debug(`[Document Routes] /search-by-risk called with filters:`, { filters });
 
       if (!req.context || !req.context.tenantId) {
         return res.status(401).json({
@@ -293,7 +293,7 @@ router.get(
         pageSize: filters.pageSize,
       });
 
-      console.log(`[Document Routes] /search-by-risk result:`, {
+      logger.debug(`[Document Routes] /search-by-risk result:`, {
         documentsCount: result.data.length,
         total: result.total,
         page: result.page,
@@ -405,7 +405,7 @@ router.get(
 
       // Handle stream errors
       stream.on("error", (error) => {
-        console.error("Stream error:", error);
+        logger.error("Stream error:", { error });
         if (!res.headersSent) {
           next(error);
         }
@@ -426,10 +426,10 @@ router.get(
           },
         })
         .catch((error) => {
-          console.error("Error logging document download:", error);
+          logger.error("Error logging document download:", { error });
         });
     } catch (error: any) {
-      console.error("Error downloading document:", error);
+      logger.error("Error downloading document:", { error });
       if (!res.headersSent) {
         next(error);
       }
@@ -514,4 +514,5 @@ router.delete(
 );
 
 export default router;
+
 

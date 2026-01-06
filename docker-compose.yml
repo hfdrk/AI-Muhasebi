@@ -1,8 +1,6 @@
-version: "3.8"
-
 services:
   postgres:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg15
     container_name: ai-muhasebi-postgres
     environment:
       POSTGRES_USER: ai_muhasebi
@@ -17,6 +15,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - ai-muhasebi-network
 
   redis:
     image: redis:7-alpine
@@ -30,6 +30,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - ai-muhasebi-network
 
   minio:
     image: minio/minio:latest
@@ -48,9 +50,124 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
+    networks:
+      - ai-muhasebi-network
+
+  backend-api:
+    build:
+      context: .
+      dockerfile: apps/backend-api/Dockerfile
+    container_name: ai-muhasebi-backend-api
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://ai_muhasebi:ai_muhasebi_dev@postgres:5432/ai_muhasebi
+      DATABASE_POOL_SIZE: 10
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-minimum-32-characters-long-for-local}
+      JWT_ACCESS_TOKEN_EXPIRY: 15m
+      JWT_REFRESH_TOKEN_EXPIRY: 7d
+      PORT: 3800
+      API_URL: http://localhost:3800
+      FRONTEND_URL: http://localhost:3001
+      CORS_ORIGIN: http://localhost:3001
+      REDIS_URL: redis://redis:6379
+      LOG_LEVEL: info
+      RATE_LIMIT_WINDOW_MS: 900000
+      RATE_LIMIT_MAX_REQUESTS: 100
+      WORKER_CONCURRENCY: 5
+      EMAIL_TRANSPORT: stub
+      STORAGE_TYPE: local
+      STORAGE_BASE_PATH: ./storage
+      REPORTING_ENABLED: "true"
+      PDF_EXPORT_ENABLED: "true"
+      EXCEL_EXPORT_ENABLED: "true"
+      SCHEDULED_REPORTS_ENABLED: "true"
+      SENTRY_DSN: ${SENTRY_DSN:-}
+    ports:
+      - "3800:3800"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - backend_storage:/app/apps/backend-api/storage
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3800/healthz', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - ai-muhasebi-network
+    restart: unless-stopped
+
+  web-app:
+    build:
+      context: .
+      dockerfile: apps/web-app/Dockerfile
+    container_name: ai-muhasebi-web-app
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:3800
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      backend-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3001/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - ai-muhasebi-network
+    restart: unless-stopped
+
+  worker-jobs:
+    build:
+      context: .
+      dockerfile: apps/worker-jobs/Dockerfile
+    container_name: ai-muhasebi-worker-jobs
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://ai_muhasebi:ai_muhasebi_dev@postgres:5432/ai_muhasebi
+      DATABASE_POOL_SIZE: 5
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-minimum-32-characters-long-for-local}
+      REDIS_URL: redis://redis:6379
+      LOG_LEVEL: info
+      WORKER_CONCURRENCY: 5
+      EMAIL_TRANSPORT: stub
+      STORAGE_TYPE: local
+      STORAGE_BASE_PATH: ./storage
+      SENTRY_DSN: ${SENTRY_DSN:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend-api:
+        condition: service_started
+    volumes:
+      - worker_storage:/app/apps/worker-jobs/storage
+    healthcheck:
+      test: ["CMD", "node", "apps/worker-jobs/dist/health-check.js"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - ai-muhasebi-network
+    restart: unless-stopped
 
 volumes:
   postgres_data:
   redis_data:
   minio_data:
+  backend_storage:
+  worker_storage:
 
+networks:
+  ai-muhasebi-network:
+    driver: bridge

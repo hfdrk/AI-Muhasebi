@@ -16,8 +16,8 @@ router.use(authMiddleware);
 router.use(tenantMiddleware);
 
 const createLedgerAccountSchema = z.object({
-  code: z.string().min(1, "Hesap kodu gerekli."),
-  name: z.string().min(1, "Hesap adı gerekli."),
+  code: z.string().min(1, "Hesap kodu gerekli.").max(50, "Hesap kodu en fazla 50 karakter olabilir."),
+  name: z.string().min(1, "Hesap adı gerekli.").max(255, "Hesap adı en fazla 255 karakter olabilir."),
   type: z.enum(["asset", "liability", "equity", "income", "expense"]),
   isActive: z.boolean().optional(),
 });
@@ -57,7 +57,7 @@ router.post(
       const body = createLedgerAccountSchema.parse(req.body);
       const account = await ledgerAccountService.createLedgerAccount(
         req.context!.tenantId!,
-        body
+        body as any
       );
 
       res.status(201).json({ data: account });
@@ -93,4 +93,5 @@ router.patch(
 );
 
 export default router;
+
 

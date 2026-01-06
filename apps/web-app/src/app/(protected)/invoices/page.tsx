@@ -2,11 +2,26 @@
 
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { listInvoices, listClientCompanies, listSavedFilters, SAVED_FILTER_TARGETS } from "@repo/api-client";
-import { invoices as invoicesI18n, common as commonI18n } from "@repo/i18n";
-import { SavedFiltersDropdown } from "../../../components/saved-filters-dropdown";
+// Use dynamic imports to avoid server-side module resolution issues
+import type { Invoice, ClientCompany, SavedFilter } from "@repo/api-client";
+import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import Link from "next/link";
+import { colors } from "@/styles/design-system";
+
+// Dynamic import with proper SSR handling for SavedFiltersDropdown
+// Using a wrapper to ensure proper default export handling
+const SavedFiltersDropdown = dynamic(
+  async () => {
+    const mod = await import("../../../components/saved-filters-dropdown");
+    return { default: mod.SavedFiltersDropdown };
+  },
+  { 
+    ssr: false,
+    loading: () => null // Don't show loading state during SSR
+  }
+);
 
 const STATUS_LABELS: Record<string, string> = {
   taslak: "Taslak",
@@ -20,10 +35,17 @@ const TYPE_LABELS: Record<string, string> = {
   ALIŞ: "Alış",
 };
 
-export default function InvoicesPage() {
+function InvoicesPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const clientCompanyId = searchParams.get("clientCompanyId") || undefined;
+
+  // Use hardcoded strings to avoid i18n import issues during prerendering
+  const invoicesTitle = 'Faturalar';
+  const addNewLabel = 'Yeni Fatura Ekle';
+  const emptyStateLabel = 'Bu kriterlere uygun fatura bulunamadı…';
+  const emptyStateActionLabel = 'İlk Faturayı Ekle';
+  const loadingLabel = 'Yükleniyor...';
 
   const [issueDateFrom, setIssueDateFrom] = useState("");
   const [issueDateTo, setIssueDateTo] = useState("");
@@ -33,16 +55,22 @@ export default function InvoicesPage() {
   const [page, setPage] = useState(1);
   const pageSize = 20;
 
-  // Load saved filters
+  // Load saved filters - use dynamic import to avoid server-side issues
   const { data: savedFiltersData } = useQuery({
-    queryKey: ["savedFilters", SAVED_FILTER_TARGETS.INVOICES],
-    queryFn: () => listSavedFilters(SAVED_FILTER_TARGETS.INVOICES),
+    queryKey: ["savedFilters", "INVOICES"],
+    queryFn: async () => {
+      const { listSavedFilters } = await import("@repo/api-client");
+      return listSavedFilters("INVOICES");
+    },
   });
 
-  // Fetch companies for dropdown
+  // Fetch companies for dropdown - use dynamic import to avoid server-side issues
   const { data: companiesData } = useQuery({
     queryKey: ["clientCompanies"],
-    queryFn: () => listClientCompanies({ pageSize: 100, isActive: true }),
+    queryFn: async () => {
+      const { listClientCompanies } = await import("@repo/api-client");
+      return listClientCompanies({ pageSize: 100, isActive: true });
+    },
   });
 
   const companies = companiesData?.data.data || [];
@@ -99,8 +127,9 @@ export default function InvoicesPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["invoices", companyFilter !== "all" ? companyFilter : undefined, issueDateFrom, issueDateTo, typeFilter, statusFilter, page],
-    queryFn: () =>
-      listInvoices({
+    queryFn: async () => {
+      const { listInvoices } = await import("@repo/api-client");
+      return listInvoices({
         clientCompanyId: companyFilter !== "all" ? companyFilter : undefined,
         issueDateFrom: issueDateFrom || undefined,
         issueDateTo: issueDateTo || undefined,
@@ -108,16 +137,17 @@ export default function InvoicesPage() {
         status: statusFilter !== "all" ? statusFilter : undefined,
         page,
         pageSize,
-      }),
+      });
+    },
   });
 
-  const invoices = data?.data.data || [];
+  const invoices = data?.data?.data || [];
   const pagination = data?.data || { total: 0, page: 1, pageSize: 20, totalPages: 1 };
 
   return (
     <div style={{ padding: "40px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-        <h1>{invoicesI18n.title}</h1>
+        <h1>{invoicesTitle}</h1>
         <Link
           href="/faturalar/new"
           style={{
@@ -128,7 +158,7 @@ export default function InvoicesPage() {
             borderRadius: "4px",
           }}
         >
-          {invoicesI18n.list.addNew}
+          {addNewLabel}
         </Link>
       </div>
 
@@ -245,7 +275,7 @@ export default function InvoicesPage() {
         </div>
         <div style={{ alignSelf: "flex-end" }}>
           <SavedFiltersDropdown
-            target={SAVED_FILTER_TARGETS.INVOICES}
+            target="INVOICES"
             currentFilters={currentFilters}
             onFilterSelect={handleFilterSelect}
           />
@@ -253,10 +283,10 @@ export default function InvoicesPage() {
       </div>
 
       {isLoading ? (
-        <p>{commonI18n.labels.loading}</p>
+        <p>{loadingLabel}</p>
       ) : invoices.length === 0 ? (
         <div style={{ textAlign: "center", padding: "40px" }}>
-          <p>{invoicesI18n.list.emptyState}</p>
+          <p>{emptyStateLabel}</p>
           <Link
             href="/faturalar/new"
             style={{
@@ -269,7 +299,7 @@ export default function InvoicesPage() {
               borderRadius: "4px",
             }}
           >
-            {invoicesI18n.list.emptyStateAction}
+            {emptyStateActionLabel}
           </Link>
         </div>
       ) : (
@@ -386,3 +416,10 @@ export default function InvoicesPage() {
   );
 }
 
+export default function InvoicesPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <InvoicesPageContent />
+    </Suspense>
+  );
+}

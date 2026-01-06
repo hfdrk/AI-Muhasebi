@@ -53,7 +53,23 @@ export class DocumentProcessor {
         tenantId
       );
 
-      // Step 4: Save all results and update document status
+      // Step 4: Generate and store document embedding for RAG
+      try {
+        const { embeddingService } = await import("../../../backend-api/src/services/embedding-service");
+        // Use OCR text + parsed data summary for embedding
+        const embeddingText = `${ocrResult.rawText}\n\nType: ${parsedData.documentType}\nFields: ${JSON.stringify(parsedData.fields)}`;
+        await embeddingService.generateAndStoreDocumentEmbedding(tenantId, documentId, embeddingText);
+      } catch (embeddingError: any) {
+        // Log but don't fail the document processing if embedding generation fails
+        const { logger } = await import("@repo/shared-utils");
+        logger.error("Error generating embedding for document", { tenantId }, {
+          documentId,
+          error: embeddingError.message,
+          stack: embeddingError.stack,
+        });
+      }
+
+      // Step 5: Save all results and update document status
       await documentJobService.markJobSuccess(
         job.id,
         {
@@ -77,7 +93,7 @@ export class DocumentProcessor {
         }
       );
 
-      // Step 5: Calculate document risk score and create alerts if needed
+      // Step 6: Calculate document risk score and create alerts if needed
       try {
         const { riskCalculationProcessor } = await import("./risk-calculation-processor");
         await riskCalculationProcessor.processDocumentRiskCalculation(tenantId, documentId);
@@ -86,7 +102,7 @@ export class DocumentProcessor {
         console.error(`[Document Processor] Error calculating risk for document ${documentId}:`, riskError);
       }
 
-      // Step 6: Increment AI analysis usage after successful processing
+      // Step 7: Increment AI analysis usage after successful processing
       try {
         const { usageService } = await import("../../../backend-api/src/services/usage-service");
         await usageService.incrementUsage(tenantId, "AI_ANALYSES" as any, 1);

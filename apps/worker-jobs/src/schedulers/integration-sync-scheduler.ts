@@ -124,7 +124,7 @@ export class IntegrationSyncScheduler {
 
         // Check push sync frequency (default to daily)
         const pushSyncFrequency = config?.pushSyncFrequency || "daily";
-        const pushSyncIntervalMs = this.getPushSyncIntervalMs(pushSyncFrequency);
+        const pushSyncIntervalMs = this.getPushSyncIntervalMs(pushSyncFrequency as string);
 
         // Check if we need to create a push sync job
         // Use lastPushSyncAt if available, otherwise use lastSyncAt

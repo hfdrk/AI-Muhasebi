@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import { NotFoundError } from "@repo/shared-utils";
+import { NotFoundError, logger } from "@repo/shared-utils";
 
 export interface RiskScoreHistory {
   date: Date;
@@ -187,9 +187,9 @@ export class RiskTrendService {
       });
     } catch (error) {
       // Log error but don't throw - history storage shouldn't break risk calculation
-      console.error(
+      logger.error(
         `[RiskTrendService] Error storing risk score history: ${entityType} ${entityId}, score: ${score}, severity: ${severity}`,
-        error
+        { error }
       );
     }
   }

@@ -2,6 +2,7 @@ import { Router, type Router as ExpressRouter } from "express";
 import type { NextFunction, Response } from "express";
 import { z } from "zod";
 import { analyticsService } from "../services/analytics-service";
+import { prisma } from "../lib/prisma";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
 import { requirePermission } from "../middleware/rbac-middleware";
@@ -201,8 +202,8 @@ router.get(
           portfolio: {
             totalClients: dashboard.portfolio.totalClients,
             activeClients: dashboard.portfolio.activeClients,
-            newClients: 0, // TODO: Calculate from client creation dates
-            churnedClients: 0, // TODO: Calculate from client status changes
+            newClients: dashboard.portfolio.newClients || 0,
+            churnedClients: dashboard.portfolio.churnedClients || 0,
           },
           forecasts: {
             nextMonthRevenue: dashboard.revenueForecast[0]?.forecastedRevenue || 0,
@@ -228,4 +229,5 @@ router.get(
 );
 
 export default router;
+
 

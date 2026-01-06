@@ -1,6 +1,6 @@
 import { Readable } from "stream";
 import { prisma } from "../lib/prisma";
-import { NotFoundError, ValidationError } from "@repo/shared-utils";
+import { NotFoundError, ValidationError, logger } from "@repo/shared-utils";
 import { getStorage, getStorageConfig } from "@repo/config";
 import { validateFileSize, validateMimeType, sanitizeFileName } from "@repo/shared-utils";
 import type {
@@ -145,7 +145,7 @@ export class DocumentService {
       );
     } catch (error) {
       // Don't fail document upload if requirement check fails
-      console.error("[DocumentService] Error checking document requirements:", error);
+      logger.error("[DocumentService] Error checking document requirements:", { error });
     }
 
     return this.mapToDocument(document);
@@ -208,8 +208,8 @@ export class DocumentService {
 
     // Debug logging for risk severity filtering
     if (filters.riskSeverity) {
-      console.log(`[DocumentService] Filtering by riskSeverity: ${filters.riskSeverity}`);
-      console.log(`[DocumentService] Where clause:`, JSON.stringify(where, null, 2));
+      logger.debug(`[DocumentService] Filtering by riskSeverity: ${filters.riskSeverity}`);
+      logger.debug(`[DocumentService] Where clause:`, { where });
     }
 
     const [data, total] = await Promise.all([
@@ -244,7 +244,7 @@ export class DocumentService {
 
     // Debug logging for results
     if (filters.riskSeverity) {
-      console.log(`[DocumentService] Found ${data.length} documents, total: ${total}`);
+      logger.debug(`[DocumentService] Found ${data.length} documents, total: ${total}`);
     }
 
     let mappedData = data.map((item) => {

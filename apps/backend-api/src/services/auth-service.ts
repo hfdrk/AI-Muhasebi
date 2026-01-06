@@ -2,8 +2,10 @@ import { prisma } from "../lib/prisma";
 import { hashPassword, verifyPassword, validatePassword } from "@repo/shared-utils";
 import { generateAccessToken, generateRefreshToken } from "@repo/shared-utils";
 import { randomBytes } from "crypto";
-import { AuthenticationError, ValidationError } from "@repo/shared-utils";
+import { AuthenticationError, ValidationError, logger } from "@repo/shared-utils";
 import { auditService } from "./audit-service";
+import { emailService } from "./email-service";
+import { getConfig } from "@repo/config";
 import type { User, Tenant, CreateUserInput, CreateTenantInput } from "@repo/core-domain";
 import { TENANT_ROLES } from "@repo/core-domain";
 
@@ -317,9 +319,35 @@ export class AuthService {
       ipAddress,
     });
 
-    // TODO: Send email with reset link
-    // Email should contain: ${FRONTEND_URL}/auth/reset-password?token=${token}
-    console.log(`Password reset token for ${normalizedEmail}: ${token}`);
+    // Send email with reset link
+    try {
+      const config = getConfig();
+      const frontendUrl = config.FRONTEND_URL || config.CORS_ORIGIN || "http://localhost:3000";
+      const resetLink = `${frontendUrl}/auth/reset-password?token=${token}`;
+
+      await emailService.sendTemplatedEmail(
+        "password-reset",
+        [normalizedEmail],
+        "Şifre Sıfırlama Talebi",
+        {
+          userName: user.fullName,
+          resetLink,
+          expiresIn: "1 saat",
+          year: new Date().getFullYear(),
+        }
+      );
+
+      logger.info(`Password reset email sent to ${normalizedEmail}`);
+    } catch (error) {
+      // Log error but don't fail the request (security best practice - don't reveal if email was sent)
+      logger.error(`Failed to send password reset email to ${normalizedEmail}:`, {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      // In development, log the token for testing
+      if (process.env.NODE_ENV === "development") {
+        logger.info(`Password reset token for ${normalizedEmail}: ${token}`);
+      }
+    }
   }
 
   async resetPassword(token: string, newPassword: string, ipAddress?: string): Promise<void> {

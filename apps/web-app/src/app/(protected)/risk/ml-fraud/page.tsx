@@ -8,6 +8,7 @@ import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
 import { Modal } from "../../../../components/ui/Modal";
 import { PageTransition } from "../../../../components/ui/PageTransition";
+import { Skeleton } from "../../../../components/ui/Skeleton";
 import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
 
 const SEVERITY_COLORS: Record<string, string> = {

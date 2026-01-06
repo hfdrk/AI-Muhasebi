@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import { NotFoundError, ValidationError } from "@repo/shared-utils";
+import { NotFoundError, ValidationError, logger } from "@repo/shared-utils";
 import type {
   Task,
   CreateTaskInput,
@@ -206,7 +206,7 @@ export class TaskService {
         });
       } catch (error) {
         // Don't fail task creation if notification fails
-        console.error("[TaskService] Error creating notification:", error);
+        logger.error("[TaskService] Error creating notification:", { error });
       }
     }
 
@@ -293,7 +293,7 @@ export class TaskService {
           },
         });
       } catch (error) {
-        console.error("[TaskService] Error creating notification:", error);
+        logger.error("[TaskService] Error creating notification:", { error });
       }
     }
 
@@ -319,7 +319,7 @@ export class TaskService {
             },
           });
         } catch (error) {
-          console.error("[TaskService] Error creating notification:", error);
+          logger.error("[TaskService] Error creating notification:", { error });
         }
       } else if (daysUntilDue < 0) {
         // Overdue
@@ -337,7 +337,7 @@ export class TaskService {
             },
           });
         } catch (error) {
-          console.error("[TaskService] Error creating notification:", error);
+          logger.error("[TaskService] Error creating notification:", { error });
         }
       }
     }

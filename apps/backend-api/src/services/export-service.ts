@@ -1,11 +1,15 @@
 import PDFDocument from "pdfkit";
+import ExcelJS from "exceljs";
 import type { BaseReportResult } from "./reporting-service";
 
 /**
  * Export Service for converting report results to downloadable formats
  * 
- * TODO: Consider adding support for:
- * - Real Excel library (exceljs) for proper .xlsx format
+ * Supports:
+ * - PDF export with PDFKit
+ * - Excel export with ExcelJS (.xlsx format)
+ * 
+ * Future enhancements:
  * - Report template customization
  * - Branded PDF templates with company logos
  * - Multi-language support for report headers
@@ -120,73 +124,120 @@ export class ExportService {
   }
 
   /**
-   * Export report result to Excel format (currently CSV for MVP)
-   * 
-   * TODO: Replace with real Excel library (e.g., exceljs) for proper .xlsx format support
+   * Export report result to Excel format (.xlsx)
    * 
    * @param reportResult - The report result to export (from ReportingService)
-   * @returns Promise resolving to Buffer containing CSV data
-   * @throws Error if CSV generation fails
+   * @returns Promise resolving to Buffer containing Excel data
+   * @throws Error if Excel generation fails
    * 
    * @example
    * ```typescript
-   * const csvBuffer = await exportService.exportToExcel(reportResult);
-   * // Use csvBuffer as file download or attachment
+   * const excelBuffer = await exportService.exportToExcel(reportResult);
+   * // Use excelBuffer as file download or attachment
    * ```
    */
   async exportToExcel(reportResult: BaseReportResult): Promise<Buffer> {
     try {
-      const lines: string[] = [];
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Rapor");
 
-      // Title and metadata
-      lines.push(`"${reportResult.title}"`);
-      lines.push(`"Dönem","${this.formatDate(reportResult.period.start_date)}","${this.formatDate(reportResult.period.end_date)}"`);
-      lines.push(`"Oluşturulma","${this.formatDateTime(reportResult.generated_at)}"`);
-      lines.push(""); // Empty line
+      // Set column widths
+      worksheet.columns = [];
+
+      // Title row
+      const titleRow = worksheet.addRow([reportResult.title]);
+      titleRow.font = { size: 16, bold: true };
+      titleRow.alignment = { horizontal: "center", vertical: "middle" };
+      worksheet.mergeCells(1, 1, 1, 10); // Merge cells for title
+      worksheet.addRow([]); // Empty row
+
+      // Metadata rows
+      worksheet.addRow([
+        "Dönem:",
+        `${this.formatDate(reportResult.period.start_date)} - ${this.formatDate(reportResult.period.end_date)}`,
+      ]);
+      worksheet.addRow([
+        "Oluşturulma:",
+        this.formatDateTime(reportResult.generated_at),
+      ]);
+      worksheet.addRow([]); // Empty row
 
       // Table of rows
       if (reportResult.rows && reportResult.rows.length > 0) {
         // Extract headers from first row
         const headers = Object.keys(reportResult.rows[0]);
-        
+
         // Header row
-        lines.push(headers.map((h) => this.escapeCsvValue(this.formatHeader(h))).join(","));
+        const headerRow = worksheet.addRow(headers.map((h) => this.formatHeader(h)));
+        headerRow.font = { bold: true };
+        headerRow.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FFE0E0E0" },
+        };
+        headerRow.alignment = { horizontal: "center", vertical: "middle" };
+
+        // Set column widths based on headers
+        headers.forEach((header, index) => {
+          worksheet.getColumn(index + 1).width = Math.max(header.length, 15);
+        });
 
         // Data rows
         for (const row of reportResult.rows) {
           const values = headers.map((header) => {
             const value = row[header as keyof typeof row];
-            return this.escapeCsvValue(value !== null && value !== undefined ? String(value) : "");
+            // Handle different value types
+            if (value === null || value === undefined) {
+              return "";
+            }
+            if (typeof value === "number") {
+              return value;
+            }
+            if (typeof value === "boolean") {
+              return value ? "Evet" : "Hayır";
+            }
+            if (value instanceof Date) {
+              return value.toLocaleDateString("tr-TR");
+            }
+            return String(value);
           });
-          lines.push(values.join(","));
+          worksheet.addRow(values);
         }
-        lines.push(""); // Empty line
+
+        worksheet.addRow([]); // Empty row
       }
 
       // Totals section
       if (reportResult.totals) {
-        lines.push('"Toplamlar"');
+        const totalsRow = worksheet.addRow(["Toplamlar"]);
+        totalsRow.font = { bold: true };
+        totalsRow.alignment = { horizontal: "left", vertical: "middle" };
+
         const totalsObj = reportResult.totals as Record<string, any>;
         for (const [key, value] of Object.entries(totalsObj)) {
           if (value !== null && value !== undefined) {
             if (typeof value === "object" && !Array.isArray(value)) {
               // Nested object - flatten
               for (const [nestedKey, nestedValue] of Object.entries(value)) {
-                lines.push(`"${this.formatHeader(key)} - ${this.formatHeader(nestedKey)}","${nestedValue}"`);
+                worksheet.addRow([
+                  `${this.formatHeader(key)} - ${this.formatHeader(nestedKey)}`,
+                  nestedValue,
+                ]);
               }
             } else if (Array.isArray(value)) {
-              lines.push(`"${this.formatHeader(key)}","${value.join(", ")}"`);
+              worksheet.addRow([this.formatHeader(key), value.join(", ")]);
             } else {
-              lines.push(`"${this.formatHeader(key)}","${value}"`);
+              worksheet.addRow([this.formatHeader(key), value]);
             }
           }
         }
       }
 
-      const csvContent = lines.join("\n");
-      return Buffer.from(csvContent, "utf-8");
+      // Generate buffer
+      const buffer = await workbook.xlsx.writeBuffer();
+      return Buffer.from(buffer);
     } catch (error: any) {
-      throw new Error(`CSV export failed: ${error.message || "Unknown error"}`);
+      throw new Error(`Excel export failed: ${error.message || "Unknown error"}`);
     }
   }
 
@@ -230,15 +281,6 @@ export class ExportService {
       .join(" ");
   }
 
-  /**
-   * Escape CSV value (handle quotes and commas)
-   */
-  private escapeCsvValue(value: string): string {
-    if (value.includes(",") || value.includes('"') || value.includes("\n")) {
-      return `"${value.replace(/"/g, '""')}"`;
-    }
-    return value;
-  }
 }
 
 export const exportService = new ExportService();

@@ -19,25 +19,37 @@ export interface ConsentStatus {
 }
 
 export interface DataAccessRequest {
-  requestId: string;
+  id: string;
+  requestId?: string; // For backward compatibility
   userId: string;
   status: "pending" | "processing" | "completed" | "rejected";
   requestedAt: string;
+  completedAt?: string | null;
+  data?: Record<string, unknown>;
+  rejectionReason?: string;
 }
 
 export interface DataDeletionRequest {
-  requestId: string;
+  id: string;
+  requestId?: string; // For backward compatibility
   userId: string;
   status: "pending" | "processing" | "completed" | "rejected";
   requestedAt: string;
+  completedAt?: string | null;
+  rejectionReason?: string;
 }
 
 export interface DataBreach {
-  breachId: string;
-  recordedAt: string;
+  id: string;
+  breachId?: string; // For backward compatibility
+  tenantId: string;
+  recordedAt?: string; // For backward compatibility
+  detectedAt: string;
+  reportedAt?: string | null;
   severity: "low" | "medium" | "high" | "critical";
   affectedUsers: number;
   description: string;
+  status?: "detected" | "investigating" | "contained" | "resolved" | "reported";
 }
 
 export interface DataRetention {
@@ -193,6 +205,27 @@ export const kvkkClient = {
     return apiRequest<{ data: DataAccessAuditLog[] }>("/api/v1/kvkk/audit-log", {
       params: userId ? { userId } : undefined,
     });
+  },
+
+  /**
+   * List data access requests
+   */
+  async listDataAccessRequests(): Promise<{ data: DataAccessRequest[] }> {
+    return apiRequest<{ data: DataAccessRequest[] }>("/api/v1/kvkk/data-access");
+  },
+
+  /**
+   * List data deletion requests
+   */
+  async listDataDeletionRequests(): Promise<{ data: DataDeletionRequest[] }> {
+    return apiRequest<{ data: DataDeletionRequest[] }>("/api/v1/kvkk/data-deletion");
+  },
+
+  /**
+   * List breaches
+   */
+  async listBreaches(): Promise<{ data: DataBreach[] }> {
+    return apiRequest<{ data: DataBreach[] }>("/api/v1/kvkk/breach");
   },
 };
 

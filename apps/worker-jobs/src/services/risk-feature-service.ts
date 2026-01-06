@@ -269,7 +269,8 @@ export class RiskFeatureService {
     const expectedVATRates = [0, 0.01, 0.1, 0.18, 0.2];
     const tolerance = 0.001; // Small tolerance for floating point
 
-    for (const lineItem of fields.lineItems) {
+    for (let i = 0; i < fields.lineItems.length; i++) {
+      const lineItem = fields.lineItems[i];
       if (lineItem.vatRate !== null && lineItem.vatRate !== undefined) {
         const vatRate = lineItem.vatRate;
         const isExpected = expectedVATRates.some(
@@ -281,7 +282,7 @@ export class RiskFeatureService {
           flags.push({
             code: "VAT_RATE_INCONSISTENCY",
             severity: "medium",
-            description: `Satır ${lineItem.lineNumber || "?"} için alışılmadık KDV oranı: ${(vatRate * 100).toFixed(2)}%`,
+            description: `Satır ${i + 1} için alışılmadık KDV oranı: ${(vatRate * 100).toFixed(2)}%`,
             value: vatRate,
           });
         }

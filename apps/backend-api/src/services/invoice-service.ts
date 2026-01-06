@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import { NotFoundError, ValidationError } from "@repo/shared-utils";
+import { NotFoundError, ValidationError, sanitizeString, logger } from "@repo/shared-utils";
 import type {
   Invoice,
   InvoiceLine,
@@ -185,7 +185,7 @@ export class InvoiceService {
         currency: input.currency || "TRY",
         taxAmount: input.taxAmount,
         netAmount: input.netAmount ?? null,
-        counterpartyName: input.counterpartyName ?? null,
+        counterpartyName: input.counterpartyName ? sanitizeString(input.counterpartyName) : null,
         counterpartyTaxNumber: input.counterpartyTaxNumber ?? null,
         status: input.status || "taslak",
         source: input.source || "manual",
@@ -193,7 +193,7 @@ export class InvoiceService {
           create: input.lines.map((line) => ({
             tenantId,
             lineNumber: line.lineNumber,
-            description: line.description,
+            description: sanitizeString(line.description),
             quantity: line.quantity,
             unitPrice: line.unitPrice,
             lineTotal: line.lineTotal,
@@ -222,7 +222,7 @@ export class InvoiceService {
         }
       } catch (error) {
         // Don't fail invoice creation if duplicate check fails
-        console.error("[InvoiceService] Error checking for duplicates:", error);
+        logger.error("[InvoiceService] Error checking for duplicates:", { error });
       }
     }
 
@@ -240,7 +240,7 @@ export class InvoiceService {
         );
       } catch (error) {
         // Don't fail invoice creation if counterparty check fails
-        console.error("[InvoiceService] Error checking for unusual counterparty:", error);
+        logger.error("[InvoiceService] Error checking for unusual counterparty:", { error });
       }
     }
 
@@ -315,7 +315,7 @@ export class InvoiceService {
           currency: input.currency,
           taxAmount: input.taxAmount,
           netAmount: input.netAmount,
-          counterpartyName: input.counterpartyName,
+          counterpartyName: input.counterpartyName ? sanitizeString(input.counterpartyName) : undefined,
           counterpartyTaxNumber: input.counterpartyTaxNumber,
           status: input.status,
           ...(input.lines && {
@@ -323,7 +323,7 @@ export class InvoiceService {
               create: input.lines.map((line) => ({
                 tenantId,
                 lineNumber: line.lineNumber,
-                description: line.description,
+                description: sanitizeString(line.description),
                 quantity: line.quantity,
                 unitPrice: line.unitPrice,
                 lineTotal: line.lineTotal,
@@ -356,7 +356,7 @@ export class InvoiceService {
         }
       } catch (error) {
         // Don't fail invoice update if duplicate check fails
-        console.error("[InvoiceService] Error checking for duplicates:", error);
+        logger.error("[InvoiceService] Error checking for duplicates:", { error });
       }
     }
 

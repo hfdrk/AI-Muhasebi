@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import { NotFoundError, ValidationError } from "@repo/shared-utils";
+import { NotFoundError, ValidationError, sanitizeString } from "@repo/shared-utils";
 import type {
   ClientCompany,
   CreateClientCompanyInput,
@@ -154,15 +154,15 @@ export class ClientCompanyService {
     const client = await prisma.clientCompany.create({
       data: {
         tenantId,
-        name: input.name,
+        name: sanitizeString(input.name),
         legalType: input.legalType,
         taxNumber: input.taxNumber,
-        tradeRegistryNumber: input.tradeRegistryNumber ?? null,
-        sector: input.sector ?? null,
-        contactPersonName: input.contactPersonName ?? null,
+        tradeRegistryNumber: input.tradeRegistryNumber ? sanitizeString(input.tradeRegistryNumber) : null,
+        sector: input.sector ? sanitizeString(input.sector) : null,
+        contactPersonName: input.contactPersonName ? sanitizeString(input.contactPersonName) : null,
         contactPhone: input.contactPhone ?? null,
         contactEmail: input.contactEmail ?? null,
-        address: input.address ?? null,
+        address: input.address ? sanitizeString(input.address) : null,
         startDate: input.startDate ?? null,
         isActive: input.isActive ?? true,
       },
@@ -206,14 +206,14 @@ export class ClientCompanyService {
     const client = await prisma.clientCompany.update({
       where: { id },
       data: {
-        name: input.name,
+        name: input.name ? sanitizeString(input.name) : undefined,
         legalType: input.legalType,
-        tradeRegistryNumber: input.tradeRegistryNumber ?? undefined,
-        sector: input.sector ?? undefined,
-        contactPersonName: input.contactPersonName ?? undefined,
+        tradeRegistryNumber: input.tradeRegistryNumber ? sanitizeString(input.tradeRegistryNumber) : undefined,
+        sector: input.sector ? sanitizeString(input.sector) : undefined,
+        contactPersonName: input.contactPersonName ? sanitizeString(input.contactPersonName) : undefined,
         contactPhone: input.contactPhone ?? undefined,
         contactEmail: input.contactEmail ?? undefined,
-        address: input.address ?? undefined,
+        address: input.address ? sanitizeString(input.address) : undefined,
         startDate: input.startDate ?? undefined,
         isActive: input.isActive ?? undefined,
       },

@@ -56,7 +56,7 @@ export class OpenAIClient implements LLMClient {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: { message: "Unknown error", type: "parse_error" } }));
+        const errorData = (await response.json().catch(() => ({ error: { message: "Unknown error", type: "parse_error" } }))) as { error?: { message?: string; type?: string } };
         const errorMessage = errorData.error?.message || response.statusText;
         const errorType = errorData.error?.type || "api_error";
         const statusCode = response.status;
@@ -71,8 +71,8 @@ export class OpenAIClient implements LLMClient {
         throw new Error(`OpenAI API error (${statusCode}): ${errorMessage}`);
       }
 
-      const data = await response.json();
-      const content = data.choices[0]?.message?.content;
+      const data = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
+      const content = data.choices?.[0]?.message?.content;
       
       if (!content) {
         console.warn("[OpenAI Client] No content in response:", data);
@@ -143,7 +143,7 @@ export class OpenAIClient implements LLMClient {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: { message: "Unknown error", type: "parse_error" } }));
+        const errorData = (await response.json().catch(() => ({ error: { message: "Unknown error", type: "parse_error" } }))) as { error?: { message?: string; type?: string } };
         const errorMessage = errorData.error?.message || response.statusText;
         const statusCode = response.status;
         
@@ -155,8 +155,8 @@ export class OpenAIClient implements LLMClient {
         throw new Error(`OpenAI API error (${statusCode}): ${errorMessage}`);
       }
 
-      const data = await response.json();
-      const content = data.choices[0]?.message?.content;
+      const data = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
+      const content = data.choices?.[0]?.message?.content;
       
       if (!content) {
         console.warn("[OpenAI Client] No content in response:", data);

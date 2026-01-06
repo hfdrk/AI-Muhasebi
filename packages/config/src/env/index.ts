@@ -4,6 +4,11 @@ const envSchema = z.object({
   NODE_ENV: z.enum(["development", "staging", "production"]).default("development"),
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
   DATABASE_URL_TEST: z.string().optional(),
+  DATABASE_POOL_SIZE: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : undefined))
+    .pipe(z.number().int().min(1).max(50).optional()),
   REDIS_URL: z.string().optional(),
   JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
   JWT_ACCESS_TOKEN_EXPIRY: z.string().default("15m"),
@@ -15,6 +20,17 @@ const envSchema = z.object({
   CORS_ORIGIN: z.string().url().optional(),
   // Logging
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
+  // Rate limiting
+  RATE_LIMIT_WINDOW_MS: z
+    .string()
+    .default("900000")
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().int().min(1000)),
+  RATE_LIMIT_MAX_REQUESTS: z
+    .string()
+    .default("100")
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().int().min(1)),
   // Worker configuration
   WORKER_CONCURRENCY: z
     .string()
@@ -74,6 +90,46 @@ const envSchema = z.object({
     .string()
     .default("true")
     .transform((val) => val === "true" || val === "1"),
+  // Embedding configuration
+  EMBEDDING_PROVIDER: z.enum(["openai", "anthropic", "ollama"]).default("openai"),
+  EMBEDDING_MODEL: z.string().optional(),
+  OLLAMA_BASE_URL: z.string().url().default("http://localhost:11434"),
+  EMBEDDING_DIMENSIONS: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : undefined))
+    .pipe(z.number().int().min(128).max(8192).optional()),
+  // RAG configuration
+  RAG_ENABLED: z
+    .string()
+    .default("true")
+    .transform((val) => val === "true" || val === "1"),
+  RAG_TOP_K: z
+    .string()
+    .default("5")
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().int().min(1).max(50)),
+  RAG_MIN_SIMILARITY: z
+    .string()
+    .default("0.7")
+    .transform((val) => parseFloat(val))
+    .pipe(z.number().min(0).max(1)),
+  // Embedding generation configuration
+  EMBEDDING_MAX_RETRIES: z
+    .string()
+    .default("3")
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().int().min(0).max(10)),
+  EMBEDDING_CHUNK_SIZE: z
+    .string()
+    .default("8000")
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().int().min(1000).max(50000)),
+  OLLAMA_CONCURRENT_REQUESTS: z
+    .string()
+    .default("5")
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().int().min(1).max(20)),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

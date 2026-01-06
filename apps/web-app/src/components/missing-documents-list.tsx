@@ -1,6 +1,8 @@
 "use client";
 
-import { type DocumentRequirement } from "@repo/api-client";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { type DocumentRequirement, listClientCompanies } from "@repo/api-client";
 import { formatDate } from "@/utils/date-utils";
 
 interface MissingDocumentsListProps {
@@ -32,6 +34,28 @@ export default function MissingDocumentsList({
   requirements,
   onEdit,
 }: MissingDocumentsListProps) {
+  // Fetch all client companies to map IDs to names
+  const { data: clientsData, isLoading: clientsLoading } = useQuery({
+    queryKey: ["client-companies-for-documents"],
+    queryFn: () => listClientCompanies({ pageSize: 1000 }),
+  });
+
+  // Create a map of clientCompanyId -> client name
+  const clientNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    if (clientsData?.data?.data) {
+      clientsData.data.data.forEach((client) => {
+        map.set(client.id, client.name);
+      });
+    }
+    return map;
+  }, [clientsData]);
+
+  const getClientName = (clientCompanyId: string | null | undefined): string => {
+    if (!clientCompanyId) return "Bilinmeyen Müşteri";
+    return clientNameMap.get(clientCompanyId) || clientCompanyId;
+  };
+
   if (requirements.length === 0) {
     return (
       <div style={{ padding: "24px", textAlign: "center", color: "#666" }}>
@@ -78,7 +102,11 @@ export default function MissingDocumentsList({
             >
               <td style={{ padding: "12px" }}>
                 <div style={{ fontWeight: "bold" }}>
-                  {requirement.clientCompanyId} {/* TODO: Fetch client name */}
+                  {clientsLoading ? (
+                    <span style={{ color: "#999", fontStyle: "italic" }}>Yükleniyor...</span>
+                  ) : (
+                    getClientName(requirement.clientCompanyId)
+                  )}
                 </div>
                 {requirement.description && (
                   <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>

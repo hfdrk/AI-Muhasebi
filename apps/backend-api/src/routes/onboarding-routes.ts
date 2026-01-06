@@ -1,4 +1,5 @@
 import { Router, type Response, type Router as ExpressRouter } from "express";
+import { logger } from "@repo/shared-utils";
 import { onboardingService } from "../services/onboarding-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
@@ -21,7 +22,7 @@ router.get("/state", async (req: AuthenticatedRequest, res: Response) => {
       data: state,
     });
   } catch (error: any) {
-    console.error("Error getting onboarding state:", error);
+    logger.error("Error getting onboarding state:", { error });
     res.status(500).json({
       error: {
         message: "Onboarding durumu alınırken bir hata oluştu.",
@@ -31,6 +32,7 @@ router.get("/state", async (req: AuthenticatedRequest, res: Response) => {
 });
 
 export default router;
+
 
 
 

@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import { NotFoundError } from "@repo/core-domain";
+import { NotFoundError } from "@repo/shared-utils";
 import { logger } from "@repo/shared-utils";
 
 /**
@@ -29,6 +29,8 @@ export interface RiskTrend {
 export interface ClientPortfolioAnalytics {
   totalClients: number;
   activeClients: number;
+  newClients: number;
+  churnedClients: number;
   highRiskClients: number;
   mediumRiskClients: number;
   lowRiskClients: number;
@@ -298,6 +300,35 @@ export class AnalyticsService {
       },
     });
 
+    // Calculate new clients (created within the period)
+    let newClientsCount = 0;
+    if (periodStart && periodEnd) {
+      newClientsCount = await prisma.clientCompany.count({
+        where: {
+          tenantId,
+          createdAt: {
+            gte: periodStart,
+            lte: periodEnd,
+          },
+        },
+      });
+    }
+
+    // Calculate churned clients (became inactive within the period)
+    let churnedClientsCount = 0;
+    if (periodStart && periodEnd) {
+      churnedClientsCount = await prisma.clientCompany.count({
+        where: {
+          tenantId,
+          isActive: false,
+          updatedAt: {
+            gte: periodStart,
+            lte: periodEnd,
+          },
+        },
+      });
+    }
+
     let totalRevenue = 0;
     let highRiskCount = 0;
     let mediumRiskCount = 0;
@@ -340,6 +371,8 @@ export class AnalyticsService {
     return {
       totalClients: clients.length,
       activeClients: clients.filter((c) => c.isActive).length,
+      newClients: newClientsCount,
+      churnedClients: churnedClientsCount,
       highRiskClients: highRiskCount,
       mediumRiskClients: mediumRiskCount,
       lowRiskClients: lowRiskCount,
@@ -358,6 +391,8 @@ export class AnalyticsService {
       return {
         totalClients: 0,
         activeClients: 0,
+        newClients: 0,
+        churnedClients: 0,
         highRiskClients: 0,
         mediumRiskClients: 0,
         lowRiskClients: 0,

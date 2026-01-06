@@ -14,7 +14,7 @@ const router: ExpressRouter = Router();
 router.use(authMiddleware);
 
 const switchTenantSchema = z.object({
-  tenantId: z.string().min(1, "Kiracı ID gerekli."),
+  tenantId: z.string().min(1, "Kiracı ID gerekli.").max(100, "Kiracı ID en fazla 100 karakter olabilir."),
 });
 
 router.get("/me", async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
@@ -81,4 +81,5 @@ router.post("/switch-tenant", async (req: AuthenticatedRequest, res: Response, n
 });
 
 export default router;
+
 

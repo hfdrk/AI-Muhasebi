@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import { NotFoundError, ValidationError } from "@repo/core-domain";
+import { NotFoundError, ValidationError } from "@repo/shared-utils";
 import { logger } from "@repo/shared-utils";
 
 /**
@@ -108,7 +108,7 @@ export class TMSComplianceService {
       const issues: TMSValidationResult["issues"] = [];
 
       // Validate double-entry bookkeeping
-      let doubleEntryValid = { valid: true };
+      let doubleEntryValid: { valid: boolean; message?: string } = { valid: true };
       try {
         doubleEntryValid = await this.validateDoubleEntry(tenantId, clientCompanyId, periodStart, periodEnd);
       } catch (error) {
@@ -126,7 +126,7 @@ export class TMSComplianceService {
       }
 
       // Validate accrual basis accounting
-      let accrualBasisValid = { valid: true };
+      let accrualBasisValid: { valid: boolean; message?: string } = { valid: true };
       try {
         accrualBasisValid = await this.validateAccrualBasis(tenantId, clientCompanyId, periodStart, periodEnd);
       } catch (error) {
@@ -144,7 +144,7 @@ export class TMSComplianceService {
       }
 
       // Validate chart of accounts
-      let chartOfAccountsValid = { valid: true };
+      let chartOfAccountsValid: { valid: boolean; message?: string } = { valid: true };
       try {
         chartOfAccountsValid = await this.validateChartOfAccounts(tenantId, clientCompanyId);
       } catch (error) {
@@ -156,7 +156,7 @@ export class TMSComplianceService {
         issues.push({
           type: "chart_of_accounts",
           severity: "medium",
-          description: chartOfAccountsValid.message || "Hesap planı TMS uyumlu değil",
+          description: (chartOfAccountsValid as any).message || "Hesap planı TMS uyumlu değil",
           recommendation: "Hesap planı TMS standartlarına uygun olmalıdır.",
         });
       }
@@ -242,7 +242,7 @@ export class TMSComplianceService {
       },
       clientCompanyId,
       clientCompanyName: company.name,
-      data: balanceSheet,
+      data: balanceSheet as unknown as Record<string, unknown>,
       complianceStatus: {
         compliant: validation.compliant,
         issues: validation.issues.map((issue) => ({

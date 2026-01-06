@@ -57,11 +57,11 @@ export class AnthropicClient implements LLMClient {
       });
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ error: { message: "Unknown error" } }));
+        const error = (await response.json().catch(() => ({ error: { message: "Unknown error" } }))) as { error?: { message?: string } };
         throw new Error(`Anthropic API error: ${error.error?.message || response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as { content?: Array<{ text?: string }> };
       
       // Anthropic returns content as an array of text blocks
       if (data.content && Array.isArray(data.content) && data.content.length > 0) {
@@ -118,11 +118,11 @@ export class AnthropicClient implements LLMClient {
       });
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ error: { message: "Unknown error" } }));
+        const error = (await response.json().catch(() => ({ error: { message: "Unknown error" } }))) as { error?: { message?: string } };
         throw new Error(`Anthropic API error: ${error.error?.message || response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as { content?: Array<{ text?: string }> };
       
       if (data.content && Array.isArray(data.content) && data.content.length > 0) {
         const content = data.content[0].text || "";

@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import { NotFoundError } from "@repo/core-domain";
+import { NotFoundError } from "@repo/shared-utils";
 import { logger } from "@repo/shared-utils";
 import { vatOptimizationService } from "./vat-optimization-service";
 

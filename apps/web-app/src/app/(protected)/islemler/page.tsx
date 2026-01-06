@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { listTransactions, listClientCompanies } from "@repo/api-client";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -15,7 +16,7 @@ import { TableRow, TableCell } from "@/components/ui/Table";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { colors, spacing, typography } from "@/styles/design-system";
 
-export default function TransactionsPage() {
+function TransactionsPageContent() {
   const searchParams = useSearchParams();
   const defaultClientId = searchParams.get("clientCompanyId") || undefined;
 
@@ -224,6 +225,14 @@ export default function TransactionsPage() {
       )}
       </div>
     </PageTransition>
+  );
+}
+
+export default function TransactionsPage() {
+  return (
+    <Suspense fallback={<div>Yükleniyor...</div>}>
+      <TransactionsPageContent />
+    </Suspense>
   );
 }
 

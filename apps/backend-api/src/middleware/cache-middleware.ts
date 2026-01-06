@@ -31,7 +31,8 @@ export function cacheMiddleware(ttlMs: number = 60000) {
     // Check cache
     const cached = cacheService.get<any>(cacheKey);
     if (cached) {
-      return res.json(cached);
+      res.json(cached);
+      return;
     }
 
     // Store original json method

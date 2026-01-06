@@ -1,4 +1,5 @@
 import { Server as HTTPServer } from "http";
+// @ts-ignore - socket.io types may not be available
 import { Server as SocketIOServer, Socket } from "socket.io";
 import { logger } from "@repo/shared-utils";
 import { prisma } from "../lib/prisma";
@@ -123,9 +124,9 @@ export class WebSocketService {
         // Notify others of user offline status
         if (userId) {
           // Get tenant ID from socket rooms (simplified)
-          const tenantId = Array.from(socket.rooms)
-            .find((room) => room.startsWith("tenant:"))
-            ?.replace("tenant:", "");
+          const tenantRoom = Array.from(socket.rooms)
+            .find((room) => typeof room === "string" && room.startsWith("tenant:"));
+          const tenantId = typeof tenantRoom === "string" ? tenantRoom.replace("tenant:", "") : undefined;
 
           if (tenantId) {
             this.broadcastToTenant(tenantId, {

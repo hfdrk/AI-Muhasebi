@@ -88,11 +88,26 @@ async function apiRequest<T>(
     let errorMessage = "Bir hata oluştu.";
     try {
       const error = await response.json();
-      errorMessage = error.error?.message || error.message || errorMessage;
-    } catch {
+      // Ensure error message is always a string
+      const rawMessage = error.error?.message || error.message || error.error;
+      if (typeof rawMessage === "string") {
+        errorMessage = rawMessage;
+      } else if (rawMessage != null) {
+        // If it's not a string, convert it to string safely
+        try {
+          errorMessage = String(rawMessage);
+        } catch {
+          errorMessage = "Bir hata oluştu.";
+        }
+      }
+    } catch (parseError) {
       // If response is not JSON (e.g., connection refused), use status text
-      errorMessage = response.statusText || `HTTP ${response.status} hatası`;
-      if (response.status === 0 || !response.status) {
+      const statusText = response.statusText;
+      if (typeof statusText === "string" && statusText.length > 0) {
+        errorMessage = statusText;
+      } else if (response.status) {
+        errorMessage = `HTTP ${response.status} hatası`;
+      } else {
         errorMessage = "Sunucuya bağlanılamadı. Backend API'nin çalıştığından emin olun.";
       }
     }

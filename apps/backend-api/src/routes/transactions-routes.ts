@@ -17,17 +17,17 @@ router.use(authMiddleware);
 router.use(tenantMiddleware);
 
 const createTransactionLineSchema = z.object({
-  ledgerAccountId: z.string().min(1, "Hesap kodu gerekli."),
+  ledgerAccountId: z.string().min(1, "Hesap kodu gerekli.").max(100, "Hesap kodu en fazla 100 karakter olabilir."),
   debitAmount: z.number().nonnegative(),
   creditAmount: z.number().nonnegative(),
-  description: z.string().optional().nullable(),
+  description: z.string().max(1000, "Açıklama en fazla 1000 karakter olabilir.").optional().nullable(),
 });
 
 const createTransactionSchema = z.object({
   clientCompanyId: z.string().optional().nullable(),
   date: z.string().datetime(),
-  referenceNo: z.string().optional().nullable(),
-  description: z.string().optional().nullable(),
+  referenceNo: z.string().max(255, "Referans numarası en fazla 255 karakter olabilir.").optional().nullable(),
+  description: z.string().max(1000, "Açıklama en fazla 1000 karakter olabilir.").optional().nullable(),
   source: z.enum(["manual", "import", "integration"]).optional(),
   lines: z.array(createTransactionLineSchema).min(1, "En az bir hareket satırı gerekli."),
 });
@@ -104,7 +104,7 @@ router.post(
         {
           ...body,
           date: new Date(body.date),
-        }
+        } as any
       );
 
       res.status(201).json({ data: transaction });
@@ -129,7 +129,7 @@ router.patch(
         {
           ...body,
           date: body.date ? new Date(body.date) : undefined,
-        }
+        } as any
       );
 
       res.json({ data: transaction });
@@ -184,4 +184,5 @@ router.get(
 );
 
 export default router;
+
 

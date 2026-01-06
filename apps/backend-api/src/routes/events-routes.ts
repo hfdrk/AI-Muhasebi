@@ -1,4 +1,5 @@
 import { Router, type Response, type Router as ExpressRouter } from "express";
+import { logger } from "@repo/shared-utils";
 import { eventStreamService } from "../services/event-stream-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
@@ -28,7 +29,7 @@ router.get("/stream", async (req: AuthenticatedRequest, res: Response) => {
       eventStreamService.removeConnection(connectionId);
     });
   } catch (error: any) {
-    console.error("Error setting up event stream:", error);
+    logger.error("Error setting up event stream:", { error });
     if (!res.headersSent) {
       res.status(500).json({ error: { message: "Olay akışı kurulamadı." } });
     }
@@ -36,5 +37,6 @@ router.get("/stream", async (req: AuthenticatedRequest, res: Response) => {
 });
 
 export default router;
+
 
 

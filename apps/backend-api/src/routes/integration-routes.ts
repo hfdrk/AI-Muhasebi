@@ -1,6 +1,7 @@
 import { Router, type Router as ExpressRouter } from "express";
 import type { NextFunction, Response } from "express";
 import { z } from "zod";
+import { logger } from "@repo/shared-utils";
 import { integrationProviderService } from "../services/integration-provider-service";
 import { tenantIntegrationService } from "../services/tenant-integration-service";
 import { integrationSyncService } from "../services/integration-sync-service";
@@ -16,14 +17,14 @@ router.use(authMiddleware);
 router.use(tenantMiddleware);
 
 const createIntegrationSchema = z.object({
-  providerId: z.string().min(1, "Sağlayıcı gerekli."),
-  clientCompanyId: z.string().optional().nullable(),
-  displayName: z.string().optional(),
+  providerId: z.string().min(1, "Sağlayıcı gerekli.").max(100, "Sağlayıcı ID en fazla 100 karakter olabilir."),
+  clientCompanyId: z.string().max(100, "Müşteri şirketi ID en fazla 100 karakter olabilir.").optional().nullable(),
+  displayName: z.string().max(255, "Görünen ad en fazla 255 karakter olabilir.").optional(),
   config: z.any(), // Accept any JSON object for config
 });
 
 const updateIntegrationSchema = z.object({
-  displayName: z.string().optional(),
+  displayName: z.string().max(255, "Görünen ad en fazla 255 karakter olabilir.").optional(),
   config: z.any().optional(), // Accept any JSON object for config
 });
 
@@ -96,21 +97,19 @@ router.post(
   requirePermission("integrations:manage"),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      console.log("[Integration Route] Creating integration, body:", JSON.stringify(req.body));
+      logger.debug("[Integration Route] Creating integration", { body: req.body });
       const body = createIntegrationSchema.parse(req.body);
-      console.log("[Integration Route] Parsed body:", body);
-      console.log("[Integration Route] Tenant ID:", req.context!.tenantId!);
+      logger.debug("[Integration Route] Parsed body", { body, tenantId: req.context!.tenantId! });
       
       const integration = await tenantIntegrationService.createIntegration(
         req.context!.tenantId!,
-        body
+        body as any
       );
 
-      console.log("[Integration Route] Integration created successfully:", integration.id);
+      logger.info("[Integration Route] Integration created successfully", { integrationId: integration.id });
       res.status(201).json({ data: integration });
     } catch (error: any) {
-      console.error("[Integration Route] Error creating integration:", error);
-      console.error("[Integration Route] Error stack:", error.stack);
+      logger.error("[Integration Route] Error creating integration:", { error, stack: error instanceof Error ? error.stack : undefined });
       if (error instanceof z.ZodError && error.issues && error.issues.length > 0) {
         res.status(400).json({ 
           error: { 
@@ -311,4 +310,5 @@ router.get(
 );
 
 export default router;
+
 

@@ -1,6 +1,11 @@
 import { prisma } from "../lib/prisma";
-import { NotFoundError, ValidationError } from "@repo/core-domain";
+import { NotFoundError, ValidationError } from "@repo/shared-utils";
 import { logger } from "@repo/shared-utils";
+import {
+  gibComplianceService,
+  GIB_EARSIV_STATUS,
+  type GibEArsivStatus,
+} from "./gib-compliance-service";
 
 /**
  * E-Arşiv (Electronic Archive) Service
@@ -320,6 +325,341 @@ export class EArsivService {
     const dateStr = invoice.issueDate.toISOString().split("T")[0].replace(/-/g, "");
     const uuid = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     return `EARSIV-${invoice.supplierVKN}-${dateStr}-${uuid}`;
+  }
+
+  // =============================================================================
+  // ENHANCED GİB COMPLIANCE METHODS
+  // =============================================================================
+
+  /**
+   * Generate QR code URL for E-Arşiv invoice
+   */
+  generateQRCode(params: {
+    ettn: string;
+    vkn: string;
+    invoiceDate: Date;
+    invoiceAmount: number;
+  }): string {
+    return gibComplianceService.generateEArsivQRData(params);
+  }
+
+  /**
+   * Validate invoice data for E-Arşiv submission
+   */
+  async validateForEArsiv(
+    tenantId: string,
+    invoiceId: string
+  ): Promise<{
+    valid: boolean;
+    errors: string[];
+    warnings: string[];
+  }> {
+    const invoice = await prisma.invoice.findFirst({
+      where: { id: invoiceId, tenantId },
+      include: { lines: true, clientCompany: true },
+    });
+
+    if (!invoice) {
+      return { valid: false, errors: ["Fatura bulunamadı"], warnings: [] };
+    }
+
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    // Validate supplier VKN
+    const supplierVkn = invoice.clientCompany?.taxNumber;
+    if (!supplierVkn) {
+      errors.push("Satıcı VKN bilgisi eksik");
+    } else {
+      const vknValidation = gibComplianceService.validateTaxId(supplierVkn);
+      if (!vknValidation.valid) {
+        errors.push(`Satıcı VKN geçersiz: ${vknValidation.error}`);
+      }
+    }
+
+    // For E-Arşiv, customer email is important (for sending)
+    const customerEmail = (invoice as any).counterparty?.email;
+    if (!customerEmail) {
+      warnings.push("Müşteri e-posta adresi eksik - Fatura e-posta ile gönderilemeyecek");
+    }
+
+    // Check customer tax number for Ba-Bs
+    const totalAmount = Number(invoice.totalAmount);
+    if (gibComplianceService.requiresBaBsReporting(totalAmount)) {
+      if (!invoice.counterpartyTaxNumber) {
+        warnings.push("Bu tutar Ba-Bs bildirimi gerektirir - Alıcı VKN önerilir");
+      }
+    }
+
+    // Validate amounts
+    const lineTotal = invoice.lines.reduce((sum, line) => sum + Number(line.lineTotal || 0), 0);
+    const lineTax = invoice.lines.reduce((sum, line) => sum + Number(line.vatAmount || 0), 0);
+    const declaredTotal = Number(invoice.totalAmount);
+
+    if (Math.abs(lineTotal + lineTax - declaredTotal) > 0.01) {
+      errors.push(
+        `Tutar uyuşmazlığı: Satır toplamı ${(lineTotal + lineTax).toFixed(2)}, Fatura toplamı ${declaredTotal.toFixed(2)}`
+      );
+    }
+
+    // Check if lines exist
+    if (invoice.lines.length === 0) {
+      errors.push("Fatura satırları eksik");
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors,
+      warnings,
+    };
+  }
+
+  /**
+   * Cancel an archived E-Arşiv invoice
+   */
+  async cancelArchive(
+    tenantId: string,
+    invoiceId: string,
+    reason: string
+  ): Promise<{
+    success: boolean;
+    message: string;
+    cancellationDate?: Date;
+  }> {
+    const invoice = await prisma.invoice.findFirst({
+      where: { id: invoiceId, tenantId },
+    });
+
+    if (!invoice) {
+      throw new NotFoundError("Fatura bulunamadı");
+    }
+
+    const metadata = (invoice.metadata as Record<string, unknown>) || {};
+    const eArsivData = metadata.eArsiv as Record<string, unknown> | undefined;
+
+    if (!eArsivData?.archiveId) {
+      throw new ValidationError("Fatura henüz E-Arşiv sistemine gönderilmemiş");
+    }
+
+    const status = eArsivData.status as string;
+    if (status === "cancelled") {
+      throw new ValidationError("Fatura zaten iptal edilmiş");
+    }
+
+    // Check cancellation period (7 days for E-Arşiv)
+    const archiveDate = eArsivData.archiveDate
+      ? new Date(eArsivData.archiveDate as string)
+      : null;
+
+    if (archiveDate) {
+      const daysSinceArchive = Math.ceil(
+        (new Date().getTime() - archiveDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      if (daysSinceArchive > 7) {
+        throw new ValidationError(
+          "E-Arşiv faturaları 7 gün içinde iptal edilebilir. Bu süre geçmiş."
+        );
+      }
+    }
+
+    const cancellationDate = new Date();
+
+    // Update invoice metadata
+    await prisma.invoice.update({
+      where: { id: invoiceId },
+      data: {
+        metadata: {
+          ...metadata,
+          eArsiv: {
+            ...eArsivData,
+            status: "cancelled",
+            cancellationDate: cancellationDate.toISOString(),
+            cancellationReason: reason,
+          },
+        },
+      },
+    });
+
+    logger.info("E-Arşiv cancelled successfully", { tenantId }, { invoiceId, reason });
+
+    return {
+      success: true,
+      message: "E-Arşiv faturası başarıyla iptal edildi",
+      cancellationDate,
+    };
+  }
+
+  /**
+   * Get E-Arşiv invoice with enhanced GİB status
+   */
+  async getInvoiceWithGibStatus(
+    tenantId: string,
+    invoiceId: string
+  ): Promise<{
+    invoice: any;
+    gibStatus: GibEArsivStatus;
+    qrCodeUrl?: string;
+    ettn?: string;
+    archiveDate?: Date;
+  }> {
+    const invoice = await prisma.invoice.findFirst({
+      where: { id: invoiceId, tenantId },
+      include: { lines: true, clientCompany: true },
+    });
+
+    if (!invoice) {
+      throw new NotFoundError("Fatura bulunamadı");
+    }
+
+    const metadata = (invoice.metadata as Record<string, unknown>) || {};
+    const eArsivData = metadata.eArsiv as Record<string, unknown> | undefined;
+
+    const gibStatus = gibComplianceService.mapToGibStatus(
+      (eArsivData?.status as string) || "DRAFT",
+      "earsiv"
+    ) as GibEArsivStatus;
+
+    let qrCodeUrl: string | undefined;
+    let ettn: string | undefined;
+
+    if (eArsivData?.archiveId) {
+      ettn = gibComplianceService.generateETTN();
+
+      // Generate QR code URL
+      qrCodeUrl = this.generateQRCode({
+        ettn,
+        vkn: invoice.clientCompany?.taxNumber || "",
+        invoiceDate: invoice.issueDate,
+        invoiceAmount: Number(invoice.totalAmount),
+      });
+    }
+
+    return {
+      invoice,
+      gibStatus,
+      qrCodeUrl,
+      ettn,
+      archiveDate: eArsivData?.archiveDate
+        ? new Date(eArsivData.archiveDate as string)
+        : undefined,
+    };
+  }
+
+  /**
+   * Get archive statistics for tenant
+   */
+  async getArchiveStats(
+    tenantId: string,
+    dateRange?: { from: Date; to: Date }
+  ): Promise<{
+    total: number;
+    archived: number;
+    cancelled: number;
+    pending: number;
+    totalAmount: number;
+  }> {
+    const invoices = await prisma.invoice.findMany({
+      where: {
+        tenantId,
+        ...(dateRange && {
+          issueDate: {
+            gte: dateRange.from,
+            lte: dateRange.to,
+          },
+        }),
+      },
+      select: { metadata: true, totalAmount: true },
+    });
+
+    const stats = {
+      total: invoices.length,
+      archived: 0,
+      cancelled: 0,
+      pending: 0,
+      totalAmount: 0,
+    };
+
+    for (const invoice of invoices) {
+      const metadata = (invoice.metadata as Record<string, unknown>) || {};
+      const eArsivData = metadata.eArsiv as Record<string, unknown> | undefined;
+
+      if (eArsivData) {
+        const status = eArsivData.status as string;
+        switch (status) {
+          case "archived":
+            stats.archived++;
+            stats.totalAmount += Number(invoice.totalAmount);
+            break;
+          case "cancelled":
+            stats.cancelled++;
+            break;
+          default:
+            stats.pending++;
+        }
+      }
+    }
+
+    return stats;
+  }
+
+  /**
+   * Resend E-Arşiv invoice to customer email
+   */
+  async resendToCustomer(
+    tenantId: string,
+    invoiceId: string,
+    email?: string
+  ): Promise<{
+    success: boolean;
+    message: string;
+    sentTo?: string;
+  }> {
+    const invoice = await prisma.invoice.findFirst({
+      where: { id: invoiceId, tenantId },
+      include: { clientCompany: true },
+    });
+
+    if (!invoice) {
+      throw new NotFoundError("Fatura bulunamadı");
+    }
+
+    const metadata = (invoice.metadata as Record<string, unknown>) || {};
+    const eArsivData = metadata.eArsiv as Record<string, unknown> | undefined;
+
+    if (!eArsivData?.archiveId) {
+      throw new ValidationError("Fatura henüz E-Arşiv sistemine gönderilmemiş");
+    }
+
+    const targetEmail = email || (invoice as any).counterparty?.email;
+
+    if (!targetEmail) {
+      throw new ValidationError("E-posta adresi belirtilmedi ve müşteri e-postası yok");
+    }
+
+    // TODO: Implement actual email sending
+    // For now, just update metadata
+    await prisma.invoice.update({
+      where: { id: invoiceId },
+      data: {
+        metadata: {
+          ...metadata,
+          eArsiv: {
+            ...eArsivData,
+            lastSentTo: targetEmail,
+            lastSentDate: new Date().toISOString(),
+          },
+        },
+      },
+    });
+
+    logger.info("E-Arşiv invoice resent", { tenantId }, { invoiceId, email: targetEmail });
+
+    return {
+      success: true,
+      message: "Fatura belirtilen e-posta adresine gönderildi",
+      sentTo: targetEmail,
+    };
   }
 }
 

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch src/worker.ts",
-    "build": "tsc && prisma generate",
+    "build": "sh build.sh",
     "start": "node dist/worker.js",
     "lint": "eslint src --ext .ts",
     "type-check": "tsc --noEmit",
@@ -17,7 +17,9 @@
     "@prisma/client": "^5.22.0",
     "@repo/config": "workspace:*",
     "@repo/core-domain": "workspace:*",
-    "@repo/shared-utils": "workspace:*"
+    "@repo/shared-utils": "workspace:*",
+    "nodemailer": "^6.9.7",
+    "handlebars": "^4.7.8"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",

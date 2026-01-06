@@ -1,5 +1,6 @@
 import { Router, type Response, type NextFunction, type Router as ExpressRouter } from "express";
 import { z } from "zod";
+import { logger } from "@repo/shared-utils";
 import { messagingService } from "../services/messaging-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
@@ -19,7 +20,7 @@ router.post("/threads", async (req: AuthenticatedRequest, res: Response) => {
 
     const bodySchema = z.object({
       clientCompanyId: z.string().optional().nullable(),
-      subject: z.string().optional().nullable(),
+      subject: z.string().max(500, "Konu en fazla 500 karakter olabilir.").optional().nullable(),
       participantUserIds: z.array(z.string()).min(1),
     });
 
@@ -39,7 +40,7 @@ router.post("/threads", async (req: AuthenticatedRequest, res: Response) => {
 
     res.status(201).json({ data: thread });
   } catch (error: any) {
-    console.error("Error creating message thread:", error);
+    logger.error("Error creating message thread:", { error });
     if (error instanceof z.ZodError) {
       res.status(400).json({ error: { message: "Geçersiz istek verisi." } });
     } else {
@@ -79,7 +80,7 @@ router.get("/threads", async (req: AuthenticatedRequest, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error("Error listing message threads:", error);
+    logger.error("Error listing message threads:", { error });
     if (error instanceof z.ZodError) {
       res.status(400).json({ error: { message: "Geçersiz sorgu parametreleri." } });
     } else {
@@ -112,7 +113,7 @@ router.post("/threads/:id/messages", async (req: AuthenticatedRequest, res: Resp
     const threadId = req.params.id;
 
     const bodySchema = z.object({
-      content: z.string().min(1, "Mesaj içeriği boş olamaz"),
+      content: z.string().min(1, "Mesaj içeriği boş olamaz").max(10000, "Mesaj içeriği en fazla 10000 karakter olabilir."),
     });
 
     const body = bodySchema.parse(req.body);
@@ -125,7 +126,7 @@ router.post("/threads/:id/messages", async (req: AuthenticatedRequest, res: Resp
 
     res.status(201).json({ data: message });
   } catch (error: any) {
-    console.error("Error sending message:", error);
+    logger.error("Error sending message:", { error });
     if (error instanceof z.ZodError) {
       res.status(400).json({ error: { message: "Geçersiz istek verisi." } });
     } else {
@@ -151,6 +152,7 @@ router.post("/threads/:id/read", async (req: AuthenticatedRequest, res: Response
 });
 
 export default router;
+
 
 
 

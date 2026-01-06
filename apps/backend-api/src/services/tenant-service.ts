@@ -1,7 +1,9 @@
 import { prisma } from "../lib/prisma";
-import { NotFoundError, ValidationError } from "@repo/shared-utils";
+import { NotFoundError, ValidationError, logger } from "@repo/shared-utils";
 import { hashPassword } from "@repo/shared-utils";
 import { auditService } from "./audit-service";
+import { emailService } from "./email-service";
+import { getConfig } from "@repo/config";
 import { randomBytes } from "crypto";
 import type { Tenant, UpdateTenantInput } from "@repo/core-domain";
 import { TENANT_ROLES } from "@repo/core-domain";
@@ -190,8 +192,48 @@ export class TenantService {
       role,
     });
 
-    // TODO: Send invitation email with link to accept invitation
-    console.log(`Invitation sent to ${normalizedEmail} for tenant ${tenantId}`);
+    // Send invitation email with link to accept invitation
+    try {
+      const tenant = await prisma.tenant.findUnique({
+        where: { id: tenantId },
+      });
+
+      const config = getConfig();
+      const frontendUrl = config.FRONTEND_URL || config.CORS_ORIGIN || "http://localhost:3000";
+      const acceptLink = `${frontendUrl}/auth/register?email=${encodeURIComponent(normalizedEmail)}&tenant=${tenantId}`;
+
+      const roleLabel = role === TENANT_ROLES.TENANT_OWNER
+        ? "Muhasebeci"
+        : role === TENANT_ROLES.READ_ONLY
+        ? "Müşteri"
+        : role;
+
+      await emailService.sendTemplatedEmail(
+        "user-invitation",
+        [normalizedEmail],
+        `${tenant?.name || "AI Muhasebi"} - Davet`,
+        {
+          userName: name || normalizedEmail.split("@")[0],
+          tenantName: tenant?.name || "AI Muhasebi",
+          role: roleLabel,
+          acceptLink,
+          inviterName: inviterUserId, // Could fetch inviter name if needed
+          year: new Date().getFullYear(),
+        }
+      );
+
+      logger.info(`Invitation email sent to ${normalizedEmail} for tenant ${tenantId}`);
+    } catch (error) {
+      // Log error but don't fail the request
+      logger.error(`Failed to send invitation email to ${normalizedEmail}:`, {
+        error: error instanceof Error ? error.message : String(error),
+        tenantId,
+      });
+      // In development, log for testing
+      if (process.env.NODE_ENV === "development") {
+        logger.info(`Invitation sent to ${normalizedEmail} for tenant ${tenantId}`);
+      }
+    }
   }
 
   async acceptInvitation(

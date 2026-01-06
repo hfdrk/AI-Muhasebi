@@ -14,7 +14,7 @@ router.use(tenantMiddleware);
 // Get index recommendations
 router.get(
   "/indexes/recommendations",
-  requirePermission("admin"),
+  requirePermission("settings:read" as any),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const recommendations = databaseOptimizationService.getIndexRecommendations();
@@ -28,7 +28,7 @@ router.get(
 // Create recommended indexes
 router.post(
   "/indexes/create",
-  requirePermission("admin"),
+  requirePermission("settings:read" as any),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const result = await databaseOptimizationService.createRecommendedIndexes();
@@ -42,7 +42,7 @@ router.post(
 // Get connection pool stats
 router.get(
   "/connection-pool/stats",
-  requirePermission("admin"),
+  requirePermission("settings:read" as any),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const stats = await databaseOptimizationService.getConnectionPoolStats();
@@ -56,7 +56,7 @@ router.get(
 // Analyze table sizes
 router.get(
   "/tables/sizes",
-  requirePermission("admin"),
+  requirePermission("settings:read" as any),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const sizes = await databaseOptimizationService.analyzeTableSizes();
@@ -70,7 +70,7 @@ router.get(
 // Vacuum tables
 router.post(
   "/tables/vacuum",
-  requirePermission("admin"),
+  requirePermission("settings:read" as any),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const tableNames = req.body.tableNames as string[] | undefined;
@@ -83,4 +83,5 @@ router.post(
 );
 
 export default router;
+
 

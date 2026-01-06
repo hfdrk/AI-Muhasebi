@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import { NotFoundError, ValidationError } from "@repo/shared-utils";
+import { NotFoundError, ValidationError, logger } from "@repo/shared-utils";
 import type {
   DocumentRequirement,
   CreateDocumentRequirementInput,
@@ -322,7 +322,7 @@ export class DocumentRequirementService {
         });
         alertsCreated++;
       } catch (error) {
-        console.error("[DocumentRequirementService] Error creating notification:", error);
+        logger.error("[DocumentRequirementService] Error creating notification:", { error });
       }
     }
 

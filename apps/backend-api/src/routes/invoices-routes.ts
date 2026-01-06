@@ -18,7 +18,7 @@ router.use(tenantMiddleware);
 
 const createInvoiceLineSchema = z.object({
   lineNumber: z.number().int().positive(),
-  description: z.string().min(1, "Açıklama gerekli."),
+  description: z.string().min(1, "Açıklama gerekli.").max(1000, "Açıklama en fazla 1000 karakter olabilir."),
   quantity: z.number().positive(),
   unitPrice: z.number().nonnegative(),
   lineTotal: z.number().nonnegative(),
@@ -28,16 +28,16 @@ const createInvoiceLineSchema = z.object({
 
 const createInvoiceSchema = z.object({
   clientCompanyId: z.string().min(1, "Müşteri şirketi gerekli."),
-  externalId: z.string().optional().nullable(),
+  externalId: z.string().max(255, "Harici ID en fazla 255 karakter olabilir.").optional().nullable(),
   type: z.enum(["SATIŞ", "ALIŞ"]),
   issueDate: z.string().datetime(),
   dueDate: z.string().datetime().optional().nullable(),
   totalAmount: z.number().nonnegative(),
-  currency: z.string().default("TRY"),
+  currency: z.string().max(10, "Para birimi en fazla 10 karakter olabilir.").default("TRY"),
   taxAmount: z.number().nonnegative(),
   netAmount: z.number().optional().nullable(),
-  counterpartyName: z.string().optional().nullable(),
-  counterpartyTaxNumber: z.string().optional().nullable(),
+  counterpartyName: z.string().max(255, "Karşı taraf adı en fazla 255 karakter olabilir.").optional().nullable(),
+  counterpartyTaxNumber: z.string().max(50, "Karşı taraf vergi numarası en fazla 50 karakter olabilir.").optional().nullable(),
   status: z.enum(["taslak", "kesildi", "iptal", "muhasebeleştirilmiş"]).optional(),
   source: z.enum(["manual", "import", "integration"]).optional(),
   lines: z.array(createInvoiceLineSchema).min(1, "En az bir fatura satırı gerekli."),
@@ -130,7 +130,7 @@ router.post(
         ...body,
         issueDate: new Date(body.issueDate),
         dueDate: body.dueDate ? new Date(body.dueDate) : null,
-      });
+      } as any);
 
       res.status(201).json({ data: invoice });
     } catch (error) {
@@ -155,7 +155,7 @@ router.patch(
           ...body,
           issueDate: body.issueDate ? new Date(body.issueDate) : undefined,
           dueDate: body.dueDate !== undefined ? (body.dueDate ? new Date(body.dueDate) : null) : undefined,
-        }
+        } as any
       );
 
       res.json({ data: invoice });
@@ -204,4 +204,5 @@ router.delete(
 );
 
 export default router;
+
 

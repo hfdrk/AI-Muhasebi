@@ -7,7 +7,7 @@ import type {
   ParsedDocumentResult,
   CreateDocumentParsedDataInput,
 } from "@repo/core-domain";
-import { createLLMClient, hasRealAIProvider, logger } from "@repo/shared-utils";
+import { createLLMClient, hasRealAIProvider, logger, type LogContext } from "@repo/shared-utils";
 
 /**
  * Document Parser Service - LLM-Based with Rule-based Fallback
@@ -53,8 +53,8 @@ export class DocumentParserService {
             parserVersion: this.PARSER_VERSION,
           };
         }
-      } catch (error) {
-        logger.warn("LLM parsing failed, falling back to rule-based parser:", error);
+      } catch (error: unknown) {
+        logger.warn("LLM parsing failed, falling back to rule-based parser:", error as LogContext | undefined);
         // Fall through to rule-based parsing
       }
     }
@@ -104,8 +104,9 @@ export class DocumentParserService {
         fields,
         parserVersion: this.PARSER_VERSION,
       };
-    } catch (error) {
-      logger.error("LLM parsing error:", error);
+    } catch (error: unknown) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      logger.error("LLM parsing error:", { error: errorMsg });
       return null;
     }
   }

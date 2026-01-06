@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { kvkkClient } from "@repo/api-client";
 import Link from "next/link";
 import { Card } from "../../../../components/ui/Card";
@@ -27,7 +27,33 @@ export default function BreachManagementPage() {
   const [description, setDescription] = useState<string>("");
   const [affectedUsers, setAffectedUsers] = useState<number>(0);
   const [severity, setSeverity] = useState<"low" | "medium" | "high" | "critical">("medium");
+  const [expandedBreachId, setExpandedBreachId] = useState<string | null>(null);
+  const [severityFilter, setSeverityFilter] = useState<string>("all");
   const queryClient = useQueryClient();
+
+  // Get current tenant
+  const { data: userData } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: async () => {
+      const { getCurrentUser } = await import("@repo/api-client");
+      return getCurrentUser();
+    },
+  });
+
+  const currentTenant = userData?.data?.tenants?.find((t: any) => t.status === "active");
+  const tenantId = currentTenant?.id;
+
+  // Fetch breaches history
+  const { data: breachesData, isLoading: breachesLoading } = useQuery({
+    queryKey: ["kvkk-breaches"],
+    queryFn: () => kvkkClient.listBreaches(),
+    enabled: !!tenantId,
+  });
+
+  const allBreaches = breachesData?.data || [];
+  const filteredBreaches = severityFilter === "all" 
+    ? allBreaches 
+    : allBreaches.filter((b: any) => b.severity === severityFilter);
 
   // Record breach mutation
   const recordBreachMutation = useMutation({
@@ -42,7 +68,6 @@ export default function BreachManagementPage() {
     },
     onSuccess: (data) => {
       toast.success("Veri ihlali başarıyla kaydedildi!");
-      console.log("Data Breach:", data);
       setDescription("");
       setAffectedUsers(0);
       setSeverity("medium");
@@ -326,13 +351,148 @@ export default function BreachManagementPage() {
         ))}
       </div>
 
-      {/* Breach History Placeholder */}
-      <Card variant="elevated" title="İhlal Geçmişi">
-        <div style={{ padding: spacing.lg, textAlign: "center" }}>
-          <p style={{ color: colors.text.secondary, margin: 0 }}>
-            İhlal geçmişi özelliği yakında eklenecektir.
-          </p>
+      {/* Breach History */}
+      <Card variant="elevated" style={{ marginBottom: spacing.lg }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.md }}>
+          <h2
+            style={{
+              margin: 0,
+              fontSize: typography.fontSize.xl,
+              fontWeight: typography.fontWeight.semibold,
+              color: colors.text.primary,
+            }}
+          >
+            İhlal Geçmişi
+          </h2>
+          <select
+            value={severityFilter}
+            onChange={(e) => setSeverityFilter(e.target.value)}
+            style={{
+              padding: spacing.sm,
+              borderRadius: borderRadius.md,
+              border: `1px solid ${colors.border}`,
+              fontSize: typography.fontSize.sm,
+              backgroundColor: colors.white,
+              color: colors.text.primary,
+            }}
+          >
+            <option value="all">Tüm Şiddetler</option>
+            <option value="low">Düşük</option>
+            <option value="medium">Orta</option>
+            <option value="high">Yüksek</option>
+            <option value="critical">Kritik</option>
+          </select>
         </div>
+        {breachesLoading ? (
+          <div style={{ padding: spacing.lg, textAlign: "center" }}>
+            <p style={{ color: colors.text.secondary, margin: 0 }}>Yükleniyor...</p>
+          </div>
+        ) : filteredBreaches.length === 0 ? (
+          <div style={{ padding: spacing.lg, textAlign: "center" }}>
+            <p style={{ color: colors.text.secondary, margin: 0 }}>
+              {severityFilter === "all" 
+                ? "Henüz veri ihlali kaydı bulunmuyor."
+                : "Bu şiddet seviyesinde ihlal kaydı bulunmuyor."}
+            </p>
+          </div>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ backgroundColor: colors.gray[100], borderBottom: `1px solid ${colors.border}` }}>
+                  <th style={{ padding: spacing.sm, textAlign: "left", fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
+                    Tespit Tarihi
+                  </th>
+                  <th style={{ padding: spacing.sm, textAlign: "left", fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
+                    Şiddet
+                  </th>
+                  <th style={{ padding: spacing.sm, textAlign: "left", fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
+                    Etkilenen Kullanıcı
+                  </th>
+                  <th style={{ padding: spacing.sm, textAlign: "left", fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
+                    Durum
+                  </th>
+                  <th style={{ padding: spacing.sm, textAlign: "left", fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
+                    Açıklama
+                  </th>
+                  <th style={{ padding: spacing.sm, textAlign: "left", fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
+                    İşlemler
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredBreaches.map((breach: any) => {
+                  const isExpanded = expandedBreachId === breach.id;
+                  const severityInfo = SEVERITY_COLORS[breach.severity] || SEVERITY_COLORS.medium;
+                  
+                  return (
+                    <tr key={breach.id || breach.breachId} style={{ borderBottom: `1px solid ${colors.border}` }}>
+                      <td style={{ padding: spacing.sm, color: colors.text.secondary }}>
+                        {new Date(breach.detectedAt || breach.recordedAt).toLocaleDateString("tr-TR", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </td>
+                      <td style={{ padding: spacing.sm }}>
+                        <span
+                          style={{
+                            padding: "4px 8px",
+                            borderRadius: borderRadius.sm,
+                            fontSize: typography.fontSize.xs,
+                            backgroundColor: severityInfo.bg,
+                            color: severityInfo.text,
+                            fontWeight: typography.fontWeight.medium,
+                          }}
+                        >
+                          {SEVERITY_LABELS[breach.severity] || breach.severity}
+                        </span>
+                      </td>
+                      <td style={{ padding: spacing.sm, color: colors.text.secondary }}>
+                        {breach.affectedUsers}
+                      </td>
+                      <td style={{ padding: spacing.sm }}>
+                        {breach.status && (
+                          <span
+                            style={{
+                              padding: "4px 8px",
+                              borderRadius: borderRadius.sm,
+                              fontSize: typography.fontSize.xs,
+                              backgroundColor: colors.gray[100],
+                              color: colors.text.secondary,
+                            }}
+                          >
+                            {breach.status}
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ padding: spacing.sm, color: colors.text.secondary, maxWidth: "300px" }}>
+                        <div style={{ 
+                          overflow: "hidden", 
+                          textOverflow: "ellipsis", 
+                          whiteSpace: isExpanded ? "normal" : "nowrap" 
+                        }}>
+                          {breach.description}
+                        </div>
+                      </td>
+                      <td style={{ padding: spacing.sm }}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setExpandedBreachId(isExpanded ? null : breach.id)}
+                        >
+                          {isExpanded ? "Gizle" : "Detay"}
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Card>
 
       <style jsx global>{`

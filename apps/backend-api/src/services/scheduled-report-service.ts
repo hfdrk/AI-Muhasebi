@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import { NotFoundError, ValidationError } from "@repo/shared-utils";
+import { NotFoundError, ValidationError, logger } from "@repo/shared-utils";
 
 export interface CreateScheduledReportInput {
   tenantId: string;
@@ -141,24 +141,22 @@ export class ScheduledReportService {
 
       return report;
     } catch (error: any) {
-      console.error("[ScheduledReportService.createScheduledReport] Prisma error:", error);
-      console.error("Input data:", JSON.stringify({
-        tenantId: input.tenantId,
-        reportCode: input.reportCode,
-        clientCompanyId: input.clientCompanyId,
-        name: input.name,
-        format: input.format,
-        scheduleCron: input.scheduleCron,
-        filters: filtersData,
-        recipients: recipientsData,
-        isActive: input.isActive,
-      }, null, 2));
-      if (error.code) {
-        console.error("Prisma error code:", error.code);
-      }
-      if (error.meta) {
-        console.error("Prisma error meta:", error.meta);
-      }
+      logger.error("[ScheduledReportService.createScheduledReport] Prisma error:", {
+        error,
+        input: {
+          tenantId: input.tenantId,
+          reportCode: input.reportCode,
+          clientCompanyId: input.clientCompanyId,
+          name: input.name,
+          format: input.format,
+          scheduleCron: input.scheduleCron,
+          filters: filtersData,
+          recipients: recipientsData,
+          isActive: input.isActive,
+        },
+        prismaErrorCode: error.code,
+        prismaErrorMeta: error.meta,
+      });
       throw error;
     }
   }

@@ -6,7 +6,7 @@ import { auditService } from "../services/audit-service";
 import type { AuthenticatedRequest } from "../types/request-context";
 import { NotFoundError } from "@repo/shared-utils";
 
-const router = Router();
+const router: Router = Router();
 
 // All routes require authentication and platform admin role
 router.use(authMiddleware);
@@ -120,6 +120,8 @@ router.patch("/:tenantId/status", async (req: AuthenticatedRequest, res, next) =
 });
 
 export default router;
+
+
 
 
 

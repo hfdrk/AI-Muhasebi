@@ -6,6 +6,9 @@ import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getUserSettings, updateUserSettings, getCurrentUser } from "@repo/api-client";
 import { useState, useEffect } from "react";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { Card } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { colors, spacing } from "@/styles/design-system";
 
 const userSettingsSchema = z.object({

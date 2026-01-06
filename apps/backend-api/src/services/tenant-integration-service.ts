@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import { NotFoundError, ValidationError } from "@repo/shared-utils";
+import { NotFoundError, ValidationError, logger } from "@repo/shared-utils";
 import type {
   TenantIntegration,
   CreateTenantIntegrationInput,
@@ -162,21 +162,21 @@ export class TenantIntegrationService {
 
     // Test connection using connector
     try {
-      console.log(`[Integration Service] Testing connection for provider: ${provider.code}, type: ${provider.type}`);
+      logger.info(`[Integration Service] Testing connection for provider: ${provider.code}, type: ${provider.type}`);
       const connector = connectorRegistry.getConnector(provider.code, provider.type as "accounting" | "bank");
       if (!connector) {
-        console.error(`[Integration Service] Connector not found for code: ${provider.code}, type: ${provider.type}`);
+        logger.error(`[Integration Service] Connector not found for code: ${provider.code}, type: ${provider.type}`);
         throw new ValidationError(`Bu sağlayıcı için bağlayıcı bulunamadı. (Kod: ${provider.code}, Tür: ${provider.type})`);
       }
 
-      console.log(`[Integration Service] Connector found, testing connection...`);
+      logger.info(`[Integration Service] Connector found, testing connection...`);
       const testResult = await connector.testConnection(input.config);
-      console.log(`[Integration Service] Test result:`, testResult);
+      logger.info(`[Integration Service] Test result:`, testResult);
       if (!testResult.success) {
         throw new ValidationError(testResult.message || "Bağlantı testi başarısız.");
       }
     } catch (error: any) {
-      console.error(`[Integration Service] Error during connection test:`, error);
+      logger.error(`[Integration Service] Error during connection test:`, { error });
       if (error instanceof ValidationError) {
         throw error;
       }
@@ -185,7 +185,7 @@ export class TenantIntegrationService {
 
     // Create integration with status "connected"
     try {
-      console.log(`[Integration Service] Creating integration in database...`);
+      logger.info(`[Integration Service] Creating integration in database...`);
       const integration = await prisma.tenantIntegration.create({
         data: {
           tenantId,
@@ -197,7 +197,7 @@ export class TenantIntegrationService {
         },
       });
 
-      console.log(`[Integration Service] Integration created with ID: ${integration.id}`);
+      logger.info(`[Integration Service] Integration created with ID: ${integration.id}`);
       return {
         id: integration.id,
         tenantId: integration.tenantId,
@@ -212,7 +212,7 @@ export class TenantIntegrationService {
         updatedAt: integration.updatedAt,
       };
     } catch (error: any) {
-      console.error(`[Integration Service] Error creating integration in database:`, error);
+      logger.error(`[Integration Service] Error creating integration in database:`, { error });
       throw error;
     }
   }
