@@ -5,12 +5,13 @@ import { useQuery } from "@tanstack/react-query";
 import { globalSearch } from "@repo/api-client";
 import { search as searchI18n } from "@repo/i18n";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Icon } from "./ui/Icon";
 import { Tooltip } from "./ui/Tooltip";
 import { colors } from "../styles/design-system";
+import { useTheme } from "../contexts/ThemeContext";
 
 export function GlobalSearch() {
+  const { themeColors } = useTheme();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -124,43 +125,43 @@ export function GlobalSearch() {
           alignItems: "center",
           gap: "8px",
           padding: "10px 16px",
-          border: "1px solid #e2e8f0",
+          border: `1px solid ${themeColors.border}`,
           borderRadius: "10px",
-          backgroundColor: "white",
+          backgroundColor: themeColors.white,
           cursor: "pointer",
           fontSize: "14px",
           fontWeight: 600,
-          color: "#475569",
+          color: themeColors.text.secondary,
           transition: "all 0.2s ease",
           boxShadow: "0 2px 4px 0 rgba(0, 0, 0, 0.08)",
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = "#2563eb";
-          e.currentTarget.style.backgroundColor = "#eff6ff";
-          e.currentTarget.style.color = "#1e40af";
+          e.currentTarget.style.borderColor = colors.info;
+          e.currentTarget.style.backgroundColor = colors.infoLight;
+          e.currentTarget.style.color = colors.primaryDark;
           e.currentTarget.style.boxShadow = "0 4px 12px -2px rgba(37, 99, 235, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.06)";
           e.currentTarget.style.transform = "translateY(-1px)";
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = "#e2e8f0";
-          e.currentTarget.style.backgroundColor = "white";
-          e.currentTarget.style.color = "#475569";
+          e.currentTarget.style.borderColor = themeColors.border;
+          e.currentTarget.style.backgroundColor = themeColors.white;
+          e.currentTarget.style.color = themeColors.text.secondary;
           e.currentTarget.style.boxShadow = "0 2px 4px 0 rgba(0, 0, 0, 0.08)";
           e.currentTarget.style.transform = "translateY(0)";
         }}
         title={searchI18n.hint}
       >
-        <Icon name="search" size={16} color="currentColor" />
+        <Icon name="Search" size={16} color="currentColor" />
         <span>Ara</span>
         <span
           style={{
             marginLeft: "4px",
             padding: "2px 6px",
-            backgroundColor: "#f1f5f9",
+            backgroundColor: themeColors.gray[50],
             borderRadius: "4px",
             fontSize: "11px",
             fontWeight: 600,
-            color: "#64748b",
+            color: themeColors.text.muted,
             fontFamily: "monospace",
           }}
         >
@@ -192,7 +193,7 @@ export function GlobalSearch() {
     >
       <div
         style={{
-          backgroundColor: "white",
+          backgroundColor: themeColors.white,
           borderRadius: "12px",
           boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
           width: "90%",
@@ -205,7 +206,7 @@ export function GlobalSearch() {
         }}
       >
         {/* Search Input */}
-        <div style={{ padding: "20px", borderBottom: "1px solid #e2e8f0", backgroundColor: "#f8fafc" }}>
+        <div style={{ padding: "20px", borderBottom: `1px solid ${themeColors.border}`, backgroundColor: themeColors.gray[50] }}>
           <div style={{ position: "relative" }}>
             <input
               ref={inputRef}
@@ -216,26 +217,26 @@ export function GlobalSearch() {
               style={{
                 width: "100%",
                 padding: "14px 16px 14px 44px",
-                border: "2px solid #e2e8f0",
+                border: `2px solid ${themeColors.border}`,
                 borderRadius: "8px",
                 fontSize: "16px",
                 outline: "none",
                 transition: "all 0.2s ease",
-                backgroundColor: "white",
+                backgroundColor: themeColors.white,
               }}
               onFocus={(e) => {
-                e.currentTarget.style.borderColor = "#2563eb";
+                e.currentTarget.style.borderColor = colors.info;
                 e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37, 99, 235, 0.1)";
               }}
               onBlur={(e) => {
-                e.currentTarget.style.borderColor = "#e2e8f0";
+                e.currentTarget.style.borderColor = themeColors.border;
                 e.currentTarget.style.boxShadow = "none";
               }}
             />
             <Icon
-              name="search"
+              name="Search"
               size={18}
-              color="#94a3b8"
+              color={themeColors.gray[400]}
               style={{
                 position: "absolute",
                 left: "16px",
@@ -249,14 +250,14 @@ export function GlobalSearch() {
             style={{
               marginTop: "12px",
               fontSize: "12px",
-              color: "#64748b",
+              color: themeColors.text.muted,
               display: "flex",
               alignItems: "center",
               gap: "8px",
             }}
           >
             <span>{searchI18n.hint}</span>
-            <span style={{ color: "#cbd5e1" }}>•</span>
+            <span style={{ color: themeColors.gray[300] }}>•</span>
             <span>ESC ile kapat</span>
           </div>
         </div>
@@ -267,21 +268,21 @@ export function GlobalSearch() {
             flex: 1,
             overflowY: "auto",
             padding: "12px",
-            backgroundColor: "white",
+            backgroundColor: themeColors.white,
           }}
         >
           {isLoading && debouncedQuery.length >= 2 ? (
-            <div style={{ textAlign: "center", padding: "60px 40px", color: "#64748b" }}>
-              <Icon name="search" size={48} color="#64748b" style={{ marginBottom: "16px", display: "block", margin: "0 auto 16px", animation: "spin 1s linear infinite" }} />
+            <div style={{ textAlign: "center", padding: "60px 40px", color: themeColors.text.muted }}>
+              <Icon name="Search" size={48} color={themeColors.text.muted} style={{ marginBottom: "16px", display: "block", margin: "0 auto 16px", animation: "spin 1s linear infinite" }} />
               <div style={{ fontSize: "14px", fontWeight: 500 }}>{searchI18n.loading}</div>
             </div>
           ) : debouncedQuery.length < 2 ? (
-            <div style={{ textAlign: "center", padding: "60px 40px", color: "#64748b" }}>
+            <div style={{ textAlign: "center", padding: "60px 40px", color: themeColors.text.muted }}>
               <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔍</div>
               <div style={{ fontSize: "14px", fontWeight: 500 }}>{searchI18n.placeholder}</div>
             </div>
           ) : !hasResults ? (
-            <div style={{ textAlign: "center", padding: "60px 40px", color: "#64748b" }}>
+            <div style={{ textAlign: "center", padding: "60px 40px", color: themeColors.text.muted }}>
               <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔎</div>
               <div style={{ fontSize: "14px", fontWeight: 500 }}>{searchI18n.emptyState}</div>
             </div>
@@ -295,7 +296,7 @@ export function GlobalSearch() {
                       fontSize: "14px",
                       fontWeight: 600,
                       marginBottom: "8px",
-                      color: "#333",
+                      color: themeColors.text.primary,
                     }}
                   >
                     {searchI18n.groups.clients}
@@ -313,16 +314,16 @@ export function GlobalSearch() {
                         border: "1px solid transparent",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#f1f5f9";
-                        e.currentTarget.style.borderColor = "#e2e8f0";
+                        e.currentTarget.style.backgroundColor = themeColors.gray[50];
+                        e.currentTarget.style.borderColor = themeColors.border;
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = "transparent";
                         e.currentTarget.style.borderColor = "transparent";
                       }}
                     >
-                      <div style={{ fontWeight: 600, color: "#0f172a", marginBottom: "4px" }}>{client.name}</div>
-                      <div style={{ fontSize: "12px", color: "#64748b" }}>
+                      <div style={{ fontWeight: 600, color: themeColors.text.primary, marginBottom: "4px" }}>{client.name}</div>
+                      <div style={{ fontSize: "12px", color: themeColors.text.muted }}>
                         {client.taxNumber}
                       </div>
                     </div>
@@ -338,7 +339,7 @@ export function GlobalSearch() {
                       fontSize: "14px",
                       fontWeight: 600,
                       marginBottom: "8px",
-                      color: "#333",
+                      color: themeColors.text.primary,
                     }}
                   >
                     {searchI18n.groups.invoices}
@@ -356,19 +357,19 @@ export function GlobalSearch() {
                         border: "1px solid transparent",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#f1f5f9";
-                        e.currentTarget.style.borderColor = "#e2e8f0";
+                        e.currentTarget.style.backgroundColor = themeColors.gray[50];
+                        e.currentTarget.style.borderColor = themeColors.border;
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = "transparent";
                         e.currentTarget.style.borderColor = "transparent";
                       }}
                     >
-                      <div style={{ fontWeight: 600, color: "#0f172a", marginBottom: "4px" }}>
+                      <div style={{ fontWeight: 600, color: themeColors.text.primary, marginBottom: "4px" }}>
                         {invoice.externalId || invoice.id}
                       </div>
                       {invoice.counterpartyName && (
-                        <div style={{ fontSize: "12px", color: "#64748b" }}>
+                        <div style={{ fontSize: "12px", color: themeColors.text.muted }}>
                           {invoice.counterpartyName}
                         </div>
                       )}
@@ -385,7 +386,7 @@ export function GlobalSearch() {
                       fontSize: "14px",
                       fontWeight: 600,
                       marginBottom: "8px",
-                      color: "#333",
+                      color: themeColors.text.primary,
                     }}
                   >
                     {searchI18n.groups.documents}
@@ -403,15 +404,15 @@ export function GlobalSearch() {
                         border: "1px solid transparent",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#f1f5f9";
-                        e.currentTarget.style.borderColor = "#e2e8f0";
+                        e.currentTarget.style.backgroundColor = themeColors.gray[50];
+                        e.currentTarget.style.borderColor = themeColors.border;
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = "transparent";
                         e.currentTarget.style.borderColor = "transparent";
                       }}
                     >
-                      <div style={{ fontWeight: 600, color: "#0f172a" }}>{doc.originalFileName}</div>
+                      <div style={{ fontWeight: 600, color: themeColors.text.primary }}>{doc.originalFileName}</div>
                     </div>
                   ))}
                 </div>
@@ -425,7 +426,7 @@ export function GlobalSearch() {
                       fontSize: "14px",
                       fontWeight: 600,
                       marginBottom: "8px",
-                      color: "#333",
+                      color: themeColors.text.primary,
                     }}
                   >
                     {searchI18n.groups.riskAlerts}
@@ -443,16 +444,16 @@ export function GlobalSearch() {
                         border: "1px solid transparent",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#f1f5f9";
-                        e.currentTarget.style.borderColor = "#e2e8f0";
+                        e.currentTarget.style.backgroundColor = themeColors.gray[50];
+                        e.currentTarget.style.borderColor = themeColors.border;
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = "transparent";
                         e.currentTarget.style.borderColor = "transparent";
                       }}
                     >
-                      <div style={{ fontWeight: 600, color: "#0f172a", marginBottom: "4px" }}>{alert.title}</div>
-                      <div style={{ fontSize: "12px", color: "#64748b" }}>
+                      <div style={{ fontWeight: 600, color: themeColors.text.primary, marginBottom: "4px" }}>{alert.title}</div>
+                      <div style={{ fontSize: "12px", color: themeColors.text.muted }}>
                         Şiddet: {alert.severity}
                       </div>
                     </div>
@@ -468,7 +469,7 @@ export function GlobalSearch() {
                       fontSize: "14px",
                       fontWeight: 600,
                       marginBottom: "8px",
-                      color: "#333",
+                      color: themeColors.text.primary,
                     }}
                   >
                     {searchI18n.groups.reports}
@@ -486,16 +487,16 @@ export function GlobalSearch() {
                         border: "1px solid transparent",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#f1f5f9";
-                        e.currentTarget.style.borderColor = "#e2e8f0";
+                        e.currentTarget.style.backgroundColor = themeColors.gray[50];
+                        e.currentTarget.style.borderColor = themeColors.border;
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = "transparent";
                         e.currentTarget.style.borderColor = "transparent";
                       }}
                     >
-                      <div style={{ fontWeight: 600, color: "#0f172a", marginBottom: "4px" }}>{report.reportCode}</div>
-                      <div style={{ fontSize: "12px", color: "#64748b" }}>
+                      <div style={{ fontWeight: 600, color: themeColors.text.primary, marginBottom: "4px" }}>{report.reportCode}</div>
+                      <div style={{ fontSize: "12px", color: themeColors.text.muted }}>
                         {new Date(report.startedAt).toLocaleDateString("tr-TR")}
                       </div>
                     </div>

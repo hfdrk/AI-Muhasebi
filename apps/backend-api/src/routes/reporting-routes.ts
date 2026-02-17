@@ -5,6 +5,7 @@ import { reportingService } from "../services/reporting-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
 import { requirePermission } from "../middleware/rbac-middleware";
+import { cacheMiddleware } from "../middleware/cache-middleware";
 import { prisma } from "../lib/prisma";
 import { getConfig } from "@repo/config";
 import type { AuthenticatedRequest } from "../types/request-context";
@@ -71,6 +72,7 @@ router.get(
   "/definitions",
   checkReportingEnabled,
   requirePermission("reports:view"),
+  cacheMiddleware(300000),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const definitions = await prisma.reportDefinition.findMany({

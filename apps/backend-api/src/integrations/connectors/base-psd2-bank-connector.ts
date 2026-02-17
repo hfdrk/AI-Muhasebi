@@ -5,6 +5,7 @@ import type {
   PushTransactionInput,
 } from "./types";
 import { logger } from "@repo/shared-utils";
+import { getCircuitBreaker } from "../../lib/circuit-breaker";
 
 /**
  * PSD2 Open Banking Configuration
@@ -165,6 +166,23 @@ export abstract class BasePSD2BankConnector implements BankIntegrationConnector 
   }
 
   /**
+   * Get a circuit breaker instance for this bank
+   */
+  protected getCircuitBreakerInstance() {
+    return getCircuitBreaker(`bank:${this.bankName}`, {
+      failureThreshold: 5,
+      resetTimeout: 60000,
+    });
+  }
+
+  /**
+   * Fetch with circuit breaker protection
+   */
+  protected protectedFetch(url: string, init?: RequestInit): Promise<Response> {
+    return this.getCircuitBreakerInstance().execute(() => fetch(url, init));
+  }
+
+  /**
    * Parse and validate configuration
    */
   protected parseConfig(config: Record<string, unknown>): PSD2Config {
@@ -247,9 +265,9 @@ export abstract class BasePSD2BankConnector implements BankIntegrationConnector 
         message: `${this.bankName} yapılandırması geçerli. Hesap erişimi için yetkilendirme gerekli.`
       };
 
-    } catch (error) {
+    } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Bilinmeyen hata";
-      logger.error(`[${this.bankName}] testConnection error:`, error);
+      logger.error(`[${this.bankName}] testConnection error:`, { error: error instanceof Error ? error.message : String(error) });
       return { success: false, message: `${this.bankName} bağlantı hatası: ${errorMessage}` };
     }
   }
@@ -277,7 +295,7 @@ export abstract class BasePSD2BankConnector implements BankIntegrationConnector 
       combinedServiceIndicator: false,
     };
 
-    const response = await fetch(`${this.getApiUrl()}/consents`, {
+    const response = await this.protectedFetch(`${this.getApiUrl()}/consents`, {
       method: "POST",
       headers: this.getHeaders(),
       body: JSON.stringify(consentRequest),
@@ -288,7 +306,7 @@ export abstract class BasePSD2BankConnector implements BankIntegrationConnector 
       throw new Error(`Onay oluşturma hatası: ${response.status} - ${errorText}`);
     }
 
-    const consentResponse: PSD2ConsentResponse = await response.json();
+    const consentResponse: PSD2ConsentResponse = await response.json() as PSD2ConsentResponse;
 
     let authorizationUrl: string | undefined;
     if (consentResponse._links?.scaRedirect?.href) {
@@ -317,7 +335,7 @@ export abstract class BasePSD2BankConnector implements BankIntegrationConnector 
    * Get consent status
    */
   async getConsentStatus(consentId: string): Promise<string> {
-    const response = await fetch(`${this.getApiUrl()}/consents/${consentId}/status`, {
+    const response = await this.protectedFetch(`${this.getApiUrl()}/consents/${consentId}/status`, {
       method: "GET",
       headers: this.getHeaders(),
     });
@@ -326,7 +344,7 @@ export abstract class BasePSD2BankConnector implements BankIntegrationConnector 
       throw new Error(`Onay durumu sorgulanamadı: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
     return data.consentStatus;
   }
 
@@ -348,7 +366,7 @@ export abstract class BasePSD2BankConnector implements BankIntegrationConnector 
       redirect_uri: this.config.redirectUri || "",
     });
 
-    const response = await fetch(this.tokenUrl, {
+    const response = await this.protectedFetch(this.tokenUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -361,7 +379,7 @@ export abstract class BasePSD2BankConnector implements BankIntegrationConnector 
       throw new Error(`Token alınamadı: ${response.status} - ${errorText}`);
     }
 
-    const tokenResponse = await response.json();
+    const tokenResponse: any = await response.json();
 
     return {
       accessToken: tokenResponse.access_token,
@@ -385,7 +403,7 @@ export abstract class BasePSD2BankConnector implements BankIntegrationConnector 
       client_secret: this.config.clientSecret,
     });
 
-    const response = await fetch(this.tokenUrl, {
+    const response = await this.protectedFetch(this.tokenUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -397,7 +415,7 @@ export abstract class BasePSD2BankConnector implements BankIntegrationConnector 
       throw new Error(`Token yenilenemedi: ${response.status}`);
     }
 
-    const tokenResponse = await response.json();
+    const tokenResponse: any = await response.json();
 
     this.config.accessToken = tokenResponse.access_token;
     if (tokenResponse.refresh_token) {
@@ -414,7 +432,7 @@ export abstract class BasePSD2BankConnector implements BankIntegrationConnector 
       throw new Error("Access token bulunamadı. Önce yetkilendirme yapın.");
     }
 
-    const response = await fetch(`${this.getApiUrl()}/accounts`, {
+    const response = await this.protectedFetch(`${this.getApiUrl()}/accounts`, {
       method: "GET",
       headers: this.getHeaders(),
     });
@@ -423,7 +441,7 @@ export abstract class BasePSD2BankConnector implements BankIntegrationConnector 
       throw new Error(`Hesaplar alınamadı: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
     return data.accounts || [];
   }
 
@@ -457,7 +475,7 @@ export abstract class BasePSD2BankConnector implements BankIntegrationConnector 
       url.searchParams.set("dateTo", dateTo);
       url.searchParams.set("bookingStatus", "both"); // booked and pending
 
-      const response = await fetch(url.toString(), {
+      const response = await this.protectedFetch(url.toString(), {
         method: "GET",
         headers: this.getHeaders(),
       });
@@ -468,7 +486,7 @@ export abstract class BasePSD2BankConnector implements BankIntegrationConnector 
         return [];
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       const transactions: PSD2Transaction[] = [
         ...(data.transactions?.booked || []),
         ...(data.transactions?.pending || []),
@@ -477,8 +495,8 @@ export abstract class BasePSD2BankConnector implements BankIntegrationConnector 
       // Map PSD2 transactions to normalized format
       return transactions.map((txn) => this.mapToNormalizedTransaction(txn, accountId));
 
-    } catch (error) {
-      logger.error(`[${this.bankName}] fetchTransactions error:`, error);
+    } catch (error: unknown) {
+      logger.error(`[${this.bankName}] fetchTransactions error:`, { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -516,7 +534,7 @@ export abstract class BasePSD2BankConnector implements BankIntegrationConnector 
    */
   async pushTransactions(
     transactions: PushTransactionInput[],
-    config: Record<string, unknown>
+    _config: Record<string, unknown>
   ): Promise<Array<{ success: boolean; externalId?: string; message?: string }>> {
     logger.warn(
       `[${this.bankName}] pushTransactions() - PSD2 AIS does not support pushing transactions. ` +

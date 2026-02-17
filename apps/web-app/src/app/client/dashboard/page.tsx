@@ -3,7 +3,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { listInvoices, listTransactions, listDocuments, getCurrentUser, getClientCompanyRiskScore, getMyClientCompany } from "@repo/api-client";
 import { Card } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { colors, spacing, borderRadius, shadows, transitions, typography } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import Link from "next/link";
 
 function formatCurrency(amount: number, currency: string = "TRY"): string {
@@ -23,6 +25,7 @@ function formatDate(date: Date | string): string {
 }
 
 export default function ClientDashboardPage() {
+  const { themeColors } = useTheme();
   // Get current user
   const { data: userData } = useQuery({
     queryKey: ["currentUser"],
@@ -38,7 +41,7 @@ export default function ClientDashboardPage() {
   });
 
   const clientCompany = clientCompanyData?.data;
-  const clientCompanyId = clientCompany?.id || null;
+  const clientCompanyId = clientCompany?.id || undefined;
 
   // Fetch recent invoices (filtered by client company if available)
   const { data: invoicesData, isLoading: invoicesLoading } = useQuery({
@@ -48,7 +51,7 @@ export default function ClientDashboardPage() {
   });
 
   // Fetch recent transactions
-  const { data: transactionsData, isLoading: transactionsLoading } = useQuery({
+  const { data: transactionsData } = useQuery({
     queryKey: ["client-dashboard-transactions", clientCompanyId],
     queryFn: () => listTransactions({ page: 1, pageSize: 5, clientCompanyId }),
     enabled: !!clientCompanyId,
@@ -83,10 +86,10 @@ export default function ClientDashboardPage() {
           <h2 style={{ fontSize: "20px", fontWeight: "bold", marginBottom: spacing.sm }}>
             Müşteri Şirketi Bulunamadı
           </h2>
-          <p style={{ color: colors.text.secondary, marginBottom: spacing.md }}>
+          <p style={{ color: themeColors.text.secondary, marginBottom: spacing.md }}>
             Hesabınız henüz bir müşteri şirketi ile eşleştirilmemiş.
           </p>
-          <p style={{ color: colors.text.secondary, fontSize: "14px" }}>
+          <p style={{ color: themeColors.text.secondary, fontSize: "14px" }}>
             Lütfen muhasebeci ile iletişime geçin. E-posta adresinizin müşteri şirketinin iletişim e-postası ile eşleşmesi gerekmektedir.
           </p>
         </Card>
@@ -102,7 +105,7 @@ export default function ClientDashboardPage() {
           marginBottom: spacing.xl,
           padding: spacing.xxl,
           background: colors.gradients.subtle,
-          border: `1px solid ${colors.border}`,
+          border: `1px solid ${themeColors.border}`,
         }}
       >
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: spacing.lg }}>
@@ -112,14 +115,14 @@ export default function ClientDashboardPage() {
                 fontSize: typography.fontSize["3xl"],
                 fontWeight: typography.fontWeight.bold,
                 marginBottom: spacing.sm,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
               }}
             >
               Hoş Geldiniz, {currentUser?.user?.fullName || "Müşteri"}! 👋
             </h2>
             <p
               style={{
-                color: colors.text.secondary,
+                color: themeColors.text.secondary,
                 marginBottom: spacing.lg,
                 fontSize: typography.fontSize.base,
                 lineHeight: typography.lineHeight.relaxed,
@@ -172,7 +175,7 @@ export default function ClientDashboardPage() {
           hoverable
           style={{
             padding: spacing.xl,
-            background: `linear-gradient(135deg, ${colors.primaryLighter} 0%, ${colors.white} 100%)`,
+            background: `linear-gradient(135deg, ${colors.primaryLighter} 0%, ${themeColors.white} 100%)`,
           }}
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: spacing.md }}>
@@ -200,7 +203,7 @@ export default function ClientDashboardPage() {
           >
             {invoices.length}
           </div>
-          <div style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
+          <div style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
             Son Faturalar
           </div>
         </Card>
@@ -209,7 +212,7 @@ export default function ClientDashboardPage() {
           hoverable
           style={{
             padding: spacing.xl,
-            background: `linear-gradient(135deg, ${colors.successLight} 0%, ${colors.white} 100%)`,
+            background: `linear-gradient(135deg, ${colors.successLight} 0%, ${themeColors.white} 100%)`,
           }}
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: spacing.md }}>
@@ -237,7 +240,7 @@ export default function ClientDashboardPage() {
           >
             {transactions.length}
           </div>
-          <div style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
+          <div style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
             Son İşlemler
           </div>
         </Card>
@@ -246,7 +249,7 @@ export default function ClientDashboardPage() {
           hoverable
           style={{
             padding: spacing.xl,
-            background: `linear-gradient(135deg, ${colors.infoLight} 0%, ${colors.white} 100%)`,
+            background: `linear-gradient(135deg, ${colors.infoLight} 0%, ${themeColors.white} 100%)`,
           }}
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: spacing.md }}>
@@ -274,7 +277,7 @@ export default function ClientDashboardPage() {
           >
             {documents.length}
           </div>
-          <div style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
+          <div style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
             Yüklenen Belgeler
           </div>
         </Card>
@@ -290,7 +293,7 @@ export default function ClientDashboardPage() {
                   : riskScore.riskScore.severity === "medium"
                     ? colors.warningLight
                     : colors.successLight
-              } 0%, ${colors.white} 100%)`,
+              } 0%, ${themeColors.white} 100%)`,
             }}
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: spacing.md }}>
@@ -328,7 +331,7 @@ export default function ClientDashboardPage() {
             >
               {Number(riskScore.riskScore.score).toFixed(0)}
             </div>
-            <div style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
+            <div style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
               Risk Skoru
             </div>
           </Card>
@@ -340,7 +343,7 @@ export default function ClientDashboardPage() {
         <Card
           style={{
             marginBottom: spacing.xl,
-            background: `linear-gradient(135deg, ${colors.gray[50]} 0%, ${colors.white} 100%)`,
+            background: `linear-gradient(135deg, ${themeColors.gray[50]} 0%, ${themeColors.white} 100%)`,
           }}
         >
           <h3
@@ -348,7 +351,7 @@ export default function ClientDashboardPage() {
               fontSize: typography.fontSize.xl,
               fontWeight: typography.fontWeight.bold,
               marginBottom: spacing.lg,
-              color: colors.text.primary,
+              color: themeColors.text.primary,
             }}
           >
             Risk Analizi Detayları
@@ -454,7 +457,7 @@ export default function ClientDashboardPage() {
               style={{
                 marginTop: spacing.lg,
                 paddingTop: spacing.lg,
-                borderTop: `2px solid ${colors.border}`,
+                borderTop: `2px solid ${themeColors.border}`,
               }}
             >
               <div
@@ -462,7 +465,7 @@ export default function ClientDashboardPage() {
                   fontSize: typography.fontSize.base,
                   fontWeight: typography.fontWeight.semibold,
                   marginBottom: spacing.md,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                 }}
               >
                 En Çok Tetiklenen Kurallar
@@ -473,10 +476,10 @@ export default function ClientDashboardPage() {
                     key={index}
                     style={{
                       padding: spacing.md,
-                      backgroundColor: colors.gray[50],
+                      backgroundColor: themeColors.gray[50],
                       borderRadius: borderRadius.md,
                       fontSize: typography.fontSize.sm,
-                      color: colors.text.secondary,
+                      color: themeColors.text.secondary,
                       display: "flex",
                       alignItems: "center",
                       gap: spacing.sm,
@@ -521,14 +524,14 @@ export default function ClientDashboardPage() {
             alignItems: "center",
             marginBottom: spacing.lg,
             paddingBottom: spacing.md,
-            borderBottom: `2px solid ${colors.border}`,
+            borderBottom: `2px solid ${themeColors.border}`,
           }}
         >
           <h3
             style={{
               fontSize: typography.fontSize.xl,
               fontWeight: typography.fontWeight.bold,
-              color: colors.text.primary,
+              color: themeColors.text.primary,
               margin: 0,
             }}
           >
@@ -562,7 +565,7 @@ export default function ClientDashboardPage() {
             style={{
               padding: spacing.xxl,
               textAlign: "center",
-              color: colors.text.secondary,
+              color: themeColors.text.secondary,
             }}
           >
             <div style={{ fontSize: "24px", marginBottom: spacing.sm }}>⏳</div>
@@ -571,7 +574,7 @@ export default function ClientDashboardPage() {
         ) : invoices.length === 0 ? (
           <div
             style={{
-              color: colors.text.secondary,
+              color: themeColors.text.secondary,
               padding: spacing.xxl,
               textAlign: "center",
             }}
@@ -588,14 +591,14 @@ export default function ClientDashboardPage() {
                 style={{
                   display: "block",
                   padding: spacing.lg,
-                  borderBottom: index < invoices.length - 1 ? `1px solid ${colors.border}` : "none",
+                  borderBottom: index < invoices.length - 1 ? `1px solid ${themeColors.border}` : "none",
                   textDecoration: "none",
                   color: "inherit",
                   transition: `all ${transitions.normal} ease`,
                   borderRadius: borderRadius.md,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = colors.gray[50];
+                  e.currentTarget.style.backgroundColor = themeColors.gray[50];
                   e.currentTarget.style.transform = "translateX(4px)";
                 }}
                 onMouseLeave={(e) => {
@@ -609,7 +612,7 @@ export default function ClientDashboardPage() {
                       style={{
                         fontWeight: typography.fontWeight.semibold,
                         marginBottom: spacing.xs,
-                        color: colors.text.primary,
+                        color: themeColors.text.primary,
                         fontSize: typography.fontSize.base,
                       }}
                     >
@@ -618,7 +621,7 @@ export default function ClientDashboardPage() {
                     <div
                       style={{
                         fontSize: typography.fontSize.sm,
-                        color: colors.text.secondary,
+                        color: themeColors.text.secondary,
                         display: "flex",
                         alignItems: "center",
                         gap: spacing.sm,
@@ -663,14 +666,14 @@ export default function ClientDashboardPage() {
             alignItems: "center",
             marginBottom: spacing.lg,
             paddingBottom: spacing.md,
-            borderBottom: `2px solid ${colors.border}`,
+            borderBottom: `2px solid ${themeColors.border}`,
           }}
         >
           <h3
             style={{
               fontSize: typography.fontSize.xl,
               fontWeight: typography.fontWeight.bold,
-              color: colors.text.primary,
+              color: themeColors.text.primary,
               margin: 0,
             }}
           >
@@ -704,7 +707,7 @@ export default function ClientDashboardPage() {
             style={{
               padding: spacing.xxl,
               textAlign: "center",
-              color: colors.text.secondary,
+              color: themeColors.text.secondary,
             }}
           >
             <div style={{ fontSize: "24px", marginBottom: spacing.sm }}>⏳</div>
@@ -713,7 +716,7 @@ export default function ClientDashboardPage() {
         ) : documents.length === 0 ? (
           <div
             style={{
-              color: colors.text.secondary,
+              color: themeColors.text.secondary,
               padding: spacing.xxl,
               textAlign: "center",
             }}
@@ -746,14 +749,14 @@ export default function ClientDashboardPage() {
                 style={{
                   display: "block",
                   padding: spacing.lg,
-                  borderBottom: index < documents.length - 1 ? `1px solid ${colors.border}` : "none",
+                  borderBottom: index < documents.length - 1 ? `1px solid ${themeColors.border}` : "none",
                   textDecoration: "none",
                   color: "inherit",
                   transition: `all ${transitions.normal} ease`,
                   borderRadius: borderRadius.md,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = colors.gray[50];
+                  e.currentTarget.style.backgroundColor = themeColors.gray[50];
                   e.currentTarget.style.transform = "translateX(4px)";
                 }}
                 onMouseLeave={(e) => {
@@ -767,7 +770,7 @@ export default function ClientDashboardPage() {
                       style={{
                         fontWeight: typography.fontWeight.semibold,
                         marginBottom: spacing.xs,
-                        color: colors.text.primary,
+                        color: themeColors.text.primary,
                         fontSize: typography.fontSize.base,
                       }}
                     >
@@ -776,7 +779,7 @@ export default function ClientDashboardPage() {
                     <div
                       style={{
                         fontSize: typography.fontSize.sm,
-                        color: colors.text.secondary,
+                        color: themeColors.text.secondary,
                         display: "flex",
                         alignItems: "center",
                         gap: spacing.sm,
@@ -787,8 +790,8 @@ export default function ClientDashboardPage() {
                       <span
                         style={{
                           padding: `${spacing.xs} ${spacing.sm}`,
-                          backgroundColor: colors.gray[100],
-                          color: colors.text.secondary,
+                          backgroundColor: themeColors.gray[100],
+                          color: themeColors.text.secondary,
                           borderRadius: borderRadius.sm,
                           fontSize: typography.fontSize.xs,
                           fontWeight: typography.fontWeight.medium,

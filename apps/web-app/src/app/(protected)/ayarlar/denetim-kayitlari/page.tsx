@@ -5,8 +5,10 @@ import { useQuery } from "@tanstack/react-query";
 import { listAuditLogs, getCurrentUser } from "@repo/api-client";
 import { auditLogs as auditLogsI18n, common as commonI18n } from "@repo/i18n";
 import { colors, spacing } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function AuditLogsPage() {
+  const { themeColors } = useTheme();
   const [filters, setFilters] = useState({
     userId: "",
     action: "",
@@ -65,18 +67,18 @@ export default function AuditLogsPage() {
   if (!canView) {
     return (
       <div style={{ padding: spacing.xxl }}>
-        <h1 style={{ fontSize: "28px", fontWeight: 600, marginBottom: spacing.lg, color: colors.text.primary }}>
+        <h1 style={{ fontSize: "28px", fontWeight: 600, marginBottom: spacing.lg, color: themeColors.text.primary }}>
           Denetim Kayıtları
         </h1>
         <div
           style={{
             padding: spacing.xl,
-            backgroundColor: colors.white,
+            backgroundColor: themeColors.white,
             borderRadius: "8px",
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${themeColors.border}`,
           }}
         >
-          <p style={{ color: colors.text.secondary }}>Bu sayfayı görüntüleme yetkiniz yok.</p>
+          <p style={{ color: themeColors.text.secondary }}>Bu sayfayı görüntüleme yetkiniz yok.</p>
         </div>
       </div>
     );
@@ -89,10 +91,10 @@ export default function AuditLogsPage() {
   return (
     <div style={{ padding: spacing.xxl }}>
       <div style={{ marginBottom: spacing.xxl }}>
-        <h1 style={{ fontSize: "28px", fontWeight: 600, marginBottom: spacing.sm, color: colors.text.primary }}>
+        <h1 style={{ fontSize: "28px", fontWeight: 600, marginBottom: spacing.sm, color: themeColors.text.primary }}>
           Denetim Kayıtları
         </h1>
-        <p style={{ color: colors.text.secondary, fontSize: "16px" }}>
+        <p style={{ color: themeColors.text.secondary, fontSize: "16px" }}>
           Sistemdeki tüm işlem kayıtlarını görüntüleyin ve filtreleyin.
         </p>
       </div>
@@ -100,13 +102,13 @@ export default function AuditLogsPage() {
       <div
         style={{
           padding: spacing.xl,
-          backgroundColor: colors.white,
+          backgroundColor: themeColors.white,
           borderRadius: "8px",
-          border: `1px solid ${colors.border}`,
+          border: `1px solid ${themeColors.border}`,
           marginBottom: spacing.lg,
         }}
       >
-        <h2 style={{ fontSize: "18px", fontWeight: 600, marginBottom: spacing.lg, color: colors.text.primary }}>
+        <h2 style={{ fontSize: "18px", fontWeight: 600, marginBottom: spacing.lg, color: themeColors.text.primary }}>
           Filtreler
         </h2>
 
@@ -123,7 +125,7 @@ export default function AuditLogsPage() {
               style={{
                 width: "100%",
                 padding: spacing.sm,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "14px",
               }}
@@ -142,7 +144,7 @@ export default function AuditLogsPage() {
               style={{
                 width: "100%",
                 padding: spacing.sm,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "14px",
               }}
@@ -161,7 +163,7 @@ export default function AuditLogsPage() {
               style={{
                 width: "100%",
                 padding: spacing.sm,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "14px",
               }}
@@ -179,7 +181,7 @@ export default function AuditLogsPage() {
               style={{
                 width: "100%",
                 padding: spacing.sm,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "14px",
               }}
@@ -197,7 +199,7 @@ export default function AuditLogsPage() {
               style={{
                 width: "100%",
                 padding: spacing.sm,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "14px",
               }}
@@ -223,8 +225,8 @@ export default function AuditLogsPage() {
             onClick={handleClearFilters}
             style={{
               padding: `${spacing.sm} ${spacing.lg}`,
-              backgroundColor: colors.gray[200],
-              color: colors.text.primary,
+              backgroundColor: themeColors.gray[200],
+              color: themeColors.text.primary,
               border: "none",
               borderRadius: "4px",
               cursor: "pointer",
@@ -240,8 +242,8 @@ export default function AuditLogsPage() {
           style={{
             padding: spacing.md,
             marginBottom: spacing.lg,
-            backgroundColor: "#f8d7da",
-            color: "#721c24",
+            backgroundColor: colors.dangerLight,
+            color: colors.dangerDark,
             borderRadius: "4px",
             border: "1px solid #f5c6cb",
           }}
@@ -257,26 +259,26 @@ export default function AuditLogsPage() {
           style={{
             padding: spacing.xxl,
             textAlign: "center",
-            backgroundColor: colors.white,
+            backgroundColor: themeColors.white,
             borderRadius: "8px",
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${themeColors.border}`,
           }}
         >
-          <p style={{ color: colors.text.secondary }}>{auditLogsI18n.empty}</p>
+          <p style={{ color: themeColors.text.secondary }}>{auditLogsI18n.empty}</p>
         </div>
       ) : (
         <>
           <div
             style={{
-              backgroundColor: colors.white,
+              backgroundColor: themeColors.white,
               borderRadius: "8px",
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               overflow: "hidden",
             }}
           >
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ backgroundColor: colors.gray[50], borderBottom: `1px solid ${colors.border}` }}>
+                <tr style={{ backgroundColor: themeColors.gray[50], borderBottom: `1px solid ${themeColors.border}` }}>
                   <th style={{ padding: spacing.md, textAlign: "left", fontWeight: 600, fontSize: "14px" }}>Tarih</th>
                   <th style={{ padding: spacing.md, textAlign: "left", fontWeight: 600, fontSize: "14px" }}>Kullanıcı</th>
                   <th style={{ padding: spacing.md, textAlign: "left", fontWeight: 600, fontSize: "14px" }}>İşlem</th>
@@ -293,7 +295,7 @@ export default function AuditLogsPage() {
               </thead>
               <tbody>
                 {auditLogs.map((log: any) => (
-                  <tr key={log.id} style={{ borderBottom: `1px solid ${colors.border}` }}>
+                  <tr key={log.id} style={{ borderBottom: `1px solid ${themeColors.border}` }}>
                     <td style={{ padding: spacing.md, fontSize: "14px" }}>
                       {new Date(log.createdAt).toLocaleString("tr-TR")}
                     </td>
@@ -317,8 +319,8 @@ export default function AuditLogsPage() {
                 disabled={page === 1}
                 style={{
                   padding: `${spacing.sm} ${spacing.md}`,
-                  backgroundColor: page === 1 ? colors.gray[200] : colors.primary,
-                  color: page === 1 ? colors.text.secondary : "white",
+                  backgroundColor: page === 1 ? themeColors.gray[200] : colors.primary,
+                  color: page === 1 ? themeColors.text.secondary : "white",
                   border: "none",
                   borderRadius: "4px",
                   cursor: page === 1 ? "not-allowed" : "pointer",
@@ -334,8 +336,8 @@ export default function AuditLogsPage() {
                 disabled={page === totalPages}
                 style={{
                   padding: `${spacing.sm} ${spacing.md}`,
-                  backgroundColor: page === totalPages ? colors.gray[200] : colors.primary,
-                  color: page === totalPages ? colors.text.secondary : "white",
+                  backgroundColor: page === totalPages ? themeColors.gray[200] : colors.primary,
+                  color: page === totalPages ? themeColors.text.secondary : "white",
                   border: "none",
                   borderRadius: "4px",
                   cursor: page === totalPages ? "not-allowed" : "pointer",
@@ -350,5 +352,3 @@ export default function AuditLogsPage() {
     </div>
   );
 }
-
-

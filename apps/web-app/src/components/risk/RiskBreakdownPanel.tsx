@@ -4,6 +4,7 @@ import { useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { Card } from "@/components/ui/Card";
 import { colors, spacing, borderRadius, typography } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface RiskBreakdownPanelProps {
   breakdown: {
@@ -31,6 +32,7 @@ interface RiskBreakdownPanelProps {
 }
 
 export default function RiskBreakdownPanel({ breakdown }: RiskBreakdownPanelProps) {
+  const { themeColors } = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const pieData = [
@@ -46,7 +48,7 @@ export default function RiskBreakdownPanel({ breakdown }: RiskBreakdownPanelProp
         marginBottom: spacing.xl,
         padding: spacing.xl,
         background: colors.gradients.pastelInfo,
-        border: `1px solid ${colors.border}`,
+        border: `1px solid ${themeColors.border}`,
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.lg }}>
@@ -57,7 +59,7 @@ export default function RiskBreakdownPanel({ breakdown }: RiskBreakdownPanelProp
               marginBottom: spacing.xs,
               fontSize: typography.fontSize.xl,
               fontWeight: typography.fontWeight.bold,
-              color: colors.text.primary,
+              color: themeColors.text.primary,
             }}
           >
             Risk Skoru Detayları
@@ -66,7 +68,7 @@ export default function RiskBreakdownPanel({ breakdown }: RiskBreakdownPanelProp
             style={{
               margin: 0,
               fontSize: typography.fontSize.sm,
-              color: colors.text.secondary,
+              color: themeColors.text.secondary,
             }}
           >
             Toplam Risk Skoru: <strong>{breakdown.totalRiskScore.toFixed(1)}</strong>
@@ -110,7 +112,7 @@ export default function RiskBreakdownPanel({ breakdown }: RiskBreakdownPanelProp
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
@@ -143,9 +145,9 @@ export default function RiskBreakdownPanel({ breakdown }: RiskBreakdownPanelProp
                   key={index}
                   style={{
                     padding: spacing.md,
-                    backgroundColor: colors.gray[50],
+                    backgroundColor: themeColors.gray[50],
                     borderRadius: borderRadius.md,
-                    border: `1px solid ${colors.border}`,
+                    border: `1px solid ${themeColors.border}`,
                   }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>

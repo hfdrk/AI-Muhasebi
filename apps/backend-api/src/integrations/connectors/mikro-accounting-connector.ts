@@ -386,8 +386,8 @@ export class MikroAccountingConnector extends BaseRESTAccountingConnector {
 
       return response.SONUC || [];
 
-    } catch (error) {
-      logger.error("[MikroConnector] fetchCustomers error:", error);
+    } catch (error: unknown) {
+      logger.error("[MikroConnector] fetchCustomers error:", { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -415,8 +415,8 @@ export class MikroAccountingConnector extends BaseRESTAccountingConnector {
 
       return response.SONUC || [];
 
-    } catch (error) {
-      logger.error("[MikroConnector] fetchProducts error:", error);
+    } catch (error: unknown) {
+      logger.error("[MikroConnector] fetchProducts error:", { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -452,8 +452,8 @@ export class MikroAccountingConnector extends BaseRESTAccountingConnector {
 
       return response.SONUC || [];
 
-    } catch (error) {
-      logger.error("[MikroConnector] fetchJournalEntries error:", error);
+    } catch (error: unknown) {
+      logger.error("[MikroConnector] fetchJournalEntries error:", { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }

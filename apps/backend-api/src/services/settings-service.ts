@@ -14,21 +14,40 @@ export class SettingsService {
    * Get tenant settings, creating with defaults if they don't exist
    */
   async getTenantSettings(tenantId: string): Promise<TenantSettings> {
+    // Verify tenant exists first
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: tenantId },
+    });
+
+    if (!tenant) {
+      throw new NotFoundError("Kiracı bulunamadı.");
+    }
+
     let settings = await prisma.tenantSettings.findUnique({
       where: { tenantId },
     });
 
     if (!settings) {
       // Create with defaults
-      settings = await prisma.tenantSettings.create({
-        data: {
-          tenantId,
-          locale: "tr-TR",
-          timezone: "Europe/Istanbul",
-          riskThresholds: { high: 70, critical: 90 },
-          defaultReportPeriod: "LAST_30_DAYS",
-        },
-      });
+      try {
+        settings = await prisma.tenantSettings.create({
+          data: {
+            tenantId,
+            locale: "tr-TR",
+            timezone: "Europe/Istanbul",
+            riskThresholds: { high: 70, critical: 90 },
+            defaultReportPeriod: "LAST_30_DAYS",
+          },
+        });
+      } catch (error: any) {
+        // If creation fails (e.g., race condition), try to fetch again
+        settings = await prisma.tenantSettings.findUnique({
+          where: { tenantId },
+        });
+        if (!settings) {
+          throw error;
+        }
+      }
     }
 
     return {

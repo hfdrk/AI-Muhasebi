@@ -1,6 +1,7 @@
 "use client";
 
 import { spacing } from "../styles/design-system";
+import { useTheme } from "../contexts/ThemeContext";
 import { Input } from "./ui/Input";
 import { Select } from "./ui/Select";
 
@@ -9,6 +10,7 @@ interface FilterBarProps {
 }
 
 export function FilterBar({ children }: FilterBarProps) {
+  const { themeColors } = useTheme();
   return (
     <div
       style={{
@@ -17,7 +19,7 @@ export function FilterBar({ children }: FilterBarProps) {
         gap: spacing.md,
         marginBottom: spacing.lg,
         padding: spacing.md,
-        backgroundColor: "#f8f9fa",
+        backgroundColor: themeColors.gray[100],
         borderRadius: "6px",
       }}
     >

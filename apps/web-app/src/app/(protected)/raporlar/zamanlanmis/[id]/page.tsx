@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { SkeletonTable } from "@/components/ui/Skeleton";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { colors, spacing } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import Link from "next/link";
 
 const updateScheduledReportSchema = z.object({
@@ -39,6 +40,7 @@ const updateScheduledReportSchema = z.object({
 type UpdateScheduledReportForm = z.infer<typeof updateScheduledReportSchema>;
 
 export default function ScheduledReportDetailPage() {
+  const { themeColors } = useTheme();
   const params = useParams();
   const queryClient = useQueryClient();
   const id = params.id as string;
@@ -203,7 +205,7 @@ export default function ScheduledReportDetailPage() {
           >
             ← Zamanlanmış Raporlara Dön
           </Link>
-          <h1 style={{ fontSize: "28px", fontWeight: 600, marginBottom: spacing.sm, color: colors.text.primary }}>
+          <h1 style={{ fontSize: "28px", fontWeight: 600, marginBottom: spacing.sm, color: themeColors.text.primary }}>
             {report.name}
           </h1>
         </div>
@@ -231,8 +233,8 @@ export default function ScheduledReportDetailPage() {
           style={{
             marginBottom: spacing.md,
             padding: spacing.md,
-            backgroundColor: "#fee",
-            color: "#c33",
+            backgroundColor: colors.dangerLight,
+            color: colors.danger,
             borderRadius: "4px",
             fontSize: "14px",
           }}
@@ -245,10 +247,10 @@ export default function ScheduledReportDetailPage() {
         <form
           onSubmit={handleSubmit(onSubmit)}
           style={{
-            backgroundColor: colors.white,
+            backgroundColor: themeColors.white,
             padding: spacing.xl,
             borderRadius: "8px",
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${themeColors.border}`,
             marginBottom: spacing.xl,
           }}
         >
@@ -262,13 +264,13 @@ export default function ScheduledReportDetailPage() {
                 style={{
                   width: "100%",
                   padding: spacing.sm,
-                  border: `1px solid ${errors.name ? "#c33" : colors.border}`,
+                  border: `1px solid ${errors.name ? colors.danger : themeColors.border}`,
                   borderRadius: "4px",
                   fontSize: "14px",
                 }}
               />
               {errors.name && (
-                <p style={{ color: "#c33", fontSize: "12px", marginTop: spacing.xs }}>{errors.name.message}</p>
+                <p style={{ color: colors.danger, fontSize: "12px", marginTop: spacing.xs }}>{errors.name.message}</p>
               )}
             </div>
 
@@ -282,7 +284,7 @@ export default function ScheduledReportDetailPage() {
                   style={{
                     width: "100%",
                     padding: spacing.sm,
-                    border: `1px solid ${errors.client_company_id ? "#c33" : colors.border}`,
+                    border: `1px solid ${errors.client_company_id ? colors.danger : themeColors.border}`,
                     borderRadius: "4px",
                     fontSize: "14px",
                   }}
@@ -295,7 +297,7 @@ export default function ScheduledReportDetailPage() {
                   ))}
                 </select>
                 {errors.client_company_id && (
-                  <p style={{ color: "#c33", fontSize: "12px", marginTop: spacing.xs }}>
+                  <p style={{ color: colors.danger, fontSize: "12px", marginTop: spacing.xs }}>
                     {errors.client_company_id.message}
                   </p>
                 )}
@@ -312,7 +314,7 @@ export default function ScheduledReportDetailPage() {
                   style={{
                     width: "100%",
                     padding: spacing.sm,
-                    border: `1px solid ${colors.border}`,
+                    border: `1px solid ${themeColors.border}`,
                     borderRadius: "4px",
                     fontSize: "14px",
                   }}
@@ -331,7 +333,7 @@ export default function ScheduledReportDetailPage() {
                   style={{
                     width: "100%",
                     padding: spacing.sm,
-                    border: `1px solid ${colors.border}`,
+                    border: `1px solid ${themeColors.border}`,
                     borderRadius: "4px",
                     fontSize: "14px",
                   }}
@@ -354,13 +356,13 @@ export default function ScheduledReportDetailPage() {
                   style={{
                     width: "100%",
                     padding: spacing.sm,
-                    border: `1px solid ${errors.filters?.start_date ? "#c33" : colors.border}`,
+                    border: `1px solid ${errors.filters?.start_date ? colors.danger : themeColors.border}`,
                     borderRadius: "4px",
                     fontSize: "14px",
                   }}
                 />
                 {errors.filters?.start_date && (
-                  <p style={{ color: "#c33", fontSize: "12px", marginTop: spacing.xs }}>
+                  <p style={{ color: colors.danger, fontSize: "12px", marginTop: spacing.xs }}>
                     {errors.filters.start_date.message}
                   </p>
                 )}
@@ -376,13 +378,13 @@ export default function ScheduledReportDetailPage() {
                   style={{
                     width: "100%",
                     padding: spacing.sm,
-                    border: `1px solid ${errors.filters?.end_date ? "#c33" : colors.border}`,
+                    border: `1px solid ${errors.filters?.end_date ? colors.danger : themeColors.border}`,
                     borderRadius: "4px",
                     fontSize: "14px",
                   }}
                 />
                 {errors.filters?.end_date && (
-                  <p style={{ color: "#c33", fontSize: "12px", marginTop: spacing.xs }}>
+                  <p style={{ color: colors.danger, fontSize: "12px", marginTop: spacing.xs }}>
                     {errors.filters.end_date.message}
                   </p>
                 )}
@@ -408,7 +410,7 @@ export default function ScheduledReportDetailPage() {
                   style={{
                     flex: 1,
                     padding: spacing.sm,
-                    border: `1px solid ${colors.border}`,
+                    border: `1px solid ${themeColors.border}`,
                     borderRadius: "4px",
                     fontSize: "14px",
                   }}
@@ -435,7 +437,7 @@ export default function ScheduledReportDetailPage() {
                     key={email}
                     style={{
                       padding: `${spacing.xs} ${spacing.sm}`,
-                      backgroundColor: colors.gray[100],
+                      backgroundColor: themeColors.gray[100],
                       borderRadius: "4px",
                       fontSize: "12px",
                       display: "flex",
@@ -450,7 +452,7 @@ export default function ScheduledReportDetailPage() {
                       style={{
                         background: "none",
                         border: "none",
-                        color: colors.text.secondary,
+                        color: themeColors.text.secondary,
                         cursor: "pointer",
                         fontSize: "16px",
                         lineHeight: 1,
@@ -462,7 +464,7 @@ export default function ScheduledReportDetailPage() {
                 ))}
               </div>
               {errors.recipients && (
-                <p style={{ color: "#c33", fontSize: "12px", marginTop: spacing.xs }}>{errors.recipients.message}</p>
+                <p style={{ color: colors.danger, fontSize: "12px", marginTop: spacing.xs }}>{errors.recipients.message}</p>
               )}
             </div>
 
@@ -505,9 +507,9 @@ export default function ScheduledReportDetailPage() {
               }}
               style={{
                 padding: `${spacing.sm} ${spacing.lg}`,
-                backgroundColor: colors.white,
-                color: colors.text.primary,
-                border: `1px solid ${colors.border}`,
+                backgroundColor: themeColors.white,
+                color: themeColors.text.primary,
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "14px",
                 fontWeight: 500,
@@ -521,42 +523,42 @@ export default function ScheduledReportDetailPage() {
       ) : (
         <div
           style={{
-            backgroundColor: colors.white,
+            backgroundColor: themeColors.white,
             padding: spacing.xl,
             borderRadius: "8px",
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${themeColors.border}`,
             marginBottom: spacing.xl,
           }}
         >
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: spacing.lg }}>
             <div>
-              <p style={{ fontSize: "12px", color: colors.text.secondary, marginBottom: spacing.xs }}>Rapor Türü</p>
+              <p style={{ fontSize: "12px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>Rapor Türü</p>
               <p style={{ fontSize: "14px", fontWeight: 500 }}>{getReportTypeLabel(report.reportCode)}</p>
             </div>
             <div>
-              <p style={{ fontSize: "12px", color: colors.text.secondary, marginBottom: spacing.xs }}>Format</p>
+              <p style={{ fontSize: "12px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>Format</p>
               <p style={{ fontSize: "14px", fontWeight: 500 }}>{report.format === "pdf" ? "PDF" : "Excel"}</p>
             </div>
             <div>
-              <p style={{ fontSize: "12px", color: colors.text.secondary, marginBottom: spacing.xs }}>Sıklık</p>
+              <p style={{ fontSize: "12px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>Sıklık</p>
               <p style={{ fontSize: "14px", fontWeight: 500 }}>{getScheduleCronLabel(report.scheduleCron)}</p>
             </div>
             <div>
-              <p style={{ fontSize: "12px", color: colors.text.secondary, marginBottom: spacing.xs }}>Durum</p>
+              <p style={{ fontSize: "12px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>Durum</p>
               <p style={{ fontSize: "14px", fontWeight: 500 }}>
                 {report.isActive ? getStatusLabel("active") : getStatusLabel("passive")}
               </p>
             </div>
             {report.clientCompany && (
               <div>
-                <p style={{ fontSize: "12px", color: colors.text.secondary, marginBottom: spacing.xs }}>
+                <p style={{ fontSize: "12px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>
                   Müşteri Şirket
                 </p>
                 <p style={{ fontSize: "14px", fontWeight: 500 }}>{report.clientCompany.name}</p>
               </div>
             )}
             <div>
-              <p style={{ fontSize: "12px", color: colors.text.secondary, marginBottom: spacing.xs }}>
+              <p style={{ fontSize: "12px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>
                 Son Çalışma
               </p>
               <p style={{ fontSize: "14px", fontWeight: 500 }}>
@@ -564,12 +566,12 @@ export default function ScheduledReportDetailPage() {
               </p>
             </div>
             <div>
-              <p style={{ fontSize: "12px", color: colors.text.secondary, marginBottom: spacing.xs }}>Son Durum</p>
+              <p style={{ fontSize: "12px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>Son Durum</p>
               <p style={{ fontSize: "14px", fontWeight: 500 }}>{getStatusLabel(report.lastRunStatus)}</p>
             </div>
           </div>
           <div style={{ marginTop: spacing.lg }}>
-            <p style={{ fontSize: "12px", color: colors.text.secondary, marginBottom: spacing.xs }}>Alıcılar</p>
+            <p style={{ fontSize: "12px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>Alıcılar</p>
             <p style={{ fontSize: "14px" }}>{report.recipients.join(", ")}</p>
           </div>
         </div>
@@ -577,10 +579,10 @@ export default function ScheduledReportDetailPage() {
 
       <div
         style={{
-          backgroundColor: colors.white,
+          backgroundColor: themeColors.white,
           padding: spacing.xl,
           borderRadius: "8px",
-          border: `1px solid ${colors.border}`,
+          border: `1px solid ${themeColors.border}`,
         }}
       >
         <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: spacing.lg }}>Çalışma Geçmişi</h2>
@@ -588,12 +590,12 @@ export default function ScheduledReportDetailPage() {
         {logsLoading ? (
           <SkeletonTable rows={3} columns={4} />
         ) : logs.length === 0 ? (
-          <p style={{ color: colors.text.secondary }}>Kayıt bulunamadı.</p>
+          <p style={{ color: themeColors.text.secondary }}>Kayıt bulunamadı.</p>
         ) : (
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
               <thead>
-                <tr style={{ backgroundColor: colors.gray[50], borderBottom: `2px solid ${colors.border}` }}>
+                <tr style={{ backgroundColor: themeColors.gray[50], borderBottom: `2px solid ${themeColors.border}` }}>
                   <th style={{ padding: spacing.md, textAlign: "left", fontWeight: 600 }}>Başlangıç</th>
                   <th style={{ padding: spacing.md, textAlign: "left", fontWeight: 600 }}>Bitiş</th>
                   <th style={{ padding: spacing.md, textAlign: "left", fontWeight: 600 }}>Durum</th>
@@ -602,17 +604,17 @@ export default function ScheduledReportDetailPage() {
               </thead>
               <tbody>
                 {logs.map((log) => (
-                  <tr key={log.id} style={{ borderBottom: `1px solid ${colors.border}` }}>
-                    <td style={{ padding: spacing.md, color: colors.text.secondary }}>
+                  <tr key={log.id} style={{ borderBottom: `1px solid ${themeColors.border}` }}>
+                    <td style={{ padding: spacing.md, color: themeColors.text.secondary }}>
                       {formatReportDate(log.startedAt)}
                     </td>
-                    <td style={{ padding: spacing.md, color: colors.text.secondary }}>
+                    <td style={{ padding: spacing.md, color: themeColors.text.secondary }}>
                       {log.finishedAt ? formatReportDate(log.finishedAt) : "-"}
                     </td>
-                    <td style={{ padding: spacing.md, color: colors.text.secondary }}>
+                    <td style={{ padding: spacing.md, color: themeColors.text.secondary }}>
                       {getStatusLabel(log.status)}
                     </td>
-                    <td style={{ padding: spacing.md, color: colors.text.secondary }}>
+                    <td style={{ padding: spacing.md, color: themeColors.text.secondary }}>
                       {log.message || "-"}
                     </td>
                   </tr>

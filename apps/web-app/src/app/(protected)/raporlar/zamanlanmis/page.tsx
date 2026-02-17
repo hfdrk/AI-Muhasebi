@@ -10,6 +10,7 @@ import {
 import { reports as reportsI18n } from "@repo/i18n";
 import { getReportTypeLabel, getScheduleCronLabel, getStatusLabel, formatReportDate } from "@/lib/reports";
 import { colors, spacing } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { Card } from "@/components/ui/Card";
 import { SkeletonTable } from "@/components/ui/Skeleton";
 import { Modal } from "@/components/ui/Modal";
@@ -19,6 +20,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export default function ScheduledReportsPage() {
+  const { themeColors } = useTheme();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
@@ -81,10 +83,10 @@ export default function ScheduledReportsPage() {
           >
             ← Raporlara Dön
           </Link>
-          <h1 style={{ fontSize: "28px", fontWeight: 600, marginBottom: spacing.sm, color: colors.text.primary }}>
+          <h1 style={{ fontSize: "28px", fontWeight: 600, marginBottom: spacing.sm, color: themeColors.text.primary }}>
             Zamanlanmış Raporlar
           </h1>
-          <p style={{ color: colors.text.secondary, fontSize: "16px" }}>
+          <p style={{ color: themeColors.text.secondary, fontSize: "16px" }}>
             Otomatik olarak oluşturulan ve e-posta ile gönderilen raporları yönetin.
           </p>
         </div>
@@ -112,8 +114,8 @@ export default function ScheduledReportsPage() {
           style={{
             marginBottom: spacing.md,
             padding: spacing.md,
-            backgroundColor: "#fee",
-            color: "#c33",
+            backgroundColor: colors.dangerLight,
+            color: colors.danger,
             borderRadius: "4px",
             fontSize: "14px",
           }}
@@ -127,8 +129,8 @@ export default function ScheduledReportsPage() {
           style={{
             marginBottom: spacing.md,
             padding: spacing.md,
-            backgroundColor: "#fee",
-            color: "#c33",
+            backgroundColor: colors.dangerLight,
+            color: colors.danger,
             borderRadius: "4px",
             fontSize: "14px",
           }}
@@ -140,14 +142,14 @@ export default function ScheduledReportsPage() {
       {scheduledReports.length === 0 ? (
         <div
           style={{
-            backgroundColor: colors.white,
+            backgroundColor: themeColors.white,
             padding: spacing.xxl,
             borderRadius: "8px",
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${themeColors.border}`,
             textAlign: "center",
           }}
         >
-          <p style={{ color: colors.text.secondary }}>{reportsI18n.list.emptyState}</p>
+          <p style={{ color: themeColors.text.secondary }}>{reportsI18n.list.emptyState}</p>
           {canManage && (
             <Link
               href="/raporlar/zamanlanmis/new"
@@ -170,16 +172,16 @@ export default function ScheduledReportsPage() {
       ) : (
         <div
           style={{
-            backgroundColor: colors.white,
+            backgroundColor: themeColors.white,
             borderRadius: "8px",
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${themeColors.border}`,
             overflow: "hidden",
           }}
         >
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
               <thead>
-                <tr style={{ backgroundColor: colors.gray[50], borderBottom: `2px solid ${colors.border}` }}>
+                <tr style={{ backgroundColor: themeColors.gray[50], borderBottom: `2px solid ${themeColors.border}` }}>
                   <th style={{ padding: spacing.md, textAlign: "left", fontWeight: 600 }}>Ad</th>
                   <th style={{ padding: spacing.md, textAlign: "left", fontWeight: 600 }}>Rapor Türü</th>
                   <th style={{ padding: spacing.md, textAlign: "left", fontWeight: 600 }}>Format</th>
@@ -192,24 +194,24 @@ export default function ScheduledReportsPage() {
               </thead>
               <tbody>
                 {scheduledReports.map((report) => (
-                  <tr key={report.id} style={{ borderBottom: `1px solid ${colors.border}` }}>
-                    <td style={{ padding: spacing.md, color: colors.text.primary }}>{report.name}</td>
-                    <td style={{ padding: spacing.md, color: colors.text.secondary }}>
+                  <tr key={report.id} style={{ borderBottom: `1px solid ${themeColors.border}` }}>
+                    <td style={{ padding: spacing.md, color: themeColors.text.primary }}>{report.name}</td>
+                    <td style={{ padding: spacing.md, color: themeColors.text.secondary }}>
                       {getReportTypeLabel(report.reportCode)}
                     </td>
-                    <td style={{ padding: spacing.md, color: colors.text.secondary }}>
+                    <td style={{ padding: spacing.md, color: themeColors.text.secondary }}>
                       {report.format === "pdf" ? "PDF" : "Excel"}
                     </td>
-                    <td style={{ padding: spacing.md, color: colors.text.secondary }}>
+                    <td style={{ padding: spacing.md, color: themeColors.text.secondary }}>
                       {getScheduleCronLabel(report.scheduleCron)}
                     </td>
-                    <td style={{ padding: spacing.md, color: colors.text.secondary }}>
+                    <td style={{ padding: spacing.md, color: themeColors.text.secondary }}>
                       {report.recipients.join(", ")}
                     </td>
-                    <td style={{ padding: spacing.md, color: colors.text.secondary }}>
+                    <td style={{ padding: spacing.md, color: themeColors.text.secondary }}>
                       {report.lastRunAt ? formatReportDate(report.lastRunAt) : "-"}
                     </td>
-                    <td style={{ padding: spacing.md, color: colors.text.secondary }}>
+                    <td style={{ padding: spacing.md, color: themeColors.text.secondary }}>
                       {getStatusLabel(report.lastRunStatus)}
                     </td>
                     {canManage && (
@@ -237,8 +239,8 @@ export default function ScheduledReportsPage() {
                             style={{
                               padding: `${spacing.xs} ${spacing.sm}`,
                               backgroundColor: "transparent",
-                              color: "#c33",
-                              border: `1px solid #c33`,
+                              color: colors.danger,
+                              border: `1px solid ${colors.danger}`,
                               borderRadius: "4px",
                               fontSize: "12px",
                               cursor: deleteMutation.isPending ? "not-allowed" : "pointer",

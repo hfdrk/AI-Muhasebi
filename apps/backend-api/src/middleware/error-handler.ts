@@ -87,11 +87,15 @@ export function errorHandler(
   }
 
   if (err instanceof z.ZodError) {
+    // In production, only show user-friendly messages (no internal schema details)
+    const isProduction = process.env.NODE_ENV === "production";
     res.status(400).json({
       error: {
         code: "VALIDATION_ERROR",
         message: err.issues[0]?.message || "Geçersiz bilgiler.",
-        details: err.issues,
+        ...(isProduction
+          ? { fields: err.issues.map((i) => ({ path: i.path.join("."), message: i.message })) }
+          : { details: err.issues }),
       },
     });
     return;

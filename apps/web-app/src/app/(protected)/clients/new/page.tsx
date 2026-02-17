@@ -8,7 +8,8 @@ import { createClientCompany } from "@repo/api-client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
-import { colors, spacing, borderRadius } from "@/styles/design-system";
+import { colors } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const clientCompanySchema = z.object({
   name: z.string().min(1, "Şirket adı gerekli."),
@@ -27,6 +28,7 @@ const clientCompanySchema = z.object({
 type ClientCompanyForm = z.infer<typeof clientCompanySchema>;
 
 export default function NewClientPage() {
+  const { themeColors } = useTheme();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
@@ -75,14 +77,14 @@ export default function NewClientPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
         {error && (
-          <div style={{ padding: "12px", backgroundColor: "#fee", color: "#c33", borderRadius: "4px" }}>
+          <div style={{ padding: "12px", backgroundColor: colors.dangerLight, color: colors.danger, borderRadius: "4px" }}>
             {error}
             {error.includes("limitine ulaşıldı") && (
               <div style={{ marginTop: "8px" }}>
                 <Link
                   href="/ayarlar/abonelik"
                   style={{
-                    color: "#3b82f6",
+                    color: colors.primary,
                     textDecoration: "underline",
                     fontSize: "14px",
                   }}
@@ -104,13 +106,13 @@ export default function NewClientPage() {
             style={{
               width: "100%",
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
           />
           {errors.name && (
-            <p style={{ color: "#c33", fontSize: "14px", marginTop: "4px" }}>{errors.name.message}</p>
+            <p style={{ color: colors.danger, fontSize: "14px", marginTop: "4px" }}>{errors.name.message}</p>
           )}
         </div>
 
@@ -124,7 +126,7 @@ export default function NewClientPage() {
             style={{
               width: "100%",
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
@@ -136,7 +138,7 @@ export default function NewClientPage() {
             <option value="Komandit">Komandit</option>
           </select>
           {errors.legalType && (
-            <p style={{ color: "#c33", fontSize: "14px", marginTop: "4px" }}>{errors.legalType.message}</p>
+            <p style={{ color: colors.danger, fontSize: "14px", marginTop: "4px" }}>{errors.legalType.message}</p>
           )}
         </div>
 
@@ -150,13 +152,13 @@ export default function NewClientPage() {
             style={{
               width: "100%",
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
           />
           {errors.taxNumber && (
-            <p style={{ color: "#c33", fontSize: "14px", marginTop: "4px" }}>{errors.taxNumber.message}</p>
+            <p style={{ color: colors.danger, fontSize: "14px", marginTop: "4px" }}>{errors.taxNumber.message}</p>
           )}
         </div>
 
@@ -170,7 +172,7 @@ export default function NewClientPage() {
             style={{
               width: "100%",
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
@@ -187,7 +189,7 @@ export default function NewClientPage() {
             style={{
               width: "100%",
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
@@ -204,7 +206,7 @@ export default function NewClientPage() {
             style={{
               width: "100%",
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
@@ -222,7 +224,7 @@ export default function NewClientPage() {
             style={{
               width: "100%",
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
@@ -240,13 +242,13 @@ export default function NewClientPage() {
             style={{
               width: "100%",
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
           />
           {errors.contactEmail && (
-            <p style={{ color: "#c33", fontSize: "14px", marginTop: "4px" }}>{errors.contactEmail.message}</p>
+            <p style={{ color: colors.danger, fontSize: "14px", marginTop: "4px" }}>{errors.contactEmail.message}</p>
           )}
         </div>
 
@@ -261,7 +263,7 @@ export default function NewClientPage() {
             style={{
               width: "100%",
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
               resize: "vertical",
@@ -280,7 +282,7 @@ export default function NewClientPage() {
             style={{
               width: "100%",
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
@@ -299,8 +301,8 @@ export default function NewClientPage() {
             href="/musteriler"
             style={{
               padding: "8px 16px",
-              backgroundColor: colors.gray[100],
-              border: "1px solid #ddd",
+              backgroundColor: themeColors.gray[100],
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               textDecoration: "none",
               color: "inherit",
@@ -314,7 +316,7 @@ export default function NewClientPage() {
             style={{
               padding: "8px 16px",
               backgroundColor: colors.primary,
-              color: "white",
+              color: colors.white,
               border: "none",
               borderRadius: "4px",
               cursor: isSubmitting ? "not-allowed" : "pointer",

@@ -3,15 +3,16 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { securityClient, getCurrentUser } from "@repo/api-client";
-import Link from "next/link";
 import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
 import { Modal } from "../../../../components/ui/Modal";
 import { PageTransition } from "../../../../components/ui/PageTransition";
-import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
+import { colors, spacing, borderRadius, typography } from "../../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "../../../../lib/toast";
 
 export default function TwoFactorAuthPage() {
+  const { themeColors } = useTheme();
   const [verificationToken, setVerificationToken] = useState<string>("");
   const [showBackupCodes, setShowBackupCodes] = useState<boolean>(false);
   const [disableModal, setDisableModal] = useState(false);
@@ -23,12 +24,12 @@ export default function TwoFactorAuthPage() {
   });
 
   const currentUser = userData?.data;
-  const userId = currentUser?.id;
+  const userId = currentUser?.user?.id;
 
   // Enable 2FA mutation
   const enable2FAMutation = useMutation({
     mutationFn: () => securityClient.enable2FA(userId),
-    onSuccess: (data) => {
+    onSuccess: (_data) => {
       toast.info("2FA kurulumu başlatıldı. Lütfen QR kodu tarayın ve doğrulama kodunu girin.");
       queryClient.invalidateQueries({ queryKey: ["2fa-status"] });
     },
@@ -80,7 +81,7 @@ export default function TwoFactorAuthPage() {
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
-        backgroundColor: colors.gray[50],
+        backgroundColor: themeColors.gray[50],
         minHeight: "100vh",
       }}
     >
@@ -99,7 +100,7 @@ export default function TwoFactorAuthPage() {
           style={{
             fontSize: typography.fontSize["3xl"],
             fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
             marginBottom: spacing.sm,
           }}
         >
@@ -108,7 +109,7 @@ export default function TwoFactorAuthPage() {
         <p
           style={{
             fontSize: typography.fontSize.base,
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
             lineHeight: typography.lineHeight.relaxed,
             margin: 0,
           }}
@@ -134,7 +135,7 @@ export default function TwoFactorAuthPage() {
               style={{
                 margin: 0,
                 fontSize: typography.fontSize.sm,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
                 fontWeight: typography.fontWeight.medium,
                 marginBottom: spacing.xs,
               }}
@@ -145,7 +146,7 @@ export default function TwoFactorAuthPage() {
               style={{
                 margin: 0,
                 fontSize: typography.fontSize.sm,
-                color: colors.text.secondary,
+                color: themeColors.text.secondary,
                 lineHeight: typography.lineHeight.relaxed,
               }}
             >
@@ -165,7 +166,7 @@ export default function TwoFactorAuthPage() {
               margin: `0 0 ${spacing.md} 0`,
               fontSize: typography.fontSize.xl,
               fontWeight: typography.fontWeight.semibold,
-              color: colors.text.primary,
+              color: themeColors.text.primary,
             }}
           >
             2FA'yı Etkinleştir
@@ -174,7 +175,7 @@ export default function TwoFactorAuthPage() {
             style={{
               margin: `0 0 ${spacing.md} 0`,
               fontSize: typography.fontSize.sm,
-              color: colors.text.secondary,
+              color: themeColors.text.secondary,
             }}
           >
             Aşağıdaki butona tıklayarak 2FA kurulumunu başlatın. QR kodu görüntülenecek ve yedek kodlar
@@ -198,7 +199,7 @@ export default function TwoFactorAuthPage() {
               margin: `0 0 ${spacing.md} 0`,
               fontSize: typography.fontSize.xl,
               fontWeight: typography.fontWeight.semibold,
-              color: colors.text.primary,
+              color: themeColors.text.primary,
             }}
           >
             QR Kodu Tarayın
@@ -207,7 +208,7 @@ export default function TwoFactorAuthPage() {
             style={{
               margin: `0 0 ${spacing.md} 0`,
               fontSize: typography.fontSize.sm,
-              color: colors.text.secondary,
+              color: themeColors.text.secondary,
             }}
           >
             Telefonunuzdaki kimlik doğrulama uygulamasını açın ve aşağıdaki QR kodu tarayın.
@@ -225,10 +226,10 @@ export default function TwoFactorAuthPage() {
                 alt="2FA QR Code"
                 style={{
                   maxWidth: "300px",
-                  border: `2px solid ${colors.border}`,
+                  border: `2px solid ${themeColors.border}`,
                   borderRadius: borderRadius.md,
                   padding: spacing.sm,
-                  backgroundColor: colors.white,
+                  backgroundColor: themeColors.white,
                 }}
               />
             </div>
@@ -250,7 +251,7 @@ export default function TwoFactorAuthPage() {
                     margin: 0,
                     fontSize: typography.fontSize.base,
                     fontWeight: typography.fontWeight.semibold,
-                    color: colors.text.primary,
+                    color: themeColors.text.primary,
                   }}
                 >
                   Yedek Kodlar
@@ -269,14 +270,14 @@ export default function TwoFactorAuthPage() {
                     padding: spacing.md,
                     borderRadius: borderRadius.md,
                     backgroundColor: colors.warningLight,
-                    border: `1px solid ${colors.border}`,
+                    border: `1px solid ${themeColors.border}`,
                   }}
                 >
                   <p
                     style={{
                       margin: `0 0 ${spacing.sm} 0`,
                       fontSize: typography.fontSize.sm,
-                      color: colors.text.secondary,
+                      color: themeColors.text.secondary,
                       fontWeight: typography.fontWeight.medium,
                     }}
                   >
@@ -296,12 +297,12 @@ export default function TwoFactorAuthPage() {
                         style={{
                           padding: spacing.sm,
                           borderRadius: borderRadius.sm,
-                          backgroundColor: colors.white,
+                          backgroundColor: themeColors.white,
                           fontFamily: "monospace",
                           fontSize: typography.fontSize.sm,
                           fontWeight: typography.fontWeight.medium,
                           textAlign: "center",
-                          border: `1px solid ${colors.border}`,
+                          border: `1px solid ${themeColors.border}`,
                         }}
                       >
                         {code}
@@ -321,7 +322,7 @@ export default function TwoFactorAuthPage() {
                 marginBottom: spacing.xs,
                 fontSize: typography.fontSize.sm,
                 fontWeight: typography.fontWeight.medium,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
               }}
             >
               Doğrulama Kodu (6 haneli)
@@ -340,10 +341,10 @@ export default function TwoFactorAuthPage() {
                   width: "200px",
                   padding: spacing.sm,
                   borderRadius: borderRadius.md,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   fontSize: typography.fontSize.base,
-                  backgroundColor: colors.white,
-                  color: colors.text.primary,
+                  backgroundColor: themeColors.white,
+                  color: themeColors.text.primary,
                   fontFamily: "monospace",
                   letterSpacing: "4px",
                   textAlign: "center",
@@ -378,7 +379,7 @@ export default function TwoFactorAuthPage() {
                   margin: 0,
                   fontSize: typography.fontSize.xl,
                   fontWeight: typography.fontWeight.semibold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                   marginBottom: spacing.xs,
                 }}
               >
@@ -388,7 +389,7 @@ export default function TwoFactorAuthPage() {
                 style={{
                   margin: 0,
                   fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 İki faktörlü kimlik doğrulama şu anda etkin durumda.
@@ -442,4 +443,3 @@ export default function TwoFactorAuthPage() {
     </PageTransition>
   );
 }
-

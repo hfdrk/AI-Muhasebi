@@ -10,7 +10,8 @@ import { useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { PageTransition } from "@/components/ui/PageTransition";
-import { spacing, colors, borderRadius } from "@/styles/design-system";
+import { spacing, colors } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import Link from "next/link";
 
 const clientCompanySchema = z.object({
@@ -29,6 +30,7 @@ const clientCompanySchema = z.object({
 type ClientCompanyForm = z.infer<typeof clientCompanySchema>;
 
 export default function EditClientPage() {
+  const { themeColors } = useTheme();
   const params = useParams();
   const router = useRouter();
   const clientId = params.id as string;
@@ -121,7 +123,7 @@ export default function EditClientPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
         {error && (
-          <div style={{ padding: "12px", backgroundColor: "#fee", color: "#c33", borderRadius: "4px" }}>
+          <div style={{ padding: "12px", backgroundColor: colors.dangerLight, color: colors.danger, borderRadius: "4px" }}>
             {error}
           </div>
         )}
@@ -136,13 +138,13 @@ export default function EditClientPage() {
             style={{
               width: "100%",
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
           />
           {errors.name && (
-            <p style={{ color: "#c33", fontSize: "14px", marginTop: "4px" }}>{errors.name.message}</p>
+            <p style={{ color: colors.danger, fontSize: "14px", marginTop: "4px" }}>{errors.name.message}</p>
           )}
         </div>
 
@@ -156,7 +158,7 @@ export default function EditClientPage() {
             style={{
               width: "100%",
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
@@ -185,7 +187,7 @@ export default function EditClientPage() {
             style={{
               width: "100%",
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
@@ -202,7 +204,7 @@ export default function EditClientPage() {
             style={{
               width: "100%",
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
@@ -219,7 +221,7 @@ export default function EditClientPage() {
             style={{
               width: "100%",
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
@@ -237,7 +239,7 @@ export default function EditClientPage() {
             style={{
               width: "100%",
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
@@ -255,13 +257,13 @@ export default function EditClientPage() {
             style={{
               width: "100%",
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
           />
           {errors.contactEmail && (
-            <p style={{ color: "#c33", fontSize: "14px", marginTop: "4px" }}>{errors.contactEmail.message}</p>
+            <p style={{ color: colors.danger, fontSize: "14px", marginTop: "4px" }}>{errors.contactEmail.message}</p>
           )}
         </div>
 
@@ -276,7 +278,7 @@ export default function EditClientPage() {
             style={{
               width: "100%",
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
               resize: "vertical",
@@ -295,7 +297,7 @@ export default function EditClientPage() {
             style={{
               width: "100%",
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
@@ -314,8 +316,8 @@ export default function EditClientPage() {
             href={`/clients/${clientId}`}
             style={{
               padding: "8px 16px",
-              backgroundColor: colors.gray[100],
-              border: "1px solid #ddd",
+              backgroundColor: themeColors.gray[100],
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               textDecoration: "none",
               color: "inherit",
@@ -329,7 +331,7 @@ export default function EditClientPage() {
             style={{
               padding: "8px 16px",
               backgroundColor: colors.primary,
-              color: "white",
+              color: colors.white,
               border: "none",
               borderRadius: "4px",
               cursor: isSubmitting ? "not-allowed" : "pointer",

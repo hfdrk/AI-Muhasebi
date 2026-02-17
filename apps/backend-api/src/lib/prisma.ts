@@ -13,10 +13,12 @@ if (!isTestMode && (!process.env.DATABASE_URL || process.env.DATABASE_URL.includ
     const { getDatabaseUrlSync } = require("./db-url-resolver");
     getDatabaseUrlSync();
   } catch (error: any) {
-    // If URL resolution fails, use fallback (ai_muhasebi:ai_muhasebi_dev matches container)
     if (!process.env.DATABASE_URL) {
-      process.env.DATABASE_URL = `postgresql://ai_muhasebi:ai_muhasebi_dev@localhost:5432/ai_muhasebi`;
-      logger.warn("Using fallback DATABASE_URL: ai_muhasebi@localhost:5432/ai_muhasebi");
+      throw new Error(
+        "DATABASE_URL environment variable is not set and automatic resolution failed. " +
+        "Please set DATABASE_URL in your .env file or environment. " +
+        `Resolution error: ${error.message}`
+      );
     }
   }
 }
@@ -27,7 +29,10 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient(): PrismaClient {
-  const dbUrl = process.env.DATABASE_URL || "postgresql://ai_muhasebi:ai_muhasebi_dev@localhost:5432/ai_muhasebi";
+  if (!process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL environment variable is not set. Cannot create Prisma client.");
+  }
+  const dbUrl = process.env.DATABASE_URL;
   logger.info(`Creating Prisma client with database: ${dbUrl.replace(/:[^:@]+@/, ":****@")}`);
   
   try {
@@ -64,7 +69,10 @@ function createPrismaClient(): PrismaClient {
  * URL-aware: if DATABASE_URL changes, client is recreated
  */
 function getPrismaClient(): PrismaClient {
-  const dbUrl = process.env.DATABASE_URL || "postgresql://ai_muhasebi:ai_muhasebi_dev@localhost:5432/ai_muhasebi";
+  if (!process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL environment variable is not set. Cannot initialize Prisma client.");
+  }
+  const dbUrl = process.env.DATABASE_URL;
   
   // Check if URL has changed - if so, recreate client
   if (globalForPrisma.prisma && globalForPrisma.prismaUrl !== dbUrl) {

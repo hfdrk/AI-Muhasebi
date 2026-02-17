@@ -2,6 +2,7 @@
 
 import React, { useMemo } from "react";
 import { colors, borderRadius } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 // ==================== Types ====================
 
@@ -28,6 +29,7 @@ export function SparklineChart({
   showLastDot = true,
   animate = true,
 }: SparklineChartProps) {
+  const { themeColors } = useTheme();
   const chartData = useMemo(() => {
     if (!data || data.length === 0) return null;
 
@@ -73,7 +75,7 @@ export function SparklineChart({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: colors.text.muted,
+          color: themeColors.text.muted,
           fontSize: "12px",
         }}
       >
@@ -137,7 +139,7 @@ export function SparklineChart({
               cx={point.x}
               cy={point.y}
               r="2"
-              fill={colors.white}
+              fill={themeColors.white}
               stroke={color}
               strokeWidth="1.5"
             />
@@ -160,7 +162,7 @@ export function SparklineChart({
               cx={chartData.points[chartData.points.length - 1].x}
               cy={chartData.points[chartData.points.length - 1].y}
               r="2.5"
-              fill={colors.white}
+              fill={themeColors.white}
               stroke={color}
               strokeWidth="2"
             />
@@ -210,6 +212,7 @@ export function MiniBarChart({
   barGap = 2,
   highlightLast = true,
 }: MiniBarChartProps) {
+  const { themeColors } = useTheme();
   if (!data || data.length === 0) {
     return (
       <div
@@ -219,7 +222,7 @@ export function MiniBarChart({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: colors.text.muted,
+          color: themeColors.text.muted,
           fontSize: "12px",
         }}
       >

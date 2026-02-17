@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { transitions } from '../../styles/design-system';
 
 interface PageTransitionProps {
   children: React.ReactNode;

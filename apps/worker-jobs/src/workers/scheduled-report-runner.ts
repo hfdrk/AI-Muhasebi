@@ -1,6 +1,7 @@
 import { prisma } from "../lib/prisma";
 import { emailService } from "../services/email-service";
 import { getConfig } from "@repo/config";
+import { logger } from "@repo/shared-utils";
 
 // Use dynamic imports to load services from backend-api at runtime
 // This avoids module resolution issues in the monorepo
@@ -165,7 +166,7 @@ export class ScheduledReportRunner {
       // Check if scheduled reports are enabled
       const config = getConfig();
       if (!config.SCHEDULED_REPORTS_ENABLED) {
-        console.log("[ScheduledReportRunner] Scheduled reports are disabled via SCHEDULED_REPORTS_ENABLED flag. Skipping.");
+        logger.info("[ScheduledReportRunner] Scheduled reports are disabled via SCHEDULED_REPORTS_ENABLED flag. Skipping.");
         return;
       }
 
@@ -197,7 +198,8 @@ export class ScheduledReportRunner {
         return;
       }
 
-      console.log(`[ScheduledReportRunner] Found ${dueReports.length} due report(s) to process`, {
+      logger.info("[ScheduledReportRunner] Found due report(s) to process", undefined, {
+        count: dueReports.length,
         tenantIds: [...new Set(dueReports.map(r => r.tenantId))],
         reportCodes: [...new Set(dueReports.map(r => r.reportCode))],
       });
@@ -212,7 +214,7 @@ export class ScheduledReportRunner {
       }
     } catch (error: any) {
       // Never throw unhandled errors from worker loop
-      console.error("[ScheduledReportRunner] Error in runOnce:", error.message, error.stack);
+      logger.error("[ScheduledReportRunner] Error in runOnce", error);
     }
   }
 
@@ -263,7 +265,7 @@ export class ScheduledReportRunner {
 
       executionLogId = executionLog.id;
 
-      console.log(`[ScheduledReportRunner] Processing scheduled report`, {
+      logger.info("[ScheduledReportRunner] Processing scheduled report", undefined, {
         reportId: report.id,
         reportName: report.name,
         reportCode: report.reportCode,
@@ -409,7 +411,7 @@ export class ScheduledReportRunner {
         },
       });
 
-      console.log(`[ScheduledReportRunner] Successfully processed scheduled report`, {
+      logger.info("[ScheduledReportRunner] Successfully processed scheduled report", undefined, {
         reportId: report.id,
         reportName: report.name,
         executionLogId,
@@ -429,7 +431,7 @@ export class ScheduledReportRunner {
       
       const safeMessage = errorMessage.length > 200 ? errorMessage.substring(0, 200) : errorMessage;
 
-      console.error(`[ScheduledReportRunner] Failed to process scheduled report`, {
+      logger.error("[ScheduledReportRunner] Failed to process scheduled report", undefined, {
         reportId: report.id,
         reportName: report.name,
         error: errorMessage,
@@ -448,7 +450,7 @@ export class ScheduledReportRunner {
             },
           });
         } catch (updateError: any) {
-          console.error(`[ScheduledReportRunner] Failed to update execution log:`, updateError.message);
+          logger.error("[ScheduledReportRunner] Failed to update execution log", updateError);
         }
       }
 
@@ -462,7 +464,7 @@ export class ScheduledReportRunner {
           },
         });
       } catch (updateError: any) {
-        console.error(`[ScheduledReportRunner] Failed to update scheduled report:`, updateError.message);
+        logger.error("[ScheduledReportRunner] Failed to update scheduled report", updateError);
       }
 
       // Create notification for scheduled report failure
@@ -511,11 +513,11 @@ export class ScheduledReportRunner {
           }
         } catch (emailError: any) {
           // Don't fail notification creation if email fails
-          console.error("[ScheduledReportRunner] Failed to send notification email:", emailError);
+          logger.error("[ScheduledReportRunner] Failed to send notification email", emailError);
         }
       } catch (notificationError: any) {
         // Don't fail report processing if notification fails
-        console.error("[ScheduledReportRunner] Failed to create notification:", notificationError);
+        logger.error("[ScheduledReportRunner] Failed to create notification", notificationError);
       }
     }
   }

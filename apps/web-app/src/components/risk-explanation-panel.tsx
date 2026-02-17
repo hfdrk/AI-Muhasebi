@@ -1,6 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { colors, spacing, borderRadius, typography } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface RiskExplanation {
   score: number;
@@ -21,13 +23,15 @@ interface RiskExplanationPanelProps {
 }
 
 export default function RiskExplanationPanel({ type, id }: RiskExplanationPanelProps) {
+  const { themeColors } = useTheme();
+
   const { data, isLoading, error } = useQuery({
     queryKey: ["risk-explanation", type, id],
     queryFn: async () => {
-      const endpoint = type === "document" 
+      const endpoint = type === "document"
         ? `/api/v1/risk/documents/${id}/explanation`
         : `/api/v1/risk/companies/${id}/explanation`;
-      
+
       const response = await fetch(endpoint);
       if (!response.ok) throw new Error("Failed to fetch risk explanation");
       return response.json();
@@ -35,12 +39,12 @@ export default function RiskExplanationPanel({ type, id }: RiskExplanationPanelP
   });
 
   if (isLoading) {
-    return <div style={{ padding: "16px" }}>Yükleniyor...</div>;
+    return <div style={{ padding: spacing.md }}>Yükleniyor...</div>;
   }
 
   if (error) {
     return (
-      <div style={{ padding: "16px", color: "#dc2626" }}>
+      <div style={{ padding: spacing.md, color: colors.danger }}>
         Risk açıklaması yüklenirken bir hata oluştu.
       </div>
     );
@@ -52,52 +56,46 @@ export default function RiskExplanationPanel({ type, id }: RiskExplanationPanelP
     return null;
   }
 
-  const severityColors = {
-    low: "#10b981",
-    medium: "#f59e0b",
-    high: "#dc2626",
-  };
-
   return (
-    <div style={{ padding: "16px", backgroundColor: "white", borderRadius: "8px" }}>
-      <h3 style={{ marginBottom: "16px" }}>Risk Açıklaması</h3>
+    <div style={{ padding: spacing.md, backgroundColor: themeColors.white, borderRadius: borderRadius.md }}>
+      <h3 style={{ marginBottom: spacing.md }}>Risk Açıklaması</h3>
 
-      <div style={{ marginBottom: "20px", padding: "12px", backgroundColor: "#f5f5f5", borderRadius: "4px" }}>
-        <div style={{ fontSize: "14px", color: "#666", marginBottom: "8px" }}>Özet</div>
-        <div style={{ fontSize: "16px" }}>{explanation.summary}</div>
+      <div style={{ marginBottom: "20px", padding: spacing.md, backgroundColor: themeColors.gray[50], borderRadius: borderRadius.sm }}>
+        <div style={{ fontSize: typography.fontSize.sm, color: themeColors.text.secondary, marginBottom: spacing.sm }}>Özet</div>
+        <div style={{ fontSize: typography.fontSize.base }}>{explanation.summary}</div>
       </div>
 
       <div style={{ marginBottom: "20px" }}>
-        <h4 style={{ marginBottom: "12px", fontSize: "16px" }}>Katkıda Bulunan Faktörler</h4>
-        <div style={{ display: "grid", gap: "8px" }}>
+        <h4 style={{ marginBottom: spacing.md, fontSize: typography.fontSize.base }}>Katkıda Bulunan Faktörler</h4>
+        <div style={{ display: "grid", gap: spacing.sm }}>
           {explanation.contributingFactors.map((factor, index) => (
             <div
               key={index}
               style={{
-                padding: "12px",
-                backgroundColor: factor.triggered ? "#fee2e2" : "#f5f5f5",
-                borderRadius: "4px",
-                border: factor.triggered ? "1px solid #dc2626" : "1px solid #e0e0e0",
+                padding: spacing.md,
+                backgroundColor: factor.triggered ? themeColors.dangerLight : themeColors.gray[50],
+                borderRadius: borderRadius.sm,
+                border: factor.triggered ? `1px solid ${colors.danger}` : `1px solid ${themeColors.border}`,
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: spacing.xs }}>
                 <strong>{factor.ruleCode}</strong>
                 <span
                   style={{
-                    padding: "2px 6px",
-                    borderRadius: "4px",
-                    fontSize: "12px",
-                    backgroundColor: factor.triggered ? "#dc2626" : "#10b981",
-                    color: "white",
+                    padding: `2px 6px`,
+                    borderRadius: borderRadius.sm,
+                    fontSize: typography.fontSize.xs,
+                    backgroundColor: factor.triggered ? colors.danger : colors.success,
+                    color: colors.white,
                   }}
                 >
                   {factor.triggered ? "Tetiklenmiş" : "Normal"}
                 </span>
               </div>
-              <div style={{ fontSize: "14px", color: "#666", marginBottom: "4px" }}>
+              <div style={{ fontSize: typography.fontSize.sm, color: themeColors.text.secondary, marginBottom: spacing.xs }}>
                 {factor.ruleDescription}
               </div>
-              <div style={{ fontSize: "12px", color: "#999" }}>
+              <div style={{ fontSize: typography.fontSize.xs, color: themeColors.text.muted }}>
                 Ağırlık: {factor.weight.toFixed(2)}
               </div>
             </div>
@@ -107,10 +105,10 @@ export default function RiskExplanationPanel({ type, id }: RiskExplanationPanelP
 
       {explanation.recommendations.length > 0 && (
         <div>
-          <h4 style={{ marginBottom: "12px", fontSize: "16px" }}>Öneriler</h4>
+          <h4 style={{ marginBottom: spacing.md, fontSize: typography.fontSize.base }}>Öneriler</h4>
           <ul style={{ paddingLeft: "20px", margin: 0 }}>
             {explanation.recommendations.map((rec, index) => (
-              <li key={index} style={{ marginBottom: "8px", fontSize: "14px" }}>
+              <li key={index} style={{ marginBottom: spacing.sm, fontSize: typography.fontSize.sm }}>
                 {rec}
               </li>
             ))}
@@ -120,6 +118,3 @@ export default function RiskExplanationPanel({ type, id }: RiskExplanationPanelP
     </div>
   );
 }
-
-
-

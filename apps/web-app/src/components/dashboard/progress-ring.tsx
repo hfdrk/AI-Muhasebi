@@ -2,6 +2,7 @@
 
 import React from "react";
 import { colors, typography } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 // ==================== Types ====================
 
@@ -26,12 +27,14 @@ export function ProgressRing({
   size = 120,
   strokeWidth = 10,
   color = colors.primary,
-  backgroundColor = colors.gray[200],
+  backgroundColor,
   label,
   showPercentage = true,
   animate = true,
   children,
 }: ProgressRingProps) {
+  const { themeColors } = useTheme();
+  const resolvedBackgroundColor = backgroundColor ?? themeColors.gray[200];
   const normalizedValue = Math.min(Math.max(value, 0), maxValue);
   const percentage = (normalizedValue / maxValue) * 100;
   const radius = (size - strokeWidth) / 2;
@@ -64,13 +67,13 @@ export function ProgressRing({
   const valueStyle: React.CSSProperties = {
     fontSize: size > 100 ? typography.fontSize["2xl"] : typography.fontSize.lg,
     fontWeight: typography.fontWeight.bold,
-    color: colors.text.primary,
+    color: themeColors.text.primary,
     lineHeight: 1,
   };
 
   const labelStyle: React.CSSProperties = {
     fontSize: typography.fontSize.xs,
-    color: colors.text.muted,
+    color: themeColors.text.muted,
     marginTop: "4px",
   };
 
@@ -82,7 +85,7 @@ export function ProgressRing({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={backgroundColor}
+          stroke={resolvedBackgroundColor}
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -150,6 +153,7 @@ export function MultiRingProgress({
   showLegend = true,
   centerContent,
 }: MultiRingProgressProps) {
+  const { themeColors } = useTheme();
   const sortedData = [...data].sort((a, b) => (b.maxValue || 100) - (a.maxValue || 100));
 
   return (
@@ -180,7 +184,7 @@ export function MultiRingProgress({
                 cx={ringSize / 2}
                 cy={ringSize / 2}
                 r={radius}
-                stroke={colors.gray[100]}
+                stroke={themeColors.gray[100]}
                 strokeWidth={ringStrokeWidth}
                 fill="none"
               />
@@ -229,7 +233,7 @@ export function MultiRingProgress({
                   backgroundColor: item.color,
                 }}
               />
-              <span style={{ fontSize: typography.fontSize.xs, color: colors.text.muted }}>
+              <span style={{ fontSize: typography.fontSize.xs, color: themeColors.text.muted }}>
                 {item.label}: {Math.round(item.value)}%
               </span>
             </div>
@@ -261,6 +265,7 @@ export function GoalProgress({
   color = colors.primary,
   size = "md",
 }: GoalProgressProps) {
+  const { themeColors } = useTheme();
   const sizeMap = {
     sm: { ring: 80, stroke: 6 },
     md: { ring: 100, stroke: 8 },
@@ -290,7 +295,7 @@ export function GoalProgress({
             style={{
               fontSize: size === "lg" ? typography.fontSize.xl : typography.fontSize.lg,
               fontWeight: typography.fontWeight.bold,
-              color: colors.text.primary,
+              color: themeColors.text.primary,
               lineHeight: 1,
             }}
           >
@@ -299,7 +304,7 @@ export function GoalProgress({
           <div
             style={{
               fontSize: typography.fontSize.xs,
-              color: colors.text.muted,
+              color: themeColors.text.muted,
               marginTop: "2px",
             }}
           >
@@ -311,7 +316,7 @@ export function GoalProgress({
         style={{
           fontSize: typography.fontSize.sm,
           fontWeight: typography.fontWeight.medium,
-          color: colors.text.secondary,
+          color: themeColors.text.secondary,
         }}
       >
         {title}

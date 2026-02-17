@@ -16,12 +16,29 @@ export interface DocumentEvaluationContext {
   transaction?: any;
 }
 
+export interface DocumentRuleContext {
+  riskFeatures: DocumentRiskFeatures;
+  document: any;
+  // Pre-computed fraud detection results
+  benfordsViolation: boolean;
+  roundNumberSuspicious: boolean;
+  unusualTiming: boolean;
+  counterpartyAnalysis: { isNew: boolean; isUnusual: boolean } | null;
+  isDuplicateInvoice: boolean;
+}
+
 export interface CompanyEvaluationContext {
   documentRiskScores: DocumentRiskScore[];
   highRiskDocumentCount: number;
   totalInvoiceCount: number;
   highRiskInvoiceCount: number;
   duplicateInvoiceNumbers: string[];
+  // Fraud pattern detection results
+  benfordsViolation: boolean;
+  hasCircularTransactions: boolean;
+  hasUnusualVatPatterns: boolean;
+  hasDateManipulation: boolean;
+  fraudPatternCount: number;
 }
 
 export class RiskRuleEngine {
@@ -76,12 +93,116 @@ export class RiskRuleEngine {
       throw new Error("Document not found");
     }
 
+    // Pre-compute fraud detection results for this document's company
+    const clientCompanyId = document.clientCompanyId;
+    let benfordsViolation = false;
+    let roundNumberSuspicious = false;
+    let unusualTiming = false;
+    let counterpartyResult: { isNew: boolean; isUnusual: boolean } | null = null;
+    let isDuplicateInvoice = false;
+
+    if (clientCompanyId) {
+      try {
+        const { fraudPatternDetectorService } = await import("./fraud-pattern-detector-service");
+
+        // Get transactions for Benford's / round number / timing analysis
+        const twelveMonthsAgo = new Date();
+        twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+
+        const transactions = await prisma.transaction.findMany({
+          where: { tenantId, clientCompanyId, date: { gte: twelveMonthsAgo } },
+          include: { lines: true },
+          orderBy: { date: "desc" },
+        });
+
+        const amounts = transactions.map((txn) =>
+          txn.lines.reduce((sum, line) => sum + Number(line.debitAmount) + Number(line.creditAmount), 0)
+        );
+        const dates = transactions.map((txn) => txn.date);
+
+        // Benford's Law analysis (needs at least 20 data points)
+        if (amounts.length >= 20) {
+          const benfordsResult = fraudPatternDetectorService.analyzeBenfordsLaw(amounts);
+          benfordsViolation = benfordsResult.violation;
+        }
+
+        // Round number detection (suspicious if >30% are round)
+        const roundNumbers = fraudPatternDetectorService.detectRoundNumbers(amounts);
+        roundNumberSuspicious = amounts.length > 0 && roundNumbers.length > amounts.length * 0.3;
+
+        // Timing pattern analysis
+        if (dates.length > 0) {
+          const timingResult = fraudPatternDetectorService.analyzeTimingPatterns(dates);
+          unusualTiming = timingResult.unusualTiming;
+        }
+      } catch {
+        // Fraud pattern detection failed – continue with defaults (false)
+      }
+    }
+
+    // Counterparty analysis for invoice-linked documents
+    if (document.relatedInvoice?.counterpartyName && (clientCompanyId || document.clientCompanyId)) {
+      try {
+        const { counterpartyAnalysisService } = await import("./counterparty-analysis-service");
+        const invoice = document.relatedInvoice;
+        const analysis = await counterpartyAnalysisService.analyzeCounterparty(
+          tenantId,
+          clientCompanyId || document.clientCompanyId || "",
+          invoice.counterpartyName,
+          invoice.counterpartyTaxNumber || null,
+          Number(invoice.totalAmount),
+          invoice.issueDate
+        );
+        counterpartyResult = {
+          isNew: analysis.isNewCounterparty,
+          isUnusual: analysis.isUnusualCounterparty,
+        };
+      } catch {
+        // Counterparty analysis failed – continue with null
+      }
+    }
+
+    // Duplicate invoice check
+    if (document.relatedInvoice) {
+      try {
+        const inv = document.relatedInvoice;
+        const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+        const duplicates = await prisma.invoice.findMany({
+          where: {
+            tenantId,
+            id: { not: inv.id },
+            totalAmount: inv.totalAmount,
+            ...(inv.counterpartyName ? { counterpartyName: inv.counterpartyName } : {}),
+            issueDate: {
+              gte: new Date(new Date(inv.issueDate).getTime() - thirtyDaysMs),
+              lte: new Date(new Date(inv.issueDate).getTime() + thirtyDaysMs),
+            },
+          },
+          take: 1,
+        });
+        isDuplicateInvoice = duplicates.length > 0;
+      } catch {
+        // Duplicate check failed – continue with false
+      }
+    }
+
+    // Build the enriched rule context with pre-computed fraud detection results
+    const ruleContext: DocumentRuleContext = {
+      riskFeatures: features,
+      document,
+      benfordsViolation,
+      roundNumberSuspicious,
+      unusualTiming,
+      counterpartyAnalysis: counterpartyResult,
+      isDuplicateInvoice,
+    };
+
     // Evaluate each rule
     let score = 0;
     const triggeredRuleCodes: string[] = [];
 
     for (const rule of documentRules) {
-      if (this.evaluateRuleCondition(rule, features, document)) {
+      if (this.evaluateRuleCondition(rule, ruleContext)) {
         score += rule.weight;
         triggeredRuleCodes.push(rule.code);
       }
@@ -243,14 +364,13 @@ export class RiskRuleEngine {
   }
 
   /**
-   * Evaluate a document rule condition
+   * Evaluate a document rule condition using pre-computed fraud detection context
    */
   private evaluateRuleCondition(
     rule: RiskRule,
-    riskFeatures: DocumentRiskFeatures,
-    _document: any
+    context: DocumentRuleContext
   ): boolean {
-    const features = riskFeatures.features;
+    const features = context.riskFeatures.features;
     const _config = rule.config || {};
 
     switch (rule.code) {
@@ -273,30 +393,38 @@ export class RiskRuleEngine {
         return features.duplicateInvoiceNumber === true;
 
       case "INV_DUPLICATE_INVOICE":
-        // Invoice-level duplicate detection (checked separately, not from document features)
-        // This is handled in evaluateDocument with a special check
-        return false; // Will be overridden in evaluateDocument
+        // Duplicate invoice detection: same amount + counterparty + similar date within 30 days
+        return context.isDuplicateInvoice;
 
       case "UNUSUAL_COUNTERPARTY":
+        // Counterparty shows unusual patterns (dormant reactivation, abnormal amount, etc.)
+        return context.counterpartyAnalysis?.isUnusual ?? false;
+
       case "NEW_COUNTERPARTY":
-        // Counterparty analysis is handled separately in invoice/transaction services
-        return false;
+        // Counterparty has never been seen before for this client company
+        return context.counterpartyAnalysis?.isNew ?? false;
 
       case "BENFORDS_LAW_VIOLATION":
+        // Benford's Law chi-square test on company transaction amounts
+        return context.benfordsViolation;
+
       case "ROUND_NUMBER_SUSPICIOUS":
+        // More than 30% of company transaction amounts are suspiciously round
+        return context.roundNumberSuspicious;
+
       case "UNUSUAL_TIMING":
-        // Fraud pattern detection is handled separately
-        return false;
+        // Transactions outside business hours, on weekends, or clustered at month-end
+        return context.unusualTiming;
 
       case "INV_MISSING_TAX_NUMBER":
         return features.hasMissingFields === true && features.duplicateInvoiceNumber !== true;
 
       case "DOC_PARSING_FAILED":
-        return riskFeatures.riskScore === null || riskFeatures.riskFlags.length === 0;
+        return context.riskFeatures.riskScore === null || context.riskFeatures.riskFlags.length === 0;
 
       default:
         // Generic check: look for rule code in risk flags
-        return riskFeatures.riskFlags.some((flag: any) => flag.code === rule.code);
+        return context.riskFeatures.riskFlags.some((flag: any) => flag.code === rule.code);
     }
   }
 
@@ -330,6 +458,28 @@ export class RiskRuleEngine {
       case "COMP_FREQUENT_DUPLICATES": {
         const threshold = (config.threshold as number) || 3;
         return context.duplicateInvoiceNumbers.length > threshold;
+      }
+
+      case "COMP_BENFORDS_LAW_VIOLATION":
+        // Benford's Law violation detected across all company transactions
+        return context.benfordsViolation;
+
+      case "COMP_CIRCULAR_TRANSACTIONS":
+        // Circular transaction patterns (A->B->C->A) detected
+        return context.hasCircularTransactions;
+
+      case "COMP_UNUSUAL_VAT_PATTERNS":
+        // Unusual VAT rate patterns across company invoices
+        return context.hasUnusualVatPatterns;
+
+      case "COMP_DATE_MANIPULATION":
+        // Date manipulation detected (future dates, backdating, due before issue)
+        return context.hasDateManipulation;
+
+      case "COMP_HIGH_FRAUD_PATTERNS": {
+        // Too many fraud patterns detected overall
+        const fraudThreshold = (config.threshold as number) || 3;
+        return context.fraudPatternCount > fraudThreshold;
       }
 
       default:
@@ -405,12 +555,37 @@ export class RiskRuleEngine {
       .filter(([_, count]) => count > 1)
       .map(([number, _]) => number);
 
+    // Run fraud pattern detection for the company
+    let benfordsViolation = false;
+    let hasCircularTransactions = false;
+    let hasUnusualVatPatterns = false;
+    let hasDateManipulation = false;
+    let fraudPatternCount = 0;
+
+    try {
+      const { fraudPatternDetectorService } = await import("./fraud-pattern-detector-service");
+      const fraudResult = await fraudPatternDetectorService.detectFraudPatterns(tenantId, clientCompanyId);
+
+      benfordsViolation = fraudResult.benfordsLawViolation;
+      hasCircularTransactions = fraudResult.patterns.some((p) => p.type === "circular_transaction");
+      hasUnusualVatPatterns = fraudResult.patterns.some((p) => p.type === "vat_pattern");
+      hasDateManipulation = fraudResult.patterns.some((p) => p.type === "date_manipulation");
+      fraudPatternCount = fraudResult.patterns.length;
+    } catch {
+      // Fraud pattern detection failed – continue with defaults (false / 0)
+    }
+
     return {
       documentRiskScores: mappedScores,
       highRiskDocumentCount,
       totalInvoiceCount,
       highRiskInvoiceCount,
       duplicateInvoiceNumbers,
+      benfordsViolation,
+      hasCircularTransactions,
+      hasUnusualVatPatterns,
+      hasDateManipulation,
+      fraudPatternCount,
     };
   }
 

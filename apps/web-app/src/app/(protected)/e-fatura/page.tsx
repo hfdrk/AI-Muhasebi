@@ -2,21 +2,16 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { listInvoices, submitInvoiceToEFatura, checkEFaturaStatus, retryFailedEFaturaSubmissions } from "@repo/api-client";
+import { listInvoices, submitInvoiceToEFatura, retryFailedEFaturaSubmissions, checkEFaturaStatus } from "@repo/api-client";
 import Link from "next/link";
 import { Card } from "../../../components/ui/Card";
 import { Button } from "../../../components/ui/Button";
 import { SkeletonCard } from "../../../components/ui/Skeleton";
 import { Modal } from "../../../components/ui/Modal";
 import { toast } from "../../../lib/toast";
-import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../styles/design-system";
-
-const STATUS_LABELS: Record<string, string> = {
-  taslak: "Taslak",
-  kesildi: "Kesildi",
-  iptal: "İptal",
-  muhasebeleştirilmiş: "Muhasebeleştirilmiş",
-};
+import { PageTransition } from "../../../components/ui/PageTransition";
+import { colors, spacing, borderRadius, typography, transitions } from "../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const EFATURA_STATUS_LABELS: Record<string, string> = {
   draft: "Taslak",
@@ -35,10 +30,11 @@ const EFATURA_STATUS_COLORS: Record<string, { bg: string; text: string }> = {
 };
 
 export default function EFaturaPage() {
+  const { themeColors } = useTheme();
   const queryClient = useQueryClient();
-  const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
   const [submitModal, setSubmitModal] = useState<{ open: boolean; invoiceId: string | null }>({ open: false, invoiceId: null });
   const [retryModal, setRetryModal] = useState(false);
+  const [checkingStatusId, setCheckingStatusId] = useState<string | null>(null);
 
   // Fetch invoices that can be submitted (status: kesildi)
   const { data: invoicesData, isLoading } = useQuery({
@@ -60,7 +56,9 @@ export default function EFaturaPage() {
         }
         return result;
       } catch (error) {
-        console.error("[E-Fatura] API call failed:", error);
+        if (process.env.NODE_ENV === "development") {
+          console.error("[E-Fatura] API call failed:", error);
+        }
         throw error;
       }
     },
@@ -73,7 +71,9 @@ export default function EFaturaPage() {
       toast.success("Fatura E-Fatura sistemine başarıyla gönderildi.");
     },
     onError: (error: Error) => {
-      console.error("[E-Fatura] onError called:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("[E-Fatura] onError called:", error);
+      }
       toast.error(`Hata: ${error.message}`);
     },
   });
@@ -89,9 +89,22 @@ export default function EFaturaPage() {
     },
   });
 
-  const handleSubmit = (invoiceId: string) => {
-    setSubmitModal({ open: true, invoiceId });
-  };
+  const statusCheckMutation = useMutation({
+    mutationFn: (invoiceId: string) => {
+      setCheckingStatusId(invoiceId);
+      return checkEFaturaStatus(invoiceId);
+    },
+    onSuccess: (data) => {
+      const statusLabel = EFATURA_STATUS_LABELS[data.data.status] || data.data.status;
+      toast.success(`E-Fatura Durumu: ${statusLabel}${data.data.rejectionReason ? ` - Sebep: ${data.data.rejectionReason}` : ""}`);
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      setCheckingStatusId(null);
+    },
+    onError: (error: Error) => {
+      toast.error(`Durum kontrol hatasi: ${error.message}`);
+      setCheckingStatusId(null);
+    },
+  });
 
   const handleRetryFailed = () => {
     setRetryModal(true);
@@ -104,7 +117,7 @@ export default function EFaturaPage() {
           padding: spacing.xxl,
           maxWidth: "1600px",
           margin: "0 auto",
-          backgroundColor: colors.gray[50],
+          backgroundColor: themeColors.gray[50],
           minHeight: "100vh",
         }}
       >
@@ -115,7 +128,7 @@ export default function EFaturaPage() {
                 display: "inline-block",
                 width: "48px",
                 height: "48px",
-                border: `4px solid ${colors.gray[200]}`,
+                border: `4px solid ${themeColors.gray[200]}`,
                 borderTopColor: colors.primary,
                 borderRadius: "50%",
                 animation: "spin 0.8s linear infinite",
@@ -124,7 +137,7 @@ export default function EFaturaPage() {
             />
             <p
               style={{
-                color: colors.text.muted,
+                color: themeColors.text.muted,
                 fontSize: typography.fontSize.sm,
                 margin: 0,
               }}
@@ -151,7 +164,7 @@ export default function EFaturaPage() {
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
-        backgroundColor: colors.gray[50],
+        backgroundColor: themeColors.gray[50],
         minHeight: "100vh",
       }}
     >
@@ -169,7 +182,7 @@ export default function EFaturaPage() {
             style={{
               fontSize: typography.fontSize["3xl"],
               fontWeight: typography.fontWeight.bold,
-              color: colors.text.primary,
+              color: themeColors.text.primary,
               marginBottom: spacing.sm,
             }}
           >
@@ -178,7 +191,7 @@ export default function EFaturaPage() {
           <p
             style={{
               fontSize: typography.fontSize.base,
-              color: colors.text.secondary,
+              color: themeColors.text.secondary,
               lineHeight: typography.lineHeight.relaxed,
               margin: 0,
             }}
@@ -211,7 +224,7 @@ export default function EFaturaPage() {
               style={{
                 margin: 0,
                 fontSize: typography.fontSize.sm,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
                 fontWeight: typography.fontWeight.medium,
                 marginBottom: spacing.xs,
               }}
@@ -222,7 +235,7 @@ export default function EFaturaPage() {
               style={{
                 margin: 0,
                 fontSize: typography.fontSize.sm,
-                color: colors.text.secondary,
+                color: themeColors.text.secondary,
                 lineHeight: typography.lineHeight.relaxed,
               }}
             >
@@ -255,7 +268,7 @@ export default function EFaturaPage() {
               style={{
                 fontSize: typography.fontSize.xl,
                 fontWeight: typography.fontWeight.semibold,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
                 marginBottom: spacing.sm,
               }}
             >
@@ -263,7 +276,7 @@ export default function EFaturaPage() {
             </h3>
             <p
               style={{
-                color: colors.text.secondary,
+                color: themeColors.text.secondary,
                 fontSize: typography.fontSize.sm,
                 marginBottom: spacing.lg,
                 lineHeight: typography.lineHeight.relaxed,
@@ -296,8 +309,8 @@ export default function EFaturaPage() {
               <thead>
                 <tr
                   style={{
-                    backgroundColor: colors.gray[50],
-                    borderBottom: `2px solid ${colors.border}`,
+                    backgroundColor: themeColors.gray[50],
+                    borderBottom: `2px solid ${themeColors.border}`,
                   }}
                 >
                   <th
@@ -305,7 +318,7 @@ export default function EFaturaPage() {
                       padding: spacing.md,
                       textAlign: "left",
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                       fontSize: typography.fontSize.sm,
                     }}
                   >
@@ -316,7 +329,7 @@ export default function EFaturaPage() {
                       padding: spacing.md,
                       textAlign: "left",
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                       fontSize: typography.fontSize.sm,
                     }}
                   >
@@ -327,7 +340,7 @@ export default function EFaturaPage() {
                       padding: spacing.md,
                       textAlign: "left",
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                       fontSize: typography.fontSize.sm,
                     }}
                   >
@@ -338,7 +351,7 @@ export default function EFaturaPage() {
                       padding: spacing.md,
                       textAlign: "right",
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                       fontSize: typography.fontSize.sm,
                     }}
                   >
@@ -349,7 +362,7 @@ export default function EFaturaPage() {
                       padding: spacing.md,
                       textAlign: "center",
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                       fontSize: typography.fontSize.sm,
                     }}
                   >
@@ -360,7 +373,7 @@ export default function EFaturaPage() {
                       padding: spacing.md,
                       textAlign: "center",
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                       fontSize: typography.fontSize.sm,
                     }}
                   >
@@ -382,11 +395,11 @@ export default function EFaturaPage() {
                     <tr
                       key={invoice.id}
                       style={{
-                        borderBottom: `1px solid ${colors.border}`,
+                        borderBottom: `1px solid ${themeColors.border}`,
                         transition: `background-color ${transitions.normal} ease`,
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = colors.gray[50];
+                        e.currentTarget.style.backgroundColor = themeColors.gray[50];
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = "transparent";
@@ -415,7 +428,7 @@ export default function EFaturaPage() {
                         style={{
                           padding: spacing.md,
                           fontSize: typography.fontSize.sm,
-                          color: colors.text.primary,
+                          color: themeColors.text.primary,
                         }}
                       >
                         {invoice.clientCompanyName || "-"}
@@ -424,7 +437,7 @@ export default function EFaturaPage() {
                         style={{
                           padding: spacing.md,
                           fontSize: typography.fontSize.sm,
-                          color: colors.text.secondary,
+                          color: themeColors.text.secondary,
                         }}
                       >
                         {new Date(invoice.issueDate).toLocaleDateString("tr-TR")}
@@ -435,7 +448,7 @@ export default function EFaturaPage() {
                           textAlign: "right",
                           fontSize: typography.fontSize.sm,
                           fontWeight: typography.fontWeight.medium,
-                          color: colors.text.primary,
+                          color: themeColors.text.primary,
                         }}
                       >
                         {new Intl.NumberFormat("tr-TR", {
@@ -465,8 +478,8 @@ export default function EFaturaPage() {
                               borderRadius: borderRadius.full,
                               fontSize: typography.fontSize.xs,
                               fontWeight: typography.fontWeight.medium,
-                              backgroundColor: colors.gray[100],
-                              color: colors.text.muted,
+                              backgroundColor: themeColors.gray[100],
+                              color: themeColors.text.muted,
                               display: "inline-block",
                             }}
                           >
@@ -503,7 +516,7 @@ export default function EFaturaPage() {
                             disabled={submitMutation.isPending}
                             style={{
                               padding: `${spacing.xs} ${spacing.sm}`,
-                              backgroundColor: submitMutation.isPending ? colors.gray[300] : colors.primary,
+                              backgroundColor: submitMutation.isPending ? themeColors.gray[300] : colors.primary,
                               color: colors.white,
                               border: "none",
                               borderRadius: borderRadius.md,
@@ -519,14 +532,41 @@ export default function EFaturaPage() {
                             {submitMutation.isPending ? "⏳ Gönderiliyor..." : "📤 E-Fatura'ya Gönder"}
                           </button>
                         ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            asLink
-                            href={`/faturalar/${invoice.id}`}
-                          >
-                            Detay
-                          </Button>
+                          <div style={{ display: "flex", gap: spacing.xs, justifyContent: "center", alignItems: "center" }}>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                statusCheckMutation.mutate(invoice.id);
+                              }}
+                              disabled={statusCheckMutation.isPending && checkingStatusId === invoice.id}
+                              style={{
+                                padding: `${spacing.xs} ${spacing.sm}`,
+                                backgroundColor: statusCheckMutation.isPending && checkingStatusId === invoice.id ? themeColors.gray[300] : colors.info,
+                                color: colors.white,
+                                border: "none",
+                                borderRadius: borderRadius.md,
+                                cursor: statusCheckMutation.isPending && checkingStatusId === invoice.id ? "not-allowed" : "pointer",
+                                fontSize: typography.fontSize.xs,
+                                fontWeight: typography.fontWeight.medium,
+                                opacity: statusCheckMutation.isPending && checkingStatusId === invoice.id ? 0.6 : 1,
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: spacing.xs,
+                              }}
+                            >
+                              {statusCheckMutation.isPending && checkingStatusId === invoice.id ? "Kontrol ediliyor..." : "Durum Kontrol"}
+                            </button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              asLink
+                              href={`/faturalar/${invoice.id}`}
+                            >
+                              Detay
+                            </Button>
+                          </div>
                         )}
                       </td>
                     </tr>

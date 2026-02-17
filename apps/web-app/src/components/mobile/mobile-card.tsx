@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { ChevronRight, ChevronDown, ChevronUp } from "lucide-react";
 import { colors, spacing, borderRadius, shadows, typography, transitions } from "@/styles/design-system";
+import { useTheme } from "../../contexts/ThemeContext";
 
 // ==================== Types ====================
 
@@ -62,6 +63,7 @@ export function MobileCard({
   pressable = false,
   style,
 }: MobileCardProps) {
+  const { themeColors } = useTheme();
   const [isPressed, setIsPressed] = useState(false);
 
   const paddingMap = {
@@ -86,12 +88,12 @@ export function MobileCard({
   };
 
   const cardStyle: React.CSSProperties = {
-    backgroundColor: colors.white,
+    backgroundColor: themeColors.white,
     padding: paddingMap[padding],
     margin: marginMap[margin],
     borderRadius: roundedMap[rounded],
     boxShadow: shadow ? shadows.sm : "none",
-    border: border ? `1px solid ${colors.border}` : "none",
+    border: border ? `1px solid ${themeColors.border}` : "none",
     cursor: (onClick || pressable) ? "pointer" : "default",
     transition: `all ${transitions.fast} ease`,
     transform: isPressed ? "scale(0.98)" : "scale(1)",
@@ -146,6 +148,7 @@ export function MobileListItem({
   disabled = false,
   destructive = false,
 }: MobileListItemProps) {
+  const { themeColors } = useTheme();
   const [isPressed, setIsPressed] = useState(false);
 
   const badgeColors = {
@@ -161,19 +164,19 @@ export function MobileListItem({
     alignItems: "center",
     gap: spacing.md,
     padding: `${spacing.md} ${spacing.md}`,
-    backgroundColor: isPressed ? colors.gray[50] : "transparent",
+    backgroundColor: isPressed ? themeColors.gray[50] : "transparent",
     cursor: disabled ? "not-allowed" : onClick ? "pointer" : "default",
     opacity: disabled ? 0.5 : 1,
     transition: `background ${transitions.fast} ease`,
     WebkitTapHighlightColor: "transparent",
-    borderBottom: `1px solid ${colors.border}`,
+    borderBottom: `1px solid ${themeColors.border}`,
   };
 
   const iconContainerStyle: React.CSSProperties = {
     width: "40px",
     height: "40px",
     borderRadius: borderRadius.lg,
-    backgroundColor: destructive ? colors.dangerLight : colors.gray[100],
+    backgroundColor: destructive ? colors.dangerLight : themeColors.gray[100],
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -189,18 +192,18 @@ export function MobileListItem({
   const titleStyle: React.CSSProperties = {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.medium,
-    color: destructive ? colors.danger : colors.text.primary,
+    color: destructive ? colors.danger : themeColors.text.primary,
     marginBottom: subtitle ? "2px" : 0,
   };
 
   const subtitleStyle: React.CSSProperties = {
     fontSize: typography.fontSize.sm,
-    color: colors.text.muted,
+    color: themeColors.text.muted,
   };
 
   const valueStyle: React.CSSProperties = {
     fontSize: typography.fontSize.sm,
-    color: colors.text.secondary,
+    color: themeColors.text.secondary,
     textAlign: "right",
   };
 
@@ -249,6 +252,7 @@ export function MobileAccordion({
   defaultOpen = false,
   badge,
 }: MobileAccordionProps) {
+  const { themeColors } = useTheme();
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   const headerStyle: React.CSSProperties = {
@@ -256,17 +260,17 @@ export function MobileAccordion({
     alignItems: "center",
     gap: spacing.md,
     padding: spacing.md,
-    backgroundColor: colors.white,
+    backgroundColor: themeColors.white,
     cursor: "pointer",
     WebkitTapHighlightColor: "transparent",
-    borderBottom: `1px solid ${colors.border}`,
+    borderBottom: `1px solid ${themeColors.border}`,
   };
 
   const iconContainerStyle: React.CSSProperties = {
     width: "40px",
     height: "40px",
     borderRadius: borderRadius.lg,
-    backgroundColor: colors.gray[100],
+    backgroundColor: themeColors.gray[100],
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -282,13 +286,13 @@ export function MobileAccordion({
   const titleStyle: React.CSSProperties = {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.medium,
-    color: colors.text.primary,
+    color: themeColors.text.primary,
     marginBottom: subtitle ? "2px" : 0,
   };
 
   const subtitleStyle: React.CSSProperties = {
     fontSize: typography.fontSize.sm,
-    color: colors.text.muted,
+    color: themeColors.text.muted,
   };
 
   const badgeStyle: React.CSSProperties = {
@@ -305,7 +309,7 @@ export function MobileAccordion({
     maxHeight: isOpen ? "1000px" : 0,
     overflow: "hidden",
     transition: `all ${transitions.normal} ease`,
-    backgroundColor: colors.gray[50],
+    backgroundColor: themeColors.gray[50],
   };
 
   return (
@@ -336,6 +340,7 @@ export function MobileAccordion({
 // ==================== Mobile Section Component ====================
 
 export function MobileSection({ title, children, padding = true }: MobileSectionProps) {
+  const { themeColors } = useTheme();
   const containerStyle: React.CSSProperties = {
     marginBottom: spacing.lg,
   };
@@ -343,16 +348,16 @@ export function MobileSection({ title, children, padding = true }: MobileSection
   const titleStyle: React.CSSProperties = {
     fontSize: typography.fontSize.xs,
     fontWeight: typography.fontWeight.semibold,
-    color: colors.text.muted,
+    color: themeColors.text.muted,
     textTransform: "uppercase",
     letterSpacing: "0.5px",
     padding: `${spacing.sm} ${padding ? spacing.md : 0}`,
   };
 
   const contentStyle: React.CSSProperties = {
-    backgroundColor: colors.white,
-    borderTop: `1px solid ${colors.border}`,
-    borderBottom: `1px solid ${colors.border}`,
+    backgroundColor: themeColors.white,
+    borderTop: `1px solid ${themeColors.border}`,
+    borderBottom: `1px solid ${themeColors.border}`,
   };
 
   return (
@@ -389,14 +394,15 @@ export function MobileStatCard({
   trend,
   onClick,
 }: MobileStatCardProps) {
+  const { themeColors } = useTheme();
   const [isPressed, setIsPressed] = useState(false);
 
   const cardStyle: React.CSSProperties = {
-    backgroundColor: colors.white,
+    backgroundColor: themeColors.white,
     padding: spacing.md,
     borderRadius: borderRadius.lg,
     boxShadow: shadows.sm,
-    border: `1px solid ${colors.border}`,
+    border: `1px solid ${themeColors.border}`,
     cursor: onClick ? "pointer" : "default",
     transition: `all ${transitions.fast} ease`,
     transform: isPressed ? "scale(0.98)" : "scale(1)",
@@ -423,13 +429,13 @@ export function MobileStatCard({
 
   const titleStyle: React.CSSProperties = {
     fontSize: typography.fontSize.sm,
-    color: colors.text.muted,
+    color: themeColors.text.muted,
   };
 
   const valueStyle: React.CSSProperties = {
     fontSize: typography.fontSize["2xl"],
     fontWeight: typography.fontWeight.bold,
-    color: colors.text.primary,
+    color: themeColors.text.primary,
     lineHeight: 1.2,
   };
 
@@ -442,7 +448,7 @@ export function MobileStatCard({
 
   const subtitleStyle: React.CSSProperties = {
     fontSize: typography.fontSize.xs,
-    color: colors.text.muted,
+    color: themeColors.text.muted,
   };
 
   const trendStyle: React.CSSProperties = {

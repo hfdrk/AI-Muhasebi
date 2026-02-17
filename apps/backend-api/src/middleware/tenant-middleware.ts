@@ -50,6 +50,14 @@ export async function tenantMiddleware(
       throw new AuthenticationError("Bu kiracıya erişim yetkiniz yok.");
     }
 
+    // Set tenant context for PostgreSQL Row-Level Security
+    // This ensures RLS policies can filter rows by tenant_id
+    try {
+      await prisma.$executeRawUnsafe(`SET LOCAL app.tenant_id = '${tenantId.replace(/'/g, "''")}'`);
+    } catch {
+      // RLS context setting is a safety net — don't block the request if it fails
+    }
+
     // Attach tenant and membership to context
     req.context.tenantId = tenantId;
     req.context.membership = {

@@ -49,8 +49,8 @@ export class OllamaEmbeddingClient implements EmbeddingClient {
           });
 
           if (!response.ok) {
-            const error = await response.json().catch(() => ({ error: { message: "Unknown error" } }));
-            throw new Error(`Ollama API error: ${error.error?.message || response.statusText}`);
+            const errorData = await response.json().catch(() => ({ error: { message: "Unknown error" } })) as { error?: { message?: string } };
+            throw new Error(`Ollama API error: ${errorData.error?.message || response.statusText}`);
           }
 
           const data = (await response.json()) as { embedding?: number[] };

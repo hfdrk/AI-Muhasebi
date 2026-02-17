@@ -15,6 +15,7 @@ import {
   PieChart,
 } from "lucide-react";
 import { colors, spacing, borderRadius, typography, transitions } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import {
   KPICard,
   KPICardGrid,
@@ -30,74 +31,17 @@ import type { Period, Column } from "@/components/dashboard";
 
 // ==================== Mock Data (Replace with API calls) ====================
 
-const generateMockData = (period: Period) => {
-  const days = Math.ceil((period.endDate.getTime() - period.startDate.getTime()) / (24 * 60 * 60 * 1000));
-
-  // Generate sparkline data
-  const generateSparkline = (baseValue: number, variance: number) =>
-    Array.from({ length: Math.min(days, 12) }, () =>
-      baseValue + (Math.random() - 0.5) * variance
-    );
-
-  return {
-    summary: {
-      totalRevenue: 2450000 + Math.random() * 500000,
-      totalExpenses: 1850000 + Math.random() * 300000,
-      netProfit: 600000 + Math.random() * 200000,
-      invoiceCount: Math.floor(150 + Math.random() * 50),
-      clientCount: Math.floor(45 + Math.random() * 10),
-      averageRiskScore: 35 + Math.random() * 20,
-      pendingInvoices: Math.floor(12 + Math.random() * 8),
-      overdueAmount: 125000 + Math.random() * 50000,
-    },
-    previousPeriod: {
-      totalRevenue: 2200000 + Math.random() * 400000,
-      totalExpenses: 1700000 + Math.random() * 250000,
-      netProfit: 500000 + Math.random() * 150000,
-      invoiceCount: Math.floor(130 + Math.random() * 40),
-      clientCount: Math.floor(42 + Math.random() * 8),
-    },
-    sparklines: {
-      revenue: generateSparkline(200000, 50000),
-      expenses: generateSparkline(150000, 30000),
-      profit: generateSparkline(50000, 20000),
-      invoices: generateSparkline(15, 5),
-    },
-    topClients: [
-      { name: "ABC Holding A.S.", revenue: 450000, invoices: 24, riskScore: 15 },
-      { name: "XYZ Teknoloji Ltd.", revenue: 380000, invoices: 18, riskScore: 25 },
-      { name: "123 Dis Ticaret", revenue: 320000, invoices: 15, riskScore: 35 },
-      { name: "Mega Insaat", revenue: 280000, invoices: 12, riskScore: 45 },
-      { name: "Global Lojistik", revenue: 240000, invoices: 10, riskScore: 20 },
-    ],
-    riskDistribution: {
-      low: 28,
-      medium: 12,
-      high: 5,
-    },
-    monthlyGoals: {
-      revenue: { current: 2450000, target: 3000000 },
-      clients: { current: 45, target: 50 },
-      invoices: { current: 150, target: 200 },
-    },
-    recentAlerts: [
-      { id: 1, type: "risk", message: "ABC Holding risk skoru artti", date: new Date(), severity: "warning" },
-      { id: 2, type: "overdue", message: "XYZ Ltd. 30+ gun geciken odeme", date: new Date(), severity: "danger" },
-      { id: 3, type: "document", message: "5 belge onay bekliyor", date: new Date(), severity: "info" },
-    ],
-  };
-};
-
 // ==================== Executive Dashboard Page ====================
 
 export default function ExecutiveSummaryPage() {
+  const { themeColors } = useTheme();
   const [selectedPeriod, setSelectedPeriod] = useState<Period>({
     label: "Bu Ay",
     value: "this_month",
     startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
     endDate: new Date(),
   });
-  const [comparePeriod, setComparePeriod] = useState<Period | null>(null);
+  const [comparePeriod, setComparePeriod] = useState<Period | undefined>(undefined);
   const [quickPeriod, setQuickPeriod] = useState("30d");
 
   // Fetch dashboard data from real API
@@ -175,13 +119,13 @@ export default function ExecutiveSummaryPage() {
       invoices: 0,
       riskScore: c.riskScore,
     })) || [],
-    riskDistribution: portfolioData?.riskDistribution || { low: 0, medium: 0, high: 0 },
+    riskDistribution: { low: portfolioData?.lowRiskClients || 0, medium: portfolioData?.mediumRiskClients || 0, high: portfolioData?.highRiskClients || 0 },
     monthlyGoals: {
       revenue: { current: dashboardData.financial?.totalRevenue || 0, target: (dashboardData.financial?.totalRevenue || 0) * 1.2 },
       clients: { current: dashboardData.portfolio?.totalClients || 0, target: (dashboardData.portfolio?.totalClients || 0) + 5 },
       invoices: { current: 0, target: 200 },
     },
-    recentAlerts: [],
+    recentAlerts: [] as Array<{ id: string; severity: string; message: string }>,
   } : null;
 
   const refetch = () => {
@@ -253,13 +197,13 @@ export default function ExecutiveSummaryPage() {
   const titleStyle: React.CSSProperties = {
     fontSize: typography.fontSize["2xl"],
     fontWeight: typography.fontWeight.bold,
-    color: colors.text.primary,
+    color: themeColors.text.primary,
     margin: 0,
   };
 
   const subtitleStyle: React.CSSProperties = {
     fontSize: typography.fontSize.sm,
-    color: colors.text.muted,
+    color: themeColors.text.muted,
     marginTop: spacing.xs,
   };
 
@@ -274,12 +218,12 @@ export default function ExecutiveSummaryPage() {
     alignItems: "center",
     gap: spacing.xs,
     padding: `${spacing.sm} ${spacing.md}`,
-    backgroundColor: colors.white,
-    border: `1px solid ${colors.border}`,
+    backgroundColor: themeColors.white,
+    border: `1px solid ${themeColors.border}`,
     borderRadius: borderRadius.lg,
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.medium,
-    color: colors.text.primary,
+    color: themeColors.text.primary,
     cursor: "pointer",
     transition: `all ${transitions.fast} ease`,
   };
@@ -307,16 +251,16 @@ export default function ExecutiveSummaryPage() {
             onChange={setSelectedPeriod}
             compareMode
             comparePeriod={comparePeriod}
-            onCompareChange={setComparePeriod}
+            onCompareChange={(period) => setComparePeriod(period ?? undefined)}
           />
           <button
             style={buttonStyle}
             onClick={() => refetch()}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = colors.gray[50];
+              e.currentTarget.style.backgroundColor = themeColors.gray[50];
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = colors.white;
+              e.currentTarget.style.backgroundColor = themeColors.white;
             }}
           >
             <RefreshCw size={16} />
@@ -574,10 +518,10 @@ export default function ExecutiveSummaryPage() {
               size={140}
               centerContent={
                 <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: typography.fontSize["2xl"], fontWeight: typography.fontWeight.bold, color: colors.text.primary }}>
+                  <div style={{ fontSize: typography.fontSize["2xl"], fontWeight: typography.fontWeight.bold, color: themeColors.text.primary }}>
                     {(data?.riskDistribution.low || 0) + (data?.riskDistribution.medium || 0) + (data?.riskDistribution.high || 0)}
                   </div>
-                  <div style={{ fontSize: typography.fontSize.xs, color: colors.text.muted }}>Musteri</div>
+                  <div style={{ fontSize: typography.fontSize.xs, color: themeColors.text.muted }}>Musteri</div>
                 </div>
               }
             />
@@ -614,7 +558,7 @@ export default function ExecutiveSummaryPage() {
                         : colors.info
                     }
                   />
-                  <span style={{ flex: 1, color: colors.text.primary }}>{alert.message}</span>
+                  <span style={{ flex: 1, color: themeColors.text.primary }}>{alert.message}</span>
                 </div>
               ))}
             </div>

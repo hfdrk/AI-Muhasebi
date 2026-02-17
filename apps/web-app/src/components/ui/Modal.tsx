@@ -3,7 +3,8 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { colors, spacing, shadows, borderRadius, zIndex } from "../../styles/design-system";
+import { spacing, shadows, borderRadius, zIndex } from "../../styles/design-system";
+import { useTheme } from "../../contexts/ThemeContext";
 import { Icon } from "./Icon";
 
 interface ModalProps {
@@ -35,6 +36,7 @@ export function Modal({
   closeOnOverlayClick = true,
   className = "",
 }: ModalProps) {
+  const { themeColors } = useTheme();
   const modalRef = useRef<HTMLDivElement>(null);
 
   // Handle escape key
@@ -147,7 +149,7 @@ export function Modal({
             onClick={(e) => e.stopPropagation()}
             style={{
               position: "relative",
-              backgroundColor: colors.white,
+              backgroundColor: themeColors.white,
               borderRadius: borderRadius.xl,
               boxShadow: shadows.xl,
               width: size === "full" ? sizeMap[size] : `min(${sizeMap[size]}, 95vw)`,
@@ -164,11 +166,11 @@ export function Modal({
               <div
                 style={{
                   padding: spacing.lg,
-                  borderBottom: `1px solid ${colors.border}`,
+                  borderBottom: `1px solid ${themeColors.border}`,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  backgroundColor: colors.gray[50],
+                  backgroundColor: themeColors.gray[50],
                 }}
               >
                 {title && (
@@ -177,7 +179,7 @@ export function Modal({
                       margin: 0,
                       fontSize: "20px",
                       fontWeight: 600,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                     }}
                   >
                     {title}
@@ -195,16 +197,16 @@ export function Modal({
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      color: colors.text.secondary,
+                      color: themeColors.text.secondary,
                       transition: "all 0.2s ease",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = colors.gray[200];
-                      e.currentTarget.style.color = colors.text.primary;
+                      e.currentTarget.style.backgroundColor = themeColors.gray[200];
+                      e.currentTarget.style.color = themeColors.text.primary;
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.backgroundColor = "transparent";
-                      e.currentTarget.style.color = colors.text.secondary;
+                      e.currentTarget.style.color = themeColors.text.secondary;
                     }}
                     aria-label="Close modal"
                   >

@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { kvkkClient, listTenantUsers } from "@repo/api-client";
-import Link from "next/link";
 import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
-import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
+import { colors, spacing, borderRadius, typography } from "../../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function KVKKAuditLogPage() {
+  const { themeColors } = useTheme();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   // Get current tenant
@@ -46,7 +47,7 @@ export default function KVKKAuditLogPage() {
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
-        backgroundColor: colors.gray[50],
+        backgroundColor: themeColors.gray[50],
         minHeight: "100vh",
       }}
     >
@@ -65,7 +66,7 @@ export default function KVKKAuditLogPage() {
           style={{
             fontSize: typography.fontSize["3xl"],
             fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
             marginBottom: spacing.sm,
           }}
         >
@@ -74,7 +75,7 @@ export default function KVKKAuditLogPage() {
         <p
           style={{
             fontSize: typography.fontSize.base,
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
             lineHeight: typography.lineHeight.relaxed,
             margin: 0,
           }}
@@ -93,7 +94,7 @@ export default function KVKKAuditLogPage() {
               marginBottom: spacing.sm,
               fontSize: typography.fontSize.sm,
               fontWeight: typography.fontWeight.medium,
-              color: colors.text.primary,
+              color: themeColors.text.primary,
             }}
           >
             Kullanıcı Filtresi (Opsiyonel)
@@ -106,10 +107,10 @@ export default function KVKKAuditLogPage() {
               maxWidth: "400px",
               padding: spacing.sm,
               borderRadius: borderRadius.md,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               fontSize: typography.fontSize.base,
-              backgroundColor: colors.white,
-              color: colors.text.primary,
+              backgroundColor: themeColors.white,
+              color: themeColors.text.primary,
             }}
           >
             <option value="">Tüm kullanıcılar</option>
@@ -131,7 +132,7 @@ export default function KVKKAuditLogPage() {
                 display: "inline-block",
                 width: "48px",
                 height: "48px",
-                border: `4px solid ${colors.gray[200]}`,
+                border: `4px solid ${themeColors.gray[200]}`,
                 borderTopColor: colors.primary,
                 borderRadius: "50%",
                 animation: "spin 0.8s linear infinite",
@@ -142,7 +143,7 @@ export default function KVKKAuditLogPage() {
       ) : auditLogs.length === 0 ? (
         <Card variant="elevated">
           <div style={{ padding: spacing.xl, textAlign: "center" }}>
-            <p style={{ color: colors.text.secondary, margin: 0 }}>
+            <p style={{ color: themeColors.text.secondary, margin: 0 }}>
               Denetim kaydı bulunmamaktadır.
             </p>
           </div>
@@ -157,14 +158,14 @@ export default function KVKKAuditLogPage() {
               }}
             >
               <thead>
-                <tr style={{ borderBottom: `2px solid ${colors.border}` }}>
+                <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
                   <th
                     style={{
                       padding: spacing.md,
                       textAlign: "left",
                       fontSize: typography.fontSize.sm,
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                     }}
                   >
                     Tarih/Saat
@@ -175,7 +176,7 @@ export default function KVKKAuditLogPage() {
                       textAlign: "left",
                       fontSize: typography.fontSize.sm,
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                     }}
                   >
                     Kullanıcı
@@ -186,7 +187,7 @@ export default function KVKKAuditLogPage() {
                       textAlign: "left",
                       fontSize: typography.fontSize.sm,
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                     }}
                   >
                     İşlem
@@ -197,7 +198,7 @@ export default function KVKKAuditLogPage() {
                       textAlign: "left",
                       fontSize: typography.fontSize.sm,
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                     }}
                   >
                     Detaylar
@@ -209,7 +210,7 @@ export default function KVKKAuditLogPage() {
                   <tr
                     key={log.logId}
                     style={{
-                      borderBottom: `1px solid ${colors.border}`,
+                      borderBottom: `1px solid ${themeColors.border}`,
                     }}
                   >
                     <td style={{ padding: spacing.md }}>
@@ -240,7 +241,7 @@ export default function KVKKAuditLogPage() {
                           <summary
                             style={{
                               cursor: "pointer",
-                              color: colors.text.secondary,
+                              color: themeColors.text.secondary,
                               fontSize: typography.fontSize.sm,
                             }}
                           >
@@ -250,7 +251,7 @@ export default function KVKKAuditLogPage() {
                             style={{
                               marginTop: spacing.xs,
                               padding: spacing.sm,
-                              backgroundColor: colors.gray[50],
+                              backgroundColor: themeColors.gray[50],
                               borderRadius: borderRadius.md,
                               fontSize: typography.fontSize.xs,
                               overflow: "auto",
@@ -260,7 +261,7 @@ export default function KVKKAuditLogPage() {
                           </pre>
                         </details>
                       ) : (
-                        <span style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm }}>
+                        <span style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>
                           -
                         </span>
                       )}
@@ -283,4 +284,3 @@ export default function KVKKAuditLogPage() {
     </div>
   );
 }
-

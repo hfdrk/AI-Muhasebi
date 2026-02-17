@@ -330,33 +330,30 @@ export class FraudPatternDetectorService {
           gte: twelveMonthsAgo,
         },
       },
-      include: {
-        counterparty: true,
-      },
     });
 
     // Circular transaction detection (A→B→C→A)
-    const circularPatterns = await this.detectCircularTransactions(tenantId, clientCompanyId, transactions);
+    const circularPatterns = await this.detectCircularTransactions(tenantId, clientCompanyId, transactions as any);
     patterns.push(...circularPatterns);
 
     // VAT pattern anomalies
-    const vatPatterns = this.detectVATPatternAnomalies(invoices);
+    const vatPatterns = this.detectVATPatternAnomalies(invoices as any);
     patterns.push(...vatPatterns);
 
     // Invoice number sequence anomalies
-    const invoiceAnomalies = this.detectInvoiceNumberAnomalies(invoices);
+    const invoiceAnomalies = this.detectInvoiceNumberAnomalies(invoices as any);
     patterns.push(...invoiceAnomalies);
 
     // Date manipulation detection
-    const dateManipulation = this.detectDateManipulation(invoices, transactions);
+    const dateManipulation = this.detectDateManipulation(invoices as any, transactions as any);
     patterns.push(...dateManipulation);
 
     // Related party transaction analysis
-    const relatedPartyPatterns = await this.detectRelatedPartyTransactions(tenantId, clientCompanyId, transactions, invoices);
+    const relatedPartyPatterns = await this.detectRelatedPartyTransactions(tenantId, clientCompanyId, transactions as any, invoices as any);
     patterns.push(...relatedPartyPatterns);
 
     // Cross-company pattern matching
-    const crossCompanyPatterns = await this.detectCrossCompanyPatterns(tenantId, clientCompanyId, invoices);
+    const crossCompanyPatterns = await this.detectCrossCompanyPatterns(tenantId, clientCompanyId, invoices as any);
     patterns.push(...crossCompanyPatterns);
 
     return {
@@ -638,7 +635,7 @@ export class FraudPatternDetectorService {
     tenantId: string,
     clientCompanyId: string,
     transactions: Array<{ counterpartyId: string | null; date: Date }>,
-    invoices: Array<{ counterpartyId: string | null }>
+    invoices: Array<{ counterpartyId: string | null; counterpartyName?: string | null; counterpartyTaxNumber?: string | null; totalAmount?: number | null }>
   ): Promise<Array<{
     type: "related_party";
     severity: "low" | "medium" | "high";
@@ -652,47 +649,98 @@ export class FraudPatternDetectorService {
       value?: number;
     }> = [];
 
-    // Get client company
+    // Get the current client company
     const company = await prisma.clientCompany.findUnique({
       where: { id: clientCompanyId },
     });
 
     if (!company) return patterns;
 
-    // Check for transactions with counterparties that share similar tax numbers or names
-    const counterpartyIds = new Set<string>();
-    transactions.forEach((txn) => {
-      if (txn.counterpartyId) counterpartyIds.add(txn.counterpartyId);
-    });
-    invoices.forEach((inv) => {
-      if (inv.counterpartyId) counterpartyIds.add(inv.counterpartyId);
-    });
-
-    // Check for similar tax numbers (potential related parties)
-    const counterparties = await prisma.counterparty.findMany({
+    // Get all other client companies in the same tenant
+    const otherCompanies = await prisma.clientCompany.findMany({
       where: {
-        id: { in: Array.from(counterpartyIds) },
         tenantId,
+        id: { not: clientCompanyId },
+      },
+      select: {
+        id: true,
+        name: true,
+        taxNumber: true,
+        address: true,
       },
     });
 
     const companyTaxNumber = company.taxNumber || "";
-    const suspiciousCounterparties = counterparties.filter((cp) => {
-      if (!cp.taxNumber) return false;
-      // Check if tax numbers are similar (first 6 digits match - potential related company)
-      return (
-        cp.taxNumber.substring(0, 6) === companyTaxNumber.substring(0, 6) &&
-        cp.taxNumber !== companyTaxNumber
-      );
-    });
 
-    if (suspiciousCounterparties.length > 0) {
-      patterns.push({
-        type: "related_party",
-        severity: "medium",
-        description: `${suspiciousCounterparties.length} adet ilişkili taraf işlemi tespit edildi (benzer vergi numarası)`,
-        value: suspiciousCounterparties.length,
-      });
+    // Check 1: Tax number similarity (same first 6 digits = same tax office region)
+    if (companyTaxNumber.length >= 6) {
+      const prefix = companyTaxNumber.substring(0, 6);
+      const sameRegionCompanies = otherCompanies.filter(
+        (c) => c.taxNumber && c.taxNumber.startsWith(prefix) && c.taxNumber !== companyTaxNumber
+      );
+
+      if (sameRegionCompanies.length > 0) {
+        patterns.push({
+          type: "related_party",
+          severity: "medium",
+          description: `${sameRegionCompanies.length} adet aynı vergi dairesi bölgesinde kayıtlı ilişkili şirket tespit edildi`,
+          value: sameRegionCompanies.length,
+        });
+      }
+    }
+
+    // Check 2: Counterparty tax numbers matching other client companies
+    const counterpartyTaxNumbers = invoices
+      .map((inv) => inv.counterpartyTaxNumber)
+      .filter((tn): tn is string => !!tn);
+
+    const matchingCompanies = otherCompanies.filter(
+      (c) => c.taxNumber && counterpartyTaxNumbers.includes(c.taxNumber)
+    );
+
+    if (matchingCompanies.length > 0) {
+      // Count invoices to/from each matching company
+      for (const mc of matchingCompanies) {
+        const matchedInvoices = invoices.filter(
+          (inv) => inv.counterpartyTaxNumber === mc.taxNumber
+        );
+        const totalAmount = matchedInvoices.reduce(
+          (sum, inv) => sum + Number(inv.totalAmount || 0),
+          0
+        );
+
+        patterns.push({
+          type: "related_party",
+          severity: totalAmount > 100000 ? "high" : "medium",
+          description: `"${mc.name}" ile ilişkili taraf işlemi: ${matchedInvoices.length} fatura, toplam ${totalAmount.toLocaleString("tr-TR")} TL`,
+          value: totalAmount,
+        });
+      }
+    }
+
+    // Check 3: Name similarity analysis (common ownership indicators)
+    const companyNameWords = (company.name || "").toLowerCase().split(/\s+/).filter((w) => w.length > 3);
+    for (const other of otherCompanies) {
+      const otherNameWords = (other.name || "").toLowerCase().split(/\s+/).filter((w) => w.length > 3);
+      const commonWords = companyNameWords.filter((w) => otherNameWords.includes(w));
+
+      // If more than 50% of significant words match, likely related
+      if (commonWords.length > 0 && commonWords.length >= Math.min(companyNameWords.length, otherNameWords.length) * 0.5) {
+        // Check if there are invoices between them
+        const hasTransactions = invoices.some(
+          (inv) => inv.counterpartyName &&
+            inv.counterpartyName.toLowerCase().includes(other.name.toLowerCase().substring(0, 5))
+        );
+
+        if (hasTransactions) {
+          patterns.push({
+            type: "related_party",
+            severity: "high",
+            description: `Benzer isimli şirketle işlem tespit edildi: "${other.name}" (ortak kelimeler: ${commonWords.join(", ")})`,
+            value: commonWords.length,
+          });
+        }
+      }
     }
 
     return patterns;

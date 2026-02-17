@@ -1,25 +1,32 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { uploadDocument } from "@repo/api-client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { uploadDocument, getMyClientCompany } from "@repo/api-client";
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { colors, spacing } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "@/lib/toast";
 
 export default function ClientUploadPage() {
+  const { themeColors } = useTheme();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<"idle" | "success" | "error">("idle");
   const queryClient = useQueryClient();
 
+  const { data: clientCompanyData } = useQuery({
+    queryKey: ["myClientCompany"],
+    queryFn: () => getMyClientCompany(),
+  });
+
+  const clientCompanyId = clientCompanyData?.data?.id;
+
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append("file", file);
-      return uploadDocument(formData);
+      return uploadDocument(file, { clientCompanyId: clientCompanyId || "" });
     },
     onSuccess: () => {
       setUploadStatus("success");
@@ -74,7 +81,7 @@ export default function ClientUploadPage() {
           <h3 style={{ fontSize: "18px", fontWeight: "semibold", marginBottom: spacing.sm }}>
             Yeni Belge Yükle
           </h3>
-          <p style={{ color: colors.text.secondary, marginBottom: spacing.md }}>
+          <p style={{ color: themeColors.text.secondary, marginBottom: spacing.md }}>
             Fatura, makbuz, banka ekstresi veya diğer muhasebe belgelerinizi yükleyebilirsiniz.
             Desteklenen formatlar: PDF, JPG, PNG (Maksimum 20MB)
           </p>
@@ -86,11 +93,11 @@ export default function ClientUploadPage() {
             style={{
               display: "block",
               padding: spacing.xl,
-              border: `2px dashed ${colors.gray[300]}`,
+              border: `2px dashed ${themeColors.gray[300]}`,
               borderRadius: "8px",
               textAlign: "center",
               cursor: "pointer",
-              backgroundColor: colors.gray[50],
+              backgroundColor: themeColors.gray[50],
               transition: "all 0.2s ease",
             }}
             onMouseEnter={(e) => {
@@ -98,8 +105,8 @@ export default function ClientUploadPage() {
               e.currentTarget.style.backgroundColor = colors.primaryLighter;
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = colors.gray[300];
-              e.currentTarget.style.backgroundColor = colors.gray[50];
+              e.currentTarget.style.borderColor = themeColors.gray[300];
+              e.currentTarget.style.backgroundColor = themeColors.gray[50];
             }}
           >
             <input
@@ -114,7 +121,7 @@ export default function ClientUploadPage() {
             <div style={{ fontWeight: "medium", marginBottom: spacing.xs }}>
               {selectedFile ? selectedFile.name : "Dosya Seçin"}
             </div>
-            <div style={{ fontSize: "14px", color: colors.text.secondary }}>
+            <div style={{ fontSize: "14px", color: themeColors.text.secondary }}>
               {selectedFile
                 ? `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`
                 : "PDF, JPG veya PNG dosyası seçin"}
@@ -173,9 +180,9 @@ export default function ClientUploadPage() {
           </div>
         )}
 
-        <div style={{ marginTop: spacing.xl, padding: spacing.md, backgroundColor: colors.gray[50], borderRadius: "6px" }}>
+        <div style={{ marginTop: spacing.xl, padding: spacing.md, backgroundColor: themeColors.gray[50], borderRadius: "6px" }}>
           <h4 style={{ fontSize: "14px", fontWeight: "semibold", marginBottom: spacing.sm }}>💡 İpuçları:</h4>
-          <ul style={{ fontSize: "14px", color: colors.text.secondary, paddingLeft: spacing.lg }}>
+          <ul style={{ fontSize: "14px", color: themeColors.text.secondary, paddingLeft: spacing.lg }}>
             <li>Belgelerin net ve okunabilir olduğundan emin olun</li>
             <li>Faturaları ve makbuzları eksiksiz yükleyin</li>
             <li>Banka ekstrelerini PDF formatında yükleyin</li>

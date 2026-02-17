@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState, useRef } from "react";
-import { colors, spacing, borderRadius, typography, transitions, shadows } from "../../styles/design-system";
+import React, { useState } from "react";
+import { colors, spacing, borderRadius, typography, transitions } from "../../styles/design-system";
+import { useTheme } from "../../contexts/ThemeContext";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "danger" | "success" | "outline" | "ghost";
@@ -28,6 +29,7 @@ export function Button({
   onClick,
   ...props
 }: ButtonProps) {
+  const { themeColors } = useTheme();
   const [isHovered, setIsHovered] = useState(false);
   const [ripples, setRipples] = useState<Array<{ x: number; y: number; id: number }>>([]);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
@@ -56,8 +58,8 @@ export function Button({
   const getVariantStyles = (): React.CSSProperties => {
     if (disabled || loading) {
       return {
-        backgroundColor: colors.gray[300],
-        color: colors.gray[600],
+        backgroundColor: themeColors.gray[300],
+        color: themeColors.gray[600],
         cursor: "not-allowed",
         opacity: 0.6,
       };
@@ -72,7 +74,7 @@ export function Button({
         };
       case "secondary":
         return {
-          backgroundColor: isHovered ? colors.gray[700] : colors.gray[600],
+          backgroundColor: isHovered ? themeColors.gray[700] : themeColors.gray[600],
           color: colors.white,
         };
       case "danger":
@@ -96,10 +98,10 @@ export function Button({
         };
       case "ghost":
         return {
-          backgroundColor: isHovered ? colors.gray[100] : "transparent",
-          color: colors.text.secondary,
+          backgroundColor: isHovered ? themeColors.gray[100] : "transparent",
+          color: themeColors.text.secondary,
           ...(isHovered && {
-            color: colors.text.primary,
+            color: themeColors.text.primary,
           }),
         };
       default:

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { colors, spacing, shadows } from "../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
+import { getAccessToken } from "@/lib/auth";
 
 interface Message {
   id: string;
@@ -12,7 +14,7 @@ interface Message {
 }
 
 async function sendChatMessage(question: string, type?: "GENEL" | "RAPOR" | "RISK") {
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+  const token = getAccessToken();
 
   const response = await fetch("/api/v1/ai/chat", {
     method: "POST",
@@ -33,6 +35,7 @@ async function sendChatMessage(question: string, type?: "GENEL" | "RAPOR" | "RIS
 }
 
 export default function AIAsistanPage() {
+  const { themeColors } = useTheme();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
 
@@ -91,14 +94,14 @@ export default function AIAsistanPage() {
         flexDirection: "column",
       }}
     >
-      <h1 style={{ marginBottom: spacing.xl, color: colors.text.primary }}>AI Asistan</h1>
+      <h1 style={{ marginBottom: spacing.xl, color: themeColors.text.primary }}>AI Asistan</h1>
 
       <div
         style={{
           flex: 1,
           display: "flex",
           flexDirection: "column",
-          backgroundColor: colors.white,
+          backgroundColor: themeColors.white,
           borderRadius: "8px",
           boxShadow: shadows.md,
           overflow: "hidden",
@@ -122,7 +125,7 @@ export default function AIAsistanPage() {
                 alignItems: "center",
                 justifyContent: "center",
                 height: "100%",
-                color: colors.text.secondary,
+                color: themeColors.text.secondary,
               }}
             >
               <p>Muhasebe ile ilgili sorunuzu yazın...</p>
@@ -141,8 +144,8 @@ export default function AIAsistanPage() {
                     maxWidth: "70%",
                     padding: spacing.md,
                     borderRadius: "12px",
-                    backgroundColor: message.isUser ? colors.primary : colors.gray[100],
-                    color: message.isUser ? colors.white : colors.text.primary,
+                    backgroundColor: message.isUser ? colors.primary : themeColors.gray[100],
+                    color: message.isUser ? colors.white : themeColors.text.primary,
                   }}
                 >
                   <p style={{ margin: 0, whiteSpace: "pre-wrap" }}>{message.text}</p>
@@ -156,8 +159,8 @@ export default function AIAsistanPage() {
                 style={{
                   padding: spacing.md,
                   borderRadius: "12px",
-                  backgroundColor: colors.gray[100],
-                  color: colors.text.secondary,
+                  backgroundColor: themeColors.gray[100],
+                  color: themeColors.text.secondary,
                 }}
               >
                 <p style={{ margin: 0 }}>Yanıt oluşturuluyor...</p>
@@ -169,7 +172,7 @@ export default function AIAsistanPage() {
         {/* Input */}
         <div
           style={{
-            borderTop: `1px solid ${colors.border}`,
+            borderTop: `1px solid ${themeColors.border}`,
             padding: spacing.md,
             display: "flex",
             gap: spacing.md,
@@ -184,7 +187,7 @@ export default function AIAsistanPage() {
             style={{
               flex: 1,
               padding: spacing.md,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "8px",
               fontSize: "14px",
               fontFamily: "inherit",

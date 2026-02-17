@@ -1,3 +1,5 @@
+import { getAccessToken } from "../token-store";
+
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "";
 
 export interface AuditLogEntry {
@@ -59,7 +61,7 @@ async function apiRequest<T>(
   }
 
   const { params, ...fetchOptions } = options || {};
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+  const token = getAccessToken();
 
   const response = await fetch(url, {
     ...fetchOptions,
@@ -80,8 +82,22 @@ async function apiRequest<T>(
         }
       }
     }
-    const error = await response.json().catch(() => ({ error: { message: "Bir hata oluştu." } }));
-    throw new Error(error.error?.message || "Bir hata oluştu.");
+    let errorMessage = "Bir hata oluştu.";
+    try {
+      const error = await response.json();
+      const rawMessage = error?.error?.message || error?.message;
+      if (typeof rawMessage === "string") {
+        errorMessage = rawMessage;
+      }
+    } catch {
+      errorMessage = response.statusText || `HTTP ${response.status} hatası`;
+    }
+    
+    const error = new Error(errorMessage);
+    (error as any).status = response.status;
+    (error as any).statusCode = response.status;
+    (error as any).response = { status: response.status };
+    throw error;
   }
 
   return response.json();

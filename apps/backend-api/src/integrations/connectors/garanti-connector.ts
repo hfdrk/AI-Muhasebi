@@ -176,10 +176,10 @@ export class GarantiConnector extends BasePSD2BankConnector {
         return [];
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       return data.balances || [];
-    } catch (error) {
-      logger.error("[GarantiConnector] fetchBalances error:", error);
+    } catch (error: unknown) {
+      logger.error("[GarantiConnector] fetchBalances error:", { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -212,8 +212,8 @@ export class GarantiConnector extends BasePSD2BankConnector {
         bankName: this.bankName,
         bankCode: "00062",
       };
-    } catch (error) {
-      logger.error("[GarantiConnector] getAccountDetails error:", error);
+    } catch (error: unknown) {
+      logger.error("[GarantiConnector] getAccountDetails error:", { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }

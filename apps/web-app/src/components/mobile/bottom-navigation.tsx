@@ -18,6 +18,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { colors, spacing, borderRadius, typography, transitions, zIndex } from "@/styles/design-system";
+import { useTheme } from "../../contexts/ThemeContext";
 import { useDevice, useSafeAreaInsets, useScrollLock } from "@/hooks/use-responsive";
 
 // ==================== Types ====================
@@ -133,6 +134,7 @@ const moreMenuItems: MoreMenuItem[] = [
 // ==================== Bottom Navigation Component ====================
 
 export function BottomNavigation({ notificationCount = 0, messageCount = 0 }: BottomNavigationProps) {
+  const { themeColors } = useTheme();
   const pathname = usePathname();
   const router = useRouter();
   const { isMobile } = useDevice();
@@ -167,8 +169,8 @@ export function BottomNavigation({ notificationCount = 0, messageCount = 0 }: Bo
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: colors.white,
-    borderTop: `1px solid ${colors.border}`,
+    backgroundColor: themeColors.white,
+    borderTop: `1px solid ${themeColors.border}`,
     boxShadow: "0 -4px 16px rgba(0, 0, 0, 0.08)",
     zIndex: zIndex.fixed,
     paddingBottom: safeArea.bottom > 0 ? `${safeArea.bottom}px` : spacing.xs,
@@ -232,6 +234,7 @@ interface NavButtonProps {
 }
 
 function NavButton({ item, isActive, onClick, badge }: NavButtonProps) {
+  const { themeColors } = useTheme();
   const [isPressed, setIsPressed] = useState(false);
 
   const buttonStyle: React.CSSProperties = {
@@ -246,7 +249,7 @@ function NavButton({ item, isActive, onClick, badge }: NavButtonProps) {
     cursor: "pointer",
     borderRadius: borderRadius.md,
     transition: `all ${transitions.fast} ease`,
-    color: isActive ? colors.primary : colors.gray[500],
+    color: isActive ? colors.primary : themeColors.gray[500],
     transform: isPressed ? "scale(0.92)" : "scale(1)",
     minWidth: "56px",
     minHeight: "48px",
@@ -308,6 +311,7 @@ interface MoreButtonProps {
 }
 
 function MoreButton({ isActive, onClick, badge }: MoreButtonProps) {
+  const { themeColors } = useTheme();
   const [isPressed, setIsPressed] = useState(false);
 
   const buttonStyle: React.CSSProperties = {
@@ -322,7 +326,7 @@ function MoreButton({ isActive, onClick, badge }: MoreButtonProps) {
     cursor: "pointer",
     borderRadius: borderRadius.md,
     transition: `all ${transitions.fast} ease`,
-    color: isActive ? colors.primary : colors.gray[500],
+    color: isActive ? colors.primary : themeColors.gray[500],
     transform: isPressed ? "scale(0.92)" : "scale(1)",
     minWidth: "56px",
     minHeight: "48px",
@@ -395,6 +399,7 @@ function MoreMenuSheet({
   notificationCount,
   safeAreaBottom,
 }: MoreMenuSheetProps) {
+  const { themeColors } = useTheme();
   const backdropStyle: React.CSSProperties = {
     position: "fixed",
     inset: 0,
@@ -410,7 +415,7 @@ function MoreMenuSheet({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: colors.white,
+    backgroundColor: themeColors.white,
     borderTopLeftRadius: borderRadius.xl,
     borderTopRightRadius: borderRadius.xl,
     zIndex: zIndex.modal,
@@ -425,7 +430,7 @@ function MoreMenuSheet({
   const handleStyle: React.CSSProperties = {
     width: "36px",
     height: "4px",
-    backgroundColor: colors.gray[300],
+    backgroundColor: themeColors.gray[300],
     borderRadius: borderRadius.full,
     margin: `${spacing.sm} auto`,
   };
@@ -435,17 +440,17 @@ function MoreMenuSheet({
     alignItems: "center",
     justifyContent: "space-between",
     padding: `0 ${spacing.md} ${spacing.md}`,
-    borderBottom: `1px solid ${colors.border}`,
+    borderBottom: `1px solid ${themeColors.border}`,
   };
 
   const titleStyle: React.CSSProperties = {
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.semibold,
-    color: colors.text.primary,
+    color: themeColors.text.primary,
   };
 
   const closeButtonStyle: React.CSSProperties = {
-    background: colors.gray[100],
+    background: themeColors.gray[100],
     border: "none",
     borderRadius: borderRadius.full,
     width: "36px",
@@ -454,7 +459,7 @@ function MoreMenuSheet({
     alignItems: "center",
     justifyContent: "center",
     cursor: "pointer",
-    color: colors.gray[600],
+    color: themeColors.gray[600],
   };
 
   const listStyle: React.CSSProperties = {
@@ -514,6 +519,7 @@ interface MoreMenuItemButtonProps {
 }
 
 function MoreMenuItemButton({ item, onClick, badge }: MoreMenuItemButtonProps) {
+  const { themeColors } = useTheme();
   const [isPressed, setIsPressed] = useState(false);
 
   const itemStyle: React.CSSProperties = {
@@ -521,7 +527,7 @@ function MoreMenuItemButton({ item, onClick, badge }: MoreMenuItemButtonProps) {
     alignItems: "center",
     gap: spacing.md,
     padding: spacing.md,
-    background: isPressed ? colors.gray[50] : "transparent",
+    background: isPressed ? themeColors.gray[50] : "transparent",
     border: "none",
     borderRadius: borderRadius.lg,
     cursor: "pointer",
@@ -552,17 +558,17 @@ function MoreMenuItemButton({ item, onClick, badge }: MoreMenuItemButtonProps) {
   const labelStyle: React.CSSProperties = {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.medium,
-    color: colors.text.primary,
+    color: themeColors.text.primary,
     marginBottom: "2px",
   };
 
   const descriptionStyle: React.CSSProperties = {
     fontSize: typography.fontSize.sm,
-    color: colors.text.muted,
+    color: themeColors.text.muted,
   };
 
   const arrowStyle: React.CSSProperties = {
-    color: colors.gray[400],
+    color: themeColors.gray[400],
   };
 
   const badgeStyle: React.CSSProperties = {
@@ -580,7 +586,7 @@ function MoreMenuItemButton({ item, onClick, badge }: MoreMenuItemButtonProps) {
     alignItems: "center",
     justifyContent: "center",
     padding: "0 5px",
-    border: `2px solid ${colors.white}`,
+    border: `2px solid ${themeColors.white}`,
   };
 
   return (

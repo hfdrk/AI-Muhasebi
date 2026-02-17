@@ -6,8 +6,10 @@ import { Card } from "../../../../components/ui/Card";
 import { Skeleton } from "../../../../components/ui/Skeleton";
 import { PageTransition } from "../../../../components/ui/PageTransition";
 import { colors, spacing, shadows } from "../../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function AdminOverviewPage() {
+  const { themeColors } = useTheme();
   const { data, isLoading, error } = useQuery({
     queryKey: ["admin-metrics"],
     queryFn: () => getPlatformMetrics(),
@@ -17,14 +19,14 @@ export default function AdminOverviewPage() {
 
   const metricCards = [
     { label: "Toplam Kiracı", value: metrics?.total_tenants ?? 0, color: colors.primary },
-    { label: "Aktif Kiracı", value: metrics?.active_tenants ?? 0, color: colors.success || "#10b981" },
-    { label: "Askıya Alınan Kiracı", value: metrics?.suspended_tenants ?? 0, color: colors.warning || "#f59e0b" },
+    { label: "Aktif Kiracı", value: metrics?.active_tenants ?? 0, color: colors.success || colors.success },
+    { label: "Askıya Alınan Kiracı", value: metrics?.suspended_tenants ?? 0, color: colors.warning || colors.warning },
     { label: "Toplam Kullanıcı", value: metrics?.total_users ?? 0, color: colors.primary },
-    { label: "Toplam Müşteri Şirket", value: metrics?.total_client_companies ?? 0, color: colors.info || "#3b82f6" },
-    { label: "Toplam Belge", value: metrics?.total_documents ?? 0, color: colors.info || "#3b82f6" },
-    { label: "Toplam Fatura", value: metrics?.total_invoices ?? 0, color: colors.info || "#3b82f6" },
-    { label: "Son 7 Günde Risk Uyarıları", value: metrics?.total_risk_alerts_last_7_days ?? 0, color: colors.error || "#ef4444" },
-    { label: "Son 7 Günde Başarısız Entegrasyonlar", value: metrics?.total_failed_integrations_last_7_days ?? 0, color: colors.error || "#ef4444" },
+    { label: "Toplam Müşteri Şirket", value: metrics?.total_client_companies ?? 0, color: colors.info || colors.info },
+    { label: "Toplam Belge", value: metrics?.total_documents ?? 0, color: colors.info || colors.info },
+    { label: "Toplam Fatura", value: metrics?.total_invoices ?? 0, color: colors.info || colors.info },
+    { label: "Son 7 Günde Risk Uyarıları", value: metrics?.total_risk_alerts_last_7_days ?? 0, color: colors.error },
+    { label: "Son 7 Günde Başarısız Entegrasyonlar", value: metrics?.total_failed_integrations_last_7_days ?? 0, color: colors.error },
   ];
 
   if (isLoading) {
@@ -43,7 +45,7 @@ export default function AdminOverviewPage() {
   if (error) {
     return (
       <div style={{ textAlign: "center", padding: spacing.xxl }}>
-        <p style={{ color: colors.error || "#ef4444" }}>
+        <p style={{ color: colors.error }}>
           Hata: {error instanceof Error ? error.message : "Bilinmeyen hata"}
         </p>
       </div>
@@ -53,7 +55,7 @@ export default function AdminOverviewPage() {
   return (
     <PageTransition>
       <div>
-      <h1 style={{ marginBottom: spacing.xl, fontSize: "28px", fontWeight: 600, color: colors.text.primary }}>
+      <h1 style={{ marginBottom: spacing.xl, fontSize: "28px", fontWeight: 600, color: themeColors.text.primary }}>
         Yönetim Konsolu - Genel Bakış
       </h1>
 
@@ -68,17 +70,17 @@ export default function AdminOverviewPage() {
           <div
             key={index}
             style={{
-              backgroundColor: colors.white,
+              backgroundColor: themeColors.white,
               padding: spacing.lg,
               borderRadius: "8px",
               boxShadow: shadows.sm,
               borderLeft: `4px solid ${card.color}`,
             }}
           >
-            <p style={{ margin: 0, fontSize: "14px", color: colors.text.secondary, marginBottom: spacing.xs }}>
+            <p style={{ margin: 0, fontSize: "14px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>
               {card.label}
             </p>
-            <p style={{ margin: 0, fontSize: "32px", fontWeight: 700, color: colors.text.primary }}>
+            <p style={{ margin: 0, fontSize: "32px", fontWeight: 700, color: themeColors.text.primary }}>
               {card.value.toLocaleString("tr-TR")}
             </p>
           </div>
@@ -88,8 +90,3 @@ export default function AdminOverviewPage() {
     </PageTransition>
   );
 }
-
-
-
-
-

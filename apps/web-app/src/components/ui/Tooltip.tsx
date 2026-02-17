@@ -2,7 +2,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { colors, spacing, borderRadius, typography, shadows, transitions, zIndex } from '../../styles/design-system';
+import { colors, spacing, borderRadius, typography, shadows, zIndex } from '../../styles/design-system';
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface TooltipProps {
   content: React.ReactNode;
@@ -21,6 +22,7 @@ export function Tooltip({
   disabled = false,
   className = '',
 }: TooltipProps) {
+  const { themeColors } = useTheme();
   const [isVisible, setIsVisible] = useState(false);
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -49,9 +51,6 @@ export function Tooltip({
   const getPositionStyles = (): React.CSSProperties => {
     if (!triggerRef.current) return {};
 
-    const triggerRect = triggerRef.current.getBoundingClientRect();
-    const tooltipHeight = tooltipRef.current?.offsetHeight || 0;
-    const tooltipWidth = tooltipRef.current?.offsetWidth || 0;
     const gap = 8;
 
     switch (position) {
@@ -111,7 +110,7 @@ export function Tooltip({
               position: 'absolute',
               zIndex: zIndex.tooltip,
               ...getPositionStyles(),
-              backgroundColor: colors.gray[900],
+              backgroundColor: themeColors.gray[900],
               color: colors.white,
               padding: `${spacing.xs} ${spacing.sm}`,
               borderRadius: borderRadius.md,
@@ -134,7 +133,7 @@ export function Tooltip({
                   transform: 'translateX(-50%)',
                   borderLeft: '4px solid transparent',
                   borderRight: '4px solid transparent',
-                  borderTop: `4px solid ${colors.gray[900]}`,
+                  borderTop: `4px solid ${themeColors.gray[900]}`,
                 }),
                 ...(position === 'bottom' && {
                   bottom: '100%',
@@ -142,7 +141,7 @@ export function Tooltip({
                   transform: 'translateX(-50%)',
                   borderLeft: '4px solid transparent',
                   borderRight: '4px solid transparent',
-                  borderBottom: `4px solid ${colors.gray[900]}`,
+                  borderBottom: `4px solid ${themeColors.gray[900]}`,
                 }),
                 ...(position === 'left' && {
                   left: '100%',
@@ -150,7 +149,7 @@ export function Tooltip({
                   transform: 'translateY(-50%)',
                   borderTop: '4px solid transparent',
                   borderBottom: '4px solid transparent',
-                  borderLeft: `4px solid ${colors.gray[900]}`,
+                  borderLeft: `4px solid ${themeColors.gray[900]}`,
                 }),
                 ...(position === 'right' && {
                   right: '100%',
@@ -158,7 +157,7 @@ export function Tooltip({
                   transform: 'translateY(-50%)',
                   borderTop: '4px solid transparent',
                   borderBottom: '4px solid transparent',
-                  borderRight: `4px solid ${colors.gray[900]}`,
+                  borderRight: `4px solid ${themeColors.gray[900]}`,
                 }),
               }}
             />

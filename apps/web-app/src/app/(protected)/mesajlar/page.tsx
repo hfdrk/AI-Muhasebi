@@ -2,16 +2,15 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { messagingClient, getCurrentUser } from "@repo/api-client";
+import { getCurrentUser } from "@repo/api-client";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { MessageThreadList } from "@/components/message-thread-list";
-import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { colors, spacing } from "@/styles/design-system";
+import { spacing } from "@/styles/design-system";
 import Link from "next/link";
 
 export default function MessagesPage() {
-  const [selectedClientCompanyId, setSelectedClientCompanyId] = useState<string | undefined>();
+  const [selectedClientCompanyId, _setSelectedClientCompanyId] = useState<string | undefined>();
 
   const { data: userData } = useQuery({
     queryKey: ["currentUser"],

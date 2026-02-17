@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: ai_muhasebi_dev
       POSTGRES_DB: ai_muhasebi
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -22,7 +22,7 @@ services:
     image: redis:7-alpine
     container_name: ai-muhasebi-redis
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -40,8 +40,8 @@ services:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "9002:9000"
+      - "9003:9001"
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"
@@ -62,13 +62,13 @@ services:
       NODE_ENV: production
       DATABASE_URL: postgresql://ai_muhasebi:ai_muhasebi_dev@postgres:5432/ai_muhasebi
       DATABASE_POOL_SIZE: 10
-      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-minimum-32-characters-long-for-local}
+      JWT_SECRET: ${JWT_SECRET}
       JWT_ACCESS_TOKEN_EXPIRY: 15m
       JWT_REFRESH_TOKEN_EXPIRY: 7d
       PORT: 3800
       API_URL: http://localhost:3800
-      FRONTEND_URL: http://localhost:3001
-      CORS_ORIGIN: http://localhost:3001
+      FRONTEND_URL: http://localhost:3010
+      CORS_ORIGIN: http://localhost:3010
       REDIS_URL: redis://redis:6379
       LOG_LEVEL: info
       RATE_LIMIT_WINDOW_MS: 900000
@@ -109,9 +109,10 @@ services:
     environment:
       NODE_ENV: production
       NEXT_PUBLIC_API_BASE_URL: http://localhost:3800
+      API_PROXY_TARGET: http://backend-api:3800/api/:path*
       PORT: 3001
     ports:
-      - "3001:3001"
+      - "3010:3001"
     depends_on:
       backend-api:
         condition: service_healthy
@@ -134,13 +135,15 @@ services:
       NODE_ENV: production
       DATABASE_URL: postgresql://ai_muhasebi:ai_muhasebi_dev@postgres:5432/ai_muhasebi
       DATABASE_POOL_SIZE: 5
-      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-minimum-32-characters-long-for-local}
+      JWT_SECRET: ${JWT_SECRET}
       REDIS_URL: redis://redis:6379
       LOG_LEVEL: info
       WORKER_CONCURRENCY: 5
       EMAIL_TRANSPORT: stub
       STORAGE_TYPE: local
       STORAGE_BASE_PATH: ./storage
+      CORS_ORIGIN: http://localhost:3010
+      FRONTEND_URL: http://localhost:3010
       SENTRY_DSN: ${SENTRY_DSN:-}
     depends_on:
       postgres:
@@ -161,12 +164,61 @@ services:
       - ai-muhasebi-network
     restart: unless-stopped
 
+  landing:
+    build:
+      context: ./landing
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_APP_URL: http://localhost:3010
+    container_name: ai-muhasebi-landing
+    environment:
+      NODE_ENV: production
+      PORT: 3020
+    ports:
+      - "3020:3020"
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3020/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      - ai-muhasebi-network
+    restart: unless-stopped
+
+  # Automated PostgreSQL backup (runs daily via sleep loop)
+  db-backup:
+    image: pgvector/pgvector:pg15
+    container_name: ai-muhasebi-db-backup
+    entrypoint: >
+      bash -c "
+        echo 'DB backup service started. Running daily backups...';
+        while true; do
+          echo \"[backup] $$(date -Iseconds) Running pg_dump...\";
+          pg_dump postgresql://ai_muhasebi:$${POSTGRES_PASSWORD}@postgres:5432/ai_muhasebi --no-owner --no-privileges --clean --if-exists --format=custom --compress=9 --file=/backups/ai_muhasebi_$$(date +%Y%m%d_%H%M%S).dump 2>&1 && echo '[backup] Success' || echo '[backup] Failed';
+          find /backups -name 'ai_muhasebi_*.dump' -mtime +30 -delete 2>/dev/null;
+          echo '[backup] Next backup in 24h. Sleeping...';
+          sleep 86400;
+        done
+      "
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ai_muhasebi_dev}
+    volumes:
+      - db_backups:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ai-muhasebi-network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   redis_data:
   minio_data:
   backend_storage:
   worker_storage:
+  db_backups:
 
 networks:
   ai-muhasebi-network:

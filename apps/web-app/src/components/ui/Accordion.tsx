@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { colors, spacing, borderRadius, typography, transitions, shadows } from '../../styles/design-system';
+import { useTheme } from '../../contexts/ThemeContext';
 import { Icon } from './Icon';
 
 interface AccordionItem {
@@ -28,6 +29,7 @@ export function Accordion({
   className = '',
   style,
 }: AccordionProps) {
+  const { themeColors } = useTheme();
   const [openItems, setOpenItems] = useState<string[]>(defaultOpen);
 
   const toggleItem = (itemId: string) => {
@@ -49,9 +51,9 @@ export function Accordion({
             key={item.id}
             style={{
               marginBottom: spacing.md,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               borderRadius: borderRadius.lg,
-              backgroundColor: colors.white,
+              backgroundColor: themeColors.white,
               overflow: 'hidden',
               boxShadow: shadows.sm,
             }}
@@ -65,7 +67,7 @@ export function Accordion({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                backgroundColor: isOpen ? colors.gray[50] : colors.white,
+                backgroundColor: isOpen ? themeColors.gray[50] : themeColors.white,
                 border: 'none',
                 cursor: item.disabled ? 'not-allowed' : 'pointer',
                 transition: `background-color ${transitions.normal} ease`,
@@ -73,12 +75,12 @@ export function Accordion({
               }}
               onMouseEnter={(e) => {
                 if (!item.disabled && !isOpen) {
-                  e.currentTarget.style.backgroundColor = colors.gray[50];
+                  e.currentTarget.style.backgroundColor = themeColors.gray[50];
                 }
               }}
               onMouseLeave={(e) => {
                 if (!item.disabled && !isOpen) {
-                  e.currentTarget.style.backgroundColor = colors.white;
+                  e.currentTarget.style.backgroundColor = themeColors.white;
                 }
               }}
             >
@@ -87,14 +89,14 @@ export function Accordion({
                   <Icon
                     name={item.icon}
                     size={20}
-                    color={item.disabled ? colors.text.muted : colors.primary}
+                    color={item.disabled ? themeColors.text.muted : colors.primary}
                   />
                 )}
                 <span
                   style={{
                     fontSize: typography.fontSize.base,
                     fontWeight: typography.fontWeight.semibold,
-                    color: item.disabled ? colors.text.muted : colors.text.primary,
+                    color: item.disabled ? themeColors.text.muted : themeColors.text.primary,
                   }}
                 >
                   {item.title}
@@ -107,7 +109,7 @@ export function Accordion({
                 <Icon
                   name="ChevronDown"
                   size={20}
-                  color={item.disabled ? colors.text.muted : colors.text.secondary}
+                  color={item.disabled ? themeColors.text.muted : themeColors.text.secondary}
                 />
               </motion.div>
             </button>
@@ -124,8 +126,8 @@ export function Accordion({
                     style={{
                       padding: spacing.lg,
                       paddingTop: spacing.md,
-                      borderTop: `1px solid ${colors.border}`,
-                      backgroundColor: colors.white,
+                      borderTop: `1px solid ${themeColors.border}`,
+                      backgroundColor: themeColors.white,
                     }}
                   >
                     {item.content}

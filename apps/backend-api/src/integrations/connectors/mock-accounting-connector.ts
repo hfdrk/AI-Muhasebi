@@ -170,13 +170,7 @@ export class MockAccountingConnector implements AccountingIntegrationConnector {
     invoices: PushInvoiceInput[],
     config: Record<string, unknown>
   ): Promise<Array<{ success: boolean; externalId?: string; message?: string }>> {
-    // Stub implementation - return success for all invoices
-    // TODO: Implement actual API call to push invoices to external system
-    console.warn(
-      "MockAccountingConnector.pushInvoices() is using stub implementation. " +
-      "This is a mock connector and does not actually push data."
-    );
-
+    // Mock connector - returns success for testing/development
     return invoices.map((invoice) => ({
       success: true,
       externalId: invoice.externalId || `MOCK-${invoice.invoiceId}`,

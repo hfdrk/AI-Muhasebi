@@ -357,7 +357,7 @@ export class RAGService {
     // Optionally re-rank results using LLM
     let finalDocuments = documents;
     if (options.useReranking && hasRealAIProvider()) {
-      finalDocuments = await this.rerankResults(question, documents);
+      finalDocuments = await this.rerankResults(question, documents) as any;
     }
 
     return {

@@ -1,9 +1,7 @@
 import { test, expect } from "@playwright/test";
 import {
   createTestUserViaAPI,
-  login,
   navigateTo,
-  assertTextVisible,
 } from "./test-utils";
 
 test.describe("E-Fatura E2E Tests", () => {
@@ -21,7 +19,7 @@ test.describe("E-Fatura E2E Tests", () => {
     authToken = testUser.accessToken;
   });
 
-  test.beforeEach(async ({ page, context }) => {
+  test.beforeEach(async ({ page, context: _context }) => {
     await page.goto("/");
     await page.evaluate(
       ({ token, tenantId }) => {

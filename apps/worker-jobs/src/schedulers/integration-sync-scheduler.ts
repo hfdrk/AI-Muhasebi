@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma";
 import { connectorRegistry } from "../integrations/connectors/connector-registry";
+import { logger } from "@repo/shared-utils";
 
 export class IntegrationSyncScheduler {
   /**
@@ -64,9 +65,7 @@ export class IntegrationSyncScheduler {
         },
       });
 
-      console.log(
-        `Created pull sync job for integration ${integration.id} (${integration.provider.name})`
-      );
+      logger.info("Created pull sync job for integration", undefined, { integrationId: integration.id, providerName: integration.provider.name });
     }
   }
 
@@ -173,14 +172,9 @@ export class IntegrationSyncScheduler {
           },
         });
 
-        console.log(
-          `Created push sync job for integration ${integration.id} (${integration.provider.name})`
-        );
+        logger.info("Created push sync job for integration", undefined, { integrationId: integration.id, providerName: integration.provider.name });
       } catch (error: any) {
-        console.error(
-          `Error scheduling push sync for integration ${integration.id}:`,
-          error.message
-        );
+        logger.error("Error scheduling push sync for integration", error, { integrationId: integration.id });
         // Continue with other integrations
       }
     }

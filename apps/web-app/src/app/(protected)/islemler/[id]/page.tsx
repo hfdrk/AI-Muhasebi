@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getTransaction, deleteTransaction } from "@repo/api-client";
 import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -12,9 +11,11 @@ import { Modal } from "@/components/ui/Modal";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { colors, spacing, typography } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "@/lib/toast";
 
 export default function TransactionDetailPage() {
+  const { themeColors } = useTheme();
   const params = useParams();
   const router = useRouter();
   const transactionId = params.id as string;
@@ -68,7 +69,7 @@ export default function TransactionDetailPage() {
       <div style={{ padding: spacing.xxl, maxWidth: "1200px", margin: "0 auto" }}>
         <Card>
           <div style={{ textAlign: "center", padding: spacing.xxl }}>
-            <p style={{ color: colors.text.secondary, marginBottom: spacing.md }}>Mali hareket bulunamadı.</p>
+            <p style={{ color: themeColors.text.secondary, marginBottom: spacing.md }}>Mali hareket bulunamadı.</p>
             <Button asLink href="/islemler" variant="outline">
               Mali hareket listesine dön
             </Button>
@@ -87,7 +88,7 @@ export default function TransactionDetailPage() {
       <div style={{ padding: spacing.xxl, maxWidth: "1200px", margin: "0 auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.xl }}>
         <div>
-          <h1 style={{ fontSize: typography.fontSize["3xl"], fontWeight: typography.fontWeight.bold, color: colors.text.primary, marginBottom: spacing.sm }}>
+          <h1 style={{ fontSize: typography.fontSize["3xl"], fontWeight: typography.fontWeight.bold, color: themeColors.text.primary, marginBottom: spacing.sm }}>
             Mali Hareket Detayı
           </h1>
           <Badge
@@ -118,24 +119,24 @@ export default function TransactionDetailPage() {
       <Card style={{ marginBottom: spacing.xl }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: spacing.md, padding: spacing.lg }}>
           <div>
-            <strong style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Tarih:</strong>
-            <p style={{ margin: spacing.xs + " 0", color: colors.text.primary }}>{new Date(transactionData.date).toLocaleDateString("tr-TR")}</p>
+            <strong style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>Tarih:</strong>
+            <p style={{ margin: spacing.xs + " 0", color: themeColors.text.primary }}>{new Date(transactionData.date).toLocaleDateString("tr-TR")}</p>
           </div>
           <div>
-            <strong style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Referans No:</strong>
-            <p style={{ margin: spacing.xs + " 0", color: colors.text.primary }}>{transactionData.referenceNo || "-"}</p>
+            <strong style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>Referans No:</strong>
+            <p style={{ margin: spacing.xs + " 0", color: themeColors.text.primary }}>{transactionData.referenceNo || "-"}</p>
           </div>
           <div style={{ gridColumn: "1 / -1" }}>
-            <strong style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Açıklama:</strong>
-            <p style={{ margin: spacing.xs + " 0", color: colors.text.primary }}>{transactionData.description || "-"}</p>
+            <strong style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>Açıklama:</strong>
+            <p style={{ margin: spacing.xs + " 0", color: themeColors.text.primary }}>{transactionData.description || "-"}</p>
           </div>
           <div>
-            <strong style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Kaynak:</strong>
-            <p style={{ margin: spacing.xs + " 0", color: colors.text.primary }}>{transactionData.source === "manual" ? "Manuel" : transactionData.source}</p>
+            <strong style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>Kaynak:</strong>
+            <p style={{ margin: spacing.xs + " 0", color: themeColors.text.primary }}>{transactionData.source === "manual" ? "Manuel" : transactionData.source}</p>
           </div>
           <div>
-            <strong style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Oluşturulma Tarihi:</strong>
-            <p style={{ margin: spacing.xs + " 0", color: colors.text.primary }}>
+            <strong style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>Oluşturulma Tarihi:</strong>
+            <p style={{ margin: spacing.xs + " 0", color: themeColors.text.primary }}>
               {new Date(transactionData.createdAt).toLocaleDateString("tr-TR")}
             </p>
           </div>
@@ -143,26 +144,26 @@ export default function TransactionDetailPage() {
       </Card>
 
       <Card>
-        <h2 style={{ fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.semibold, color: colors.text.primary, marginBottom: spacing.md, padding: spacing.lg, borderBottom: `1px solid ${colors.border}` }}>
+        <h2 style={{ fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary, marginBottom: spacing.md, padding: spacing.lg, borderBottom: `1px solid ${themeColors.border}` }}>
           Hareket Satırları
         </h2>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr style={{ borderBottom: `2px solid ${colors.border}`, backgroundColor: colors.background }}>
-                <th style={{ padding: spacing.md, textAlign: "left", color: colors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold }}>Hesap Kodu</th>
-                <th style={{ padding: spacing.md, textAlign: "left", color: colors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold }}>Hesap Adı</th>
-                <th style={{ padding: spacing.md, textAlign: "right", color: colors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold }}>Borç</th>
-                <th style={{ padding: spacing.md, textAlign: "right", color: colors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold }}>Alacak</th>
-                <th style={{ padding: spacing.md, textAlign: "left", color: colors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold }}>Açıklama</th>
+              <tr style={{ borderBottom: `2px solid ${themeColors.border}`, backgroundColor: colors.background }}>
+                <th style={{ padding: spacing.md, textAlign: "left", color: themeColors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold }}>Hesap Kodu</th>
+                <th style={{ padding: spacing.md, textAlign: "left", color: themeColors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold }}>Hesap Adı</th>
+                <th style={{ padding: spacing.md, textAlign: "right", color: themeColors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold }}>Borç</th>
+                <th style={{ padding: spacing.md, textAlign: "right", color: themeColors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold }}>Alacak</th>
+                <th style={{ padding: spacing.md, textAlign: "left", color: themeColors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold }}>Açıklama</th>
               </tr>
             </thead>
             <tbody>
               {transactionData.lines?.map((line, index) => (
-                <tr key={line.id} style={{ borderBottom: `1px solid ${colors.border}`, backgroundColor: index % 2 === 0 ? colors.white : colors.background }}>
-                  <td style={{ padding: spacing.md, color: colors.text.primary }}>{line.ledgerAccountId.substring(0, 8)}</td>
-                  <td style={{ padding: spacing.md, color: colors.text.primary }}>-</td>
-                  <td style={{ padding: spacing.md, textAlign: "right", color: colors.text.primary }}>
+                <tr key={line.id} style={{ borderBottom: `1px solid ${themeColors.border}`, backgroundColor: index % 2 === 0 ? themeColors.white : colors.background }}>
+                  <td style={{ padding: spacing.md, color: themeColors.text.primary }}>{line.ledgerAccountId.substring(0, 8)}</td>
+                  <td style={{ padding: spacing.md, color: themeColors.text.primary }}>-</td>
+                  <td style={{ padding: spacing.md, textAlign: "right", color: themeColors.text.primary }}>
                     {line.debitAmount > 0
                       ? line.debitAmount.toLocaleString("tr-TR", {
                           minimumFractionDigits: 2,
@@ -170,7 +171,7 @@ export default function TransactionDetailPage() {
                         })
                       : "-"}
                   </td>
-                  <td style={{ padding: spacing.md, textAlign: "right", color: colors.text.primary }}>
+                  <td style={{ padding: spacing.md, textAlign: "right", color: themeColors.text.primary }}>
                     {line.creditAmount > 0
                       ? line.creditAmount.toLocaleString("tr-TR", {
                           minimumFractionDigits: 2,
@@ -178,22 +179,22 @@ export default function TransactionDetailPage() {
                         })
                       : "-"}
                   </td>
-                  <td style={{ padding: spacing.md, color: colors.text.primary }}>{line.description || "-"}</td>
+                  <td style={{ padding: spacing.md, color: themeColors.text.primary }}>{line.description || "-"}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
-              <tr style={{ borderTop: `2px solid ${colors.border}`, fontWeight: typography.fontWeight.bold, backgroundColor: colors.background }}>
-                <td colSpan={2} style={{ padding: spacing.md, textAlign: "right", color: colors.text.primary }}>
+              <tr style={{ borderTop: `2px solid ${themeColors.border}`, fontWeight: typography.fontWeight.bold, backgroundColor: colors.background }}>
+                <td colSpan={2} style={{ padding: spacing.md, textAlign: "right", color: themeColors.text.primary }}>
                   Toplam:
                 </td>
-                <td style={{ padding: spacing.md, textAlign: "right", color: colors.text.primary }}>
+                <td style={{ padding: spacing.md, textAlign: "right", color: themeColors.text.primary }}>
                   {totalDebit.toLocaleString("tr-TR", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}
                 </td>
-                <td style={{ padding: spacing.md, textAlign: "right", color: colors.text.primary }}>
+                <td style={{ padding: spacing.md, textAlign: "right", color: themeColors.text.primary }}>
                   {totalCredit.toLocaleString("tr-TR", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
@@ -221,7 +222,7 @@ export default function TransactionDetailPage() {
         size="sm"
       >
         <div style={{ marginBottom: spacing.lg }}>
-          <p style={{ color: colors.text.primary }}>
+          <p style={{ color: themeColors.text.primary }}>
             Bu mali hareketi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.
           </p>
         </div>

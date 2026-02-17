@@ -4,15 +4,15 @@ import { useState } from "react";
 import { useRiskAlerts, useUpdateAlertStatus } from "@/hooks/use-risk";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { risk as riskI18n, common as commonI18n } from "@repo/i18n";
-import { Modal } from "@/components/ui/Modal";
-import { Button } from "@/components/ui/Button";
 import { PageTransition } from "@/components/ui/PageTransition";
-import { spacing, colors, borderRadius } from "@/styles/design-system";
+import { colors, borderRadius } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "@/lib/toast";
 import Link from "next/link";
+import { getAccessToken } from "@/lib/auth";
 
 async function getDailyRiskSummary() {
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+  const token = getAccessToken();
   const response = await fetch("/api/v1/ai/summaries/daily-risk", {
     method: "POST",
     headers: {
@@ -64,6 +64,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function RiskAlertsPage() {
+  const { themeColors } = useTheme();
   const [severityFilter, setSeverityFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
@@ -81,20 +82,12 @@ export default function RiskAlertsPage() {
 
   const alerts = data?.data.data || [];
   const pagination = data?.data || { total: 0, page: 1, pageSize: 20, totalPages: 1 };
-  const [statusModal, setStatusModal] = useState<{ open: boolean; alertId: string | null; newStatus: string | null }>({ open: false, alertId: null, newStatus: null });
-
   const handleStatusUpdate = (alertId: string, newStatus: string) => {
-    setStatusModal({ open: true, alertId, newStatus });
-  };
-
-  const confirmStatusUpdate = () => {
-    if (!statusModal.alertId || !statusModal.newStatus) return;
     updateStatusMutation.mutate(
-      { alertId: statusModal.alertId, status: statusModal.newStatus as any },
+      { alertId, status: newStatus as any },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: ["risk-alerts"] });
-          setStatusModal({ open: false, alertId: null, newStatus: null });
         }
       }
     );
@@ -115,7 +108,7 @@ export default function RiskAlertsPage() {
       <div style={{ padding: "40px" }}>
       <div style={{ marginBottom: "30px" }}>
         <h1 style={{ fontSize: "24px", fontWeight: "bold", marginBottom: "10px" }}>Risk Uyarıları</h1>
-        <p style={{ color: colors.text.secondary }}>Tüm risk uyarılarını görüntüleyin ve yönetin</p>
+        <p style={{ color: themeColors.text.secondary }}>Tüm risk uyarılarını görüntüleyin ve yönetin</p>
       </div>
 
       {/* AI Summary Panel */}
@@ -137,7 +130,7 @@ export default function RiskAlertsPage() {
           style={{
             padding: "10px 20px",
             backgroundColor: colors.primary,
-            color: "#fff",
+            color: themeColors.white,
             border: "none",
             borderRadius: "6px",
             cursor: dailyRiskMutation.isPending ? "not-allowed" : "pointer",
@@ -156,14 +149,14 @@ export default function RiskAlertsPage() {
           gap: "15px",
           marginBottom: "20px",
           padding: "15px",
-          backgroundColor: "#fff",
+          backgroundColor: themeColors.white,
           borderRadius: "8px",
           boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-          border: `1px solid ${colors.border}`,
+          border: `1px solid ${themeColors.border}`,
         }}
       >
         <div>
-          <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", color: colors.text.secondary }}>
+          <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", color: themeColors.text.secondary }}>
             Şiddet
           </label>
           <select
@@ -174,9 +167,11 @@ export default function RiskAlertsPage() {
             }}
             style={{
               padding: "8px 12px",
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "6px",
               fontSize: "14px",
+              backgroundColor: themeColors.white,
+              color: themeColors.text.primary,
             }}
           >
             <option value="all">Tümü</option>
@@ -188,7 +183,7 @@ export default function RiskAlertsPage() {
         </div>
 
         <div>
-          <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", color: colors.text.secondary }}>
+          <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", color: themeColors.text.secondary }}>
             Durum
           </label>
           <select
@@ -199,9 +194,11 @@ export default function RiskAlertsPage() {
             }}
             style={{
               padding: "8px 12px",
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "6px",
               fontSize: "14px",
+              backgroundColor: themeColors.white,
+              color: themeColors.text.primary,
             }}
           >
             <option value="all">Tümü</option>
@@ -223,28 +220,28 @@ export default function RiskAlertsPage() {
           style={{
             padding: "40px",
             textAlign: "center",
-            backgroundColor: "#fff",
+            backgroundColor: themeColors.white,
             borderRadius: "8px",
             boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${themeColors.border}`,
           }}
         >
-          <p style={{ color: colors.text.secondary }}>{riskI18n.alerts.list.noAlerts}</p>
+          <p style={{ color: themeColors.text.secondary }}>{riskI18n.alerts.list.noAlerts}</p>
         </div>
       ) : (
         <>
           <div
             style={{
-              backgroundColor: "#fff",
+              backgroundColor: themeColors.white,
               borderRadius: "8px",
               boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               overflow: "hidden",
             }}
           >
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ backgroundColor: colors.gray[50], borderBottom: `1px solid ${colors.border}` }}>
+                <tr style={{ backgroundColor: themeColors.gray[50], borderBottom: `1px solid ${themeColors.border}` }}>
                   <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600" }}>
                     Tip
                   </th>
@@ -270,7 +267,7 @@ export default function RiskAlertsPage() {
               </thead>
               <tbody>
                 {alerts.map((alert) => (
-                  <tr key={alert.id} style={{ borderBottom: `1px solid ${colors.border}` }}>
+                  <tr key={alert.id} style={{ borderBottom: `1px solid ${themeColors.border}` }}>
                     <td style={{ padding: "12px", fontSize: "14px" }}>{TYPE_LABELS[alert.type] || alert.type}</td>
                     <td style={{ padding: "12px", fontSize: "14px" }}>{alert.title}</td>
                     <td style={{ padding: "12px" }}>
@@ -302,7 +299,7 @@ export default function RiskAlertsPage() {
                         "-"
                       )}
                     </td>
-                    <td style={{ padding: "12px", fontSize: "14px", color: "#666" }}>
+                    <td style={{ padding: "12px", fontSize: "14px", color: themeColors.text.muted }}>
                       {new Date(alert.createdAt).toLocaleDateString("tr-TR")}
                     </td>
                     <td style={{ padding: "12px" }}>
@@ -315,7 +312,7 @@ export default function RiskAlertsPage() {
                                 padding: "4px 8px",
                                 fontSize: "12px",
                                 backgroundColor: colors.primary,
-                                color: "#fff",
+                                color: themeColors.white,
                                 border: "none",
                                 borderRadius: "4px",
                                 cursor: "pointer",
@@ -328,8 +325,8 @@ export default function RiskAlertsPage() {
                               style={{
                                 padding: "4px 8px",
                                 fontSize: "12px",
-                                backgroundColor: "#10b981",
-                                color: "#fff",
+                                backgroundColor: colors.success,
+                                color: themeColors.white,
                                 border: "none",
                                 borderRadius: "4px",
                                 cursor: "pointer",
@@ -342,8 +339,8 @@ export default function RiskAlertsPage() {
                               style={{
                                 padding: "4px 8px",
                                 fontSize: "12px",
-                                backgroundColor: "#6b7280",
-                                color: "#fff",
+                                backgroundColor: themeColors.text.secondary,
+                                color: themeColors.white,
                                 border: "none",
                                 borderRadius: "4px",
                                 cursor: "pointer",
@@ -360,8 +357,8 @@ export default function RiskAlertsPage() {
                               style={{
                                 padding: "4px 8px",
                                 fontSize: "12px",
-                                backgroundColor: "#10b981",
-                                color: "#fff",
+                                backgroundColor: colors.success,
+                                color: themeColors.white,
                                 border: "none",
                                 borderRadius: "4px",
                                 cursor: "pointer",
@@ -374,8 +371,8 @@ export default function RiskAlertsPage() {
                               style={{
                                 padding: "4px 8px",
                                 fontSize: "12px",
-                                backgroundColor: "#6b7280",
-                                color: "#fff",
+                                backgroundColor: themeColors.text.secondary,
+                                color: themeColors.white,
                                 border: "none",
                                 borderRadius: "4px",
                                 cursor: "pointer",
@@ -391,8 +388,8 @@ export default function RiskAlertsPage() {
                             style={{
                               padding: "4px 8px",
                               fontSize: "12px",
-                              backgroundColor: "#2563eb",
-                              color: "#fff",
+                              backgroundColor: colors.info,
+                              color: themeColors.white,
                               border: "none",
                               borderRadius: "4px",
                               cursor: "pointer",
@@ -417,10 +414,11 @@ export default function RiskAlertsPage() {
                 disabled={page === 1}
                 style={{
                   padding: "8px 16px",
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "6px",
-                  backgroundColor: page === 1 ? "#f3f4f6" : "#fff",
+                  backgroundColor: page === 1 ? themeColors.gray[100] : themeColors.white,
                   cursor: page === 1 ? "not-allowed" : "pointer",
+                  color: themeColors.text.primary,
                 }}
               >
                 Önceki
@@ -433,10 +431,11 @@ export default function RiskAlertsPage() {
                 disabled={page === pagination.totalPages}
                 style={{
                   padding: "8px 16px",
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "6px",
-                  backgroundColor: page === pagination.totalPages ? "#f3f4f6" : "#fff",
+                  backgroundColor: page === pagination.totalPages ? themeColors.gray[100] : themeColors.white,
                   cursor: page === pagination.totalPages ? "not-allowed" : "pointer",
+                  color: themeColors.text.primary,
                 }}
               >
                 Sonraki
@@ -449,4 +448,3 @@ export default function RiskAlertsPage() {
     </PageTransition>
   );
 }
-

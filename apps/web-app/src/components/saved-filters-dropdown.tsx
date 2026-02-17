@@ -5,6 +5,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 // Use type-only import to avoid server-side module resolution issues
 import type { SavedFilter } from "@repo/api-client";
 import { SaveFilterModal } from "./save-filter-modal";
+import { colors, spacing, borderRadius, transitions } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 // Use hardcoded strings to avoid i18n import issues
 const savedFiltersI18n = {
@@ -31,6 +33,7 @@ export function SavedFiltersDropdown({
   const [isOpen, setIsOpen] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const queryClient = useQueryClient();
+  const { themeColors } = useTheme();
 
   const { data: savedFiltersData } = useQuery({
     queryKey: ["savedFilters", target],
@@ -86,10 +89,10 @@ export function SavedFiltersDropdown({
         <button
           onClick={() => setIsOpen(!isOpen)}
           style={{
-            padding: "8px 12px",
-            border: "1px solid #ddd",
-            borderRadius: "4px",
-            backgroundColor: "white",
+            padding: `${spacing.sm} 12px`,
+            border: `1px solid ${themeColors.border}`,
+            borderRadius: borderRadius.sm,
+            backgroundColor: themeColors.white,
             cursor: "pointer",
             fontSize: "14px",
             minWidth: "200px",
@@ -109,10 +112,10 @@ export function SavedFiltersDropdown({
               position: "absolute",
               top: "100%",
               left: 0,
-              marginTop: "4px",
-              backgroundColor: "white",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
+              marginTop: spacing.xs,
+              backgroundColor: themeColors.white,
+              border: `1px solid ${themeColors.border}`,
+              borderRadius: borderRadius.sm,
               boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
               zIndex: 1000,
               minWidth: "250px",
@@ -121,7 +124,7 @@ export function SavedFiltersDropdown({
             }}
           >
             {savedFilters.length === 0 ? (
-              <div style={{ padding: "16px", textAlign: "center", color: "#666" }}>
+              <div style={{ padding: spacing.md, textAlign: "center", color: themeColors.text.secondary }}>
                 {savedFiltersI18n.emptyState}
               </div>
             ) : (
@@ -132,12 +135,12 @@ export function SavedFiltersDropdown({
                     onClick={() => handleSelectFilter(filter)}
                     style={{
                       padding: "12px",
-                      borderBottom: "1px solid #eee",
+                      borderBottom: `1px solid ${themeColors.gray[200]}`,
                       cursor: "pointer",
-                      transition: "background-color 0.2s",
+                      transition: `background-color ${transitions.normal}`,
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#f5f5f5";
+                      e.currentTarget.style.backgroundColor = themeColors.gray[50];
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.backgroundColor = "transparent";
@@ -148,13 +151,13 @@ export function SavedFiltersDropdown({
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
-                        marginBottom: "4px",
+                        marginBottom: spacing.xs,
                       }}
                     >
                       <div style={{ fontWeight: filter.isDefault ? 600 : 400 }}>
                         {filter.name}
                         {filter.isDefault && (
-                          <span style={{ marginLeft: "8px", fontSize: "12px", color: "#0066cc" }}>
+                          <span style={{ marginLeft: spacing.sm, fontSize: "12px", color: colors.primary }}>
                             (Varsayılan)
                           </span>
                         )}
@@ -163,8 +166,8 @@ export function SavedFiltersDropdown({
                     <div
                       style={{
                         display: "flex",
-                        gap: "8px",
-                        marginTop: "8px",
+                        gap: spacing.sm,
+                        marginTop: spacing.sm,
                       }}
                     >
                       {!filter.isDefault && (
@@ -172,11 +175,11 @@ export function SavedFiltersDropdown({
                           onClick={(e) => handleSetDefault(filter.id, e)}
                           disabled={updateMutation.isPending}
                           style={{
-                            padding: "4px 8px",
+                            padding: `${spacing.xs} ${spacing.sm}`,
                             fontSize: "12px",
-                            border: "1px solid #ddd",
-                            borderRadius: "4px",
-                            backgroundColor: "white",
+                            border: `1px solid ${themeColors.border}`,
+                            borderRadius: borderRadius.sm,
+                            backgroundColor: themeColors.white,
                             cursor: "pointer",
                           }}
                         >
@@ -187,13 +190,13 @@ export function SavedFiltersDropdown({
                         onClick={(e) => handleDelete(filter.id, e)}
                         disabled={deleteMutation.isPending}
                         style={{
-                          padding: "4px 8px",
+                          padding: `${spacing.xs} ${spacing.sm}`,
                           fontSize: "12px",
-                          border: "1px solid #ddd",
-                          borderRadius: "4px",
-                          backgroundColor: "white",
+                          border: `1px solid ${themeColors.border}`,
+                          borderRadius: borderRadius.sm,
+                          backgroundColor: themeColors.white,
                           cursor: "pointer",
-                          color: "#d32f2f",
+                          color: colors.danger,
                         }}
                       >
                         {savedFiltersI18n.delete}
@@ -203,7 +206,7 @@ export function SavedFiltersDropdown({
                 ))}
               </>
             )}
-            <div style={{ padding: "8px", borderTop: "1px solid #eee" }}>
+            <div style={{ padding: spacing.sm, borderTop: `1px solid ${themeColors.gray[200]}` }}>
               <button
                 onClick={() => {
                   setShowSaveModal(true);
@@ -211,11 +214,11 @@ export function SavedFiltersDropdown({
                 }}
                 style={{
                   width: "100%",
-                  padding: "8px",
-                  border: "1px solid #0066cc",
-                  borderRadius: "4px",
-                  backgroundColor: "#0066cc",
-                  color: "white",
+                  padding: spacing.sm,
+                  border: `1px solid ${colors.primary}`,
+                  borderRadius: borderRadius.sm,
+                  backgroundColor: colors.primary,
+                  color: colors.white,
                   cursor: "pointer",
                   fontSize: "14px",
                 }}
@@ -238,12 +241,12 @@ export function SavedFiltersDropdown({
       {defaultFilter && (
         <div
           style={{
-            marginTop: "8px",
-            padding: "8px",
-            backgroundColor: "#e3f2fd",
-            borderRadius: "4px",
+            marginTop: spacing.sm,
+            padding: spacing.sm,
+            backgroundColor: colors.primaryLighter,
+            borderRadius: borderRadius.sm,
             fontSize: "14px",
-            color: "#1976d2",
+            color: colors.primary,
           }}
         >
           {typeof savedFiltersI18n.defaultApplied === "string" && typeof defaultFilter.name === "string"

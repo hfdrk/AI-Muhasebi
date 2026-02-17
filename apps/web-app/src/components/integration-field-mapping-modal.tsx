@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { colors, spacing, borderRadius, typography, zIndex } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
+import { getAccessToken } from "@/lib/auth";
 
 interface FieldMapping {
   sourceField: string;
@@ -58,8 +61,9 @@ export default function IntegrationFieldMappingModal({
   isOpen,
   onClose,
   integrationId,
-  tenantId,
+  tenantId: _tenantId,
 }: IntegrationFieldMappingModalProps) {
+  const { themeColors } = useTheme();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<"invoice" | "transaction" | "client">("invoice");
   const [mappings, setMappings] = useState<IntegrationMappingConfig>({
@@ -82,7 +86,7 @@ export default function IntegrationFieldMappingModal({
   const { data: mappingsData, isLoading } = useQuery({
     queryKey: ["integrationMappings", integrationId],
     queryFn: async () => {
-      const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+      const token = getAccessToken();
       const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "";
       const response = await fetch(`${API_URL}/api/v1/integrations/${integrationId}/mappings`, {
         headers: {
@@ -93,7 +97,9 @@ export default function IntegrationFieldMappingModal({
       });
       if (!response.ok) throw new Error("Failed to fetch mappings");
       const data = await response.json();
-      console.log("🔍 API Response:", data);
+      if (process.env.NODE_ENV === "development") {
+        console.log("🔍 API Response:", data);
+      }
       return data;
     },
     enabled: isOpen && !!integrationId,
@@ -104,7 +110,7 @@ export default function IntegrationFieldMappingModal({
   const { data: suggestionsData } = useQuery({
     queryKey: ["integrationMappingSuggestions", integrationId],
     queryFn: async () => {
-      const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+      const token = getAccessToken();
       const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "";
       const response = await fetch(`${API_URL}/api/v1/integrations/${integrationId}/mappings/suggestions`, {
         headers: {
@@ -121,16 +127,18 @@ export default function IntegrationFieldMappingModal({
 
   useEffect(() => {
     if (mappingsData?.data) {
-      console.log("📦 Loaded mappings from API:", mappingsData.data);
+      if (process.env.NODE_ENV === "development") {
+        console.log("📦 Loaded mappings from API:", mappingsData.data);
+      }
       setMappings(mappingsData.data);
-    } else if (mappingsData) {
+    } else if (mappingsData && process.env.NODE_ENV === "development") {
       console.log("⚠️ Mappings data structure:", mappingsData);
     }
   }, [mappingsData]);
 
   const saveMutation = useMutation({
     mutationFn: async (mappingsToSave: IntegrationMappingConfig) => {
-      const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+      const token = getAccessToken();
       const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "";
       const response = await fetch(`${API_URL}/api/v1/integrations/${integrationId}/mappings`, {
         method: "PUT",
@@ -230,15 +238,15 @@ export default function IntegrationFieldMappingModal({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          zIndex: 1000,
+          zIndex: zIndex.modal,
         }}
         onClick={onClose}
       >
         <div
           style={{
-            backgroundColor: "white",
-            borderRadius: "8px",
-            padding: "24px",
+            backgroundColor: themeColors.white,
+            borderRadius: borderRadius.md,
+            padding: spacing.lg,
             maxWidth: "400px",
             width: "90%",
           }}
@@ -263,15 +271,15 @@ export default function IntegrationFieldMappingModal({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        zIndex: 1000,
+        zIndex: zIndex.modal,
       }}
       onClick={onClose}
     >
       <div
         style={{
-          backgroundColor: "white",
-          borderRadius: "8px",
-          padding: "24px",
+          backgroundColor: themeColors.white,
+          borderRadius: borderRadius.md,
+          padding: spacing.lg,
           maxWidth: "800px",
           width: "90%",
           maxHeight: "90vh",
@@ -279,18 +287,19 @@ export default function IntegrationFieldMappingModal({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 style={{ marginBottom: "20px" }}>Alan Eşleştirme</h2>
+        <h2 style={{ marginBottom: spacing.lg }}>Alan Eşleştirme</h2>
 
-        <div style={{ display: "flex", gap: "8px", marginBottom: "20px" }}>
+        <div style={{ display: "flex", gap: spacing.sm, marginBottom: spacing.lg }}>
           <button
             onClick={() => setActiveTab("invoice")}
             style={{
-              padding: "8px 16px",
+              padding: `${spacing.sm} ${spacing.md}`,
               border: "none",
-              borderRadius: "4px",
-              backgroundColor: activeTab === "invoice" ? "#0066cc" : "#f0f0f0",
-              color: activeTab === "invoice" ? "white" : "black",
+              borderRadius: borderRadius.sm,
+              backgroundColor: activeTab === "invoice" ? colors.primary : themeColors.gray[100],
+              color: activeTab === "invoice" ? colors.white : themeColors.text.primary,
               cursor: "pointer",
+              fontSize: typography.fontSize.sm,
             }}
           >
             Fatura Alanları
@@ -298,12 +307,13 @@ export default function IntegrationFieldMappingModal({
           <button
             onClick={() => setActiveTab("transaction")}
             style={{
-              padding: "8px 16px",
+              padding: `${spacing.sm} ${spacing.md}`,
               border: "none",
-              borderRadius: "4px",
-              backgroundColor: activeTab === "transaction" ? "#0066cc" : "#f0f0f0",
-              color: activeTab === "transaction" ? "white" : "black",
+              borderRadius: borderRadius.sm,
+              backgroundColor: activeTab === "transaction" ? colors.primary : themeColors.gray[100],
+              color: activeTab === "transaction" ? colors.white : themeColors.text.primary,
               cursor: "pointer",
+              fontSize: typography.fontSize.sm,
             }}
           >
             İşlem Alanları
@@ -311,12 +321,13 @@ export default function IntegrationFieldMappingModal({
           <button
             onClick={() => setActiveTab("client")}
             style={{
-              padding: "8px 16px",
+              padding: `${spacing.sm} ${spacing.md}`,
               border: "none",
-              borderRadius: "4px",
-              backgroundColor: activeTab === "client" ? "#0066cc" : "#f0f0f0",
-              color: activeTab === "client" ? "white" : "black",
+              borderRadius: borderRadius.sm,
+              backgroundColor: activeTab === "client" ? colors.primary : themeColors.gray[100],
+              color: activeTab === "client" ? colors.white : themeColors.text.primary,
               cursor: "pointer",
+              fontSize: typography.fontSize.sm,
             }}
           >
             Müşteri Alanları
@@ -324,16 +335,17 @@ export default function IntegrationFieldMappingModal({
         </div>
 
         {suggestionsData?.data && (
-          <div style={{ marginBottom: "16px" }}>
+          <div style={{ marginBottom: spacing.md }}>
             <button
               onClick={applySuggestions}
               style={{
-                padding: "8px 16px",
-                backgroundColor: "#10b981",
-                color: "white",
+                padding: `${spacing.sm} ${spacing.md}`,
+                backgroundColor: colors.success,
+                color: colors.white,
                 border: "none",
-                borderRadius: "4px",
+                borderRadius: borderRadius.sm,
                 cursor: "pointer",
+                fontSize: typography.fontSize.sm,
               }}
             >
               Önerilen Eşleştirmeleri Uygula
@@ -341,8 +353,8 @@ export default function IntegrationFieldMappingModal({
           </div>
         )}
 
-        <div style={{ marginBottom: "20px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 2fr 1fr auto", gap: "8px", marginBottom: "8px" }}>
+        <div style={{ marginBottom: spacing.lg }}>
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 2fr 1fr auto", gap: spacing.sm, marginBottom: spacing.sm }}>
             <strong>Kaynak Alan</strong>
             <strong>Hedef Alan</strong>
             <strong>Dönüşüm</strong>
@@ -350,16 +362,16 @@ export default function IntegrationFieldMappingModal({
           </div>
 
           {getCurrentMappings().length === 0 ? (
-            <div style={{ padding: "16px", textAlign: "center", color: "#666" }}>
+            <div style={{ padding: spacing.md, textAlign: "center", color: themeColors.text.secondary }}>
               Henüz eşleştirme yapılmamış. Aşağıdaki butona tıklayarak yeni eşleştirme ekleyebilirsiniz.
             </div>
           ) : (
             getCurrentMappings().map((mapping, index) => (
-            <div key={index} style={{ display: "grid", gridTemplateColumns: "2fr 2fr 1fr auto", gap: "8px", marginBottom: "8px" }}>
+            <div key={index} style={{ display: "grid", gridTemplateColumns: "2fr 2fr 1fr auto", gap: spacing.sm, marginBottom: spacing.sm }}>
               <select
                 value={mapping.sourceField}
                 onChange={(e) => updateMapping(activeTab === "invoice" ? "invoiceMappings" : activeTab === "transaction" ? "transactionMappings" : "clientCompanyMappings", index, "sourceField", e.target.value)}
-                style={{ padding: "8px", border: "1px solid #ddd", borderRadius: "4px" }}
+                style={{ padding: spacing.sm, border: `1px solid ${themeColors.border}`, borderRadius: borderRadius.sm, fontSize: typography.fontSize.sm }}
               >
                 <option value="">Seçiniz</option>
                 {getAvailableFields().map((field) => (
@@ -373,12 +385,12 @@ export default function IntegrationFieldMappingModal({
                 value={mapping.targetField}
                 onChange={(e) => updateMapping(activeTab === "invoice" ? "invoiceMappings" : activeTab === "transaction" ? "transactionMappings" : "clientCompanyMappings", index, "targetField", e.target.value)}
                 placeholder="Hedef alan adı"
-                style={{ padding: "8px", border: "1px solid #ddd", borderRadius: "4px" }}
+                style={{ padding: spacing.sm, border: `1px solid ${themeColors.border}`, borderRadius: borderRadius.sm, fontSize: typography.fontSize.sm }}
               />
               <select
                 value={mapping.transformation || ""}
                 onChange={(e) => updateMapping(activeTab === "invoice" ? "invoiceMappings" : activeTab === "transaction" ? "transactionMappings" : "clientCompanyMappings", index, "transformation", e.target.value)}
-                style={{ padding: "8px", border: "1px solid #ddd", borderRadius: "4px" }}
+                style={{ padding: spacing.sm, border: `1px solid ${themeColors.border}`, borderRadius: borderRadius.sm, fontSize: typography.fontSize.sm }}
               >
                 <option value="">Yok</option>
                 <option value="uppercase">Büyük Harf</option>
@@ -388,12 +400,13 @@ export default function IntegrationFieldMappingModal({
               <button
                 onClick={() => removeMapping(activeTab === "invoice" ? "invoiceMappings" : activeTab === "transaction" ? "transactionMappings" : "clientCompanyMappings", index)}
                 style={{
-                  padding: "8px",
-                  backgroundColor: "#dc2626",
-                  color: "white",
+                  padding: spacing.sm,
+                  backgroundColor: colors.danger,
+                  color: colors.white,
                   border: "none",
-                  borderRadius: "4px",
+                  borderRadius: borderRadius.sm,
                   cursor: "pointer",
+                  fontSize: typography.fontSize.sm,
                 }}
               >
                 Sil
@@ -405,27 +418,29 @@ export default function IntegrationFieldMappingModal({
           <button
             onClick={() => addMapping(activeTab === "invoice" ? "invoiceMappings" : activeTab === "transaction" ? "transactionMappings" : "clientCompanyMappings")}
             style={{
-              padding: "8px 16px",
-              backgroundColor: "#0066cc",
-              color: "white",
+              padding: `${spacing.sm} ${spacing.md}`,
+              backgroundColor: colors.primary,
+              color: colors.white,
               border: "none",
-              borderRadius: "4px",
+              borderRadius: borderRadius.sm,
               cursor: "pointer",
+              fontSize: typography.fontSize.sm,
             }}
           >
             + Eşleştirme Ekle
           </button>
         </div>
 
-        <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+        <div style={{ display: "flex", gap: spacing.sm, justifyContent: "flex-end" }}>
           <button
             onClick={onClose}
             style={{
-              padding: "8px 16px",
-              backgroundColor: "#f0f0f0",
+              padding: `${spacing.sm} ${spacing.md}`,
+              backgroundColor: themeColors.gray[100],
               border: "none",
-              borderRadius: "4px",
+              borderRadius: borderRadius.sm,
               cursor: "pointer",
+              fontSize: typography.fontSize.sm,
             }}
           >
             İptal
@@ -434,12 +449,13 @@ export default function IntegrationFieldMappingModal({
             onClick={handleSave}
             disabled={saveMutation.isPending}
             style={{
-              padding: "8px 16px",
-              backgroundColor: "#0066cc",
-              color: "white",
+              padding: `${spacing.sm} ${spacing.md}`,
+              backgroundColor: colors.primary,
+              color: colors.white,
               border: "none",
-              borderRadius: "4px",
+              borderRadius: borderRadius.sm,
               cursor: "pointer",
+              fontSize: typography.fontSize.sm,
             }}
           >
             {saveMutation.isPending ? "Kaydediliyor..." : "Kaydet"}

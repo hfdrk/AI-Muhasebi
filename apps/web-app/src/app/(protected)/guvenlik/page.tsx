@@ -1,23 +1,22 @@
 "use client";
 
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { securityClient, getCurrentUser } from "@repo/api-client";
-import Link from "next/link";
 import { Card } from "../../../components/ui/Card";
-import { Button } from "../../../components/ui/Button";
 import { Skeleton } from "../../../components/ui/Skeleton";
 import { PageTransition } from "../../../components/ui/PageTransition";
-import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../styles/design-system";
+import { colors, spacing, borderRadius, typography } from "../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function SecurityDashboardPage() {
+  const { themeColors } = useTheme();
   const { data: userData } = useQuery({
     queryKey: ["currentUser"],
     queryFn: () => getCurrentUser(),
   });
 
   const currentUser = userData?.data;
-  const userId = currentUser?.id;
+  const userId = currentUser?.user?.id;
 
   // Fetch 2FA status
   const { data: ipWhitelistData } = useQuery({
@@ -45,7 +44,7 @@ export default function SecurityDashboardPage() {
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
-        backgroundColor: colors.gray[50],
+        backgroundColor: themeColors.gray[50],
         minHeight: "100vh",
       }}
     >
@@ -59,7 +58,7 @@ export default function SecurityDashboardPage() {
           style={{
             fontSize: typography.fontSize["3xl"],
             fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
             marginBottom: spacing.sm,
           }}
         >
@@ -68,7 +67,7 @@ export default function SecurityDashboardPage() {
         <p
           style={{
             fontSize: typography.fontSize.base,
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
             lineHeight: typography.lineHeight.relaxed,
             margin: 0,
           }}
@@ -114,7 +113,7 @@ export default function SecurityDashboardPage() {
                   margin: 0,
                   fontSize: typography.fontSize.lg,
                   fontWeight: typography.fontWeight.semibold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                   marginBottom: spacing.xs,
                 }}
               >
@@ -124,7 +123,7 @@ export default function SecurityDashboardPage() {
                 style={{
                   margin: 0,
                   fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 2FA'yı etkinleştir veya devre dışı bırak
@@ -161,7 +160,7 @@ export default function SecurityDashboardPage() {
                   margin: 0,
                   fontSize: typography.fontSize.lg,
                   fontWeight: typography.fontWeight.semibold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                   marginBottom: spacing.xs,
                 }}
               >
@@ -171,7 +170,7 @@ export default function SecurityDashboardPage() {
                 style={{
                   margin: 0,
                   fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 IP adreslerini izin listesine ekle
@@ -210,7 +209,7 @@ export default function SecurityDashboardPage() {
                       margin: 0,
                       fontSize: typography.fontSize.base,
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                     }}
                   >
                     {ipWhitelistStatus.isWhitelisted ? "İzin Listesinde" : "İzin Listesinde Değil"}
@@ -219,7 +218,7 @@ export default function SecurityDashboardPage() {
                     style={{
                       margin: `${spacing.xs} 0 0 0`,
                       fontSize: typography.fontSize.sm,
-                      color: colors.text.secondary,
+                      color: themeColors.text.secondary,
                     }}
                   >
                     IP: {ipWhitelistStatus.ipAddress}
@@ -251,7 +250,7 @@ export default function SecurityDashboardPage() {
                       margin: 0,
                       fontSize: typography.fontSize.base,
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                     }}
                   >
                     {lockoutStatus.locked ? "Kilitli" : "Aktif"}
@@ -261,7 +260,7 @@ export default function SecurityDashboardPage() {
                       style={{
                         margin: `${spacing.xs} 0 0 0`,
                         fontSize: typography.fontSize.sm,
-                        color: colors.text.secondary,
+                        color: themeColors.text.secondary,
                       }}
                     >
                       Kilit: {new Date(lockoutStatus.lockoutUntil).toLocaleString("tr-TR")}
@@ -274,14 +273,14 @@ export default function SecurityDashboardPage() {
                   marginTop: spacing.md,
                   padding: spacing.sm,
                   borderRadius: borderRadius.md,
-                  backgroundColor: colors.gray[50],
+                  backgroundColor: themeColors.gray[50],
                 }}
               >
                 <p
                   style={{
                     margin: 0,
                     fontSize: typography.fontSize.sm,
-                    color: colors.text.secondary,
+                    color: themeColors.text.secondary,
                   }}
                 >
                   Başarısız deneme: {lockoutStatus.failedAttempts}
@@ -290,7 +289,7 @@ export default function SecurityDashboardPage() {
                   style={{
                     margin: `${spacing.xs} 0 0 0`,
                     fontSize: typography.fontSize.sm,
-                    color: colors.text.secondary,
+                    color: themeColors.text.secondary,
                   }}
                 >
                   Kalan deneme: {lockoutStatus.remainingAttempts}
@@ -312,4 +311,3 @@ export default function SecurityDashboardPage() {
     </PageTransition>
   );
 }
-

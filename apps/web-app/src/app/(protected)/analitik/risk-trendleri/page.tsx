@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { analyticsClient } from "@repo/api-client";
-import Link from "next/link";
 import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
-import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
+import { colors, spacing, borderRadius, typography } from "../../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function RiskTrendsPage() {
+  const { themeColors } = useTheme();
   const [startDate, setStartDate] = useState<string>(
     new Date(new Date().getFullYear(), new Date().getMonth() - 5, 1).toISOString().split("T")[0]
   );
@@ -36,7 +37,7 @@ export default function RiskTrendsPage() {
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
-        backgroundColor: colors.gray[50],
+        backgroundColor: themeColors.gray[50],
         minHeight: "100vh",
       }}
     >
@@ -55,7 +56,7 @@ export default function RiskTrendsPage() {
           style={{
             fontSize: typography.fontSize["3xl"],
             fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
             marginBottom: spacing.sm,
           }}
         >
@@ -64,7 +65,7 @@ export default function RiskTrendsPage() {
         <p
           style={{
             fontSize: typography.fontSize.base,
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
             lineHeight: typography.lineHeight.relaxed,
             margin: 0,
           }}
@@ -89,7 +90,7 @@ export default function RiskTrendsPage() {
                 marginBottom: spacing.xs,
                 fontSize: typography.fontSize.sm,
                 fontWeight: typography.fontWeight.medium,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
               }}
             >
               Başlangıç Tarihi
@@ -102,10 +103,10 @@ export default function RiskTrendsPage() {
                 width: "100%",
                 padding: spacing.sm,
                 borderRadius: borderRadius.md,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
                 fontSize: typography.fontSize.base,
-                backgroundColor: colors.white,
-                color: colors.text.primary,
+                backgroundColor: themeColors.white,
+                color: themeColors.text.primary,
               }}
             />
           </div>
@@ -116,7 +117,7 @@ export default function RiskTrendsPage() {
                 marginBottom: spacing.xs,
                 fontSize: typography.fontSize.sm,
                 fontWeight: typography.fontWeight.medium,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
               }}
             >
               Bitiş Tarihi
@@ -129,10 +130,10 @@ export default function RiskTrendsPage() {
                 width: "100%",
                 padding: spacing.sm,
                 borderRadius: borderRadius.md,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
                 fontSize: typography.fontSize.base,
-                backgroundColor: colors.white,
-                color: colors.text.primary,
+                backgroundColor: themeColors.white,
+                color: themeColors.text.primary,
               }}
             />
           </div>
@@ -143,7 +144,7 @@ export default function RiskTrendsPage() {
                 marginBottom: spacing.xs,
                 fontSize: typography.fontSize.sm,
                 fontWeight: typography.fontWeight.medium,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
               }}
             >
               Detay Seviyesi
@@ -157,10 +158,10 @@ export default function RiskTrendsPage() {
                 width: "100%",
                 padding: spacing.sm,
                 borderRadius: borderRadius.md,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
                 fontSize: typography.fontSize.base,
-                backgroundColor: colors.white,
-                color: colors.text.primary,
+                backgroundColor: themeColors.white,
+                color: themeColors.text.primary,
               }}
             >
               <option value="daily">Günlük</option>
@@ -180,7 +181,7 @@ export default function RiskTrendsPage() {
                 display: "inline-block",
                 width: "48px",
                 height: "48px",
-                border: `4px solid ${colors.gray[200]}`,
+                border: `4px solid ${themeColors.gray[200]}`,
                 borderTopColor: colors.primary,
                 borderRadius: "50%",
                 animation: "spin 0.8s linear infinite",
@@ -191,7 +192,7 @@ export default function RiskTrendsPage() {
       ) : trends.length === 0 ? (
         <Card variant="elevated">
           <div style={{ padding: spacing.xl, textAlign: "center" }}>
-            <p style={{ color: colors.text.secondary, margin: 0 }}>
+            <p style={{ color: themeColors.text.secondary, margin: 0 }}>
               Seçilen dönem için veri bulunamadı.
             </p>
           </div>
@@ -206,14 +207,14 @@ export default function RiskTrendsPage() {
               }}
             >
               <thead>
-                <tr style={{ borderBottom: `2px solid ${colors.border}` }}>
+                <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
                   <th
                     style={{
                       padding: spacing.md,
                       textAlign: "left",
                       fontSize: typography.fontSize.sm,
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                     }}
                   >
                     Dönem
@@ -224,7 +225,7 @@ export default function RiskTrendsPage() {
                       textAlign: "right",
                       fontSize: typography.fontSize.sm,
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                     }}
                   >
                     Ort. Risk Skoru
@@ -235,7 +236,7 @@ export default function RiskTrendsPage() {
                       textAlign: "right",
                       fontSize: typography.fontSize.sm,
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                     }}
                   >
                     Yüksek Riskli Müşteri
@@ -246,7 +247,7 @@ export default function RiskTrendsPage() {
                       textAlign: "right",
                       fontSize: typography.fontSize.sm,
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                     }}
                   >
                     Kritik Uyarı
@@ -257,7 +258,7 @@ export default function RiskTrendsPage() {
                       textAlign: "right",
                       fontSize: typography.fontSize.sm,
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                     }}
                   >
                     Değişim
@@ -269,7 +270,7 @@ export default function RiskTrendsPage() {
                   <tr
                     key={index}
                     style={{
-                      borderBottom: `1px solid ${colors.border}`,
+                      borderBottom: `1px solid ${themeColors.border}`,
                     }}
                   >
                     <td style={{ padding: spacing.md }}>{trend.period}</td>

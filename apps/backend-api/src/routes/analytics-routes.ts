@@ -6,6 +6,7 @@ import { prisma } from "../lib/prisma";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
 import { requirePermission } from "../middleware/rbac-middleware";
+import { cacheMiddleware } from "../middleware/cache-middleware";
 import type { AuthenticatedRequest } from "../types/request-context";
 
 const router: ExpressRouter = Router();
@@ -23,6 +24,7 @@ const dateRangeSchema = z.object({
 router.get(
   "/financial-trends",
   requirePermission("reports:read"),
+  cacheMiddleware(300000),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const filters = dateRangeSchema.parse(req.query);
@@ -52,6 +54,7 @@ router.get(
 router.get(
   "/risk-trends",
   requirePermission("reports:read"),
+  cacheMiddleware(300000),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const filters = dateRangeSchema.parse(req.query);
@@ -81,6 +84,7 @@ router.get(
 router.get(
   "/portfolio",
   requirePermission("reports:read"),
+  cacheMiddleware(300000),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
@@ -101,6 +105,7 @@ router.get(
 router.get(
   "/revenue-forecast",
   requirePermission("reports:read"),
+  cacheMiddleware(300000),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const periods = req.query.periods ? parseInt(req.query.periods as string, 10) : 3;
@@ -123,6 +128,7 @@ router.get(
 router.get(
   "/expense-forecast",
   requirePermission("reports:read"),
+  cacheMiddleware(300000),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const periods = req.query.periods ? parseInt(req.query.periods as string, 10) : 3;
@@ -145,6 +151,7 @@ router.get(
 router.get(
   "/dashboard",
   requirePermission("reports:read"),
+  cacheMiddleware(300000),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const filters = dateRangeSchema.parse(req.query);

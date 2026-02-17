@@ -226,9 +226,6 @@ export class TaxReportingService {
         },
         type: "ALIŞ", // Withholding typically applies to purchases
       },
-      include: {
-        counterparty: true,
-      },
     });
 
     // Calculate withholding tax (typically 20% on services, 10% on goods)
@@ -236,7 +233,7 @@ export class TaxReportingService {
     const lineItems: TaxReport["lineItems"] = [];
 
     for (const invoice of invoices) {
-      const netAmount = Number(invoice.netAmount || invoice.totalAmount - (invoice.taxAmount || 0));
+      const netAmount = Number(invoice.netAmount || Number(invoice.totalAmount) - Number(invoice.taxAmount || 0));
       // Simplified: assume 20% withholding on services
       const withholdingRate = 0.20;
       const withholdingAmount = netAmount * withholdingRate;
@@ -245,7 +242,7 @@ export class TaxReportingService {
 
       lineItems.push({
         date: invoice.issueDate,
-        description: `Fatura: ${invoice.invoiceNumber || invoice.id}`,
+        description: `Fatura: ${invoice.externalId || invoice.id}`,
         amount: netAmount,
         taxAmount: withholdingAmount,
         taxRate: withholdingRate,

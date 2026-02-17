@@ -2,7 +2,8 @@
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { format, parseISO } from "date-fns";
-import { colors, spacing, borderRadius, typography } from "@/styles/design-system";
+import { spacing, borderRadius, typography } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface RiskTrendChartProps {
   data: {
@@ -14,6 +15,7 @@ interface RiskTrendChartProps {
 }
 
 export default function RiskTrendChart({ data }: RiskTrendChartProps) {
+  const { themeColors } = useTheme();
   const chartData = data.dates.map((date, index) => ({
     date: format(parseISO(date), "MMM dd"),
     score: data.scores[index] || 0,
@@ -27,21 +29,21 @@ export default function RiskTrendChart({ data }: RiskTrendChartProps) {
     <div style={{ width: "100%", height: "300px", padding: spacing.md }}>
       <ResponsiveContainer>
         <LineChart data={chartData}>
-          <CartesianGrid strokeDasharray="3 3" stroke={colors.border} />
+          <CartesianGrid strokeDasharray="3 3" stroke={themeColors.border} />
           <XAxis
             dataKey="date"
-            stroke={colors.text.secondary}
+            stroke={themeColors.text.secondary}
             style={{ fontSize: typography.fontSize.sm }}
           />
           <YAxis
-            stroke={colors.text.secondary}
+            stroke={themeColors.text.secondary}
             style={{ fontSize: typography.fontSize.sm }}
             domain={[0, 100]}
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: colors.white,
-              border: `1px solid ${colors.border}`,
+              backgroundColor: themeColors.white,
+              border: `1px solid ${themeColors.border}`,
               borderRadius: borderRadius.md,
             }}
           />

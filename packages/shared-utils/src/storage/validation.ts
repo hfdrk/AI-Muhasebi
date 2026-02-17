@@ -1,6 +1,55 @@
 import { ValidationError } from "../errors";
 
 /**
+ * Magic number signatures for supported file types.
+ * Used to verify that the actual file content matches the declared MIME type,
+ * preventing MIME type spoofing attacks (e.g. renaming .exe → .pdf).
+ */
+const MAGIC_NUMBERS: Record<string, { offset: number; bytes: number[] }[]> = {
+  "application/pdf": [{ offset: 0, bytes: [0x25, 0x50, 0x44, 0x46] }], // %PDF
+  "image/jpeg": [{ offset: 0, bytes: [0xFF, 0xD8, 0xFF] }],
+  "image/jpg": [{ offset: 0, bytes: [0xFF, 0xD8, 0xFF] }],
+  "image/png": [{ offset: 0, bytes: [0x89, 0x50, 0x4E, 0x47] }], // .PNG
+  "application/zip": [{ offset: 0, bytes: [0x50, 0x4B, 0x03, 0x04] }], // PK..
+  "application/x-zip-compressed": [{ offset: 0, bytes: [0x50, 0x4B, 0x03, 0x04] }],
+  "application/x-zip": [{ offset: 0, bytes: [0x50, 0x4B, 0x03, 0x04] }],
+  "application/vnd.ms-excel": [
+    { offset: 0, bytes: [0xD0, 0xCF, 0x11, 0xE0] }, // OLE2 compound document
+  ],
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [
+    { offset: 0, bytes: [0x50, 0x4B, 0x03, 0x04] }, // ZIP (xlsx is a ZIP)
+  ],
+};
+
+/**
+ * Validate file content against its declared MIME type using magic number signatures.
+ * This prevents MIME type spoofing attacks where an attacker renames a malicious file.
+ *
+ * @param buffer - File buffer (at least first 8 bytes needed)
+ * @param declaredMimeType - The MIME type declared by the client
+ * @throws ValidationError if magic numbers don't match the declared type
+ */
+export function validateFileMagicNumber(buffer: Buffer, declaredMimeType: string): void {
+  const signatures = MAGIC_NUMBERS[declaredMimeType];
+
+  // If we don't have a signature for this type, skip validation (allow through)
+  if (!signatures || buffer.length < 4) {
+    return;
+  }
+
+  const matches = signatures.some((sig) => {
+    if (buffer.length < sig.offset + sig.bytes.length) return false;
+    return sig.bytes.every((byte, i) => buffer[sig.offset + i] === byte);
+  });
+
+  if (!matches) {
+    throw new ValidationError(
+      `Dosya içeriği bildirilen türle (${declaredMimeType}) eşleşmiyor. Dosya bozuk veya yanlış uzantıya sahip olabilir.`
+    );
+  }
+}
+
+/**
  * Validate file size against maximum allowed size
  * @param fileSize - File size in bytes
  * @param maxSize - Maximum allowed size in bytes

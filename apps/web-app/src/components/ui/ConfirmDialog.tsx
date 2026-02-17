@@ -4,6 +4,7 @@ import { Modal } from "./Modal";
 import { Button } from "./Button";
 import { Icon } from "./Icon";
 import { colors, spacing } from "../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ export function ConfirmDialog({
   variant = "info",
   loading = false,
 }: ConfirmDialogProps) {
+  const { themeColors } = useTheme();
   const handleConfirm = () => {
     onConfirm();
     onClose();
@@ -87,7 +89,7 @@ export function ConfirmDialog({
                 marginBottom: spacing.sm,
                 fontSize: "18px",
                 fontWeight: 600,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
               }}
             >
               {title}
@@ -96,7 +98,7 @@ export function ConfirmDialog({
               style={{
                 margin: 0,
                 fontSize: "14px",
-                color: colors.text.secondary,
+                color: themeColors.text.secondary,
                 lineHeight: 1.6,
               }}
             >

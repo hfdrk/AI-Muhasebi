@@ -278,6 +278,46 @@ export class TenantService {
     newRole: string,
     changerUserId: string
   ): Promise<void> {
+    // Role hierarchy: TenantOwner > Accountant > Staff > ReadOnly
+    const ROLE_HIERARCHY: Record<string, number> = {
+      TenantOwner: 4,
+      Accountant: 3,
+      Staff: 2,
+      ReadOnly: 1,
+    };
+
+    // Prevent self-role-change
+    if (userId === changerUserId) {
+      throw new ValidationError("Kendi rolünüzü değiştiremezsiniz.");
+    }
+
+    // Look up the changer's role
+    const changerMembership = await prisma.userTenantMembership.findUnique({
+      where: {
+        userId_tenantId: {
+          userId: changerUserId,
+          tenantId,
+        },
+      },
+    });
+
+    if (!changerMembership) {
+      throw new NotFoundError("Yetki bilgisi bulunamadı.");
+    }
+
+    const changerLevel = ROLE_HIERARCHY[changerMembership.role] || 0;
+    const targetLevel = ROLE_HIERARCHY[newRole] || 0;
+
+    // Only TenantOwner can assign TenantOwner role
+    if (newRole === "TenantOwner" && changerMembership.role !== "TenantOwner") {
+      throw new ValidationError("Sadece ofis sahibi TenantOwner rolü atayabilir.");
+    }
+
+    // Changer cannot assign a role equal or higher than their own (except TenantOwner)
+    if (targetLevel >= changerLevel && changerMembership.role !== "TenantOwner") {
+      throw new ValidationError("Kendi rolünüzden üst veya eşit bir rol atayamazsınız.");
+    }
+
     const membership = await prisma.userTenantMembership.findUnique({
       where: {
         userId_tenantId: {
@@ -289,6 +329,12 @@ export class TenantService {
 
     if (!membership) {
       throw new NotFoundError("Kullanıcı üyeliği bulunamadı.");
+    }
+
+    // Changer cannot modify someone with equal or higher role (unless TenantOwner)
+    const existingLevel = ROLE_HIERARCHY[membership.role] || 0;
+    if (existingLevel >= changerLevel && changerMembership.role !== "TenantOwner") {
+      throw new ValidationError("Kendi rolünüzden üst veya eşit role sahip kullanıcıları değiştiremezsiniz.");
     }
 
     await prisma.userTenantMembership.update({

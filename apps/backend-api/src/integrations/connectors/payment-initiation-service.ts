@@ -293,8 +293,8 @@ export class PaymentInitiationService {
       throw new Error(`Ödeme başlatılamadı: ${response.status}`);
     }
 
-    const data = await response.json();
-    return this.parsePaymentResponse(data);
+    const data: any = await response.json();
+    return this.parsePaymentResponse(data as Record<string, unknown>);
   }
 
   /**
@@ -332,8 +332,8 @@ export class PaymentInitiationService {
       throw new Error(`TR Karekod ödeme başlatılamadı: ${response.status}`);
     }
 
-    const data = await response.json();
-    return this.parsePaymentResponse(data) as TRKarekodPaymentResponse;
+    const data: any = await response.json();
+    return this.parsePaymentResponse(data as Record<string, unknown>) as TRKarekodPaymentResponse;
   }
 
   /**
@@ -369,11 +369,11 @@ export class PaymentInitiationService {
       throw new Error(`Toplu ödeme başlatılamadı: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
     return {
       paymentId: data.paymentId,
       transactionStatus: data.transactionStatus,
-      payments: data.payments?.map(this.parsePaymentResponse) || [],
+      payments: data.payments?.map((p: any) => this.parsePaymentResponse(p as Record<string, unknown>)) || [],
       scaRequired: !!data._links?.scaRedirect,
       scaRedirectUrl: data._links?.scaRedirect?.href,
     };
@@ -411,7 +411,7 @@ export class PaymentInitiationService {
       throw new Error(`Düzenli ödeme talimatı oluşturulamadı: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
     return {
       standingOrderId: data.standingOrderId,
       transactionStatus: data.transactionStatus,
@@ -442,7 +442,7 @@ export class PaymentInitiationService {
       throw new Error(`Ödeme durumu alınamadı: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
     return {
       paymentId: data.paymentId || paymentId,
       transactionStatus: data.transactionStatus,
@@ -479,8 +479,8 @@ export class PaymentInitiationService {
       throw new Error(`Ödeme onaylanamadı: ${response.status}`);
     }
 
-    const data = await response.json();
-    return this.parsePaymentResponse(data);
+    const data: any = await response.json();
+    return this.parsePaymentResponse(data as Record<string, unknown>);
   }
 
   /**

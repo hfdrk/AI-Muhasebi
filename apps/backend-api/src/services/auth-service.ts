@@ -1,13 +1,17 @@
+import { createHash } from "crypto";
 import { prisma } from "../lib/prisma";
 import { hashPassword, verifyPassword, validatePassword } from "@repo/shared-utils";
-import { generateAccessToken, generateRefreshToken } from "@repo/shared-utils";
+import { generateAccessToken, generateRefreshToken, verifyToken } from "@repo/shared-utils";
 import { randomBytes } from "crypto";
 import { AuthenticationError, ValidationError, logger } from "@repo/shared-utils";
 import { auditService } from "./audit-service";
 import { emailService } from "./email-service";
+import { cacheService } from "./cache-service";
 import { getConfig } from "@repo/config";
 import type { User, Tenant, CreateUserInput, CreateTenantInput } from "@repo/core-domain";
 import { TENANT_ROLES } from "@repo/core-domain";
+
+const TOKEN_BLACKLIST_PREFIX = "token_blacklist:";
 
 export interface LoginInput {
   email: string;
@@ -395,12 +399,108 @@ export class AuthService {
     });
   }
 
-  async logout(userId: string, tenantId: string | null, ipAddress?: string): Promise<void> {
+  async refreshAccessToken(refreshTokenStr: string, ipAddress?: string): Promise<LoginResult> {
+    let decoded;
+    try {
+      decoded = verifyToken(refreshTokenStr);
+    } catch {
+      throw new AuthenticationError("Geçersiz veya süresi dolmuş yenileme tokeni.");
+    }
+
+    if (!decoded.userId) {
+      throw new AuthenticationError("Geçersiz yenileme tokeni.");
+    }
+
+    // Fetch fresh user data
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      include: {
+        memberships: {
+          where: { status: "active" },
+          include: { tenant: true },
+        },
+      },
+    });
+
+    if (!user || !user.isActive) {
+      throw new AuthenticationError("Kullanıcı bulunamadı veya devre dışı.");
+    }
+
+    const firstMembership = user.memberships[0];
+    const tenantId = firstMembership?.tenantId;
+
+    // Issue new access token with current roles
+    const platformRoles = user.platformRole ? [user.platformRole] : [];
+    const accessToken = generateAccessToken({
+      userId: user.id,
+      email: user.email,
+      tenantId,
+      roles: firstMembership ? [firstMembership.role] : [],
+      platformRoles,
+    });
+
+    // Rotate refresh token
+    const newRefreshToken = generateRefreshToken({
+      userId: user.id,
+      email: user.email,
+      tenantId,
+    });
+
+    logger.info(`Token refreshed for user ${user.id}`);
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        hashedPassword: user.hashedPassword,
+        fullName: user.fullName,
+        locale: user.locale,
+        isActive: user.isActive,
+        lastLoginAt: user.lastLoginAt,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+      accessToken,
+      refreshToken: newRefreshToken,
+      tenantId: tenantId ?? undefined,
+    };
+  }
+
+  async logout(userId: string, tenantId: string | null, ipAddress?: string, accessToken?: string): Promise<void> {
     await auditService.logAuthAction("LOGOUT", userId, tenantId, {
       ipAddress,
     });
-    // Token invalidation would be handled by a token blacklist (Redis) in production
-    // For now, we just log the logout
+
+    // Blacklist the access token until it expires
+    if (accessToken) {
+      await this.blacklistToken(accessToken);
+    }
+  }
+
+  /**
+   * Add a token to the blacklist (expires when the token would naturally expire)
+   */
+  async blacklistToken(token: string): Promise<void> {
+    try {
+      const decoded = verifyToken(token);
+      const now = Math.floor(Date.now() / 1000);
+      const ttlSeconds = (decoded.exp || now) - now;
+      if (ttlSeconds > 0) {
+        const tokenHash = createHash("sha256").update(token).digest("hex");
+        await cacheService.set(`${TOKEN_BLACKLIST_PREFIX}${tokenHash}`, true, ttlSeconds * 1000);
+      }
+    } catch {
+      // Token already expired or invalid — no need to blacklist
+    }
+  }
+
+  /**
+   * Check if a token has been blacklisted (revoked)
+   */
+  async isTokenBlacklisted(token: string): Promise<boolean> {
+    const tokenHash = createHash("sha256").update(token).digest("hex");
+    const result = await cacheService.get<boolean>(`${TOKEN_BLACKLIST_PREFIX}${tokenHash}`);
+    return result === true;
   }
 }
 

@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { kvkkClient, listTenantUsers } from "@repo/api-client";
-import Link from "next/link";
 import { Card } from "../../../components/ui/Card";
-import { Button } from "../../../components/ui/Button";
 import { SkeletonTable } from "../../../components/ui/Skeleton";
-import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../styles/design-system";
+import { colors, spacing, borderRadius, typography } from "../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function KVKKDashboardPage() {
+  const { themeColors } = useTheme();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   // Get current tenant
@@ -63,7 +63,7 @@ export default function KVKKDashboardPage() {
           padding: spacing.xxl,
           maxWidth: "1600px",
           margin: "0 auto",
-          backgroundColor: colors.gray[50],
+          backgroundColor: themeColors.gray[50],
           minHeight: "100vh",
         }}
       >
@@ -74,7 +74,7 @@ export default function KVKKDashboardPage() {
                 display: "inline-block",
                 width: "48px",
                 height: "48px",
-                border: `4px solid ${colors.gray[200]}`,
+                border: `4px solid ${themeColors.gray[200]}`,
                 borderTopColor: colors.primary,
                 borderRadius: "50%",
                 animation: "spin 0.8s linear infinite",
@@ -83,7 +83,7 @@ export default function KVKKDashboardPage() {
             />
             <p
               style={{
-                color: colors.text.muted,
+                color: themeColors.text.muted,
                 fontSize: typography.fontSize.sm,
                 margin: 0,
               }}
@@ -109,7 +109,7 @@ export default function KVKKDashboardPage() {
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
-        backgroundColor: colors.gray[50],
+        backgroundColor: themeColors.gray[50],
         minHeight: "100vh",
       }}
     >
@@ -123,7 +123,7 @@ export default function KVKKDashboardPage() {
           style={{
             fontSize: typography.fontSize["3xl"],
             fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
             marginBottom: spacing.sm,
           }}
         >
@@ -132,7 +132,7 @@ export default function KVKKDashboardPage() {
         <p
           style={{
             fontSize: typography.fontSize.base,
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
             lineHeight: typography.lineHeight.relaxed,
             margin: 0,
           }}
@@ -178,7 +178,7 @@ export default function KVKKDashboardPage() {
                   margin: 0,
                   fontSize: typography.fontSize.lg,
                   fontWeight: typography.fontWeight.semibold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                   marginBottom: spacing.xs,
                 }}
               >
@@ -188,7 +188,7 @@ export default function KVKKDashboardPage() {
                 style={{
                   margin: 0,
                   fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 Kullanıcı onaylarını görüntüle ve yönet
@@ -225,7 +225,7 @@ export default function KVKKDashboardPage() {
                   margin: 0,
                   fontSize: typography.fontSize.lg,
                   fontWeight: typography.fontWeight.semibold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                   marginBottom: spacing.xs,
                 }}
               >
@@ -235,7 +235,7 @@ export default function KVKKDashboardPage() {
                 style={{
                   margin: 0,
                   fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 Kullanıcı veri erişim taleplerini yönet
@@ -272,7 +272,7 @@ export default function KVKKDashboardPage() {
                   margin: 0,
                   fontSize: typography.fontSize.lg,
                   fontWeight: typography.fontWeight.semibold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                   marginBottom: spacing.xs,
                 }}
               >
@@ -282,7 +282,7 @@ export default function KVKKDashboardPage() {
                 style={{
                   margin: 0,
                   fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 Kullanıcı veri silme taleplerini yönet
@@ -319,7 +319,7 @@ export default function KVKKDashboardPage() {
                   margin: 0,
                   fontSize: typography.fontSize.lg,
                   fontWeight: typography.fontWeight.semibold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                   marginBottom: spacing.xs,
                 }}
               >
@@ -329,7 +329,7 @@ export default function KVKKDashboardPage() {
                 style={{
                   margin: 0,
                   fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 Veri ihlallerini kaydet ve yönet
@@ -348,7 +348,7 @@ export default function KVKKDashboardPage() {
               marginBottom: spacing.sm,
               fontSize: typography.fontSize.sm,
               fontWeight: typography.fontWeight.medium,
-              color: colors.text.primary,
+              color: themeColors.text.primary,
             }}
           >
             Kullanıcı Seçin
@@ -361,10 +361,10 @@ export default function KVKKDashboardPage() {
               maxWidth: "400px",
               padding: spacing.sm,
               borderRadius: borderRadius.md,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               fontSize: typography.fontSize.base,
-              backgroundColor: colors.white,
-              color: colors.text.primary,
+              backgroundColor: themeColors.white,
+              color: themeColors.text.primary,
             }}
           >
             <option value="">Kullanıcı seçin...</option>
@@ -385,7 +385,7 @@ export default function KVKKDashboardPage() {
                     display: "inline-block",
                     width: "32px",
                     height: "32px",
-                    border: `3px solid ${colors.gray[200]}`,
+                    border: `3px solid ${themeColors.gray[200]}`,
                     borderTopColor: colors.primary,
                     borderRadius: "50%",
                     animation: "spin 0.8s linear infinite",
@@ -399,7 +399,7 @@ export default function KVKKDashboardPage() {
                     margin: `0 0 ${spacing.md} 0`,
                     fontSize: typography.fontSize.base,
                     fontWeight: typography.fontWeight.semibold,
-                    color: colors.text.primary,
+                    color: themeColors.text.primary,
                   }}
                 >
                   Onay Durumu
@@ -418,8 +418,8 @@ export default function KVKKDashboardPage() {
                       borderRadius: borderRadius.md,
                       backgroundColor: consent.consents?.data_processing
                         ? colors.successLight
-                        : colors.gray[50],
-                      border: `1px solid ${colors.border}`,
+                        : themeColors.gray[50],
+                      border: `1px solid ${themeColors.border}`,
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: spacing.sm }}>
@@ -428,7 +428,7 @@ export default function KVKKDashboardPage() {
                         style={{
                           fontSize: typography.fontSize.sm,
                           fontWeight: typography.fontWeight.medium,
-                          color: colors.text.primary,
+                          color: themeColors.text.primary,
                         }}
                       >
                         Veri İşleme
@@ -441,8 +441,8 @@ export default function KVKKDashboardPage() {
                       borderRadius: borderRadius.md,
                       backgroundColor: consent.consents?.marketing
                         ? colors.successLight
-                        : colors.gray[50],
-                      border: `1px solid ${colors.border}`,
+                        : themeColors.gray[50],
+                      border: `1px solid ${themeColors.border}`,
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: spacing.sm }}>
@@ -451,7 +451,7 @@ export default function KVKKDashboardPage() {
                         style={{
                           fontSize: typography.fontSize.sm,
                           fontWeight: typography.fontWeight.medium,
-                          color: colors.text.primary,
+                          color: themeColors.text.primary,
                         }}
                       >
                         Pazarlama
@@ -464,8 +464,8 @@ export default function KVKKDashboardPage() {
                       borderRadius: borderRadius.md,
                       backgroundColor: consent.consents?.analytics
                         ? colors.successLight
-                        : colors.gray[50],
-                      border: `1px solid ${colors.border}`,
+                        : themeColors.gray[50],
+                      border: `1px solid ${themeColors.border}`,
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: spacing.sm }}>
@@ -474,7 +474,7 @@ export default function KVKKDashboardPage() {
                         style={{
                           fontSize: typography.fontSize.sm,
                           fontWeight: typography.fontWeight.medium,
-                          color: colors.text.primary,
+                          color: themeColors.text.primary,
                         }}
                       >
                         Analitik
@@ -487,8 +487,8 @@ export default function KVKKDashboardPage() {
                       borderRadius: borderRadius.md,
                       backgroundColor: consent.consents?.third_party
                         ? colors.successLight
-                        : colors.gray[50],
-                      border: `1px solid ${colors.border}`,
+                        : themeColors.gray[50],
+                      border: `1px solid ${themeColors.border}`,
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: spacing.sm }}>
@@ -497,7 +497,7 @@ export default function KVKKDashboardPage() {
                         style={{
                           fontSize: typography.fontSize.sm,
                           fontWeight: typography.fontWeight.medium,
-                          color: colors.text.primary,
+                          color: themeColors.text.primary,
                         }}
                       >
                         Üçüncü Taraf
@@ -512,7 +512,7 @@ export default function KVKKDashboardPage() {
                       padding: spacing.md,
                       borderRadius: borderRadius.md,
                       backgroundColor: colors.infoLight,
-                      border: `1px solid ${colors.border}`,
+                      border: `1px solid ${themeColors.border}`,
                     }}
                   >
                     <h4
@@ -520,7 +520,7 @@ export default function KVKKDashboardPage() {
                         margin: `0 0 ${spacing.xs} 0`,
                         fontSize: typography.fontSize.sm,
                         fontWeight: typography.fontWeight.semibold,
-                        color: colors.text.primary,
+                        color: themeColors.text.primary,
                       }}
                     >
                       Veri Saklama
@@ -529,7 +529,7 @@ export default function KVKKDashboardPage() {
                       style={{
                         margin: 0,
                         fontSize: typography.fontSize.sm,
-                        color: colors.text.secondary,
+                        color: themeColors.text.secondary,
                       }}
                     >
                       Saklama süresi: {retention.retentionPeriod} gün
@@ -538,7 +538,7 @@ export default function KVKKDashboardPage() {
                       style={{
                         margin: `${spacing.xs} 0 0 0`,
                         fontSize: typography.fontSize.sm,
-                        color: colors.text.secondary,
+                        color: themeColors.text.secondary,
                       }}
                     >
                       Son geçerlilik:{" "}
@@ -548,7 +548,7 @@ export default function KVKKDashboardPage() {
                 )}
               </div>
             ) : (
-              <p style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm }}>
+              <p style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>
                 Onay bilgisi yüklenemedi.
               </p>
             )}

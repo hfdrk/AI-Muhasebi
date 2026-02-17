@@ -4,6 +4,8 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { type DocumentRequirement, listClientCompanies } from "@repo/api-client";
 import { formatDate } from "@/utils/date-utils";
+import { colors, spacing, borderRadius, typography } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface MissingDocumentsListProps {
   requirements: DocumentRequirement[];
@@ -17,9 +19,9 @@ const STATUS_LABELS: Record<DocumentRequirement["status"], string> = {
 };
 
 const STATUS_COLORS: Record<DocumentRequirement["status"], string> = {
-  pending: "#f59e0b",
-  received: "#10b981",
-  overdue: "#dc2626",
+  pending: colors.warning,
+  received: colors.success,
+  overdue: colors.danger,
 };
 
 const DOCUMENT_TYPE_LABELS: Record<string, string> = {
@@ -34,6 +36,8 @@ export default function MissingDocumentsList({
   requirements,
   onEdit,
 }: MissingDocumentsListProps) {
+  const { themeColors } = useTheme();
+
   // Fetch all client companies to map IDs to names
   const { data: clientsData, isLoading: clientsLoading } = useQuery({
     queryKey: ["client-companies-for-documents"],
@@ -58,7 +62,7 @@ export default function MissingDocumentsList({
 
   if (requirements.length === 0) {
     return (
-      <div style={{ padding: "24px", textAlign: "center", color: "#666" }}>
+      <div style={{ padding: spacing.lg, textAlign: "center", color: themeColors.text.secondary }}>
         Henüz belge gereksinimi bulunmuyor.
       </div>
     );
@@ -70,23 +74,23 @@ export default function MissingDocumentsList({
   };
 
   return (
-    <div style={{ backgroundColor: "white", borderRadius: "8px", overflow: "hidden" }}>
+    <div style={{ backgroundColor: themeColors.white, borderRadius: borderRadius.md, overflow: "hidden" }}>
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
-          <tr style={{ backgroundColor: "#f5f5f5" }}>
-            <th style={{ padding: "12px", textAlign: "left", borderBottom: "1px solid #ddd" }}>
+          <tr style={{ backgroundColor: themeColors.gray[50] }}>
+            <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
               Müşteri
             </th>
-            <th style={{ padding: "12px", textAlign: "left", borderBottom: "1px solid #ddd" }}>
+            <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
               Belge Tipi
             </th>
-            <th style={{ padding: "12px", textAlign: "left", borderBottom: "1px solid #ddd" }}>
+            <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
               Gerekli Tarih
             </th>
-            <th style={{ padding: "12px", textAlign: "left", borderBottom: "1px solid #ddd" }}>
+            <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
               Durum
             </th>
-            <th style={{ padding: "12px", textAlign: "left", borderBottom: "1px solid #ddd" }}>
+            <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
               İşlemler
             </th>
           </tr>
@@ -96,40 +100,40 @@ export default function MissingDocumentsList({
             <tr
               key={requirement.id}
               style={{
-                borderBottom: "1px solid #eee",
-                backgroundColor: isOverdue(requirement) ? "#fee2e2" : "white",
+                borderBottom: `1px solid ${themeColors.gray[200]}`,
+                backgroundColor: isOverdue(requirement) ? themeColors.dangerLight : themeColors.white,
               }}
             >
-              <td style={{ padding: "12px" }}>
-                <div style={{ fontWeight: "bold" }}>
+              <td style={{ padding: spacing.md }}>
+                <div style={{ fontWeight: typography.fontWeight.bold }}>
                   {clientsLoading ? (
-                    <span style={{ color: "#999", fontStyle: "italic" }}>Yükleniyor...</span>
+                    <span style={{ color: themeColors.text.muted, fontStyle: "italic" }}>Yükleniyor...</span>
                   ) : (
                     getClientName(requirement.clientCompanyId)
                   )}
                 </div>
                 {requirement.description && (
-                  <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
+                  <div style={{ fontSize: typography.fontSize.xs, color: themeColors.text.secondary, marginTop: spacing.xs }}>
                     {requirement.description.substring(0, 50)}
                     {requirement.description.length > 50 ? "..." : ""}
                   </div>
                 )}
               </td>
-              <td style={{ padding: "12px" }}>
+              <td style={{ padding: spacing.md }}>
                 {DOCUMENT_TYPE_LABELS[requirement.documentType] || requirement.documentType}
               </td>
-              <td style={{ padding: "12px" }}>
+              <td style={{ padding: spacing.md }}>
                 <div>{formatDate(new Date(requirement.requiredByDate))}</div>
                 {isOverdue(requirement) && (
-                  <span style={{ color: "#dc2626", fontSize: "12px" }}>(Vadesi Geçti)</span>
+                  <span style={{ color: colors.danger, fontSize: typography.fontSize.xs }}>(Vadesi Geçti)</span>
                 )}
               </td>
-              <td style={{ padding: "12px" }}>
+              <td style={{ padding: spacing.md }}>
                 <span
                   style={{
-                    padding: "4px 8px",
-                    borderRadius: "4px",
-                    fontSize: "12px",
+                    padding: `${spacing.xs} ${spacing.sm}`,
+                    borderRadius: borderRadius.sm,
+                    fontSize: typography.fontSize.xs,
                     backgroundColor: `${STATUS_COLORS[requirement.status]}20`,
                     color: STATUS_COLORS[requirement.status],
                   }}
@@ -137,17 +141,17 @@ export default function MissingDocumentsList({
                   {STATUS_LABELS[requirement.status]}
                 </span>
               </td>
-              <td style={{ padding: "12px" }}>
+              <td style={{ padding: spacing.md }}>
                 <button
                   onClick={() => onEdit(requirement.id)}
                   style={{
-                    padding: "4px 8px",
-                    backgroundColor: "#0066cc",
-                    color: "white",
+                    padding: `${spacing.xs} ${spacing.sm}`,
+                    backgroundColor: colors.primary,
+                    color: colors.white,
                     border: "none",
-                    borderRadius: "4px",
+                    borderRadius: borderRadius.sm,
                     cursor: "pointer",
-                    fontSize: "12px",
+                    fontSize: typography.fontSize.xs,
                   }}
                 >
                   Düzenle
@@ -160,6 +164,3 @@ export default function MissingDocumentsList({
     </div>
   );
 }
-
-
-

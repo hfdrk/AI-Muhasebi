@@ -11,6 +11,7 @@ import {
   MoreVertical,
 } from "lucide-react";
 import { colors, spacing, borderRadius, shadows, typography, transitions, zIndex } from "@/styles/design-system";
+import { useTheme } from "../../contexts/ThemeContext";
 import { useSafeAreaInsets } from "@/hooks/use-responsive";
 
 // ==================== Types ====================
@@ -58,6 +59,7 @@ export function MobileHeader({
   transparent = false,
   fixed = true,
 }: MobileHeaderProps) {
+  const { themeColors } = useTheme();
   const router = useRouter();
   const safeArea = useSafeAreaInsets();
 
@@ -78,8 +80,8 @@ export function MobileHeader({
     left: 0,
     right: 0,
     zIndex: zIndex.sticky,
-    backgroundColor: transparent ? "transparent" : colors.white,
-    borderBottom: transparent ? "none" : `1px solid ${colors.border}`,
+    backgroundColor: transparent ? "transparent" : themeColors.white,
+    borderBottom: transparent ? "none" : `1px solid ${themeColors.border}`,
     boxShadow: transparent ? "none" : shadows.sm,
     paddingTop: safeArea.top > 0 ? `${safeArea.top}px` : undefined,
   };
@@ -121,7 +123,7 @@ export function MobileHeader({
   const titleStyle: React.CSSProperties = {
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.semibold,
-    color: transparent ? colors.white : colors.text.primary,
+    color: transparent ? colors.white : themeColors.text.primary,
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
@@ -131,7 +133,7 @@ export function MobileHeader({
 
   const subtitleStyle: React.CSSProperties = {
     fontSize: typography.fontSize.xs,
-    color: transparent ? "rgba(255,255,255,0.8)" : colors.text.muted,
+    color: transparent ? "rgba(255,255,255,0.8)" : themeColors.text.muted,
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
@@ -243,6 +245,7 @@ export function IconButton({
   transparent = false,
   disabled = false,
 }: IconButtonProps) {
+  const { themeColors } = useTheme();
   const [isPressed, setIsPressed] = useState(false);
 
   const buttonStyle: React.CSSProperties = {
@@ -252,7 +255,7 @@ export function IconButton({
     backgroundColor: isPressed
       ? transparent
         ? "rgba(255,255,255,0.2)"
-        : colors.gray[100]
+        : themeColors.gray[100]
       : "transparent",
     border: "none",
     cursor: disabled ? "not-allowed" : "pointer",
@@ -260,10 +263,10 @@ export function IconButton({
     alignItems: "center",
     justifyContent: "center",
     color: disabled
-      ? colors.gray[400]
+      ? themeColors.gray[400]
       : transparent
       ? colors.white
-      : colors.gray[700],
+      : themeColors.gray[700],
     position: "relative",
     transition: `all ${transitions.fast} ease`,
     opacity: disabled ? 0.5 : 1,
@@ -285,7 +288,7 @@ export function IconButton({
     alignItems: "center",
     justifyContent: "center",
     padding: "0 4px",
-    border: `2px solid ${transparent ? "transparent" : colors.white}`,
+    border: `2px solid ${transparent ? "transparent" : themeColors.white}`,
   };
 
   return (
@@ -325,6 +328,7 @@ export function SearchHeader({
   placeholder = "Ara...",
   autoFocus = true,
 }: SearchHeaderProps) {
+  const { themeColors } = useTheme();
   const safeArea = useSafeAreaInsets();
 
   const containerStyle: React.CSSProperties = {
@@ -333,8 +337,8 @@ export function SearchHeader({
     left: 0,
     right: 0,
     zIndex: zIndex.sticky,
-    backgroundColor: colors.white,
-    borderBottom: `1px solid ${colors.border}`,
+    backgroundColor: themeColors.white,
+    borderBottom: `1px solid ${themeColors.border}`,
     paddingTop: safeArea.top > 0 ? `${safeArea.top}px` : undefined,
   };
 
@@ -357,18 +361,18 @@ export function SearchHeader({
     width: "100%",
     height: "40px",
     padding: `0 ${spacing.md} 0 40px`,
-    backgroundColor: colors.gray[100],
+    backgroundColor: themeColors.gray[100],
     border: "none",
     borderRadius: borderRadius.full,
     fontSize: typography.fontSize.base,
-    color: colors.text.primary,
+    color: themeColors.text.primary,
     outline: "none",
   };
 
   const searchIconStyle: React.CSSProperties = {
     position: "absolute",
     left: spacing.sm,
-    color: colors.gray[400],
+    color: themeColors.gray[400],
     pointerEvents: "none",
   };
 
@@ -406,7 +410,7 @@ export function SearchHeader({
                   border: "none",
                   cursor: "pointer",
                   padding: "4px",
-                  color: colors.gray[400],
+                  color: themeColors.gray[400],
                 }}
                 onClick={() => onChange("")}
                 aria-label="Temizle"

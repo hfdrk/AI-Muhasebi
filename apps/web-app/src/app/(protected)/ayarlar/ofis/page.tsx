@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { colors, spacing, borderRadius } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import Link from "next/link";
 
 const tenantSettingsSchema = z.object({
@@ -32,6 +33,7 @@ const tenantSettingsSchema = z.object({
 type TenantSettingsForm = z.infer<typeof tenantSettingsSchema>;
 
 export default function OfficeSettingsPage() {
+  const { themeColors } = useTheme();
   const queryClient = useQueryClient();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -105,18 +107,18 @@ export default function OfficeSettingsPage() {
   if (!canManage) {
     return (
       <div style={{ padding: spacing.xxl }}>
-        <h1 style={{ fontSize: "28px", fontWeight: 600, marginBottom: spacing.lg, color: colors.text.primary }}>
+        <h1 style={{ fontSize: "28px", fontWeight: 600, marginBottom: spacing.lg, color: themeColors.text.primary }}>
           Ofis Ayarları
         </h1>
         <div
           style={{
             padding: spacing.xl,
-            backgroundColor: colors.white,
+            backgroundColor: themeColors.white,
             borderRadius: "8px",
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${themeColors.border}`,
           }}
         >
-          <p style={{ color: colors.text.secondary }}>
+          <p style={{ color: themeColors.text.secondary }}>
             Bu alanı görüntüleme yetkiniz yok. Ofis ayarlarını sadece yönetici kullanıcılar düzenleyebilir.
           </p>
         </div>
@@ -128,10 +130,10 @@ export default function OfficeSettingsPage() {
     <PageTransition>
       <div style={{ padding: spacing.xxl }}>
       <div style={{ marginBottom: spacing.xxl }}>
-        <h1 style={{ fontSize: "28px", fontWeight: 600, marginBottom: spacing.sm, color: colors.text.primary }}>
+        <h1 style={{ fontSize: "28px", fontWeight: 600, marginBottom: spacing.sm, color: themeColors.text.primary }}>
           Ofis Ayarları
         </h1>
-        <p style={{ color: colors.text.secondary, fontSize: "16px" }}>
+        <p style={{ color: themeColors.text.secondary, fontSize: "16px" }}>
           Ofis bilgilerinizi ve varsayılan ayarlarınızı yönetin.
         </p>
       </div>
@@ -141,8 +143,8 @@ export default function OfficeSettingsPage() {
           style={{
             padding: spacing.md,
             marginBottom: spacing.lg,
-            backgroundColor: "#d4edda",
-            color: "#155724",
+            backgroundColor: colors.successLight,
+            color: colors.successDark,
             borderRadius: "4px",
             border: "1px solid #c3e6cb",
           }}
@@ -178,18 +180,18 @@ export default function OfficeSettingsPage() {
           <div
             style={{
               padding: spacing.xl,
-              backgroundColor: colors.white,
+              backgroundColor: themeColors.white,
               borderRadius: "8px",
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               marginBottom: spacing.lg,
             }}
           >
-            <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: spacing.lg, color: colors.text.primary }}>
+            <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: spacing.lg, color: themeColors.text.primary }}>
               Genel Bilgiler
             </h2>
 
             <div style={{ marginBottom: spacing.lg }}>
-              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: 500, color: colors.text.primary }}>
+              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: 500, color: themeColors.text.primary }}>
                 Ofis Adı
               </label>
               <input
@@ -198,7 +200,7 @@ export default function OfficeSettingsPage() {
                 style={{
                   width: "100%",
                   padding: spacing.sm,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "4px",
                   fontSize: "14px",
                 }}
@@ -210,7 +212,7 @@ export default function OfficeSettingsPage() {
             </div>
 
             <div style={{ marginBottom: spacing.lg }}>
-              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: 500, color: colors.text.primary }}>
+              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: 500, color: themeColors.text.primary }}>
                 Logo URL
               </label>
               <input
@@ -219,7 +221,7 @@ export default function OfficeSettingsPage() {
                 style={{
                   width: "100%",
                   padding: spacing.sm,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "4px",
                   fontSize: "14px",
                 }}
@@ -231,7 +233,7 @@ export default function OfficeSettingsPage() {
             </div>
 
             <div style={{ marginBottom: spacing.lg }}>
-              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: 500, color: colors.text.primary }}>
+              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: 500, color: themeColors.text.primary }}>
                 Varsayılan Dil
               </label>
               <select
@@ -239,7 +241,7 @@ export default function OfficeSettingsPage() {
                 style={{
                   width: "100%",
                   padding: spacing.sm,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "4px",
                   fontSize: "14px",
                 }}
@@ -250,7 +252,7 @@ export default function OfficeSettingsPage() {
             </div>
 
             <div style={{ marginBottom: spacing.lg }}>
-              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: 500, color: colors.text.primary }}>
+              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: 500, color: themeColors.text.primary }}>
                 Saat Dilimi
               </label>
               <select
@@ -258,7 +260,7 @@ export default function OfficeSettingsPage() {
                 style={{
                   width: "100%",
                   padding: spacing.sm,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "4px",
                   fontSize: "14px",
                 }}
@@ -269,7 +271,7 @@ export default function OfficeSettingsPage() {
             </div>
 
             <div style={{ marginBottom: spacing.lg }}>
-              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: 500, color: colors.text.primary }}>
+              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: 500, color: themeColors.text.primary }}>
                 E-posta Gönderen Adı
               </label>
               <input
@@ -278,7 +280,7 @@ export default function OfficeSettingsPage() {
                 style={{
                   width: "100%",
                   padding: spacing.sm,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "4px",
                   fontSize: "14px",
                 }}
@@ -290,18 +292,18 @@ export default function OfficeSettingsPage() {
           <div
             style={{
               padding: spacing.xl,
-              backgroundColor: colors.white,
+              backgroundColor: themeColors.white,
               borderRadius: "8px",
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               marginBottom: spacing.lg,
             }}
           >
-            <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: spacing.lg, color: colors.text.primary }}>
+            <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: spacing.lg, color: themeColors.text.primary }}>
               Risk Eşikleri
             </h2>
 
             <div style={{ marginBottom: spacing.lg }}>
-              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: 500, color: colors.text.primary }}>
+              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: 500, color: themeColors.text.primary }}>
                 Yüksek Risk Eşiği (%)
               </label>
               <input
@@ -312,7 +314,7 @@ export default function OfficeSettingsPage() {
                 style={{
                   width: "100%",
                   padding: spacing.sm,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "4px",
                   fontSize: "14px",
                 }}
@@ -320,7 +322,7 @@ export default function OfficeSettingsPage() {
             </div>
 
             <div style={{ marginBottom: spacing.lg }}>
-              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: 500, color: colors.text.primary }}>
+              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: 500, color: themeColors.text.primary }}>
                 Kritik Risk Eşiği (%)
               </label>
               <input
@@ -331,7 +333,7 @@ export default function OfficeSettingsPage() {
                 style={{
                   width: "100%",
                   padding: spacing.sm,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "4px",
                   fontSize: "14px",
                 }}
@@ -342,18 +344,18 @@ export default function OfficeSettingsPage() {
           <div
             style={{
               padding: spacing.xl,
-              backgroundColor: colors.white,
+              backgroundColor: themeColors.white,
               borderRadius: "8px",
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               marginBottom: spacing.lg,
             }}
           >
-            <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: spacing.lg, color: colors.text.primary }}>
+            <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: spacing.lg, color: themeColors.text.primary }}>
               Rapor Ayarları
             </h2>
 
             <div style={{ marginBottom: spacing.lg }}>
-              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: 500, color: colors.text.primary }}>
+              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: 500, color: themeColors.text.primary }}>
                 Varsayılan Rapor Dönemi
               </label>
               <select
@@ -361,7 +363,7 @@ export default function OfficeSettingsPage() {
                 style={{
                   width: "100%",
                   padding: spacing.sm,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "4px",
                   fontSize: "14px",
                 }}
@@ -381,10 +383,10 @@ export default function OfficeSettingsPage() {
               href="/ayarlar"
               style={{
                 padding: `${spacing.sm} ${spacing.lg}`,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 textDecoration: "none",
-                color: colors.text.secondary,
+                color: themeColors.text.secondary,
                 display: "inline-block",
               }}
             >

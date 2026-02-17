@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { colors, spacing, borderRadius, typography, transitions } from "../../styles/design-system";
+import { useTheme } from "../../contexts/ThemeContext";
 import { Icon } from "./Icon";
 
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
@@ -24,6 +25,7 @@ export function Select({
   onBlur,
   ...props 
 }: SelectProps) {
+  const { themeColors } = useTheme();
   const [isFocused, setIsFocused] = useState(false);
 
   const handleFocus = (e: React.FocusEvent<HTMLSelectElement>) => {
@@ -39,7 +41,7 @@ export function Select({
   const getBorderColor = () => {
     if (error) return colors.danger;
     if (isFocused) return colors.primary;
-    return colors.border;
+    return themeColors.border;
   };
 
   const getFocusRing = () => {
@@ -59,8 +61,8 @@ export function Select({
     borderRadius: borderRadius.md,
     fontSize: typography.fontSize.base,
     fontFamily: typography.fontFamily.sans,
-    color: colors.text.primary,
-    backgroundColor: props.disabled ? colors.gray[100] : colors.white,
+    color: themeColors.text.primary,
+    backgroundColor: props.disabled ? themeColors.gray[100] : themeColors.white,
     cursor: props.disabled ? "not-allowed" : "pointer",
     transition: `all ${transitions.normal} ease`,
     appearance: "none",
@@ -81,7 +83,7 @@ export function Select({
             marginBottom: spacing.xs,
             fontSize: typography.fontSize.sm,
             fontWeight: typography.fontWeight.medium,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
             transition: `color ${transitions.normal} ease`,
           }}
         >
@@ -97,7 +99,7 @@ export function Select({
               left: spacing.md,
               top: "50%",
               transform: "translateY(-50%)",
-              color: isFocused ? colors.primary : colors.text.secondary,
+              color: isFocused ? colors.primary : themeColors.text.secondary,
               transition: `color ${transitions.normal} ease`,
               zIndex: 1,
               pointerEvents: "none",
@@ -151,7 +153,7 @@ export function Select({
         </div>
       )}
       {helperText && !error && (
-        <p style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm, marginTop: spacing.xs, margin: 0 }}>
+        <p style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm, marginTop: spacing.xs, margin: 0 }}>
           {helperText}
         </p>
       )}

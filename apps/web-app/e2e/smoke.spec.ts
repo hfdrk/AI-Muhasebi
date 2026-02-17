@@ -1,9 +1,7 @@
 import { test, expect } from "@playwright/test";
 import {
   createTestUserViaAPI,
-  login,
   navigateTo,
-  assertTextVisible,
 } from "./test-utils";
 
 test.describe("Smoke Tests - Main Routes and Turkish Labels", () => {
@@ -22,7 +20,7 @@ test.describe("Smoke Tests - Main Routes and Turkish Labels", () => {
     authToken = testUser.accessToken;
   });
 
-  test.beforeEach(async ({ page, context }) => {
+  test.beforeEach(async ({ page, context: _context }) => {
     // Set auth token in localStorage before navigating
     await page.goto("/");
     await page.evaluate(

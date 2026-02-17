@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { colors, spacing, borderRadius, shadows, transitions, typography } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface Recommendation {
   id: string;
@@ -22,6 +23,7 @@ interface RecommendationsWidgetProps {
 
 export default function RecommendationsWidget({ recommendations }: RecommendationsWidgetProps) {
   const router = useRouter();
+  const { themeColors } = useTheme();
 
   if (recommendations.length === 0) {
     return null;
@@ -69,7 +71,7 @@ export default function RecommendationsWidget({ recommendations }: Recommendatio
             marginBottom: spacing.xs,
             fontSize: typography.fontSize.xl,
             fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
           }}
         >
           Önerilen Aksiyonlar
@@ -78,7 +80,7 @@ export default function RecommendationsWidget({ recommendations }: Recommendatio
           style={{
             margin: 0,
             fontSize: typography.fontSize.sm,
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
           }}
         >
           Risk yönetimi için önerilen aksiyonlar
@@ -91,9 +93,9 @@ export default function RecommendationsWidget({ recommendations }: Recommendatio
             key={rec.id}
             style={{
               padding: spacing.md,
-              backgroundColor: colors.white,
+              backgroundColor: themeColors.white,
               borderRadius: borderRadius.lg,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               borderLeft: `4px solid ${getTypeColor(rec.type)}`,
             }}
           >
@@ -105,7 +107,7 @@ export default function RecommendationsWidget({ recommendations }: Recommendatio
                     style={{
                       fontSize: typography.fontSize.base,
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                     }}
                   >
                     {rec.title}
@@ -128,7 +130,7 @@ export default function RecommendationsWidget({ recommendations }: Recommendatio
                     margin: 0,
                     marginBottom: spacing.sm,
                     fontSize: typography.fontSize.sm,
-                    color: colors.text.secondary,
+                    color: themeColors.text.secondary,
                   }}
                 >
                   {rec.description}

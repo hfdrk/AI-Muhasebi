@@ -222,10 +222,10 @@ export class QNBFinansbankConnector extends BasePSD2BankConnector {
         return [];
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       return data.balances || [];
-    } catch (error) {
-      logger.error("[QNBFinansbankConnector] fetchBalances error:", error);
+    } catch (error: unknown) {
+      logger.error("[QNBFinansbankConnector] fetchBalances error:", { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -258,8 +258,8 @@ export class QNBFinansbankConnector extends BasePSD2BankConnector {
         bankName: this.bankName,
         bankCode: "00111",
       };
-    } catch (error) {
-      logger.error("[QNBFinansbankConnector] getAccountDetails error:", error);
+    } catch (error: unknown) {
+      logger.error("[QNBFinansbankConnector] getAccountDetails error:", { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }
@@ -294,7 +294,7 @@ export class QNBFinansbankConnector extends BasePSD2BankConnector {
         return [];
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       const transactions: CardFinansTransaction[] = data.transactions || [];
 
       return transactions.map((txn) => ({
@@ -307,8 +307,8 @@ export class QNBFinansbankConnector extends BasePSD2BankConnector {
         currency: txn.currency || "TRY",
         balanceAfter: null,
       }));
-    } catch (error) {
-      logger.error("[QNBFinansbankConnector] fetchCardFinansTransactions error:", error);
+    } catch (error: unknown) {
+      logger.error("[QNBFinansbankConnector] fetchCardFinansTransactions error:", { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -336,10 +336,10 @@ export class QNBFinansbankConnector extends BasePSD2BankConnector {
         return null;
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       return data.milesInfo || null;
-    } catch (error) {
-      logger.error("[QNBFinansbankConnector] fetchBonusMiles error:", error);
+    } catch (error: unknown) {
+      logger.error("[QNBFinansbankConnector] fetchBonusMiles error:", { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }
@@ -371,7 +371,7 @@ export class QNBFinansbankConnector extends BasePSD2BankConnector {
       throw new Error(`FAST ödeme başlatılamadı: ${response.status} - ${errorText}`);
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
 
     return {
       paymentId: data.paymentId,
@@ -408,7 +408,7 @@ export class QNBFinansbankConnector extends BasePSD2BankConnector {
       throw new Error(`Enpara transfer başlatılamadı: ${response.status} - ${errorText}`);
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
 
     return {
       paymentId: data.paymentId,
@@ -440,10 +440,10 @@ export class QNBFinansbankConnector extends BasePSD2BankConnector {
         return [];
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       return data.accounts || [];
-    } catch (error) {
-      logger.error("[QNBFinansbankConnector] fetchEnparaAccounts error:", error);
+    } catch (error: unknown) {
+      logger.error("[QNBFinansbankConnector] fetchEnparaAccounts error:", { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -475,10 +475,10 @@ export class QNBFinansbankConnector extends BasePSD2BankConnector {
         return null;
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       return data.statement || null;
-    } catch (error) {
-      logger.error("[QNBFinansbankConnector] requestCardFinansStatement error:", error);
+    } catch (error: unknown) {
+      logger.error("[QNBFinansbankConnector] requestCardFinansStatement error:", { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }

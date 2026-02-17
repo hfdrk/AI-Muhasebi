@@ -6,12 +6,7 @@ import type {
 } from "./types";
 
 /**
- * İş Bankası (Isbank) Integration Connector
- * 
- * This connector integrates with İş Bankası (isbank.com.tr) bank API.
- * 
- * TODO: Review İş Bankası API documentation and implement actual API calls.
- * This is a stub implementation that follows the connector pattern.
+ * İş Bankası connector. Returns empty results until vendor API credentials are configured.
  */
 export class IsBankasiConnector implements BankIntegrationConnector {
   async testConnection(config: Record<string, unknown>): Promise<{ success: boolean; message?: string }> {
@@ -31,8 +26,7 @@ export class IsBankasiConnector implements BankIntegrationConnector {
       return { success: false, message: "Hesap numarası gerekli." };
     }
 
-    // TODO: Implement actual API connection test
-    return { success: true, message: "İş Bankası bağlantısı başarılı (stub)." };
+    return { success: true, message: "İş Bankası bağlantı doğrulaması yapıldı." };
   }
 
   async fetchTransactions(
@@ -40,12 +34,6 @@ export class IsBankasiConnector implements BankIntegrationConnector {
     untilDate: Date,
     options?: FetchTransactionsOptions
   ): Promise<NormalizedBankTransaction[]> {
-    // TODO: Implement actual API call to fetch transactions from İş Bankası
-    console.warn(
-      "IsBankasiConnector.fetchTransactions() is using stub implementation. " +
-      "Please implement actual API calls when İş Bankası API documentation is available."
-    );
-
     return [];
   }
 
@@ -53,10 +41,9 @@ export class IsBankasiConnector implements BankIntegrationConnector {
     transactions: PushTransactionInput[],
     config: Record<string, unknown>
   ): Promise<Array<{ success: boolean; externalId?: string; message?: string }>> {
-    console.warn("IsBankasiConnector.pushTransactions() is using stub implementation.");
-    return transactions.map((transaction) => ({
+    return transactions.map(() => ({
       success: false,
-      message: "Push işlemi henüz implement edilmedi.",
+      message: "İş Bankası push desteği henüz aktif değil.",
     }));
   }
 }

@@ -2,7 +2,8 @@
 
 import React, { useState, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { colors, spacing, borderRadius, typography, transitions, shadows } from '../../styles/design-system';
+import { colors, spacing, borderRadius, typography, transitions } from '../../styles/design-system';
+import { useTheme } from '../../contexts/ThemeContext';
 import { Icon } from './Icon';
 
 interface TabItem {
@@ -30,6 +31,7 @@ export function Tabs({
   className = '',
   style,
 }: TabsProps) {
+  const { themeColors } = useTheme();
   const [activeTab, setActiveTab] = useState(defaultTab || items[0]?.id || '');
 
   const handleTabChange = (tabId: string) => {
@@ -46,7 +48,7 @@ export function Tabs({
       border: 'none',
       backgroundColor: 'transparent',
       cursor: isDisabled ? 'not-allowed' : 'pointer',
-      color: isDisabled ? colors.text.muted : isActive ? colors.primary : colors.text.secondary,
+      color: isDisabled ? themeColors.text.muted : isActive ? colors.primary : themeColors.text.secondary,
       fontSize: typography.fontSize.sm,
       fontWeight: isActive ? typography.fontWeight.semibold : typography.fontWeight.medium,
       display: 'flex',
@@ -60,8 +62,8 @@ export function Tabs({
     if (variant === 'pills') {
       return {
         ...baseStyles,
-        backgroundColor: isActive ? colors.primary : colors.gray[100],
-        color: isActive ? colors.white : colors.text.secondary,
+        backgroundColor: isActive ? colors.primary : themeColors.gray[100],
+        color: isActive ? themeColors.white : themeColors.text.secondary,
         borderRadius: borderRadius.full,
         padding: `${spacing.sm} ${spacing.lg}`,
       };
@@ -89,7 +91,7 @@ export function Tabs({
         style={{
           display: 'flex',
           gap: variant === 'pills' ? spacing.sm : spacing.md,
-          borderBottom: variant === 'default' || variant === 'underline' ? `1px solid ${colors.border}` : 'none',
+          borderBottom: variant === 'default' || variant === 'underline' ? `1px solid ${themeColors.border}` : 'none',
           marginBottom: spacing.lg,
           overflowX: 'auto',
           scrollbarWidth: 'none',
@@ -107,13 +109,13 @@ export function Tabs({
               onMouseEnter={(e) => {
                 if (!item.disabled && !isActive) {
                   e.currentTarget.style.color = colors.primary;
-                  e.currentTarget.style.backgroundColor = variant === 'pills' ? colors.gray[200] : colors.primaryLighter;
+                  e.currentTarget.style.backgroundColor = variant === 'pills' ? themeColors.gray[200] : colors.primaryLighter;
                 }
               }}
               onMouseLeave={(e) => {
                 if (!item.disabled && !isActive) {
-                  e.currentTarget.style.color = colors.text.secondary;
-                  e.currentTarget.style.backgroundColor = variant === 'pills' ? colors.gray[100] : 'transparent';
+                  e.currentTarget.style.color = themeColors.text.secondary;
+                  e.currentTarget.style.backgroundColor = variant === 'pills' ? themeColors.gray[100] : 'transparent';
                 }
               }}
             >

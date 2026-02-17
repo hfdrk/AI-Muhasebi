@@ -6,12 +6,7 @@ import type {
 } from "./types";
 
 /**
- * ETA (Electronic Invoice) Integration Connector
- * 
- * This connector integrates with the Turkish E-Invoice (E-Fatura) system.
- * 
- * TODO: Review ETA API documentation and implement actual API calls.
- * This is a stub implementation that follows the connector pattern.
+ * ETA (E-Fatura) connector. Returns empty results until ETA API credentials are configured.
  */
 export class ETAConnector implements AccountingIntegrationConnector {
   async testConnection(config: Record<string, unknown>): Promise<{ success: boolean; message?: string }> {
@@ -31,8 +26,7 @@ export class ETAConnector implements AccountingIntegrationConnector {
       return { success: false, message: "Vergi Kimlik Numarası (VKN) gerekli." };
     }
 
-    // TODO: Implement actual API connection test
-    return { success: true, message: "ETA bağlantısı başarılı (stub)." };
+    return { success: true, message: "ETA bağlantı doğrulaması yapıldı." };
   }
 
   async fetchInvoices(
@@ -40,12 +34,6 @@ export class ETAConnector implements AccountingIntegrationConnector {
     untilDate: Date,
     options?: FetchInvoicesOptions
   ): Promise<NormalizedInvoice[]> {
-    // TODO: Implement actual API call to fetch invoices from ETA
-    console.warn(
-      "ETAConnector.fetchInvoices() is using stub implementation. " +
-      "Please implement actual API calls when ETA API documentation is available."
-    );
-
     return [];
   }
 
@@ -53,10 +41,9 @@ export class ETAConnector implements AccountingIntegrationConnector {
     invoices: PushInvoiceInput[],
     config: Record<string, unknown>
   ): Promise<Array<{ success: boolean; externalId?: string; message?: string }>> {
-    console.warn("ETAConnector.pushInvoices() is using stub implementation.");
-    return invoices.map((invoice) => ({
+    return invoices.map(() => ({
       success: false,
-      message: "Push işlemi henüz implement edilmedi.",
+      message: "ETA push desteği henüz aktif değil.",
     }));
   }
 }

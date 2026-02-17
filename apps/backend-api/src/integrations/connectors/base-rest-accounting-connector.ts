@@ -6,6 +6,7 @@ import type {
   PushInvoiceInput,
 } from "./types";
 import { logger } from "@repo/shared-utils";
+import { getCircuitBreaker } from "../../lib/circuit-breaker";
 
 /**
  * REST Accounting Connector Configuration
@@ -246,9 +247,9 @@ export abstract class BaseRESTAccountingConnector implements AccountingIntegrati
         message: `${this.connectorName} kimlik doğrulama başarısız.`
       };
 
-    } catch (error) {
+    } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Bilinmeyen hata";
-      logger.error(`[${this.connectorName}] testConnection error:`, error);
+      logger.error(`[${this.connectorName}] testConnection error:`, { error: error instanceof Error ? error.message : String(error) });
       return { success: false, message: `${this.connectorName} bağlantı hatası: ${errorMessage}` };
     }
   }
@@ -276,7 +277,17 @@ export abstract class BaseRESTAccountingConnector implements AccountingIntegrati
   protected abstract getInvoicesEndpoint(): string;
 
   /**
-   * Make HTTP request with retry logic
+   * Get the circuit breaker for this connector (lazy-initialized).
+   */
+  protected getCircuitBreaker() {
+    return getCircuitBreaker(`integration:${this.connectorName}`, {
+      failureThreshold: 5,
+      resetTimeout: 30_000,
+    });
+  }
+
+  /**
+   * Make HTTP request with retry logic and circuit breaker protection.
    */
   protected async makeRequest<T>(
     method: "GET" | "POST" | "PUT" | "DELETE",
@@ -297,48 +308,53 @@ export abstract class BaseRESTAccountingConnector implements AccountingIntegrati
 
     const maxRetries = this.config?.maxRetries || 3;
     const retryDelay = this.config?.retryDelayMs || 1000;
+    const breaker = this.getCircuitBreaker();
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const headers = await this.getHeaders();
+        const result = await breaker.execute<T>(async () => {
+          const headers = await this.getHeaders();
 
-        const requestOptions: RequestInit = {
-          method,
-          headers,
-        };
+          const requestOptions: RequestInit = {
+            method,
+            headers,
+          };
 
-        if (body && (method === "POST" || method === "PUT")) {
-          requestOptions.body = JSON.stringify(body);
-        }
+          if (body && (method === "POST" || method === "PUT")) {
+            requestOptions.body = JSON.stringify(body);
+          }
 
-        const response = await fetch(url.toString(), requestOptions);
+          const response = await fetch(url.toString(), requestOptions);
 
-        // Log request for debugging
-        logger.debug(`[${this.connectorName}] ${method} ${url.toString()} - ${response.status}`);
+          // Log request for debugging
+          logger.debug(`[${this.connectorName}] ${method} ${url.toString()} - ${response.status}`);
 
-        if (!response.ok) {
-          const errorText = await response.text();
+          if (!response.ok) {
+            const errorText = await response.text();
 
-          // Don't retry on 4xx errors (except 429)
-          if (response.status >= 400 && response.status < 500 && response.status !== 429) {
+            // Don't retry on 4xx errors (except 429) — and don't trip the breaker
+            if (response.status >= 400 && response.status < 500 && response.status !== 429) {
+              // Throw a special non-breaker error that we'll unwrap outside
+              const err = new Error(`API hatası: ${response.status} - ${errorText}`);
+              (err as any).__clientError = true;
+              throw err;
+            }
+
+            // 5xx / 429 errors DO trip the circuit breaker
             throw new Error(`API hatası: ${response.status} - ${errorText}`);
           }
 
-          // Retry on 5xx or 429
-          if (attempt < maxRetries) {
-            const delay = response.status === 429
-              ? parseInt(response.headers.get("Retry-After") || String(retryDelay * attempt))
-              : retryDelay * attempt;
-            await this.sleep(delay);
-            continue;
-          }
+          return await response.json() as T;
+        });
 
-          throw new Error(`API hatası: ${response.status} - ${errorText}`);
+        return result;
+
+      } catch (error: unknown) {
+        // Client errors (4xx except 429) should not be retried
+        if (error instanceof Error && (error as any).__clientError) {
+          throw error;
         }
 
-        return await response.json() as T;
-
-      } catch (error) {
         if (attempt === maxRetries) {
           throw error;
         }
@@ -414,8 +430,8 @@ export abstract class BaseRESTAccountingConnector implements AccountingIntegrati
 
       return allInvoices;
 
-    } catch (error) {
-      logger.error(`[${this.connectorName}] fetchInvoices error:`, error);
+    } catch (error: unknown) {
+      logger.error(`[${this.connectorName}] fetchInvoices error:`, { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -599,7 +615,7 @@ export abstract class BaseRESTAccountingConnector implements AccountingIntegrati
             message: "Fatura başarıyla gönderildi.",
           });
         }
-      } catch (error) {
+      } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : "Bilinmeyen hata";
         results.push({
           success: false,

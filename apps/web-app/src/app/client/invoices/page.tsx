@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { listInvoices, getMyClientCompany } from "@repo/api-client";
 import { Card } from "@/components/ui/Card";
 import { colors, spacing, borderRadius, transitions, typography, shadows } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import Link from "next/link";
 
 function formatCurrency(amount: number, currency: string = "TRY"): string {
@@ -28,6 +29,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function ClientInvoicesPage() {
+  const { themeColors } = useTheme();
   // Get client company for ReadOnly user
   const { data: clientCompanyData } = useQuery({
     queryKey: ["myClientCompany"],
@@ -35,7 +37,7 @@ export default function ClientInvoicesPage() {
   });
 
   const clientCompany = clientCompanyData?.data;
-  const clientCompanyId = clientCompany?.id || null;
+  const clientCompanyId = clientCompany?.id || undefined;
 
   const { data: invoicesData, isLoading } = useQuery({
     queryKey: ["client-invoices", clientCompanyId],
@@ -50,12 +52,12 @@ export default function ClientInvoicesPage() {
       <div style={{ marginBottom: spacing.xl }}>
         <p
           style={{
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
             fontSize: typography.fontSize.base,
             margin: 0,
           }}
         >
-          <strong style={{ color: colors.text.primary }}>{invoices.length}</strong> fatura bulundu
+          <strong style={{ color: themeColors.text.primary }}>{invoices.length}</strong> fatura bulundu
         </p>
       </div>
 
@@ -65,7 +67,7 @@ export default function ClientInvoicesPage() {
             style={{
               padding: spacing.xxl,
               textAlign: "center",
-              color: colors.text.secondary,
+              color: themeColors.text.secondary,
             }}
           >
             <div style={{ fontSize: "48px", marginBottom: spacing.md }}>⏳</div>
@@ -78,7 +80,7 @@ export default function ClientInvoicesPage() {
             style={{
               padding: spacing.xxl,
               textAlign: "center",
-              color: colors.text.secondary,
+              color: themeColors.text.secondary,
             }}
           >
             <div style={{ fontSize: "64px", marginBottom: spacing.lg }}>📄</div>
@@ -86,7 +88,7 @@ export default function ClientInvoicesPage() {
               style={{
                 fontSize: typography.fontSize.xl,
                 fontWeight: typography.fontWeight.semibold,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
                 marginBottom: spacing.sm,
               }}
             >
@@ -107,14 +109,14 @@ export default function ClientInvoicesPage() {
                 style={{
                   display: "block",
                   padding: spacing.lg,
-                  borderBottom: index < invoices.length - 1 ? `1px solid ${colors.border}` : "none",
+                  borderBottom: index < invoices.length - 1 ? `1px solid ${themeColors.border}` : "none",
                   textDecoration: "none",
                   color: "inherit",
                   transition: `all ${transitions.normal} ease`,
                   borderRadius: borderRadius.md,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = colors.gray[50];
+                  e.currentTarget.style.backgroundColor = themeColors.gray[50];
                   e.currentTarget.style.transform = "translateX(4px)";
                   e.currentTarget.style.boxShadow = shadows.sm;
                 }}
@@ -147,7 +149,7 @@ export default function ClientInvoicesPage() {
                         style={{
                           fontWeight: typography.fontWeight.semibold,
                           marginBottom: spacing.xs,
-                          color: colors.text.primary,
+                          color: themeColors.text.primary,
                           fontSize: typography.fontSize.base,
                         }}
                       >
@@ -156,7 +158,7 @@ export default function ClientInvoicesPage() {
                       <div
                         style={{
                           fontSize: typography.fontSize.sm,
-                          color: colors.text.secondary,
+                          color: themeColors.text.secondary,
                           display: "flex",
                           alignItems: "center",
                           gap: spacing.sm,

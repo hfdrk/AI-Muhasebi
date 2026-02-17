@@ -736,7 +736,7 @@ Yanıtlarını Türkçe, profesyonel ve yardımcı bir tonla ver.`;
         await auditService.log({
           tenantId,
           userId,
-          action: "AI_CHAT_ENHANCED",
+          action: "AI_CHAT_ENHANCED" as any,
           resourceType: "AI_ASSISTANT",
           resourceId: null,
           metadata: {

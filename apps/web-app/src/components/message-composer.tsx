@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { messagingClient } from "@repo/api-client";
 import { colors, spacing } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface MessageComposerProps {
   threadId: string;
@@ -11,6 +12,7 @@ interface MessageComposerProps {
 }
 
 export function MessageComposer({ threadId, onMessageSent }: MessageComposerProps) {
+  const { themeColors } = useTheme();
   const [content, setContent] = useState("");
   const queryClient = useQueryClient();
 
@@ -43,7 +45,7 @@ export function MessageComposer({ threadId, onMessageSent }: MessageComposerProp
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ borderTop: `1px solid ${colors.gray[200]}`, padding: spacing.md }}>
+    <form onSubmit={handleSubmit} style={{ borderTop: `1px solid ${themeColors.gray[200]}`, padding: spacing.md }}>
       <div style={{ display: "flex", gap: spacing.sm, alignItems: "flex-end" }}>
         <textarea
           value={content}
@@ -55,7 +57,7 @@ export function MessageComposer({ threadId, onMessageSent }: MessageComposerProp
             minHeight: "60px",
             maxHeight: "120px",
             padding: spacing.sm,
-            border: `1px solid ${colors.gray[300]}`,
+            border: `1px solid ${themeColors.gray[300]}`,
             borderRadius: "6px",
             fontSize: "14px",
             fontFamily: "inherit",
@@ -68,7 +70,7 @@ export function MessageComposer({ threadId, onMessageSent }: MessageComposerProp
           disabled={!content.trim() || sendMessageMutation.isPending}
           style={{
             padding: `${spacing.sm} ${spacing.lg}`,
-            backgroundColor: content.trim() ? colors.primary : colors.gray[300],
+            backgroundColor: content.trim() ? colors.primary : themeColors.gray[300],
             color: colors.white,
             border: "none",
             borderRadius: "6px",

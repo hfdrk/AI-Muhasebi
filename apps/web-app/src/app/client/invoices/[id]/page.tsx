@@ -6,8 +6,8 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Button } from "@/components/ui/Button";
 import { colors, spacing } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 function formatCurrency(amount: number, currency: string = "TRY"): string {
   return new Intl.NumberFormat("tr-TR", {
@@ -39,6 +39,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function ClientInvoiceDetailPage() {
+  const { themeColors } = useTheme();
   const params = useParams();
   const invoiceId = params.id as string;
 
@@ -53,7 +54,7 @@ export default function ClientInvoiceDetailPage() {
       <div>
         <PageHeader title="Fatura Detayı" />
         <Card>
-          <div style={{ padding: spacing.xl, textAlign: "center", color: colors.text.secondary }}>
+          <div style={{ padding: spacing.xl, textAlign: "center", color: themeColors.text.secondary }}>
             Yükleniyor...
           </div>
         </Card>
@@ -67,7 +68,7 @@ export default function ClientInvoiceDetailPage() {
       <div>
         <PageHeader title="Fatura Detayı" />
         <Card>
-          <div style={{ padding: spacing.xl, textAlign: "center", color: colors.text.secondary }}>
+          <div style={{ padding: spacing.xl, textAlign: "center", color: themeColors.text.secondary }}>
             <div style={{ fontSize: "48px", marginBottom: spacing.md }}>❌</div>
             <div>Fatura bulunamadı.</div>
             <Link href="/client/invoices" style={{ color: colors.primary, textDecoration: "none", marginTop: spacing.md, display: "inline-block" }}>
@@ -85,20 +86,20 @@ export default function ClientInvoiceDetailPage() {
         <Link href="/client/invoices" style={{ color: colors.primary, textDecoration: "none", fontSize: "18px" }}>
           ←
         </Link>
-        <PageHeader title={`Fatura #${invoiceData.invoiceNumber || invoiceId}`} />
+        <PageHeader title={`Fatura #${invoiceData.externalId || invoiceId}`} />
       </div>
 
       {/* Invoice Details */}
       <Card style={{ marginBottom: spacing.lg }}>
         <div style={{ padding: spacing.lg }}>
           <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: spacing.md, marginBottom: spacing.md }}>
-            <div style={{ color: colors.text.secondary, fontSize: "14px" }}>Fatura No:</div>
-            <div style={{ fontWeight: "medium" }}>{invoiceData.invoiceNumber || "-"}</div>
+            <div style={{ color: themeColors.text.secondary, fontSize: "14px" }}>Fatura No:</div>
+            <div style={{ fontWeight: "medium" }}>{invoiceData.externalId || "-"}</div>
 
-            <div style={{ color: colors.text.secondary, fontSize: "14px" }}>Tip:</div>
+            <div style={{ color: themeColors.text.secondary, fontSize: "14px" }}>Tip:</div>
             <div>{TYPE_LABELS[invoiceData.type] || invoiceData.type}</div>
 
-            <div style={{ color: colors.text.secondary, fontSize: "14px" }}>Durum:</div>
+            <div style={{ color: themeColors.text.secondary, fontSize: "14px" }}>Durum:</div>
             <div>
               <span
                 style={{
@@ -109,13 +110,13 @@ export default function ClientInvoiceDetailPage() {
                       ? colors.success + "20"
                       : invoiceData.status === "iptal"
                       ? colors.error + "20"
-                      : colors.gray[200],
+                      : themeColors.gray[200],
                   color:
                     invoiceData.status === "kesildi"
                       ? colors.success
                       : invoiceData.status === "iptal"
                       ? colors.error
-                      : colors.text.secondary,
+                      : themeColors.text.secondary,
                   fontSize: "12px",
                   fontWeight: "medium",
                 }}
@@ -124,24 +125,24 @@ export default function ClientInvoiceDetailPage() {
               </span>
             </div>
 
-            <div style={{ color: colors.text.secondary, fontSize: "14px" }}>Tarih:</div>
+            <div style={{ color: themeColors.text.secondary, fontSize: "14px" }}>Tarih:</div>
             <div>{formatDate(invoiceData.issueDate)}</div>
 
             {invoiceData.dueDate && (
               <>
-                <div style={{ color: colors.text.secondary, fontSize: "14px" }}>Vade Tarihi:</div>
+                <div style={{ color: themeColors.text.secondary, fontSize: "14px" }}>Vade Tarihi:</div>
                 <div>{formatDate(invoiceData.dueDate)}</div>
               </>
             )}
 
-            <div style={{ color: colors.text.secondary, fontSize: "14px" }}>Toplam:</div>
+            <div style={{ color: themeColors.text.secondary, fontSize: "14px" }}>Toplam:</div>
             <div style={{ fontSize: "20px", fontWeight: "bold", color: colors.primary }}>
               {formatCurrency(Number(invoiceData.totalAmount), invoiceData.currency)}
             </div>
 
             {invoiceData.counterpartyName && (
               <>
-                <div style={{ color: colors.text.secondary, fontSize: "14px" }}>Karşı Taraf:</div>
+                <div style={{ color: themeColors.text.secondary, fontSize: "14px" }}>Karşı Taraf:</div>
                 <div>{invoiceData.counterpartyName}</div>
               </>
             )}
@@ -157,7 +158,7 @@ export default function ClientInvoiceDetailPage() {
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
-                  <tr style={{ borderBottom: `1px solid ${colors.gray[300]}` }}>
+                  <tr style={{ borderBottom: `1px solid ${themeColors.gray[300]}` }}>
                     <th style={{ padding: spacing.md, textAlign: "left", fontSize: "14px", fontWeight: "semibold" }}>
                       Açıklama
                     </th>
@@ -174,7 +175,7 @@ export default function ClientInvoiceDetailPage() {
                 </thead>
                 <tbody>
                   {invoiceData.lines.map((line: any, index: number) => (
-                    <tr key={index} style={{ borderBottom: `1px solid ${colors.gray[200]}` }}>
+                    <tr key={index} style={{ borderBottom: `1px solid ${themeColors.gray[200]}` }}>
                       <td style={{ padding: spacing.md, fontSize: "14px" }}>{line.description || "-"}</td>
                       <td style={{ padding: spacing.md, fontSize: "14px", textAlign: "right" }}>
                         {Number(line.quantity).toFixed(2)}
@@ -189,7 +190,7 @@ export default function ClientInvoiceDetailPage() {
                   ))}
                 </tbody>
                 <tfoot>
-                  <tr style={{ borderTop: `2px solid ${colors.gray[300]}` }}>
+                  <tr style={{ borderTop: `2px solid ${themeColors.gray[300]}` }}>
                     <td colSpan={3} style={{ padding: spacing.md, textAlign: "right", fontWeight: "semibold" }}>
                       Toplam:
                     </td>

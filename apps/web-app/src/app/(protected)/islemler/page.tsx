@@ -15,8 +15,10 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { TableRow, TableCell } from "@/components/ui/Table";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { colors, spacing, typography } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 function TransactionsPageContent() {
+  const { themeColors } = useTheme();
   const searchParams = useSearchParams();
   const defaultClientId = searchParams.get("clientCompanyId") || undefined;
 
@@ -53,10 +55,10 @@ function TransactionsPageContent() {
       <div style={{ padding: spacing.xxl, maxWidth: "1600px", margin: "0 auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.xl }}>
         <div>
-          <h1 style={{ fontSize: typography.fontSize["3xl"], fontWeight: typography.fontWeight.bold, color: colors.text.primary, marginBottom: spacing.sm }}>
+          <h1 style={{ fontSize: typography.fontSize["3xl"], fontWeight: typography.fontWeight.bold, color: themeColors.text.primary, marginBottom: spacing.sm }}>
             Mali Hareketler
           </h1>
-          <p style={{ color: colors.text.secondary, fontSize: typography.fontSize.base }}>
+          <p style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.base }}>
             Mali hareketlerinizi görüntüleyin ve yönetin
           </p>
         </div>
@@ -138,23 +140,23 @@ function TransactionsPageContent() {
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ borderBottom: `2px solid ${colors.border}`, backgroundColor: colors.gray[50] }}>
-                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                <tr style={{ borderBottom: `2px solid ${themeColors.border}`, backgroundColor: themeColors.gray[50] }}>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                     Tarih
                   </th>
-                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                     Referans No
                   </th>
-                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                     Açıklama
                   </th>
-                  <th style={{ padding: spacing.md, textAlign: "right", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                  <th style={{ padding: spacing.md, textAlign: "right", fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                     Toplam Borç
                   </th>
-                  <th style={{ padding: spacing.md, textAlign: "right", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                  <th style={{ padding: spacing.md, textAlign: "right", fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                     Toplam Alacak
                   </th>
-                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                     İşlemler
                   </th>
                 </tr>
@@ -210,7 +212,7 @@ function TransactionsPageContent() {
           >
             Önceki
           </Button>
-          <span style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm }}>
+          <span style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>
             Sayfa {page} / {pagination.totalPages}
           </span>
           <Button

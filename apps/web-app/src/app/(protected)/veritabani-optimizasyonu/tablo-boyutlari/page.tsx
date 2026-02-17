@@ -2,12 +2,13 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { dbOptimizationClient } from "@repo/api-client";
-import Link from "next/link";
 import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
-import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
+import { colors, spacing, typography } from "../../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function TableSizesPage() {
+  const { themeColors } = useTheme();
   // Fetch table sizes
   const { data: sizesData, isLoading: sizesLoading } = useQuery({
     queryKey: ["table-sizes"],
@@ -22,7 +23,7 @@ export default function TableSizesPage() {
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
-        backgroundColor: colors.gray[50],
+        backgroundColor: themeColors.gray[50],
         minHeight: "100vh",
       }}
     >
@@ -41,7 +42,7 @@ export default function TableSizesPage() {
           style={{
             fontSize: typography.fontSize["3xl"],
             fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
             marginBottom: spacing.sm,
           }}
         >
@@ -50,7 +51,7 @@ export default function TableSizesPage() {
         <p
           style={{
             fontSize: typography.fontSize.base,
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
             lineHeight: typography.lineHeight.relaxed,
             margin: 0,
           }}
@@ -68,7 +69,7 @@ export default function TableSizesPage() {
                 display: "inline-block",
                 width: "48px",
                 height: "48px",
-                border: `4px solid ${colors.gray[200]}`,
+                border: `4px solid ${themeColors.gray[200]}`,
                 borderTopColor: colors.primary,
                 borderRadius: "50%",
                 animation: "spin 0.8s linear infinite",
@@ -79,7 +80,7 @@ export default function TableSizesPage() {
       ) : sizes.length === 0 ? (
         <Card variant="elevated">
           <div style={{ padding: spacing.xl, textAlign: "center" }}>
-            <p style={{ color: colors.text.secondary, margin: 0 }}>
+            <p style={{ color: themeColors.text.secondary, margin: 0 }}>
               Tablo boyutu bilgisi bulunamadı.
             </p>
           </div>
@@ -94,14 +95,14 @@ export default function TableSizesPage() {
               }}
             >
               <thead>
-                <tr style={{ borderBottom: `2px solid ${colors.border}` }}>
+                <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
                   <th
                     style={{
                       padding: spacing.md,
                       textAlign: "left",
                       fontSize: typography.fontSize.sm,
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                     }}
                   >
                     Tablo
@@ -112,7 +113,7 @@ export default function TableSizesPage() {
                       textAlign: "right",
                       fontSize: typography.fontSize.sm,
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                     }}
                   >
                     Boyut
@@ -123,7 +124,7 @@ export default function TableSizesPage() {
                       textAlign: "right",
                       fontSize: typography.fontSize.sm,
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                     }}
                   >
                     Satır Sayısı
@@ -134,7 +135,7 @@ export default function TableSizesPage() {
                       textAlign: "right",
                       fontSize: typography.fontSize.sm,
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                     }}
                   >
                     İndeks Boyutu
@@ -146,7 +147,7 @@ export default function TableSizesPage() {
                   <tr
                     key={index}
                     style={{
-                      borderBottom: `1px solid ${colors.border}`,
+                      borderBottom: `1px solid ${themeColors.border}`,
                     }}
                   >
                     <td

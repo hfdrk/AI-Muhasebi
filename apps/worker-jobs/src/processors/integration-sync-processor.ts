@@ -2,6 +2,7 @@ import { prisma } from "../lib/prisma";
 import { connectorRegistry } from "../integrations/connectors/connector-registry";
 import { InvoiceImporter } from "../integrations/importers/invoice-importer";
 import { BankTransactionImporter } from "../integrations/importers/bank-transaction-importer";
+import { logger } from "@repo/shared-utils";
 import type {
   AccountingIntegrationConnector,
   BankIntegrationConnector,
@@ -79,7 +80,7 @@ export class IntegrationSyncProcessor {
     }
 
     if (job.status !== "pending" && job.status !== "retry") {
-      console.log(`[IntegrationSyncProcessor] Job ${jobId} is ${job.status}, skipping`);
+      logger.info("[IntegrationSyncProcessor] Job is not pending, skipping", undefined, { jobId, status: job.status });
       return;
     }
 
@@ -132,7 +133,7 @@ export class IntegrationSyncProcessor {
       },
     });
 
-    return job as SyncJobWithRelations | null;
+    return job as unknown as SyncJobWithRelations | null;
   }
 
   /**
@@ -228,14 +229,14 @@ export class IntegrationSyncProcessor {
       job.tenantIntegrationId
     );
 
-    await this.logSyncResult(job, "Fatura senkronizasyonu", importSummary);
+    await this.logSyncResult(job, "Fatura senkronizasyonu", importSummary as any);
 
     return {
       type: "pull",
       created: importSummary.created,
       updated: importSummary.updated,
       skipped: importSummary.skipped,
-      errors: importSummary.errors,
+      errors: importSummary.errors as any,
     };
   }
 
@@ -258,14 +259,14 @@ export class IntegrationSyncProcessor {
       job.tenantIntegrationId
     );
 
-    await this.logSyncResult(job, "Banka işlemi senkronizasyonu", importSummary);
+    await this.logSyncResult(job, "Banka işlemi senkronizasyonu", importSummary as any);
 
     return {
       type: "pull",
       created: importSummary.created,
       updated: importSummary.updated,
       skipped: importSummary.skipped,
-      errors: importSummary.errors,
+      errors: importSummary.errors as any,
     };
   }
 
@@ -413,7 +414,7 @@ export class IntegrationSyncProcessor {
           success: successCount,
           failed: failureCount,
           errors: errors.slice(0, 10),
-        },
+        } as any,
       },
     });
   }
@@ -457,7 +458,7 @@ export class IntegrationSyncProcessor {
 
     await prisma.tenantIntegration.update({
       where: { id: job.tenantIntegrationId },
-      data: updateData,
+      data: updateData as any,
     });
   }
 
@@ -504,12 +505,10 @@ export class IntegrationSyncProcessor {
           retryCount: job.retryCount + 1,
           scheduledFor,
           errorMessage,
-        },
+        } as any,
       });
 
-      console.log(
-        `[IntegrationSyncProcessor] Job ${jobId} scheduled for retry at ${scheduledFor.toISOString()}`
-      );
+      logger.info("[IntegrationSyncProcessor] Job scheduled for retry", undefined, { jobId, scheduledFor: scheduledFor.toISOString() });
     } else {
       // Mark as failed
       await prisma.integrationSyncJob.update({
@@ -609,14 +608,11 @@ export class IntegrationSyncProcessor {
               errorMessage,
               jobType: JOB_TYPE_LABELS[job.jobType as JobType] || job.jobType,
             },
-          },
+          } as any,
         });
       }
     } catch (notificationError) {
-      console.error(
-        "[IntegrationSyncProcessor] Failed to send notification:",
-        notificationError
-      );
+      logger.error("[IntegrationSyncProcessor] Failed to send notification", notificationError);
     }
   }
 
@@ -802,7 +798,7 @@ export class IntegrationSyncProcessor {
       where: {
         status: "retry",
         scheduledFor: { lte: now },
-      },
+      } as any,
       select: { id: true },
       take: 10,
     });
@@ -820,7 +816,7 @@ export class IntegrationSyncProcessor {
         await this.processSyncJob(job.id);
         processedCount++;
       } catch (error) {
-        console.error(`[IntegrationSyncProcessor] Failed to process retry job ${job.id}:`, error);
+        logger.error("[IntegrationSyncProcessor] Failed to process retry job", error, { jobId: job.id });
       }
     }
 

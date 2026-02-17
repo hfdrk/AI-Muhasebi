@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { kvkkClient, listTenantUsers } from "@repo/api-client";
-import Link from "next/link";
 import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
-import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
+import { colors, spacing, borderRadius, typography } from "../../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "../../../../lib/toast";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -16,14 +16,8 @@ const STATUS_LABELS: Record<string, string> = {
   rejected: "Reddedildi",
 };
 
-const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  pending: { bg: colors.warningLight, text: colors.warningDark },
-  processing: { bg: colors.infoLight, text: colors.info },
-  completed: { bg: colors.successLight, text: colors.successDark },
-  rejected: { bg: colors.dangerLight, text: colors.dangerDark },
-};
-
 export default function DataAccessRequestsPage() {
+  const { themeColors } = useTheme();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
@@ -66,7 +60,7 @@ export default function DataAccessRequestsPage() {
       if (!selectedUserId) throw new Error("Kullanıcı seçilmedi");
       return kvkkClient.requestDataAccess(selectedUserId);
     },
-    onSuccess: (data) => {
+    onSuccess: (_data) => {
       toast.success("Veri erişim talebi başarıyla oluşturuldu!");
       queryClient.invalidateQueries({ queryKey: ["kvkk-data-access"] });
       queryClient.invalidateQueries({ queryKey: ["kvkk-data-access-requests"] });
@@ -82,7 +76,7 @@ export default function DataAccessRequestsPage() {
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
-        backgroundColor: colors.gray[50],
+        backgroundColor: themeColors.gray[50],
         minHeight: "100vh",
       }}
     >
@@ -101,7 +95,7 @@ export default function DataAccessRequestsPage() {
           style={{
             fontSize: typography.fontSize["3xl"],
             fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
             marginBottom: spacing.sm,
           }}
         >
@@ -110,7 +104,7 @@ export default function DataAccessRequestsPage() {
         <p
           style={{
             fontSize: typography.fontSize.base,
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
             lineHeight: typography.lineHeight.relaxed,
             margin: 0,
           }}
@@ -126,7 +120,7 @@ export default function DataAccessRequestsPage() {
             margin: `0 0 ${spacing.md} 0`,
             fontSize: typography.fontSize.xl,
             fontWeight: typography.fontWeight.semibold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
           }}
         >
           Yeni Veri Erişim Talebi Oluştur
@@ -138,7 +132,7 @@ export default function DataAccessRequestsPage() {
               marginBottom: spacing.sm,
               fontSize: typography.fontSize.sm,
               fontWeight: typography.fontWeight.medium,
-              color: colors.text.primary,
+              color: themeColors.text.primary,
             }}
           >
             Kullanıcı Seçin
@@ -151,10 +145,10 @@ export default function DataAccessRequestsPage() {
               maxWidth: "400px",
               padding: spacing.sm,
               borderRadius: borderRadius.md,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               fontSize: typography.fontSize.base,
-              backgroundColor: colors.white,
-              color: colors.text.primary,
+              backgroundColor: themeColors.white,
+              color: themeColors.text.primary,
             }}
           >
             <option value="">Kullanıcı seçin...</option>
@@ -191,7 +185,7 @@ export default function DataAccessRequestsPage() {
               style={{
                 margin: 0,
                 fontSize: typography.fontSize.sm,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
                 fontWeight: typography.fontWeight.medium,
                 marginBottom: spacing.xs,
               }}
@@ -202,7 +196,7 @@ export default function DataAccessRequestsPage() {
               style={{
                 margin: 0,
                 fontSize: typography.fontSize.sm,
-                color: colors.text.secondary,
+                color: themeColors.text.secondary,
                 lineHeight: typography.lineHeight.relaxed,
               }}
             >
@@ -220,18 +214,18 @@ export default function DataAccessRequestsPage() {
             margin: `0 0 ${spacing.md} 0`,
             fontSize: typography.fontSize.xl,
             fontWeight: typography.fontWeight.semibold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
           }}
         >
           Talep Geçmişi
         </h2>
         {accessRequestsLoading ? (
           <div style={{ padding: spacing.lg, textAlign: "center" }}>
-            <p style={{ color: colors.text.secondary, margin: 0 }}>Yükleniyor...</p>
+            <p style={{ color: themeColors.text.secondary, margin: 0 }}>Yükleniyor...</p>
           </div>
         ) : accessRequests.length === 0 ? (
           <div style={{ padding: spacing.lg, textAlign: "center" }}>
-            <p style={{ color: colors.text.secondary, margin: 0 }}>
+            <p style={{ color: themeColors.text.secondary, margin: 0 }}>
               Henüz veri erişim talebi bulunmuyor.
             </p>
           </div>
@@ -239,7 +233,7 @@ export default function DataAccessRequestsPage() {
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ backgroundColor: colors.gray[100], borderBottom: `1px solid ${colors.border}` }}>
+                <tr style={{ backgroundColor: themeColors.gray[100], borderBottom: `1px solid ${themeColors.border}` }}>
                   <th style={{ padding: spacing.sm, textAlign: "left", fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
                     Kullanıcı
                   </th>
@@ -260,26 +254,26 @@ export default function DataAccessRequestsPage() {
               <tbody>
                 {accessRequests.map((request: any) => {
                   const user = userMap.get(request.userId);
-                  const statusColor = 
+                  const statusColor =
                     request.status === "completed" ? colors.success
                     : request.status === "rejected" ? colors.danger
                     : request.status === "processing" ? colors.warning
                     : colors.info;
-                  
+
                   return (
-                    <tr key={request.id || request.requestId} style={{ borderBottom: `1px solid ${colors.border}` }}>
+                    <tr key={request.id || request.requestId} style={{ borderBottom: `1px solid ${themeColors.border}` }}>
                       <td style={{ padding: spacing.sm }}>
                         {user ? (
                           <div>
                             <div style={{ fontWeight: typography.fontWeight.medium }}>
                               {user.name || user.fullName}
                             </div>
-                            <div style={{ fontSize: typography.fontSize.xs, color: colors.text.secondary }}>
+                            <div style={{ fontSize: typography.fontSize.xs, color: themeColors.text.secondary }}>
                               {user.email}
                             </div>
                           </div>
                         ) : (
-                          <span style={{ color: colors.text.secondary }}>Bilinmeyen Kullanıcı</span>
+                          <span style={{ color: themeColors.text.secondary }}>Bilinmeyen Kullanıcı</span>
                         )}
                       </td>
                       <td style={{ padding: spacing.sm }}>
@@ -296,7 +290,7 @@ export default function DataAccessRequestsPage() {
                           {STATUS_LABELS[request.status] || request.status}
                         </span>
                       </td>
-                      <td style={{ padding: spacing.sm, color: colors.text.secondary }}>
+                      <td style={{ padding: spacing.sm, color: themeColors.text.secondary }}>
                         {new Date(request.requestedAt).toLocaleDateString("tr-TR", {
                           year: "numeric",
                           month: "long",
@@ -305,7 +299,7 @@ export default function DataAccessRequestsPage() {
                           minute: "2-digit",
                         })}
                       </td>
-                      <td style={{ padding: spacing.sm, color: colors.text.secondary }}>
+                      <td style={{ padding: spacing.sm, color: themeColors.text.secondary }}>
                         {request.completedAt
                           ? new Date(request.completedAt).toLocaleDateString("tr-TR", {
                               year: "numeric",
@@ -357,4 +351,3 @@ export default function DataAccessRequestsPage() {
     </div>
   );
 }
-

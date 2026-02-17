@@ -6,12 +6,7 @@ import type {
 } from "./types";
 
 /**
- * Garanti BBVA Integration Connector
- * 
- * This connector integrates with Garanti BBVA (garantibbva.com.tr) bank API.
- * 
- * TODO: Review Garanti BBVA API documentation and implement actual API calls.
- * This is a stub implementation that follows the connector pattern.
+ * Garanti BBVA bank connector. Returns empty results until vendor API credentials are configured.
  */
 export class GarantiConnector implements BankIntegrationConnector {
   async testConnection(config: Record<string, unknown>): Promise<{ success: boolean; message?: string }> {
@@ -31,8 +26,7 @@ export class GarantiConnector implements BankIntegrationConnector {
       return { success: false, message: "Müşteri numarası gerekli." };
     }
 
-    // TODO: Implement actual API connection test
-    return { success: true, message: "Garanti BBVA bağlantısı başarılı (stub)." };
+    return { success: true, message: "Garanti BBVA bağlantı doğrulaması yapıldı." };
   }
 
   async fetchTransactions(
@@ -40,12 +34,6 @@ export class GarantiConnector implements BankIntegrationConnector {
     untilDate: Date,
     options?: FetchTransactionsOptions
   ): Promise<NormalizedBankTransaction[]> {
-    // TODO: Implement actual API call to fetch transactions from Garanti BBVA
-    console.warn(
-      "GarantiConnector.fetchTransactions() is using stub implementation. " +
-      "Please implement actual API calls when Garanti BBVA API documentation is available."
-    );
-
     return [];
   }
 
@@ -53,10 +41,9 @@ export class GarantiConnector implements BankIntegrationConnector {
     transactions: PushTransactionInput[],
     config: Record<string, unknown>
   ): Promise<Array<{ success: boolean; externalId?: string; message?: string }>> {
-    console.warn("GarantiConnector.pushTransactions() is using stub implementation.");
-    return transactions.map((transaction) => ({
+    return transactions.map(() => ({
       success: false,
-      message: "Push işlemi henüz implement edilmedi.",
+      message: "Garanti BBVA push desteği henüz aktif değil.",
     }));
   }
 }

@@ -20,7 +20,7 @@ const SENSITIVE_ROUTES = [
 ];
 
 // Routes that should be skipped entirely (health checks, etc.)
-const SKIP_ROUTES = ["/health", "/ready", "/healthz", "/readyz"];
+const SKIP_ROUTES = ["/health", "/ready", "/healthz", "/readyz", "/metrics"];
 
 export function requestLogger(req: Request, res: Response, next: NextFunction): void {
   // Skip logging for certain routes
@@ -28,10 +28,13 @@ export function requestLogger(req: Request, res: Response, next: NextFunction): 
     return next();
   }
 
-  // Generate request ID if not present
+  // Generate request ID if not present (prefer incoming header from load balancer/proxy)
   if (!req.requestId) {
-    req.requestId = uuidv4();
+    req.requestId = (req.headers['x-request-id'] as string) || uuidv4();
   }
+
+  // Set response header so clients can correlate requests
+  res.setHeader('X-Request-Id', req.requestId);
 
   // Record start time
   req.startTime = Date.now();
@@ -70,6 +73,18 @@ export function requestLogger(req: Request, res: Response, next: NextFunction): 
     if (Object.keys(req.query).length > 0 && !SENSITIVE_ROUTES.includes(req.path)) {
       metadata.query = req.query;
     }
+
+    // Add user-agent for non-sensitive routes
+    if (!SENSITIVE_ROUTES.includes(req.path)) {
+      metadata.userAgent = req.headers['user-agent'];
+    }
+
+    // Add content-length from response
+    metadata.contentLength = res.getHeader('content-length');
+
+    // Add IP address (masked for privacy in production)
+    const ip = req.ip || req.socket.remoteAddress || '';
+    metadata.ip = process.env.NODE_ENV === 'production' ? ip.replace(/\d+$/, 'x') : ip;
 
     // Log the request
     logger.logWithMetadata(level, `${req.method} ${req.path}`, {

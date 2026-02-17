@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Modal } from "./Modal";
-import { Icon } from "./Icon";
-import { colors, spacing, typography, borderRadius, shadows } from "../../styles/design-system";
+import { spacing, typography, borderRadius, shadows } from "../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface Shortcut {
   keys: string[];
@@ -50,6 +50,7 @@ const shortcuts: Shortcut[] = [
 ];
 
 export function KeyboardShortcuts() {
+  const { themeColors } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [isMac, setIsMac] = useState(false);
 
@@ -104,7 +105,7 @@ export function KeyboardShortcuts() {
                 style={{
                   fontSize: typography.fontSize.sm,
                   fontWeight: typography.fontWeight.semibold,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                   textTransform: "uppercase",
                   letterSpacing: "0.05em",
                   marginBottom: spacing.md,
@@ -123,10 +124,10 @@ export function KeyboardShortcuts() {
                       alignItems: "center",
                       padding: spacing.sm,
                       borderRadius: borderRadius.md,
-                      backgroundColor: colors.gray[50],
+                      backgroundColor: themeColors.gray[50],
                     }}
                   >
-                    <span style={{ fontSize: typography.fontSize.sm, color: colors.text.primary }}>
+                    <span style={{ fontSize: typography.fontSize.sm, color: themeColors.text.primary }}>
                       {shortcut.description}
                     </span>
                     <div style={{ display: "flex", gap: spacing.xs, alignItems: "center" }}>
@@ -135,12 +136,12 @@ export function KeyboardShortcuts() {
                           <kbd
                             style={{
                               padding: `${spacing.xs} ${spacing.sm}`,
-                              backgroundColor: colors.white,
-                              border: `1px solid ${colors.border}`,
+                              backgroundColor: themeColors.white,
+                              border: `1px solid ${themeColors.border}`,
                               borderRadius: borderRadius.sm,
                               fontSize: typography.fontSize.xs,
                               fontWeight: typography.fontWeight.medium,
-                              color: colors.text.primary,
+                              color: themeColors.text.primary,
                               boxShadow: shadows.sm,
                               fontFamily: typography.fontFamily.sans,
                             }}
@@ -148,7 +149,7 @@ export function KeyboardShortcuts() {
                             {formatKey(key)}
                           </kbd>
                           {keyIndex < shortcut.keys.length - 1 && (
-                            <span style={{ margin: `0 ${spacing.xs}`, color: colors.text.muted }}>+</span>
+                            <span style={{ margin: `0 ${spacing.xs}`, color: themeColors.text.muted }}>+</span>
                           )}
                         </span>
                       ))}

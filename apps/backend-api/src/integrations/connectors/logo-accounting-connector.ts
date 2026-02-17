@@ -138,8 +138,8 @@ export class LogoAccountingConnector extends BaseRESTAccountingConnector {
   };
 
   private logoConfig: LogoConfig | null = null;
-  private accessToken: string | null = null;
-  private tokenExpiresAt: Date | null = null;
+  protected accessToken: string | null = null;
+  protected tokenExpiresAt: Date | null = null;
 
   /**
    * Parse Logo-specific configuration
@@ -246,12 +246,12 @@ export class LogoAccountingConnector extends BaseRESTAccountingConnector {
         throw new Error(`Kimlik doğrulama başarısız: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       this.accessToken = data.access_token;
       this.tokenExpiresAt = new Date(Date.now() + (data.expires_in || 3600) * 1000);
 
-    } catch (error) {
-      logger.error("[LogoConnector] Authentication error:", error);
+    } catch (error: unknown) {
+      logger.error("[LogoConnector] Authentication error:", { error: error instanceof Error ? error.message : String(error) });
       throw error;
     }
   }
@@ -528,8 +528,8 @@ export class LogoAccountingConnector extends BaseRESTAccountingConnector {
 
       return response.data || [];
 
-    } catch (error) {
-      logger.error("[LogoConnector] fetchCustomers error:", error);
+    } catch (error: unknown) {
+      logger.error("[LogoConnector] fetchCustomers error:", { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -571,8 +571,8 @@ export class LogoAccountingConnector extends BaseRESTAccountingConnector {
 
       return response.data || [];
 
-    } catch (error) {
-      logger.error("[LogoConnector] fetchProducts error:", error);
+    } catch (error: unknown) {
+      logger.error("[LogoConnector] fetchProducts error:", { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -616,8 +616,8 @@ export class LogoAccountingConnector extends BaseRESTAccountingConnector {
 
       return response.data || [];
 
-    } catch (error) {
-      logger.error("[LogoConnector] fetchAccountBalances error:", error);
+    } catch (error: unknown) {
+      logger.error("[LogoConnector] fetchAccountBalances error:", { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -645,8 +645,8 @@ export class LogoAccountingConnector extends BaseRESTAccountingConnector {
 
       return response.data || null;
 
-    } catch (error) {
-      logger.error("[LogoConnector] getEInvoiceStatus error:", error);
+    } catch (error: unknown) {
+      logger.error("[LogoConnector] getEInvoiceStatus error:", { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }

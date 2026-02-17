@@ -204,9 +204,7 @@ export class InvoiceImporter {
       }
     }
 
-    // TODO: In the future, we could store externalId mappings in a separate table
-    // For now, we'll rely on tax number and name matching
-
+    // Matching is done by tax number first, then by name
     return null;
   }
 }

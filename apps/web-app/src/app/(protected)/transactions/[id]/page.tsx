@@ -7,10 +7,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { spacing, colors } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function TransactionDetailPage() {
+  const { themeColors } = useTheme();
   const params = useParams();
   const router = useRouter();
   const transactionId = params.id as string;
@@ -72,7 +76,7 @@ export default function TransactionDetailPage() {
             style={{
               padding: "8px 16px",
               backgroundColor: colors.primary,
-              color: "white",
+              color: colors.white,
               textDecoration: "none",
               borderRadius: "4px",
             }}
@@ -85,7 +89,7 @@ export default function TransactionDetailPage() {
             style={{
               padding: "8px 16px",
               backgroundColor: colors.danger,
-              color: "white",
+              color: colors.white,
               border: "none",
               borderRadius: "4px",
               cursor: deleteMutation.isPending ? "not-allowed" : "pointer",
@@ -98,7 +102,7 @@ export default function TransactionDetailPage() {
             href="/islemler"
             style={{
               padding: "8px 16px",
-              backgroundColor: colors.gray[100],
+              backgroundColor: themeColors.gray[100],
               color: "inherit",
               textDecoration: "none",
               borderRadius: "4px",
@@ -132,7 +136,7 @@ export default function TransactionDetailPage() {
         <h2 style={{ marginBottom: "16px" }}>Hareket Satırları</h2>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
-            <tr style={{ borderBottom: "2px solid #ddd" }}>
+            <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
               <th style={{ padding: "12px", textAlign: "left" }}>Hesap Kodu</th>
               <th style={{ padding: "12px", textAlign: "left" }}>Hesap Adı</th>
               <th style={{ padding: "12px", textAlign: "right" }}>Borç</th>
@@ -142,7 +146,7 @@ export default function TransactionDetailPage() {
           </thead>
           <tbody>
             {transactionData.lines?.map((line) => (
-              <tr key={line.id} style={{ borderBottom: "1px solid #eee" }}>
+              <tr key={line.id} style={{ borderBottom: `1px solid ${themeColors.gray[200]}` }}>
                 <td style={{ padding: "12px" }}>{line.ledgerAccountId.substring(0, 8)}</td>
                 <td style={{ padding: "12px" }}>-</td>
                 <td style={{ padding: "12px", textAlign: "right" }}>
@@ -166,7 +170,7 @@ export default function TransactionDetailPage() {
             ))}
           </tbody>
           <tfoot>
-            <tr style={{ borderTop: "2px solid #ddd", fontWeight: "bold" }}>
+            <tr style={{ borderTop: `2px solid ${themeColors.border}`, fontWeight: "bold" }}>
               <td colSpan={2} style={{ padding: "12px", textAlign: "right" }}>
                 Toplam:
               </td>

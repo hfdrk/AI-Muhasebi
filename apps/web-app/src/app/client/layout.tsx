@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { logout, getCurrentUser } from "@repo/api-client";
 import { useQuery } from "@tanstack/react-query";
 import { colors, spacing, shadows, borderRadius, transitions, typography, zIndex } from "../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface NavItem {
   href: string;
@@ -14,6 +15,7 @@ interface NavItem {
 }
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
+  const { themeColors } = useTheme();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
@@ -76,13 +78,13 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   };
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", backgroundColor: colors.gray[50] }}>
+    <div style={{ display: "flex", minHeight: "100vh", backgroundColor: themeColors.gray[50] }}>
       {/* Enhanced Sidebar */}
       <aside
         style={{
           width: sidebarCollapsed ? "80px" : "280px",
-          backgroundColor: colors.white,
-          borderRight: `1px solid ${colors.border}`,
+          backgroundColor: themeColors.white,
+          borderRight: `1px solid ${themeColors.border}`,
           display: "flex",
           flexDirection: "column",
           transition: `width ${transitions.slow} ease`,
@@ -97,7 +99,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         <div
           style={{
             padding: spacing.lg,
-            borderBottom: `1px solid ${colors.border}`,
+            borderBottom: `1px solid ${themeColors.border}`,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -135,7 +137,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               >
                 AI Muhasebi
               </h1>
-              <div style={{ fontSize: typography.fontSize.xs, color: colors.text.secondary, marginTop: spacing.xs }}>
+              <div style={{ fontSize: typography.fontSize.xs, color: themeColors.text.secondary, marginTop: spacing.xs }}>
                 Müşteri Portalı
               </div>
             </Link>
@@ -143,7 +145,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             style={{
-              backgroundColor: colors.gray[100],
+              backgroundColor: themeColors.gray[100],
               border: "none",
               borderRadius: borderRadius.md,
               padding: spacing.xs,
@@ -156,14 +158,14 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               minHeight: "32px",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = colors.gray[200];
+              e.currentTarget.style.backgroundColor = themeColors.gray[200];
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = colors.gray[100];
+              e.currentTarget.style.backgroundColor = themeColors.gray[100];
             }}
             title={sidebarCollapsed ? "Menüyü Genişlet" : "Menüyü Daralt"}
           >
-            <span style={{ fontSize: "16px", color: colors.text.secondary }}>
+            <span style={{ fontSize: "16px", color: themeColors.text.secondary }}>
               {sidebarCollapsed ? "→" : "←"}
             </span>
           </button>
@@ -184,7 +186,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                     gap: spacing.sm,
                     padding: `${spacing.sm} ${spacing.md}`,
                     textDecoration: "none",
-                    color: active ? colors.primary : colors.text.secondary,
+                    color: active ? colors.primary : themeColors.text.secondary,
                     backgroundColor: active ? colors.primaryLighter : "transparent",
                     borderRadius: borderRadius.md,
                     fontWeight: active ? typography.fontWeight.semibold : typography.fontWeight.normal,
@@ -194,14 +196,14 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                   }}
                   onMouseEnter={(e) => {
                     if (!active) {
-                      e.currentTarget.style.backgroundColor = colors.gray[50];
-                      e.currentTarget.style.color = colors.text.primary;
+                      e.currentTarget.style.backgroundColor = themeColors.gray[50];
+                      e.currentTarget.style.color = themeColors.text.primary;
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!active) {
                       e.currentTarget.style.backgroundColor = "transparent";
-                      e.currentTarget.style.color = colors.text.secondary;
+                      e.currentTarget.style.color = themeColors.text.secondary;
                     }
                   }}
                 >
@@ -233,8 +235,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         <div
           style={{
             padding: spacing.md,
-            borderTop: `1px solid ${colors.border}`,
-            backgroundColor: colors.gray[50],
+            borderTop: `1px solid ${themeColors.border}`,
+            backgroundColor: themeColors.gray[50],
           }}
         >
           {!sidebarCollapsed && currentUser && (
@@ -242,16 +244,16 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               style={{
                 marginBottom: spacing.md,
                 padding: spacing.sm,
-                backgroundColor: colors.white,
+                backgroundColor: themeColors.white,
                 borderRadius: borderRadius.md,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
               }}
             >
               <div
                 style={{
                   fontSize: typography.fontSize.sm,
                   fontWeight: typography.fontWeight.semibold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                   marginBottom: spacing.xs,
                 }}
               >
@@ -260,7 +262,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               <div
                 style={{
                   fontSize: typography.fontSize.xs,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                   wordBreak: "break-word",
                 }}
               >
@@ -273,7 +275,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             style={{
               width: "100%",
               padding: `${spacing.sm} ${spacing.md}`,
-              backgroundColor: colors.error,
+              backgroundColor: colors.danger,
               color: colors.white,
               border: "none",
               borderRadius: borderRadius.md,
@@ -292,7 +294,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               e.currentTarget.style.boxShadow = shadows.md;
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = colors.error;
+              e.currentTarget.style.backgroundColor = colors.danger;
               e.currentTarget.style.transform = "translateY(0)";
               e.currentTarget.style.boxShadow = "none";
             }}
@@ -308,8 +310,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         {/* Enhanced Top Bar */}
         <header
           style={{
-            backgroundColor: colors.white,
-            borderBottom: `1px solid ${colors.border}`,
+            backgroundColor: themeColors.white,
+            borderBottom: `1px solid ${themeColors.border}`,
             padding: `${spacing.md} ${spacing.xl}`,
             boxShadow: shadows.sm,
             position: "sticky",
@@ -324,7 +326,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                   margin: 0,
                   fontSize: typography.fontSize["2xl"],
                   fontWeight: typography.fontWeight.bold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                   background: colors.gradients.primary,
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
@@ -339,7 +341,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                     margin: 0,
                     marginTop: spacing.xs,
                     fontSize: typography.fontSize.sm,
-                    color: colors.text.secondary,
+                    color: themeColors.text.secondary,
                   }}
                 >
                   Hoş geldiniz, {currentUser.user?.fullName || "Müşteri"}

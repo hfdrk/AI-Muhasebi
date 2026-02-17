@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { getAccessToken } from "@/lib/auth";
 
 export type EventType = "message" | "notification" | "document_status" | "contract_expiration" | "ping";
 
@@ -33,10 +34,12 @@ export function useEventStream(options: UseEventStreamOptions = {}) {
 
     // Get API URL and token
     const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "";
-    const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+    const token = getAccessToken();
 
     if (!API_URL || !token) {
-      console.warn("[useEventStream] API URL or token not available");
+      if (process.env.NODE_ENV === "development") {
+        console.warn("[useEventStream] API URL or token not available");
+      }
       return;
     }
 
@@ -56,7 +59,9 @@ export function useEventStream(options: UseEventStreamOptions = {}) {
     // For token-based auth, we might need to use a different approach
 
     eventSource.onopen = () => {
-      console.log("[useEventStream] Connected to event stream");
+      if (process.env.NODE_ENV === "development") {
+        console.log("[useEventStream] Connected to event stream");
+      }
       setIsConnected(true);
       setError(null);
       
@@ -109,12 +114,16 @@ export function useEventStream(options: UseEventStreamOptions = {}) {
           }
         }
       } catch (err: any) {
-        console.error("[useEventStream] Error parsing event data:", err);
+        if (process.env.NODE_ENV === "development") {
+          console.error("[useEventStream] Error parsing event data:", err);
+        }
       }
     };
 
     eventSource.onerror = (err) => {
-      console.error("[useEventStream] EventSource error:", err);
+      if (process.env.NODE_ENV === "development") {
+        console.error("[useEventStream] EventSource error:", err);
+      }
       setIsConnected(false);
       
       // Close the connection
@@ -131,7 +140,9 @@ export function useEventStream(options: UseEventStreamOptions = {}) {
       // Attempt to reconnect after 3 seconds
       if (enabled) {
         reconnectTimeoutRef.current = setTimeout(() => {
-          console.log("[useEventStream] Attempting to reconnect...");
+          if (process.env.NODE_ENV === "development") {
+            console.log("[useEventStream] Attempting to reconnect...");
+          }
           connect();
         }, 3000);
       }

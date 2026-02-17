@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { notificationClient, type Notification, getCurrentUser } from "@repo/api-client";
 import { useRouter } from "next/navigation";
-import { colors, spacing, shadows, borderRadius, transitions, typography, zIndex } from "../styles/design-system";
+import { colors, spacing, shadows, borderRadius, transitions, typography } from "../styles/design-system";
+import { useTheme } from "../contexts/ThemeContext";
 import Link from "next/link";
 import { Icon } from "./ui/Icon";
 import { Tooltip } from "./ui/Tooltip";
+import { getAccessToken } from "@/lib/auth";
 
 function formatTimeAgo(date: string): string {
   const now = new Date();
@@ -29,12 +31,13 @@ function formatTimeAgo(date: string): string {
 }
 
 export function NotificationBell() {
+  const { themeColors } = useTheme();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
 
   // Check if user is authenticated and has an active tenant
-  const hasAuthToken = typeof window !== "undefined" && !!localStorage.getItem("accessToken");
+  const hasAuthToken = !!getAccessToken();
   
   // Get current user to check for active tenant
   const { data: userData } = useQuery({
@@ -47,7 +50,7 @@ export function NotificationBell() {
   const hasActiveTenant = !!currentTenant;
 
   // Fetch notifications
-  const { data, refetch, error } = useQuery({
+  const { data, refetch } = useQuery({
     queryKey: ["notifications", "list"],
     queryFn: () => notificationClient.listNotifications({ limit: 5, is_read: false }),
     enabled: hasAuthToken && hasActiveTenant, // Only fetch if user is authenticated AND has active tenant
@@ -71,15 +74,6 @@ export function NotificationBell() {
       return failureCount < 2;
     },
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
-    onError: (error: any) => {
-      // Silently handle errors - don't spam console
-      // Only log if it's not a connection/auth error
-      const isNetworkError = error?.status === 0 || error?.message?.includes("Failed to fetch") || error?.message?.includes("connection");
-      const isAuthError = error?.status === 401 || error?.status === 403 || error?.status === 404;
-      if (!isNetworkError && !isAuthError) {
-        console.warn("Notification fetch error:", error);
-      }
-    },
   });
 
   const markAsReadMutation = useMutation({
@@ -161,14 +155,14 @@ export function NotificationBell() {
           style={{
             position: "relative",
             padding: "10px",
-            backgroundColor: isOpen ? colors.primaryLighter : colors.gray[50],
-            border: `1px solid ${isOpen ? colors.primary : colors.border}`,
+            backgroundColor: isOpen ? colors.primaryLighter : themeColors.gray[50],
+            border: `1px solid ${isOpen ? colors.primary : themeColors.border}`,
             borderRadius: borderRadius.md,
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
             fontSize: "20px",
             transition: `all ${transitions.normal} ease`,
             minWidth: "44px",
@@ -185,17 +179,17 @@ export function NotificationBell() {
           }}
           onMouseLeave={(e) => {
             if (!isOpen) {
-              e.currentTarget.style.backgroundColor = colors.gray[50];
-              e.currentTarget.style.borderColor = colors.border;
+              e.currentTarget.style.backgroundColor = themeColors.gray[50];
+              e.currentTarget.style.borderColor = themeColors.border;
               e.currentTarget.style.boxShadow = shadows.sm;
               e.currentTarget.style.transform = "scale(1)";
             }
           }}
         >
         <Icon 
-          name="bell" 
+          name="Bell"
           size={20} 
-          color={colors.text.secondary}
+          color={themeColors.text.secondary}
           style={{
             filter: unreadCount > 0 ? "none" : "grayscale(0.3)",
             transition: "filter 0.2s ease"
@@ -246,8 +240,8 @@ export function NotificationBell() {
               position: "absolute",
               top: "calc(100% + 8px)",
               right: 0,
-              backgroundColor: colors.white,
-              border: `1px solid ${colors.border}`,
+              backgroundColor: themeColors.white,
+              border: `1px solid ${themeColors.border}`,
               borderRadius: borderRadius.lg,
               boxShadow: shadows.xl,
               zIndex: 2,
@@ -263,10 +257,10 @@ export function NotificationBell() {
             <div
               style={{
                 padding: `${spacing.md} ${spacing.lg}`,
-                borderBottom: `1px solid ${colors.border}`,
+                borderBottom: `1px solid ${themeColors.border}`,
                 fontWeight: 600,
                 fontSize: "16px",
-                backgroundColor: colors.gray[50],
+                backgroundColor: themeColors.gray[50],
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
@@ -289,13 +283,13 @@ export function NotificationBell() {
               )}
             </div>
 
-            <div style={{ overflowY: "auto", flex: 1, backgroundColor: colors.white }}>
+            <div style={{ overflowY: "auto", flex: 1, backgroundColor: themeColors.white }}>
               {notifications.length === 0 ? (
                 <div
                   style={{
                     padding: spacing.xxl,
                     textAlign: "center",
-                    color: colors.text.muted,
+                    color: themeColors.text.muted,
                   }}
                 >
                   <div style={{ fontSize: "48px", marginBottom: spacing.md }}>🔔</div>
@@ -308,18 +302,18 @@ export function NotificationBell() {
                     onClick={() => handleNotificationClick(notification)}
                     style={{
                       padding: spacing.md,
-                      borderBottom: `1px solid ${colors.border}`,
+                      borderBottom: `1px solid ${themeColors.border}`,
                       cursor: "pointer",
-                      backgroundColor: notification.is_read ? colors.white : colors.primaryLighter,
+                      backgroundColor: notification.is_read ? themeColors.white : colors.primaryLighter,
                       transition: "all 0.2s ease",
                       borderLeft: notification.is_read ? "none" : `3px solid ${colors.primary}`,
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = colors.gray[50];
+                      e.currentTarget.style.backgroundColor = themeColors.gray[50];
                       e.currentTarget.style.transform = "translateX(2px)";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = notification.is_read ? colors.white : colors.primaryLighter;
+                      e.currentTarget.style.backgroundColor = notification.is_read ? themeColors.white : colors.primaryLighter;
                       e.currentTarget.style.transform = "translateX(0)";
                     }}
                   >
@@ -328,7 +322,7 @@ export function NotificationBell() {
                         fontWeight: notification.is_read ? 500 : 600,
                         fontSize: "14px",
                         marginBottom: spacing.xs,
-                        color: colors.text.primary,
+                        color: themeColors.text.primary,
                         display: "flex",
                         alignItems: "center",
                         gap: spacing.xs,
@@ -350,7 +344,7 @@ export function NotificationBell() {
                     <div
                       style={{
                         fontSize: "13px",
-                        color: colors.text.secondary,
+                        color: themeColors.text.secondary,
                         marginBottom: spacing.xs,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
@@ -365,7 +359,7 @@ export function NotificationBell() {
                     <div
                       style={{
                         fontSize: "11px",
-                        color: colors.text.muted,
+                        color: themeColors.text.muted,
                         fontWeight: typography.fontWeight.medium,
                       }}
                     >
@@ -379,9 +373,9 @@ export function NotificationBell() {
             <div
               style={{
                 padding: spacing.md,
-                borderTop: `1px solid ${colors.border}`,
+                borderTop: `1px solid ${themeColors.border}`,
                 textAlign: "center",
-                backgroundColor: colors.gray[50],
+                backgroundColor: themeColors.gray[50],
               }}
             >
               <Link

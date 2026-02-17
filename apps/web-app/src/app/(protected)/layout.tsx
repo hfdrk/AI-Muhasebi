@@ -4,14 +4,16 @@ import { useEffect, useState } from "react";
 import { TenantSwitcher } from "../../components/tenant-switcher";
 import { NotificationBell } from "../../components/notification-bell";
 import { GlobalSearch } from "../../components/global-search";
-import { MessageCountBadge } from "../../components/message-count-badge";
+
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { logout, getCurrentUser } from "@repo/api-client";
 import { useQuery } from "@tanstack/react-query";
-import { colors, spacing, shadows, borderRadius, transitions, zIndex, typography } from "../../styles/design-system";
+import { colors, darkColors, spacing, shadows, borderRadius, transitions, zIndex, typography } from "../../styles/design-system";
 import { Icon } from "../../components/ui/Icon";
 import { BottomNavigation } from "../../components/mobile/bottom-navigation";
+import { useTheme } from "../../contexts/ThemeContext";
+import { getAccessToken } from "@/lib/auth";
 
 interface NavItem {
   href: string;
@@ -22,14 +24,12 @@ interface NavItem {
 }
 
 // User Profile Dropdown Component
-function UserProfileDropdown({ 
-  currentUser, 
-  onLogout, 
-  sidebarCollapsed 
-}: { 
-  currentUser: any; 
+function UserProfileDropdown({
+  currentUser,
+  onLogout,
+}: {
+  currentUser: any;
   onLogout: () => void;
-  sidebarCollapsed: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
@@ -178,7 +178,7 @@ function UserProfileDropdown({
                   fontSize: typography.fontSize.sm,
                   fontWeight: typography.fontWeight.semibold,
                   color: colors.text.primary,
-                  marginBottom: spacing.xs / 2,
+                  marginBottom: "2px",
                 }}
               >
                 {currentUser.user?.fullName || "Kullanıcı"}
@@ -223,7 +223,7 @@ function UserProfileDropdown({
                   e.currentTarget.style.backgroundColor = "transparent";
                 }}
               >
-                <Icon name="user" size={16} color={colors.text.primary} />
+                <Icon name="User" size={16} color={colors.text.primary} />
                 <span>Profil Ayarları</span>
               </button>
             </div>
@@ -265,7 +265,7 @@ function UserProfileDropdown({
                   e.currentTarget.style.color = colors.danger;
                 }}
               >
-                <Icon name="logout" size={16} color={colors.danger} />
+                <Icon name="LogOut" size={16} color={colors.danger} />
                 <span>Çıkış Yap</span>
               </button>
             </div>
@@ -283,7 +283,8 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const pathname = usePathname();
   const router = useRouter();
-  
+  const { isDark, toggleTheme } = useTheme();
+
   // Responsive breakpoints
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
@@ -324,7 +325,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   const isUserReadOnly = userRole === "ReadOnly";
 
   useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+    const token = getAccessToken();
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split(".")[1]));
@@ -354,6 +355,12 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     if (pathname?.startsWith("/raporlar") || pathname?.startsWith("/entegrasyonlar") || pathname?.startsWith("/ai-asistan") || pathname?.startsWith("/mesajlar") || pathname?.startsWith("/sozlesmeler") || pathname?.startsWith("/bildirimler")) {
       setExpandedSections((prev) => new Set(prev).add("other"));
     }
+    if (pathname?.startsWith("/masak") || pathname?.startsWith("/kurgan") || pathname?.startsWith("/babs") || pathname?.startsWith("/beyanname") || pathname?.startsWith("/mali-musavir")) {
+      setExpandedSections((prev) => new Set(prev).add("maliMusavir"));
+    }
+    if (pathname?.startsWith("/tekrar-faturalar") || pathname?.startsWith("/cek-senet") || pathname?.startsWith("/nakit-akis") || pathname?.startsWith("/doviz-kurlari") || pathname?.startsWith("/odeme-hatirlatma")) {
+      setExpandedSections((prev) => new Set(prev).add("finans"));
+    }
   }, [pathname]);
 
   // Main navigation items
@@ -366,6 +373,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     { href: "/e-defter", label: "E-Defter", icon: "book" },
     { href: "/islemler", label: "İşlemler", icon: "briefcase" },
     { href: "/belgeler", label: "Belgeler", icon: "folder" },
+    { href: "/eksik-belgeler", label: "Eksik Belgeler", icon: "alert" },
     { href: "/gorevler", label: "Görevler", icon: "checkCircle" },
   ];
 
@@ -373,6 +381,22 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     { href: "/risk/dashboard", label: "Risk Panosu", icon: "chart" },
     { href: "/risk/alerts", label: "Risk Uyarıları", icon: "alert", badge: 0 },
     { href: "/risk/ml-fraud", label: "ML Dolandırıcılık", icon: "robot" },
+  ];
+
+  const maliMusavirNavItems: NavItem[] = [
+    { href: "/mali-musavir", label: "Genel Pano", icon: "chart" },
+    { href: "/masak", label: "MASAK", icon: "alert" },
+    { href: "/kurgan", label: "KURGAN", icon: "security" },
+    { href: "/babs", label: "Ba-Bs Formları", icon: "file" },
+    { href: "/beyanname", label: "Beyanname", icon: "invoice" },
+  ];
+
+  const finansNavItems: NavItem[] = [
+    { href: "/tekrar-faturalar", label: "Tekrar Faturalar", icon: "invoice" },
+    { href: "/cek-senet", label: "Çek / Senet", icon: "file" },
+    { href: "/nakit-akis", label: "Nakit Akış", icon: "chart" },
+    { href: "/doviz-kurlari", label: "Döviz Kurları", icon: "creditCard" },
+    { href: "/odeme-hatirlatma", label: "Ödeme Hatırlatma", icon: "notification" },
   ];
 
   // Get unread message count for badge
@@ -383,10 +407,12 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
       return messagingClient.listThreads({ limit: 100 });
     },
     enabled: !isUserReadOnly && !!currentUser,
-    refetchInterval: 30000, // Poll every 30 seconds
+    refetchInterval: 60000, // Poll every 60 seconds (reduced frequency)
+    staleTime: 30000,
+    retry: false, // Don't retry to avoid spam
   });
 
-  const threads = threadsData?.data?.data || [];
+  const threads = threadsData?.data || [];
   const unreadMessageCount = threads.reduce((sum: number, thread: any) => sum + (thread.unreadCount || 0), 0);
 
   // Get unread notification count for badge
@@ -397,7 +423,9 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
       return notificationClient.listNotifications({ is_read: false, limit: 100 });
     },
     enabled: !!currentUser,
-    refetchInterval: 30000, // Poll every 30 seconds
+    refetchInterval: 60000, // Poll every 60 seconds (reduced frequency)
+    staleTime: 30000,
+    retry: false, // Don't retry to avoid spam
   });
 
   const unreadNotificationCount = notificationsData?.meta?.total || notificationsData?.data?.length || 0;
@@ -467,8 +495,8 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
             marginLeft: level > 0 ? spacing.lg : 0,
             marginBottom: spacing.xs,
             textDecoration: "none",
-            color: active ? colors.primary : colors.text.secondary,
-            backgroundColor: active ? colors.primaryLighter : "transparent",
+            color: active ? colors.sidebar.textActive : colors.sidebar.text,
+            backgroundColor: active ? "rgba(13, 148, 136, 0.15)" : "transparent",
             borderRadius: borderRadius.lg,
             fontWeight: active ? typography.fontWeight.semibold : typography.fontWeight.normal,
             fontSize: typography.fontSize.sm,
@@ -477,15 +505,15 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
           }}
           onMouseEnter={(e) => {
             if (!active) {
-              e.currentTarget.style.backgroundColor = colors.gray[50];
-              e.currentTarget.style.color = colors.text.primary;
+              e.currentTarget.style.backgroundColor = colors.sidebar.bgHover;
+              e.currentTarget.style.color = colors.sidebar.textActive;
               e.currentTarget.style.transform = "translateX(4px)";
             }
           }}
           onMouseLeave={(e) => {
             if (!active) {
               e.currentTarget.style.backgroundColor = "transparent";
-              e.currentTarget.style.color = colors.text.secondary;
+              e.currentTarget.style.color = colors.sidebar.text;
               e.currentTarget.style.transform = "translateX(0)";
             }
           }}
@@ -507,10 +535,10 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
               item.icon
             ) : (
               // Icon component
-              <Icon 
-                name={item.icon as any} 
-                size={20} 
-                color={active ? colors.primary : colors.text.secondary}
+              <Icon
+                name={item.icon as any}
+                size={20}
+                color={active ? colors.sidebar.accentBorder : colors.sidebar.text}
                 strokeWidth={active ? 2.5 : 2}
               />
             )}
@@ -550,9 +578,9 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
                 transform: "translateY(-50%)",
                 width: "4px",
                 height: "70%",
-                backgroundColor: colors.primary,
+                backgroundColor: colors.sidebar.accentBorder,
                 borderRadius: "0 2px 2px 0",
-                boxShadow: `0 0 8px ${colors.primary}40`,
+                boxShadow: `0 0 8px ${colors.sidebar.accentBorder}40`,
               }}
             />
           )}
@@ -596,7 +624,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
             padding: `${spacing.xs} ${spacing.md}`,
             backgroundColor: "transparent",
             border: "none",
-            color: colors.text.secondary,
+            color: colors.sidebar.sectionTitle,
             fontSize: typography.fontSize.xs,
             fontWeight: typography.fontWeight.semibold,
             textTransform: "uppercase",
@@ -605,10 +633,10 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
             transition: `color ${transitions.normal} ease`,
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.color = colors.text.primary;
+            e.currentTarget.style.color = colors.sidebar.text;
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.color = colors.text.secondary;
+            e.currentTarget.style.color = colors.sidebar.sectionTitle;
           }}
         >
           <span>{title}</span>
@@ -644,7 +672,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     <div
       style={{
         minHeight: "100vh",
-        backgroundColor: colors.gray[50],
+        backgroundColor: isDark ? darkColors.background : colors.gray[50],
         display: "flex",
         position: "relative",
       }}
@@ -671,8 +699,8 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
           width: isMobile 
             ? (mobileMenuOpen ? "280px" : "0")
             : (sidebarCollapsed ? "80px" : "280px"),
-          backgroundColor: colors.white,
-          borderRight: `1px solid ${colors.border}`,
+          backgroundColor: colors.sidebar.bg,
+          borderRight: "none",
           minHeight: "100vh",
           display: "flex",
           flexDirection: "column",
@@ -692,12 +720,12 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
         <div
           style={{
             padding: spacing.lg,
-            borderBottom: `1px solid ${colors.border}`,
+            borderBottom: `1px solid rgba(255,255,255,0.08)`,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
             minHeight: "80px",
-            background: `linear-gradient(135deg, ${colors.primaryLighter} 0%, ${colors.white} 100%)`,
+            background: colors.sidebar.headerBg,
           }}
         >
           <div
@@ -722,10 +750,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
                   margin: 0,
                   fontSize: typography.fontSize.xl,
                   fontWeight: typography.fontWeight.bold,
-                  background: colors.gradients.primary,
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
+                  color: colors.sidebar.textActive,
                   whiteSpace: "nowrap",
                   marginBottom: spacing.xs,
                 }}
@@ -736,7 +761,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
                 <div
                   style={{
                     fontSize: typography.fontSize.xs,
-                    color: colors.text.secondary,
+                    color: colors.sidebar.text,
                     fontWeight: typography.fontWeight.normal,
                   }}
                 >
@@ -749,8 +774,8 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
             <button
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
               style={{
-                backgroundColor: colors.white,
-                border: `1px solid ${colors.border}`,
+                backgroundColor: "rgba(255,255,255,0.08)",
+                border: `1px solid rgba(255,255,255,0.12)`,
                 borderRadius: borderRadius.md,
                 padding: spacing.sm,
                 cursor: "pointer",
@@ -763,18 +788,18 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
                 boxShadow: shadows.sm,
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = colors.gray[50];
+                e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.15)";
                 e.currentTarget.style.transform = "scale(1.05)";
                 e.currentTarget.style.boxShadow = shadows.md;
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = colors.white;
+                e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)";
                 e.currentTarget.style.transform = "scale(1)";
                 e.currentTarget.style.boxShadow = shadows.sm;
               }}
               title={sidebarCollapsed ? "Menüyü Genişlet" : "Menüyü Daralt"}
             >
-              <span style={{ fontSize: "16px", color: colors.text.secondary }}>
+              <span style={{ fontSize: "16px", color: colors.sidebar.text }}>
                 {sidebarCollapsed ? "→" : "←"}
               </span>
             </button>
@@ -783,8 +808,8 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
             <button
               onClick={() => setMobileMenuOpen(false)}
               style={{
-                backgroundColor: colors.white,
-                border: `1px solid ${colors.border}`,
+                backgroundColor: "rgba(255,255,255,0.08)",
+                border: `1px solid rgba(255,255,255,0.12)`,
                 borderRadius: borderRadius.md,
                 padding: spacing.sm,
                 cursor: "pointer",
@@ -796,7 +821,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
               }}
               aria-label="Close menu"
             >
-              <span style={{ fontSize: "16px", color: colors.text.secondary }}>✕</span>
+              <span style={{ fontSize: "16px", color: colors.sidebar.text }}>✕</span>
             </button>
           )}
         </div>
@@ -825,6 +850,22 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
             defaultExpanded={riskNavItems.some((item) => isActive(item.href))}
           />
 
+          {/* Mali Müşavir Platform */}
+          <NavSection
+            title="Mali Müşavir"
+            items={maliMusavirNavItems}
+            sectionKey="maliMusavir"
+            defaultExpanded={maliMusavirNavItems.some((item) => isActive(item.href))}
+          />
+
+          {/* Finans Section */}
+          <NavSection
+            title="Finans"
+            items={finansNavItems}
+            sectionKey="finans"
+            defaultExpanded={finansNavItems.some((item) => isActive(item.href))}
+          />
+
           {/* Other Features */}
           <NavSection
             title="Diğer"
@@ -834,7 +875,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
           />
 
           {/* Settings Section */}
-          <div style={{ marginTop: spacing.lg, paddingTop: spacing.md, borderTop: `1px solid ${colors.border}` }}>
+          <div style={{ marginTop: spacing.lg, paddingTop: spacing.md, borderTop: `1px solid rgba(255,255,255,0.08)` }}>
             <button
               onClick={() => toggleSection("settings")}
               style={{
@@ -843,10 +884,10 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
                 alignItems: "center",
                 gap: spacing.sm,
                 padding: `${spacing.sm} ${spacing.md}`,
-                backgroundColor: isActive("/ayarlar") ? colors.primaryLighter : "transparent",
+                backgroundColor: isActive("/ayarlar") ? "rgba(13, 148, 136, 0.15)" : "transparent",
                 border: "none",
                 borderRadius: borderRadius.md,
-                color: isActive("/ayarlar") ? colors.primary : colors.text.secondary,
+                color: isActive("/ayarlar") ? colors.sidebar.textActive : colors.sidebar.text,
                 fontSize: typography.fontSize.sm,
                 fontWeight: isActive("/ayarlar") ? typography.fontWeight.semibold : typography.fontWeight.normal,
                 cursor: "pointer",
@@ -855,7 +896,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
               }}
               onMouseEnter={(e) => {
                 if (!isActive("/ayarlar")) {
-                  e.currentTarget.style.backgroundColor = colors.gray[100];
+                  e.currentTarget.style.backgroundColor = colors.sidebar.bgHover;
                 }
               }}
               onMouseLeave={(e) => {
@@ -864,7 +905,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
                 }
               }}
             >
-              <Icon name="settings" size={18} color={isActive("/ayarlar") ? colors.primary : colors.text.secondary} />
+              <Icon name="Settings" size={18} color={isActive("/ayarlar") ? colors.sidebar.accentBorder : colors.sidebar.text} />
               {!sidebarCollapsed && (
                 <>
                   <span style={{ flex: 1 }}>Ayarlar</span>
@@ -899,7 +940,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
 
           {/* Admin Link */}
           {isPlatformAdmin && (
-            <div style={{ marginTop: spacing.md, paddingTop: spacing.md, borderTop: `1px solid ${colors.border}` }}>
+            <div style={{ marginTop: spacing.md, paddingTop: spacing.md, borderTop: `1px solid rgba(255,255,255,0.08)` }}>
               <Link
                 href="/admin/overview"
                 style={{
@@ -908,8 +949,8 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
                   gap: spacing.sm,
                   padding: `${spacing.sm} ${spacing.md}`,
                   textDecoration: "none",
-                  color: isActive("/admin") ? colors.primary : colors.text.secondary,
-                  backgroundColor: isActive("/admin") ? colors.primaryLighter : "transparent",
+                  color: isActive("/admin") ? colors.sidebar.textActive : colors.sidebar.text,
+                  backgroundColor: isActive("/admin") ? "rgba(13, 148, 136, 0.15)" : "transparent",
                   borderRadius: borderRadius.md,
                   fontWeight: isActive("/admin") ? typography.fontWeight.semibold : typography.fontWeight.normal,
                   fontSize: typography.fontSize.sm,
@@ -917,7 +958,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
                 }}
                 onMouseEnter={(e) => {
                   if (!isActive("/admin")) {
-                    e.currentTarget.style.backgroundColor = colors.gray[100];
+                    e.currentTarget.style.backgroundColor = colors.sidebar.bgHover;
                   }
                 }}
                 onMouseLeave={(e) => {
@@ -926,7 +967,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
                   }
                 }}
               >
-                <Icon name="crown" size={18} color={isActive("/admin") ? colors.primary : colors.text.secondary} />
+                <Icon name="Crown" size={18} color={isActive("/admin") ? colors.sidebar.accentBorder : colors.sidebar.text} />
                 {!sidebarCollapsed && <span>Yönetim Konsolu</span>}
               </Link>
             </div>
@@ -944,8 +985,8 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
               : isTablet
               ? `${spacing.md} ${spacing.lg}`
               : `${spacing.md} ${spacing.xxl}`,
-            borderBottom: `1px solid ${colors.border}`,
-            backgroundColor: colors.white,
+            borderBottom: `2px solid ${isDark ? darkColors.border : colors.border}`,
+            backgroundColor: isDark ? darkColors.white : colors.white,
             boxShadow: shadows.sm,
             display: "flex",
             justifyContent: "space-between",
@@ -955,8 +996,6 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
             zIndex: zIndex.sticky,
             minHeight: isMobile ? "64px" : "80px",
             backdropFilter: "blur(10px)",
-            background: colors.white,
-            borderBottom: `2px solid ${colors.border}`,
             gap: spacing.sm,
           }}
         >
@@ -991,8 +1030,8 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
                     <div
                       style={{
                         fontSize: typography.fontSize.xs,
-                        color: colors.text.muted,
-                        marginBottom: spacing.xs / 2,
+                        color: isDark ? darkColors.text.muted : colors.text.muted,
+                        marginBottom: "2px",
                         fontWeight: typography.fontWeight.medium,
                         textTransform: "uppercase",
                         letterSpacing: "0.05em",
@@ -1005,7 +1044,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
                     style={{
                       fontSize: isMobile ? typography.fontSize.base : typography.fontSize.lg,
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: isDark ? darkColors.text.primary : colors.text.primary,
                       lineHeight: typography.lineHeight.tight,
                       whiteSpace: "nowrap",
                       overflow: "hidden",
@@ -1031,16 +1070,43 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
               flexShrink: 0,
             }}
           >
+            <button
+              onClick={toggleTheme}
+              style={{
+                backgroundColor: "transparent",
+                border: `1px solid ${isDark ? darkColors.border : colors.border}`,
+                borderRadius: borderRadius.md,
+                padding: spacing.sm,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                minWidth: "40px",
+                minHeight: "40px",
+                transition: `all ${transitions.normal} ease`,
+                color: isDark ? darkColors.text.secondary : colors.text.secondary,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = isDark ? darkColors.gray[100] : colors.gray[100];
+                e.currentTarget.style.color = isDark ? darkColors.text.primary : colors.text.primary;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = isDark ? darkColors.text.secondary : colors.text.secondary;
+              }}
+              title={isDark ? "Aydınlık Mod" : "Karanlık Mod"}
+            >
+              <Icon name={isDark ? "Sun" : "Moon"} size={20} />
+            </button>
             {!isMobile && <GlobalSearch />}
             <NotificationBell />
             {!isMobile && <TenantSwitcher />}
             
             {/* User Profile Dropdown */}
             {currentUser && (
-              <UserProfileDropdown 
+              <UserProfileDropdown
                 currentUser={currentUser}
                 onLogout={handleLogout}
-                sidebarCollapsed={isMobile ? false : sidebarCollapsed}
               />
             )}
           </div>

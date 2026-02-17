@@ -20,7 +20,7 @@ export function MessageCountBadge() {
     gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
   });
 
-  const threads = threadsData?.data?.data || [];
+  const threads = threadsData?.data || [];
   const totalUnread = threads.reduce((sum, thread) => sum + (thread.unreadCount || 0), 0);
 
   if (totalUnread === 0) {

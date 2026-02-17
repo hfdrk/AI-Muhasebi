@@ -8,6 +8,7 @@ import { Card } from "../../../components/ui/Card";
 import { Skeleton } from "../../../components/ui/Skeleton";
 import { PageTransition } from "../../../components/ui/PageTransition";
 import { colors, spacing, shadows, borderRadius } from "../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 function formatTimeAgo(date: string): string {
   const now = new Date();
@@ -49,6 +50,7 @@ function getTypeLabel(type: NotificationType): string {
 }
 
 export default function NotificationsPage() {
+  const { themeColors } = useTheme();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<"all" | "unread" | "read">("all");
@@ -148,7 +150,7 @@ export default function NotificationsPage() {
           marginBottom: spacing.xl,
         }}
       >
-        <h1 style={{ margin: 0, fontSize: "28px", fontWeight: 600, color: colors.text.primary }}>
+        <h1 style={{ margin: 0, fontSize: "28px", fontWeight: 600, color: themeColors.text.primary }}>
           Bildirimler
         </h1>
         {notifications.some((n) => !n.is_read) && (
@@ -178,13 +180,13 @@ export default function NotificationsPage() {
           gap: spacing.md,
           marginBottom: spacing.lg,
           padding: spacing.md,
-          backgroundColor: colors.white,
+          backgroundColor: themeColors.white,
           borderRadius: borderRadius.md,
           boxShadow: shadows.sm,
         }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: spacing.xs }}>
-          <label style={{ fontSize: "12px", fontWeight: 500, color: colors.text.secondary }}>
+          <label style={{ fontSize: "12px", fontWeight: 500, color: themeColors.text.secondary }}>
             Durum
           </label>
           <select
@@ -195,7 +197,7 @@ export default function NotificationsPage() {
             }}
             style={{
               padding: `${spacing.xs} ${spacing.sm}`,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               borderRadius: borderRadius.sm,
               fontSize: "14px",
             }}
@@ -207,7 +209,7 @@ export default function NotificationsPage() {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: spacing.xs }}>
-          <label style={{ fontSize: "12px", fontWeight: 500, color: colors.text.secondary }}>
+          <label style={{ fontSize: "12px", fontWeight: 500, color: themeColors.text.secondary }}>
             Tür
           </label>
           <select
@@ -218,7 +220,7 @@ export default function NotificationsPage() {
             }}
             style={{
               padding: `${spacing.xs} ${spacing.sm}`,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               borderRadius: borderRadius.sm,
               fontSize: "14px",
             }}
@@ -246,10 +248,10 @@ export default function NotificationsPage() {
           style={{
             textAlign: "center",
             padding: spacing.xxl,
-            backgroundColor: colors.white,
+            backgroundColor: themeColors.white,
             borderRadius: borderRadius.md,
             boxShadow: shadows.sm,
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
           }}
         >
           Bu kriterlere uygun bildirim bulunamadı.
@@ -257,7 +259,7 @@ export default function NotificationsPage() {
       ) : (
         <div
           style={{
-            backgroundColor: colors.white,
+            backgroundColor: themeColors.white,
             borderRadius: borderRadius.md,
             boxShadow: shadows.sm,
             overflow: "hidden",
@@ -269,13 +271,13 @@ export default function NotificationsPage() {
               onClick={() => handleNotificationClick(notification)}
               style={{
                 padding: spacing.md,
-                borderBottom: `1px solid ${colors.border}`,
+                borderBottom: `1px solid ${themeColors.border}`,
                 cursor: "pointer",
-                backgroundColor: notification.is_read ? colors.white : colors.primaryLight,
+                backgroundColor: notification.is_read ? themeColors.white : colors.primaryLight,
                 transition: "background-color 0.2s",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = colors.gray[100];
+                e.currentTarget.style.backgroundColor = themeColors.gray[100];
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = notification.is_read
@@ -297,7 +299,7 @@ export default function NotificationsPage() {
                       style={{
                         fontWeight: notification.is_read ? 400 : 600,
                         fontSize: "16px",
-                        color: colors.text.primary,
+                        color: themeColors.text.primary,
                       }}
                     >
                       {notification.title}
@@ -320,7 +322,7 @@ export default function NotificationsPage() {
                   <div
                     style={{
                       fontSize: "14px",
-                      color: colors.text.secondary,
+                      color: themeColors.text.secondary,
                       marginBottom: spacing.xs,
                     }}
                   >
@@ -330,9 +332,9 @@ export default function NotificationsPage() {
                     <span
                       style={{
                         fontSize: "12px",
-                        color: colors.text.muted,
+                        color: themeColors.text.muted,
                         padding: `${spacing.xs} ${spacing.sm}`,
-                        backgroundColor: colors.gray[100],
+                        backgroundColor: themeColors.gray[100],
                         borderRadius: borderRadius.sm,
                       }}
                     >
@@ -341,7 +343,7 @@ export default function NotificationsPage() {
                     <span
                       style={{
                         fontSize: "12px",
-                        color: colors.text.muted,
+                        color: themeColors.text.muted,
                       }}
                     >
                       {formatTimeAgo(notification.createdAt)}
@@ -351,7 +353,7 @@ export default function NotificationsPage() {
                 <div
                   style={{
                     fontSize: "12px",
-                    color: colors.text.muted,
+                    color: themeColors.text.muted,
                     textAlign: "right",
                     minWidth: "150px",
                   }}
@@ -367,7 +369,7 @@ export default function NotificationsPage() {
             <div
               style={{
                 padding: spacing.md,
-                borderTop: `1px solid ${colors.border}`,
+                borderTop: `1px solid ${themeColors.border}`,
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
@@ -378,7 +380,7 @@ export default function NotificationsPage() {
                 disabled={offset === 0}
                 style={{
                   padding: `${spacing.sm} ${spacing.md}`,
-                  backgroundColor: offset === 0 ? colors.gray[300] : colors.primary,
+                  backgroundColor: offset === 0 ? themeColors.gray[300] : colors.primary,
                   color: colors.white,
                   border: "none",
                   borderRadius: borderRadius.md,
@@ -388,7 +390,7 @@ export default function NotificationsPage() {
               >
                 Önceki
               </button>
-              <span style={{ color: colors.text.secondary, fontSize: "14px" }}>
+              <span style={{ color: themeColors.text.secondary, fontSize: "14px" }}>
                 {offset + 1}-{Math.min(offset + limit, total)} / {total}
               </span>
               <button
@@ -396,7 +398,7 @@ export default function NotificationsPage() {
                 disabled={!hasMore}
                 style={{
                   padding: `${spacing.sm} ${spacing.md}`,
-                  backgroundColor: !hasMore ? colors.gray[300] : colors.primary,
+                  backgroundColor: !hasMore ? themeColors.gray[300] : colors.primary,
                   color: colors.white,
                   border: "none",
                   borderRadius: borderRadius.md,

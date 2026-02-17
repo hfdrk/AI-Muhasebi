@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Calendar, ChevronDown } from "lucide-react";
 import { colors, spacing, borderRadius, shadows, typography, transitions, zIndex } from "@/styles/design-system";
+import { useTheme } from "../../contexts/ThemeContext";
 
 // ==================== Types ====================
 
@@ -92,6 +93,7 @@ export function PeriodSelector({
   comparePeriod,
   onCompareChange,
 }: PeriodSelectorProps) {
+  const { themeColors } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [showCompareDropdown, setShowCompareDropdown] = useState(false);
   const [customStartDate, setCustomStartDate] = useState("");
@@ -129,7 +131,6 @@ export function PeriodSelector({
 
   const getComparisonPeriods = (): Period[] => {
     const duration = value.endDate.getTime() - value.startDate.getTime();
-    const days = Math.ceil(duration / (24 * 60 * 60 * 1000));
 
     return [
       {
@@ -152,13 +153,13 @@ export function PeriodSelector({
     alignItems: "center",
     gap: spacing.sm,
     padding: `${spacing.sm} ${spacing.md}`,
-    backgroundColor: colors.white,
-    border: `1px solid ${colors.border}`,
+    backgroundColor: themeColors.white,
+    border: `1px solid ${themeColors.border}`,
     borderRadius: borderRadius.lg,
     cursor: "pointer",
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.medium,
-    color: colors.text.primary,
+    color: themeColors.text.primary,
     transition: `all ${transitions.fast} ease`,
   };
 
@@ -167,10 +168,10 @@ export function PeriodSelector({
     top: "calc(100% + 4px)",
     left: 0,
     minWidth: "280px",
-    backgroundColor: colors.white,
+    backgroundColor: themeColors.white,
     borderRadius: borderRadius.lg,
     boxShadow: shadows.lg,
-    border: `1px solid ${colors.border}`,
+    border: `1px solid ${themeColors.border}`,
     zIndex: zIndex.dropdown,
     overflow: "hidden",
   };
@@ -184,7 +185,7 @@ export function PeriodSelector({
     textAlign: "left",
     cursor: "pointer",
     fontSize: typography.fontSize.sm,
-    color: isSelected ? colors.primary : colors.text.primary,
+    color: isSelected ? colors.primary : themeColors.text.primary,
     fontWeight: isSelected ? typography.fontWeight.semibold : typography.fontWeight.normal,
     transition: `background ${transitions.fast} ease`,
   });
@@ -199,15 +200,15 @@ export function PeriodSelector({
           e.currentTarget.style.borderColor = colors.primary;
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = colors.border;
+          e.currentTarget.style.borderColor = themeColors.border;
         }}
       >
-        <Calendar size={16} color={colors.text.muted} />
+        <Calendar size={16} color={themeColors.text.muted} />
         <span>{value.label}</span>
-        <span style={{ color: colors.text.muted, fontSize: typography.fontSize.xs }}>
+        <span style={{ color: themeColors.text.muted, fontSize: typography.fontSize.xs }}>
           ({formatDateRange(value.startDate, value.endDate)})
         </span>
-        <ChevronDown size={16} color={colors.text.muted} />
+        <ChevronDown size={16} color={themeColors.text.muted} />
       </button>
 
       {isOpen && (
@@ -226,7 +227,7 @@ export function PeriodSelector({
                   onClick={() => handlePresetSelect(preset)}
                   onMouseEnter={(e) => {
                     if (preset.value !== value.value) {
-                      e.currentTarget.style.backgroundColor = colors.gray[50];
+                      e.currentTarget.style.backgroundColor = themeColors.gray[50];
                     }
                   }}
                   onMouseLeave={(e) => {
@@ -245,11 +246,11 @@ export function PeriodSelector({
               <div
                 style={{
                   padding: spacing.md,
-                  borderTop: `1px solid ${colors.border}`,
-                  backgroundColor: colors.gray[50],
+                  borderTop: `1px solid ${themeColors.border}`,
+                  backgroundColor: themeColors.gray[50],
                 }}
               >
-                <div style={{ fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.muted, marginBottom: spacing.sm }}>
+                <div style={{ fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: themeColors.text.muted, marginBottom: spacing.sm }}>
                   OZEL TARIH ARALIGI
                 </div>
                 <div style={{ display: "flex", gap: spacing.sm, marginBottom: spacing.sm }}>
@@ -260,7 +261,7 @@ export function PeriodSelector({
                     style={{
                       flex: 1,
                       padding: spacing.sm,
-                      border: `1px solid ${colors.border}`,
+                      border: `1px solid ${themeColors.border}`,
                       borderRadius: borderRadius.md,
                       fontSize: typography.fontSize.sm,
                     }}
@@ -272,7 +273,7 @@ export function PeriodSelector({
                     style={{
                       flex: 1,
                       padding: spacing.sm,
-                      border: `1px solid ${colors.border}`,
+                      border: `1px solid ${themeColors.border}`,
                       borderRadius: borderRadius.md,
                       fontSize: typography.fontSize.sm,
                     }}
@@ -284,7 +285,7 @@ export function PeriodSelector({
                   style={{
                     width: "100%",
                     padding: spacing.sm,
-                    backgroundColor: customStartDate && customEndDate ? colors.primary : colors.gray[300],
+                    backgroundColor: customStartDate && customEndDate ? colors.primary : themeColors.gray[300],
                     color: colors.white,
                     border: "none",
                     borderRadius: borderRadius.md,
@@ -307,13 +308,13 @@ export function PeriodSelector({
           <button
             style={{
               ...buttonStyle,
-              backgroundColor: comparePeriod ? colors.primaryLighter : colors.white,
-              borderColor: comparePeriod ? colors.primary : colors.border,
+              backgroundColor: comparePeriod ? colors.primaryLighter : themeColors.white,
+              borderColor: comparePeriod ? colors.primary : themeColors.border,
             }}
             onClick={() => setShowCompareDropdown(!showCompareDropdown)}
           >
             <span>{comparePeriod ? `vs ${comparePeriod.label}` : "Karsilastir"}</span>
-            <ChevronDown size={16} color={colors.text.muted} />
+            <ChevronDown size={16} color={themeColors.text.muted} />
           </button>
 
           {showCompareDropdown && (
@@ -332,7 +333,7 @@ export function PeriodSelector({
                         setShowCompareDropdown(false);
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = colors.gray[50];
+                        e.currentTarget.style.backgroundColor = themeColors.gray[50];
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = "transparent";
@@ -351,7 +352,7 @@ export function PeriodSelector({
                       }}
                       onMouseEnter={(e) => {
                         if (comparePeriod?.value !== period.value) {
-                          e.currentTarget.style.backgroundColor = colors.gray[50];
+                          e.currentTarget.style.backgroundColor = themeColors.gray[50];
                         }
                       }}
                       onMouseLeave={(e) => {
@@ -391,6 +392,7 @@ export function QuickPeriodTabs({
     { label: "1Y", value: "1y" },
   ],
 }: QuickPeriodTabsProps) {
+  const { themeColors } = useTheme();
   const getPeriodFromValue = (val: string): Period => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -416,7 +418,7 @@ export function QuickPeriodTabs({
     <div
       style={{
         display: "inline-flex",
-        backgroundColor: colors.gray[100],
+        backgroundColor: themeColors.gray[100],
         borderRadius: borderRadius.lg,
         padding: "2px",
       }}
@@ -427,12 +429,12 @@ export function QuickPeriodTabs({
           onClick={() => onChange(getPeriodFromValue(option.value))}
           style={{
             padding: `${spacing.xs} ${spacing.md}`,
-            backgroundColor: value === option.value ? colors.white : "transparent",
+            backgroundColor: value === option.value ? themeColors.white : "transparent",
             border: "none",
             borderRadius: borderRadius.md,
             fontSize: typography.fontSize.sm,
             fontWeight: value === option.value ? typography.fontWeight.semibold : typography.fontWeight.medium,
-            color: value === option.value ? colors.text.primary : colors.text.muted,
+            color: value === option.value ? themeColors.text.primary : themeColors.text.muted,
             cursor: "pointer",
             transition: `all ${transitions.fast} ease`,
             boxShadow: value === option.value ? shadows.sm : "none",

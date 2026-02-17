@@ -28,6 +28,12 @@ export async function authMiddleware(
       throw new AuthenticationError(error.message || "Geçersiz token.");
     }
 
+    // Check if token has been revoked (logout blacklist)
+    const { authService } = await import("../services/auth-service");
+    if (await authService.isTokenBlacklisted(token)) {
+      throw new AuthenticationError("Oturum sonlandırılmış. Lütfen tekrar giriş yapın.");
+    }
+
     // Load user from database
     let user;
     try {

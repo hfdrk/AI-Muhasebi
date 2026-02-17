@@ -37,7 +37,28 @@ export type Permission =
   | "tasks:create"
   | "tasks:read"
   | "tasks:update"
-  | "tasks:delete";
+  | "tasks:delete"
+  | "masak:view"
+  | "masak:create"
+  | "masak:manage"
+  | "kurgan:view"
+  | "kurgan:manage"
+  | "babs:view"
+  | "babs:create"
+  | "babs:manage"
+  | "beyanname:view"
+  | "beyanname:create"
+  | "beyanname:manage"
+  | "mali_musavir:view"
+  | "mali_musavir:manage"
+  | "check_notes:view"
+  | "check_notes:manage"
+  | "cash_flow:view"
+  | "cash_flow:manage"
+  | "exchange_rates:view"
+  | "exchange_rates:manage"
+  | "payment_reminders:view"
+  | "payment_reminders:manage";
 
 export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
   // Accountant role (TenantOwner) - Full access
@@ -79,6 +100,27 @@ export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
     "tasks:read",
     "tasks:update",
     "tasks:delete",
+    "masak:view",
+    "masak:create",
+    "masak:manage",
+    "kurgan:view",
+    "kurgan:manage",
+    "babs:view",
+    "babs:create",
+    "babs:manage",
+    "beyanname:view",
+    "beyanname:create",
+    "beyanname:manage",
+    "mali_musavir:view",
+    "mali_musavir:manage",
+    "check_notes:view",
+    "check_notes:manage",
+    "cash_flow:view",
+    "cash_flow:manage",
+    "exchange_rates:view",
+    "exchange_rates:manage",
+    "payment_reminders:view",
+    "payment_reminders:manage",
   ],
   // Deprecated - use TenantOwner instead (mapped to same permissions)
   Accountant: [
@@ -116,6 +158,27 @@ export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
     "tasks:read",
     "tasks:update",
     "tasks:delete",
+    "masak:view",
+    "masak:create",
+    "masak:manage",
+    "kurgan:view",
+    "kurgan:manage",
+    "babs:view",
+    "babs:create",
+    "babs:manage",
+    "beyanname:view",
+    "beyanname:create",
+    "beyanname:manage",
+    "mali_musavir:view",
+    "mali_musavir:manage",
+    "check_notes:view",
+    "check_notes:manage",
+    "cash_flow:view",
+    "cash_flow:manage",
+    "exchange_rates:view",
+    "exchange_rates:manage",
+    "payment_reminders:view",
+    "payment_reminders:manage",
   ],
   // Deprecated - not used
   Staff: [
@@ -139,6 +202,10 @@ export const ROLE_PERMISSIONS: Record<TenantRole, Permission[]> = {
     "users:read",
     "integrations:read",
     "tasks:read",
+    "check_notes:view",
+    "cash_flow:view",
+    "exchange_rates:view",
+    "payment_reminders:view",
   ],
 };
 

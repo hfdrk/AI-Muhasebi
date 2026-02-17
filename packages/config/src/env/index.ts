@@ -69,6 +69,10 @@ const envSchema = z.object({
   STORAGE_TYPE: z.enum(["local", "s3", "gcs", "azure"]).default("local"),
   STORAGE_BASE_PATH: z.string().default("./storage"),
   STORAGE_BUCKET_NAME: z.string().optional(),
+  STORAGE_REGION: z.string().default("eu-central-1"),
+  STORAGE_ACCESS_KEY_ID: z.string().optional(),
+  STORAGE_SECRET_ACCESS_KEY: z.string().optional(),
+  STORAGE_ENDPOINT: z.string().optional(), // For S3-compatible services (MinIO, DigitalOcean Spaces)
   STORAGE_MAX_FILE_SIZE: z.string().default("20971520"), // 20MB in bytes
   STORAGE_MAX_ZIP_FILE_SIZE: z.string().default("104857600"), // 100MB in bytes for zip files
   STORAGE_ALLOWED_MIME_TYPES: z.string().default("application/pdf,image/jpeg,image/png,image/jpg,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
@@ -130,6 +134,34 @@ const envSchema = z.object({
     .default("5")
     .transform((val) => parseInt(val, 10))
     .pipe(z.number().int().min(1).max(20)),
+}).superRefine((data, ctx) => {
+  // Enforce critical variables in production
+  if (data.NODE_ENV === "production") {
+    if (!data.CORS_ORIGIN) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "CORS_ORIGIN is required in production", path: ["CORS_ORIGIN"] });
+    }
+    if (!data.FRONTEND_URL) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "FRONTEND_URL is required in production", path: ["FRONTEND_URL"] });
+    }
+    if (!data.REDIS_URL) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "REDIS_URL is required in production for caching and rate limiting", path: ["REDIS_URL"] });
+    }
+    if (data.STORAGE_TYPE === "s3" && !data.STORAGE_BUCKET_NAME) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "STORAGE_BUCKET_NAME is required when STORAGE_TYPE=s3", path: ["STORAGE_BUCKET_NAME"] });
+    }
+    if (data.EMAIL_TRANSPORT === "smtp") {
+      if (!data.SMTP_HOST) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "SMTP_HOST is required when EMAIL_TRANSPORT=smtp", path: ["SMTP_HOST"] });
+      }
+      if (!data.SMTP_FROM && !data.EMAIL_FROM_DEFAULT) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "SMTP_FROM or EMAIL_FROM_DEFAULT is required when EMAIL_TRANSPORT=smtp", path: ["SMTP_FROM"] });
+      }
+    }
+    if (data.EMAIL_TRANSPORT === "stub") {
+      // Warn but don't block — stub mode should not be used in production
+      console.warn("[config] WARNING: EMAIL_TRANSPORT=stub in production — emails will NOT be sent. Set to 'smtp' for real delivery.");
+    }
+  }
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

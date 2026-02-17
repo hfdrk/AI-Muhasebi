@@ -2,6 +2,7 @@
 
 import React from "react";
 import { colors, spacing, borderRadius, shadows, typography, transitions } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { TrendIndicator, TrendDirection } from "./trend-indicator";
 import { SparklineChart } from "./sparkline-chart";
 
@@ -49,7 +50,7 @@ const colorMap = {
   warning: {
     bg: colors.warningLight,
     accent: colors.warning,
-    text: "#b45309",
+    text: colors.warningDark,
     gradient: colors.gradients.pastelWarning,
   },
   danger: {
@@ -61,7 +62,7 @@ const colorMap = {
   info: {
     bg: colors.infoLight,
     accent: colors.info,
-    text: "#0891b2",
+    text: colors.primaryDark,
     gradient: colors.gradients.pastelInfo,
   },
 };
@@ -82,6 +83,7 @@ export function KPICard({
   description,
   footer,
 }: KPICardProps) {
+  const { themeColors } = useTheme();
   const colorScheme = colorMap[color];
 
   const sizeStyles = {
@@ -115,11 +117,11 @@ export function KPICard({
   };
 
   const cardStyle: React.CSSProperties = {
-    background: colors.white,
+    background: themeColors.white,
     borderRadius: borderRadius.xl,
     padding: currentSize.padding,
     boxShadow: shadows.sm,
-    border: `1px solid ${colors.border}`,
+    border: `1px solid ${themeColors.border}`,
     transition: `all ${transitions.normal} ease`,
     cursor: onClick ? "pointer" : "default",
     position: "relative",
@@ -136,7 +138,7 @@ export function KPICard({
   const titleStyle: React.CSSProperties = {
     fontSize: currentSize.titleSize,
     fontWeight: typography.fontWeight.medium,
-    color: colors.text.secondary,
+    color: themeColors.text.secondary,
     textTransform: "uppercase",
     letterSpacing: "0.05em",
     margin: 0,
@@ -157,21 +159,21 @@ export function KPICard({
   const valueStyle: React.CSSProperties = {
     fontSize: currentSize.valueSize,
     fontWeight: typography.fontWeight.bold,
-    color: colors.text.primary,
+    color: themeColors.text.primary,
     lineHeight: 1.2,
     margin: 0,
   };
 
   const descriptionStyle: React.CSSProperties = {
     fontSize: typography.fontSize.xs,
-    color: colors.text.muted,
+    color: themeColors.text.muted,
     marginTop: spacing.xs,
   };
 
   const footerStyle: React.CSSProperties = {
     marginTop: spacing.md,
     paddingTop: spacing.md,
-    borderTop: `1px solid ${colors.border}`,
+    borderTop: `1px solid ${themeColors.border}`,
   };
 
   const loadingOverlayStyle: React.CSSProperties = {
@@ -236,7 +238,7 @@ export function KPICard({
               justifyContent: "space-between",
               marginBottom: spacing.xs,
               fontSize: typography.fontSize.xs,
-              color: colors.text.muted,
+              color: themeColors.text.muted,
             }}
           >
             <span>Hedefe ilerleme</span>
@@ -245,7 +247,7 @@ export function KPICard({
           <div
             style={{
               height: "6px",
-              backgroundColor: colors.gray[200],
+              backgroundColor: themeColors.gray[200],
               borderRadius: borderRadius.full,
               overflow: "hidden",
             }}
@@ -280,7 +282,7 @@ export function KPICard({
             style={{
               width: "24px",
               height: "24px",
-              border: `3px solid ${colors.gray[200]}`,
+              border: `3px solid ${themeColors.gray[200]}`,
               borderTopColor: colorScheme.accent,
               borderRadius: borderRadius.full,
               animation: "spin 1s linear infinite",

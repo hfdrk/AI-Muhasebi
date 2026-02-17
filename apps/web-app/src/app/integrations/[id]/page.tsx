@@ -1,18 +1,18 @@
 "use client";
 
-import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getIntegration,
   listSyncJobs,
   listSyncLogs,
   triggerSync,
-  updateIntegration,
   deleteIntegration,
 } from "@repo/api-client";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "@/lib/toast";
+import { colors } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const STATUS_LABELS: Record<string, string> = {
   connected: "Bağlı",
@@ -45,6 +45,7 @@ const LOG_LEVEL_LABELS: Record<string, string> = {
 };
 
 export default function IntegrationDetailPage() {
+  const { themeColors } = useTheme();
   const params = useParams();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -110,7 +111,7 @@ export default function IntegrationDetailPage() {
       <div style={{ marginBottom: "24px" }}>
         <Link
           href="/integrations"
-          style={{ color: "#0066cc", textDecoration: "none", marginBottom: "16px", display: "inline-block" }}
+          style={{ color: colors.primary, textDecoration: "none", marginBottom: "16px", display: "inline-block" }}
         >
           ← İntegrasyonlara Dön
         </Link>
@@ -118,7 +119,7 @@ export default function IntegrationDetailPage() {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginBottom: "32px" }}>
-        <div style={{ padding: "16px", border: "1px solid #ddd", borderRadius: "4px" }}>
+        <div style={{ padding: "16px", border: `1px solid ${themeColors.border}`, borderRadius: "4px" }}>
           <h3 style={{ marginTop: 0 }}>Sağlayıcı Bilgileri</h3>
           <p>
             <strong>Ad:</strong> {provider.name}
@@ -133,7 +134,7 @@ export default function IntegrationDetailPage() {
           )}
         </div>
 
-        <div style={{ padding: "16px", border: "1px solid #ddd", borderRadius: "4px" }}>
+        <div style={{ padding: "16px", border: `1px solid ${themeColors.border}`, borderRadius: "4px" }}>
           <h3 style={{ marginTop: 0 }}>Durum</h3>
           <p>
             <strong>Bağlantı Durumu:</strong>{" "}
@@ -143,16 +144,16 @@ export default function IntegrationDetailPage() {
                 borderRadius: "4px",
                 backgroundColor:
                   integration.status === "connected"
-                    ? "#d4edda"
+                    ? colors.successLight
                     : integration.status === "error"
-                    ? "#f8d7da"
-                    : "#fff3cd",
+                    ? colors.dangerLight
+                    : colors.warningLight,
                 color:
                   integration.status === "connected"
-                    ? "#155724"
+                    ? colors.successDark
                     : integration.status === "error"
-                    ? "#721c24"
-                    : "#856404",
+                    ? colors.dangerDark
+                    : colors.warningDark,
                 fontSize: "14px",
               }}
             >
@@ -174,16 +175,16 @@ export default function IntegrationDetailPage() {
                   borderRadius: "4px",
                   backgroundColor:
                     integration.lastSyncStatus === "success"
-                      ? "#d4edda"
+                      ? colors.successLight
                       : integration.lastSyncStatus === "error"
-                      ? "#f8d7da"
-                      : "#d1ecf1",
+                      ? colors.dangerLight
+                      : colors.infoLight,
                   color:
                     integration.lastSyncStatus === "success"
-                      ? "#155724"
+                      ? colors.successDark
                       : integration.lastSyncStatus === "error"
-                      ? "#721c24"
-                      : "#0c5460",
+                      ? colors.dangerDark
+                      : colors.primaryDark,
                   fontSize: "14px",
                 }}
               >
@@ -204,8 +205,8 @@ export default function IntegrationDetailPage() {
               onClick={() => handleSync("pull_invoices")}
               style={{
                 padding: "8px 16px",
-                backgroundColor: "#0066cc",
-                color: "white",
+                backgroundColor: colors.primary,
+                color: colors.white,
                 border: "none",
                 borderRadius: "4px",
                 cursor: "pointer",
@@ -219,8 +220,8 @@ export default function IntegrationDetailPage() {
               onClick={() => handleSync("pull_bank_transactions")}
               style={{
                 padding: "8px 16px",
-                backgroundColor: "#0066cc",
-                color: "white",
+                backgroundColor: colors.primary,
+                color: colors.white,
                 border: "none",
                 borderRadius: "4px",
                 cursor: "pointer",
@@ -233,8 +234,8 @@ export default function IntegrationDetailPage() {
             href={`/integrations/${integrationId}/edit`}
             style={{
               padding: "8px 16px",
-              backgroundColor: "#28a745",
-              color: "white",
+              backgroundColor: colors.success,
+              color: colors.white,
               textDecoration: "none",
               borderRadius: "4px",
               display: "inline-block",
@@ -246,8 +247,8 @@ export default function IntegrationDetailPage() {
             onClick={handleDelete}
             style={{
               padding: "8px 16px",
-              backgroundColor: "#dc3545",
-              color: "white",
+              backgroundColor: colors.danger,
+              color: colors.white,
               border: "none",
               borderRadius: "4px",
               cursor: "pointer",
@@ -265,7 +266,7 @@ export default function IntegrationDetailPage() {
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr style={{ borderBottom: "2px solid #ddd" }}>
+              <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
                 <th style={{ padding: "12px", textAlign: "left" }}>İşlem Tipi</th>
                 <th style={{ padding: "12px", textAlign: "left" }}>Durum</th>
                 <th style={{ padding: "12px", textAlign: "left" }}>Başlangıç</th>
@@ -275,7 +276,7 @@ export default function IntegrationDetailPage() {
             </thead>
             <tbody>
               {jobs.map((job: any) => (
-                <tr key={job.id} style={{ borderBottom: "1px solid #eee" }}>
+                <tr key={job.id} style={{ borderBottom: `1px solid ${themeColors.gray[200]}` }}>
                   <td style={{ padding: "12px" }}>{JOB_TYPE_LABELS[job.jobType] || job.jobType}</td>
                   <td style={{ padding: "12px" }}>
                     <span
@@ -284,20 +285,20 @@ export default function IntegrationDetailPage() {
                         borderRadius: "4px",
                         backgroundColor:
                           job.status === "success"
-                            ? "#d4edda"
+                            ? colors.successLight
                             : job.status === "failed"
-                            ? "#f8d7da"
+                            ? colors.dangerLight
                             : job.status === "in_progress"
-                            ? "#d1ecf1"
-                            : "#fff3cd",
+                            ? colors.infoLight
+                            : colors.warningLight,
                         color:
                           job.status === "success"
-                            ? "#155724"
+                            ? colors.successDark
                             : job.status === "failed"
-                            ? "#721c24"
+                            ? colors.dangerDark
                             : job.status === "in_progress"
-                            ? "#0c5460"
-                            : "#856404",
+                            ? colors.primaryDark
+                            : colors.warningDark,
                         fontSize: "12px",
                       }}
                     >
@@ -312,7 +313,7 @@ export default function IntegrationDetailPage() {
                   </td>
                   <td style={{ padding: "12px" }}>
                     {job.errorMessage ? (
-                      <span style={{ color: "#dc3545" }}>{job.errorMessage}</span>
+                      <span style={{ color: colors.danger }}>{job.errorMessage}</span>
                     ) : (
                       "-"
                     )}
@@ -331,7 +332,7 @@ export default function IntegrationDetailPage() {
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr style={{ borderBottom: "2px solid #ddd" }}>
+              <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
                 <th style={{ padding: "12px", textAlign: "left" }}>Seviye</th>
                 <th style={{ padding: "12px", textAlign: "left" }}>Mesaj</th>
                 <th style={{ padding: "12px", textAlign: "left" }}>Tarih</th>
@@ -339,7 +340,7 @@ export default function IntegrationDetailPage() {
             </thead>
             <tbody>
               {logs.map((log: any) => (
-                <tr key={log.id} style={{ borderBottom: "1px solid #eee" }}>
+                <tr key={log.id} style={{ borderBottom: `1px solid ${themeColors.gray[200]}` }}>
                   <td style={{ padding: "12px" }}>
                     <span
                       style={{
@@ -347,16 +348,16 @@ export default function IntegrationDetailPage() {
                         borderRadius: "4px",
                         backgroundColor:
                           log.level === "error"
-                            ? "#f8d7da"
+                            ? colors.dangerLight
                             : log.level === "warning"
-                            ? "#fff3cd"
-                            : "#d1ecf1",
+                            ? colors.warningLight
+                            : colors.infoLight,
                         color:
                           log.level === "error"
-                            ? "#721c24"
+                            ? colors.dangerDark
                             : log.level === "warning"
-                            ? "#856404"
-                            : "#0c5460",
+                            ? colors.warningDark
+                            : colors.primaryDark,
                         fontSize: "12px",
                       }}
                     >

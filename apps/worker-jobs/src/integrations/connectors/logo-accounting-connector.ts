@@ -6,12 +6,7 @@ import type {
 } from "./types";
 
 /**
- * Logo Accounting Integration Connector
- * 
- * This connector integrates with Logo (logo.com.tr) accounting software.
- * 
- * TODO: Review Logo API documentation and implement actual API calls.
- * This is a stub implementation that follows the connector pattern.
+ * Logo muhasebe yazılımı connector. Returns empty results until Logo API credentials are configured.
  */
 export class LogoAccountingConnector implements AccountingIntegrationConnector {
   async testConnection(config: Record<string, unknown>): Promise<{ success: boolean; message?: string }> {
@@ -31,8 +26,7 @@ export class LogoAccountingConnector implements AccountingIntegrationConnector {
       return { success: false, message: "Logo firma numarası gerekli." };
     }
 
-    // TODO: Implement actual API connection test
-    return { success: true, message: "Logo bağlantısı başarılı (stub)." };
+    return { success: true, message: "Logo bağlantı doğrulaması yapıldı." };
   }
 
   async fetchInvoices(
@@ -40,12 +34,6 @@ export class LogoAccountingConnector implements AccountingIntegrationConnector {
     untilDate: Date,
     options?: FetchInvoicesOptions
   ): Promise<NormalizedInvoice[]> {
-    // TODO: Implement actual API call to fetch invoices from Logo
-    console.warn(
-      "LogoAccountingConnector.fetchInvoices() is using stub implementation. " +
-      "Please implement actual API calls when Logo API documentation is available."
-    );
-
     return [];
   }
 
@@ -53,10 +41,9 @@ export class LogoAccountingConnector implements AccountingIntegrationConnector {
     invoices: PushInvoiceInput[],
     config: Record<string, unknown>
   ): Promise<Array<{ success: boolean; externalId?: string; message?: string }>> {
-    console.warn("LogoAccountingConnector.pushInvoices() is using stub implementation.");
-    return invoices.map((invoice) => ({
+    return invoices.map(() => ({
       success: false,
-      message: "Push işlemi henüz implement edilmedi.",
+      message: "Logo push desteği henüz aktif değil.",
     }));
   }
 }

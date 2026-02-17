@@ -2,6 +2,7 @@
 
 import React from "react";
 import { spacing } from "../../styles/design-system";
+import { useTheme } from "../../contexts/ThemeContext";
 
 interface PageHeaderProps {
   title: string;
@@ -10,6 +11,8 @@ interface PageHeaderProps {
 }
 
 export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
+  const { themeColors } = useTheme();
+
   return (
     <div
       style={{
@@ -20,11 +23,11 @@ export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
       }}
     >
       <div>
-        <h1 style={{ margin: 0, marginBottom: subtitle ? spacing.xs : 0, fontSize: "28px", fontWeight: 600 }}>
+        <h1 style={{ margin: 0, marginBottom: subtitle ? spacing.xs : 0, fontSize: "28px", fontWeight: 600, color: themeColors.text.primary }}>
           {title}
         </h1>
         {subtitle && (
-          <p style={{ margin: 0, color: "#6c757d", fontSize: "14px" }}>{subtitle}</p>
+          <p style={{ margin: 0, color: themeColors.text.secondary, fontSize: "14px" }}>{subtitle}</p>
         )}
       </div>
       {actions && <div>{actions}</div>}

@@ -87,13 +87,13 @@ export class MLFraudDetectorService {
     }
 
     // Extract features for ML analysis
-    const features = this.extractFeatures(transactions, invoices);
+    const features = this.extractFeatures(transactions as any, invoices as any);
 
     // Use Isolation Forest for anomaly detection
     const anomalyScore = this.isolationForest(features);
 
     // Pattern recognition
-    const patterns = this.detectFraudPatterns(features, transactions, invoices);
+    const patterns = this.detectFraudPatterns(features, transactions as any, invoices as any);
 
     // Behavioral analysis
     const behavioralScore = this.analyzeBehavior(features);

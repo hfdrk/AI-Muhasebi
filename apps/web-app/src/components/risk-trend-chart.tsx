@@ -1,6 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { colors, spacing, borderRadius, typography } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface RiskScoreHistory {
   date: Date;
@@ -25,13 +27,15 @@ interface RiskTrendChartProps {
 }
 
 export default function RiskTrendChart({ type, id, days = 90 }: RiskTrendChartProps) {
+  const { themeColors } = useTheme();
+
   const { data, isLoading, error } = useQuery({
     queryKey: ["risk-trend", type, id, days],
     queryFn: async () => {
-      const endpoint = type === "document" 
+      const endpoint = type === "document"
         ? `/api/v1/risk/documents/${id}/trend?days=${days}`
         : `/api/v1/risk/companies/${id}/trend?days=${days}`;
-      
+
       const response = await fetch(endpoint);
       if (!response.ok) throw new Error("Failed to fetch risk trend");
       return response.json();
@@ -39,12 +43,12 @@ export default function RiskTrendChart({ type, id, days = 90 }: RiskTrendChartPr
   });
 
   if (isLoading) {
-    return <div style={{ padding: "16px" }}>Yükleniyor...</div>;
+    return <div style={{ padding: spacing.md }}>Yükleniyor...</div>;
   }
 
   if (error) {
     return (
-      <div style={{ padding: "16px", color: "#dc2626" }}>
+      <div style={{ padding: spacing.md, color: colors.danger }}>
         Risk trend verisi yüklenirken bir hata oluştu.
       </div>
     );
@@ -54,7 +58,7 @@ export default function RiskTrendChart({ type, id, days = 90 }: RiskTrendChartPr
 
   if (!trendData || trendData.history.length === 0) {
     return (
-      <div style={{ padding: "16px", color: "#666" }}>
+      <div style={{ padding: spacing.md, color: themeColors.text.secondary }}>
         Henüz yeterli veri bulunmuyor.
       </div>
     );
@@ -65,31 +69,31 @@ export default function RiskTrendChart({ type, id, days = 90 }: RiskTrendChartPr
   const minScore = Math.min(trendData.minScore, 0);
 
   return (
-    <div style={{ padding: "16px", backgroundColor: "white", borderRadius: "8px" }}>
-      <h3 style={{ marginBottom: "16px" }}>Risk Skoru Trendi</h3>
+    <div style={{ padding: spacing.md, backgroundColor: themeColors.white, borderRadius: borderRadius.md }}>
+      <h3 style={{ marginBottom: spacing.md }}>Risk Skoru Trendi</h3>
 
-      <div style={{ marginBottom: "16px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-          <span style={{ fontSize: "14px", color: "#666" }}>Mevcut Skor</span>
-          <span style={{ fontSize: "18px", fontWeight: "bold" }}>{trendData.currentScore.toFixed(1)}</span>
+      <div style={{ marginBottom: spacing.md }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: spacing.sm }}>
+          <span style={{ fontSize: typography.fontSize.sm, color: themeColors.text.secondary }}>Mevcut Skor</span>
+          <span style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.bold }}>{trendData.currentScore.toFixed(1)}</span>
         </div>
         {trendData.previousScore !== null && (
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-            <span style={{ fontSize: "14px", color: "#666" }}>Önceki Skor</span>
-            <span style={{ fontSize: "14px" }}>{trendData.previousScore.toFixed(1)}</span>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: spacing.sm }}>
+            <span style={{ fontSize: typography.fontSize.sm, color: themeColors.text.secondary }}>Önceki Skor</span>
+            <span style={{ fontSize: typography.fontSize.sm }}>{trendData.previousScore.toFixed(1)}</span>
           </div>
         )}
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-          <span style={{ fontSize: "14px", color: "#666" }}>Trend</span>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: spacing.sm }}>
+          <span style={{ fontSize: typography.fontSize.sm, color: themeColors.text.secondary }}>Trend</span>
           <span
             style={{
-              fontSize: "14px",
+              fontSize: typography.fontSize.sm,
               color:
                 trendData.trend === "increasing"
-                  ? "#dc2626"
+                  ? colors.danger
                   : trendData.trend === "decreasing"
-                  ? "#10b981"
-                  : "#666",
+                  ? colors.success
+                  : themeColors.text.secondary,
             }}
           >
             {trendData.trend === "increasing"
@@ -103,8 +107,8 @@ export default function RiskTrendChart({ type, id, days = 90 }: RiskTrendChartPr
 
       {/* Simple bar chart representation */}
       <div style={{ marginTop: "20px" }}>
-        <div style={{ fontSize: "12px", color: "#666", marginBottom: "8px" }}>Skor Geçmişi</div>
-        <div style={{ display: "flex", gap: "4px", alignItems: "flex-end", height: "100px" }}>
+        <div style={{ fontSize: typography.fontSize.xs, color: themeColors.text.secondary, marginBottom: spacing.sm }}>Skor Geçmişi</div>
+        <div style={{ display: "flex", gap: spacing.xs, alignItems: "flex-end", height: "100px" }}>
           {trendData.history.map((point, index) => {
             const height = ((point.score - minScore) / (maxScore - minScore)) * 100;
             return (
@@ -115,25 +119,22 @@ export default function RiskTrendChart({ type, id, days = 90 }: RiskTrendChartPr
                   height: `${height}%`,
                   backgroundColor:
                     point.severity === "high"
-                      ? "#dc2626"
+                      ? colors.danger
                       : point.severity === "medium"
-                      ? "#f59e0b"
-                      : "#10b981",
-                  borderRadius: "4px 4px 0 0",
-                  minHeight: "4px",
+                      ? colors.warning
+                      : colors.success,
+                  borderRadius: `${borderRadius.sm} ${borderRadius.sm} 0 0`,
+                  minHeight: spacing.xs,
                 }}
                 title={`${new Date(point.date).toLocaleDateString("tr-TR")}: ${point.score.toFixed(1)}`}
               />
             );
           })}
         </div>
-        <div style={{ fontSize: "10px", color: "#999", marginTop: "4px", textAlign: "center" }}>
+        <div style={{ fontSize: "10px", color: themeColors.text.muted, marginTop: spacing.xs, textAlign: "center" }}>
           {trendData.history.length} veri noktası
         </div>
       </div>
     </div>
   );
 }
-
-
-

@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { colors, spacing, borderRadius, typography, transitions, shadows } from "../../styles/design-system";
+import { colors, spacing, borderRadius, typography, transitions } from "../../styles/design-system";
+import { useTheme } from "../../contexts/ThemeContext";
 import { Icon } from "./Icon";
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -24,6 +25,7 @@ export function Input({
   onBlur,
   ...props 
 }: InputProps) {
+  const { themeColors } = useTheme();
   const [isFocused, setIsFocused] = useState(false);
   const [hasValue, setHasValue] = useState(!!props.value || !!props.defaultValue);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -48,7 +50,7 @@ export function Input({
     if (error) return colors.danger;
     if (showSuccess && hasValue && !error) return colors.success;
     if (isFocused) return colors.primary;
-    return colors.border;
+    return themeColors.border;
   };
 
   const getFocusRing = () => {
@@ -68,8 +70,8 @@ export function Input({
     borderRadius: borderRadius.md,
     fontSize: typography.fontSize.base,
     fontFamily: typography.fontFamily.sans,
-    color: colors.text.primary,
-    backgroundColor: props.disabled ? colors.gray[100] : colors.white,
+    color: themeColors.text.primary,
+    backgroundColor: props.disabled ? themeColors.gray[100] : themeColors.white,
     transition: `all ${transitions.normal} ease`,
     ...getFocusRing(),
     ...style,
@@ -84,7 +86,7 @@ export function Input({
             marginBottom: spacing.xs,
             fontSize: typography.fontSize.sm,
             fontWeight: typography.fontWeight.medium,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
             transition: `color ${transitions.normal} ease`,
           }}
         >
@@ -100,7 +102,7 @@ export function Input({
               left: spacing.md,
               top: "50%",
               transform: "translateY(-50%)",
-              color: isFocused ? colors.primary : colors.text.secondary,
+              color: isFocused ? colors.primary : themeColors.text.secondary,
               transition: `color ${transitions.normal} ease`,
               zIndex: 1,
               pointerEvents: "none",
@@ -166,7 +168,7 @@ export function Input({
         </div>
       )}
       {helperText && !error && (
-        <p style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm, marginTop: spacing.xs, margin: 0 }}>
+        <p style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm, marginTop: spacing.xs, margin: 0 }}>
           {helperText}
         </p>
       )}

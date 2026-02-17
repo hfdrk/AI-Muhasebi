@@ -36,6 +36,12 @@ model User {
   assignedTasks           Task[]
   messageThreads          MessageThreadParticipant[]
   sentMessages            Message[]
+  createdMasakReports     MasakReport[]       @relation("MasakReportCreatedBy")
+  reviewedMasakReports    MasakReport[]       @relation("MasakReportReviewedBy")
+  respondedKurganSignals  KurganSignal[]
+  generatedBaBsForms      BaBsForm[]
+  preparedBeyannameler    Beyanname[]         @relation("BeyannamePreparedBy")
+  reviewedBeyannameler    Beyanname[]         @relation("BeyannameReviewedBy")
 
   @@index([email])
   @@map("users")
@@ -91,6 +97,17 @@ model Tenant {
   MessageThread           MessageThread[]
   emailLogs               EmailLog[]
   documentEmbeddings      DocumentEmbedding[]
+  masakReports            MasakReport[]
+  kurganSignals           KurganSignal[]
+  baBsForms               BaBsForm[]
+  beyannameler            Beyanname[]
+  maliMusavirProfile      MaliMusavirProfile?
+  eDefterLedgers          EDefterLedger[]
+  recurringInvoices       RecurringInvoice[]
+  checkNotes              CheckNote[]
+  exchangeRates           ExchangeRate[]
+  paymentReminders        PaymentReminder[]
+  cashFlowEntries         CashFlowEntry[]
 
   @@index([slug])
   @@map("tenants")
@@ -215,6 +232,15 @@ model ClientCompany {
   tasks                Task[]
   documentRequirements DocumentRequirement[]
   messageThreads       MessageThread[]
+  masakReports         MasakReport[]
+  kurganSignals        KurganSignal[]
+  baBsForms            BaBsForm[]
+  beyannameler         Beyanname[]
+  eDefterLedgers       EDefterLedger[]
+  recurringInvoices    RecurringInvoice[]
+  checkNotes           CheckNote[]
+  paymentReminders     PaymentReminder[]
+  cashFlowEntries      CashFlowEntry[]
 
   @@unique([tenantId, taxNumber])
   @@index([tenantId])
@@ -267,6 +293,7 @@ model Invoice {
   clientCompany    ClientCompany @relation(fields: [clientCompanyId], references: [id], onDelete: Cascade)
   lines            InvoiceLine[]
   relatedDocuments Document[]
+  paymentReminders PaymentReminder[]
 
   @@index([tenantId])
   @@index([clientCompanyId])
@@ -1011,4 +1038,393 @@ model EmailLog {
   @@index([status])
   @@index([createdAt])
   @@map("email_logs")
+}
+
+// ============================================================================
+// MALI MÜŞAVIR PLATFORM - MASAK, KURGAN, Ba-Bs, Beyanname
+// ============================================================================
+
+// MASAK Suspicious Transaction Report (Şüpheli İşlem Bildirimi - SİB)
+model MasakReport {
+  id                String    @id @default(cuid())
+  tenantId          String    @map("tenant_id")
+  clientCompanyId   String    @map("client_company_id")
+  reportType        String    @map("report_type") @db.VarChar(50) // STR (Suspicious Transaction Report), CTR (Cash Transaction Report)
+  status            String    @default("draft") @db.VarChar(50) // draft, pending_review, submitted, acknowledged, investigation, closed
+  suspicionType     String    @map("suspicion_type") @db.VarChar(100) // money_laundering, terrorism_financing, fraud, tax_evasion, structuring, other
+  suspicionDetails  String    @map("suspicion_details") @db.Text
+  transactionIds    Json      @default("[]") @map("transaction_ids") // Array of related transaction IDs
+  invoiceIds        Json      @default("[]") @map("invoice_ids") // Array of related invoice IDs
+  totalAmount       Decimal   @map("total_amount") @db.Decimal(15, 2)
+  currency          String    @default("TRY") @db.VarChar(3)
+  counterpartyName  String?   @map("counterparty_name") @db.VarChar(255)
+  counterpartyTaxNo String?   @map("counterparty_tax_no") @db.VarChar(50)
+  riskScore         Decimal?  @map("risk_score") @db.Decimal(5, 2) // 0-100
+  riskIndicators    Json      @default("[]") @map("risk_indicators") // Array of triggered indicators
+  detectedAt        DateTime  @map("detected_at") @db.Timestamptz(6)
+  reportedAt        DateTime? @map("reported_at") @db.Timestamptz(6) // When submitted to MASAK
+  filingReference   String?   @map("filing_reference") @db.VarChar(100) // MASAK reference number
+  deadline          DateTime? @map("deadline") @db.Timestamptz(6) // 10 business days from detection
+  notes             String?   @db.Text
+  createdByUserId   String    @map("created_by_user_id")
+  reviewedByUserId  String?   @map("reviewed_by_user_id")
+  metadata          Json?     @default("{}")
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientCompany ClientCompany @relation(fields: [clientCompanyId], references: [id], onDelete: Cascade)
+  createdBy     User          @relation("MasakReportCreatedBy", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  reviewedBy    User?         @relation("MasakReportReviewedBy", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, clientCompanyId])
+  @@index([tenantId, suspicionType])
+  @@index([status])
+  @@index([detectedAt])
+  @@index([deadline])
+  @@map("masak_reports")
+}
+
+// KURGAN Risk Signal Monitor
+model KurganSignal {
+  id                String    @id @default(cuid())
+  tenantId          String    @map("tenant_id")
+  clientCompanyId   String    @map("client_company_id")
+  signalType        String    @map("signal_type") @db.VarChar(100) // fake_invoice, income_mismatch, stock_discrepancy, vat_anomaly, profit_loss_anomaly, declaration_mismatch, cross_company_pattern
+  severity          String    @db.VarChar(50) // low, medium, high, critical
+  status            String    @default("new") @db.VarChar(50) // new, acknowledged, investigating, resolved, false_positive
+  title             String    @db.VarChar(500)
+  description       String    @db.Text
+  dataSource        String    @map("data_source") @db.VarChar(100) // e_fatura, e_defter, bank_data, sgk, customs, ba_bs, beyanname
+  affectedPeriod    String?   @map("affected_period") @db.VarChar(50) // e.g., "2026-01", "2025-Q4"
+  riskScore         Decimal   @map("risk_score") @db.Decimal(5, 2) // 0-100
+  financialImpact   Decimal?  @map("financial_impact") @db.Decimal(15, 2) // Estimated financial impact
+  relatedInvoiceIds Json      @default("[]") @map("related_invoice_ids")
+  relatedDocumentIds Json     @default("[]") @map("related_document_ids")
+  recommendedAction String?   @map("recommended_action") @db.Text
+  responseNotes     String?   @map("response_notes") @db.Text
+  respondedAt       DateTime? @map("responded_at") @db.Timestamptz(6)
+  respondedByUserId String?   @map("responded_by_user_id")
+  metadata          Json?     @default("{}")
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientCompany ClientCompany @relation(fields: [clientCompanyId], references: [id], onDelete: Cascade)
+  respondedBy   User?         @relation(fields: [respondedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, clientCompanyId])
+  @@index([tenantId, signalType])
+  @@index([tenantId, severity])
+  @@index([status])
+  @@index([createdAt])
+  @@map("kurgan_signals")
+}
+
+// Ba-Bs Forms (Monthly Purchase/Sales Declarations)
+model BaBsForm {
+  id              String    @id @default(cuid())
+  tenantId        String    @map("tenant_id")
+  clientCompanyId String    @map("client_company_id")
+  formType        String    @map("form_type") @db.VarChar(10) // BA (purchases/alışlar) or BS (sales/satışlar)
+  period          String    @db.VarChar(7) // Format: "YYYY-MM"
+  status          String    @default("draft") @db.VarChar(50) // draft, generated, verified, submitted, accepted, rejected
+  totalAmount     Decimal   @map("total_amount") @db.Decimal(15, 2)
+  lineCount       Int       @map("line_count") @default(0)
+  crossCheckStatus String?  @map("cross_check_status") @db.VarChar(50) // pending, matched, mismatched
+  crossCheckErrors Json     @default("[]") @map("cross_check_errors") // Array of mismatch details
+  submittedAt     DateTime? @map("submitted_at") @db.Timestamptz(6)
+  filingReference String?   @map("filing_reference") @db.VarChar(100)
+  generatedByUserId String? @map("generated_by_user_id")
+  notes           String?   @db.Text
+  metadata        Json?     @default("{}")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant        Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientCompany ClientCompany   @relation(fields: [clientCompanyId], references: [id], onDelete: Cascade)
+  generatedBy   User?           @relation(fields: [generatedByUserId], references: [id], onDelete: SetNull)
+  lines         BaBsFormLine[]
+
+  @@unique([tenantId, clientCompanyId, formType, period])
+  @@index([tenantId])
+  @@index([tenantId, clientCompanyId])
+  @@index([tenantId, period])
+  @@index([tenantId, status])
+  @@index([period])
+  @@map("ba_bs_forms")
+}
+
+// Ba-Bs Form Line Items (per counterparty)
+model BaBsFormLine {
+  id                    String  @id @default(cuid())
+  formId                String  @map("form_id")
+  counterpartyName      String  @map("counterparty_name") @db.VarChar(255)
+  counterpartyTaxNumber String  @map("counterparty_tax_number") @db.VarChar(50)
+  counterpartyCountry   String  @default("TR") @map("counterparty_country") @db.VarChar(2)
+  documentCount         Int     @map("document_count") @default(0)
+  totalAmount           Decimal @map("total_amount") @db.Decimal(15, 2)
+  crossCheckMatch       Boolean? @map("cross_check_match") // null=not checked, true=match, false=mismatch
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  form BaBsForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+  @@index([formId])
+  @@index([counterpartyTaxNumber])
+  @@map("ba_bs_form_lines")
+}
+
+// Tax Declaration (Beyanname) Preparation
+model Beyanname {
+  id                String    @id @default(cuid())
+  tenantId          String    @map("tenant_id")
+  clientCompanyId   String    @map("client_company_id")
+  type              String    @db.VarChar(50) // KDV (VAT), MUHTASAR (Withholding), GECICI_VERGI (Quarterly), KURUMLAR (Corporate), GELIR (Income), DAMGA (Stamp), KDV2 (Reverse Charge VAT)
+  period            String    @db.VarChar(10) // "YYYY-MM" for monthly, "YYYY-Q1" for quarterly, "YYYY" for annual
+  status            String    @default("draft") @db.VarChar(50) // draft, calculating, calculated, reviewed, submitted, accepted, revision_needed
+  dueDate           DateTime  @map("due_date") @db.Timestamptz(6)
+  calculatedAmount  Decimal?  @map("calculated_amount") @db.Decimal(15, 2) // Tax amount to pay
+  deductibleAmount  Decimal?  @map("deductible_amount") @db.Decimal(15, 2) // Deductible tax credits
+  netPayable        Decimal?  @map("net_payable") @db.Decimal(15, 2) // Net tax to pay
+  carryForward      Decimal?  @map("carry_forward") @db.Decimal(15, 2) // Devreden KDV (carried forward tax credit)
+  calculationData   Json      @default("{}") @map("calculation_data") // Detailed calculation breakdown
+  submittedAt       DateTime? @map("submitted_at") @db.Timestamptz(6)
+  filingReference   String?   @map("filing_reference") @db.VarChar(100)
+  preparedByUserId  String?   @map("prepared_by_user_id")
+  reviewedByUserId  String?   @map("reviewed_by_user_id")
+  notes             String?   @db.Text
+  metadata          Json?     @default("{}")
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientCompany ClientCompany @relation(fields: [clientCompanyId], references: [id], onDelete: Cascade)
+  preparedBy    User?         @relation("BeyannamePreparedBy", fields: [preparedByUserId], references: [id], onDelete: SetNull)
+  reviewedBy    User?         @relation("BeyannameReviewedBy", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+
+  @@unique([tenantId, clientCompanyId, type, period])
+  @@index([tenantId])
+  @@index([tenantId, clientCompanyId])
+  @@index([tenantId, type])
+  @@index([tenantId, status])
+  @@index([tenantId, dueDate])
+  @@index([dueDate])
+  @@index([period])
+  @@map("beyannameler")
+}
+
+// Mali Müşavir Professional Profile (extends Tenant metadata)
+model MaliMusavirProfile {
+  id                  String    @id @default(cuid())
+  tenantId            String    @unique @map("tenant_id")
+  licenseType         String    @map("license_type") @db.VarChar(10) // SMMM, YMM
+  licenseNumber       String    @map("license_number") @db.VarChar(50)
+  turmobNumber        String?   @map("turmob_number") @db.VarChar(50) // TÜRMOB registration
+  chamberName         String?   @map("chamber_name") @db.VarChar(255) // Oda adı
+  specializations     Json      @default("[]") // ["vergi", "denetim", "muhasebe", "danismanlık"]
+  insuranceProvider   String?   @map("insurance_provider") @db.VarChar(255)
+  insuranceAmount     Decimal?  @map("insurance_amount") @db.Decimal(15, 2)
+  insuranceExpiry     DateTime? @map("insurance_expiry") @db.Timestamptz(6)
+  insurancePolicyNo   String?   @map("insurance_policy_no") @db.VarChar(100)
+  cpdHoursCompleted   Decimal   @default(0) @map("cpd_hours_completed") @db.Decimal(5, 1) // Continuing Professional Development
+  cpdPeriodStart      DateTime? @map("cpd_period_start") @db.Timestamptz(6)
+  masakTrainingDate   DateTime? @map("masak_training_date") @db.Timestamptz(6) // Last MASAK compliance training
+  totalActiveClients  Int       @default(0) @map("total_active_clients")
+  metadata            Json?     @default("{}")
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([licenseType])
+  @@index([licenseNumber])
+  @@map("mali_musavir_profiles")
+}
+
+// E-Defter (Electronic Ledger) Records
+model EDefterLedger {
+  id              String    @id
+  tenantId        String    @map("tenant_id")
+  clientCompanyId String    @map("client_company_id")
+  periodStart     DateTime  @map("period_start") @db.Timestamptz(6)
+  periodEnd       DateTime  @map("period_end") @db.Timestamptz(6)
+  periodType      String    @map("period_type") @db.VarChar(20) // monthly, quarterly, yearly
+  entryCount      Int       @default(0) @map("entry_count")
+  totalDebit      Decimal   @map("total_debit") @db.Decimal(15, 2)
+  totalCredit     Decimal   @map("total_credit") @db.Decimal(15, 2)
+  generationDate  DateTime  @map("generation_date") @db.Timestamptz(6)
+  status          String    @default("generated") @db.VarChar(50) // generated, submitted, accepted, rejected
+  submissionId    String?   @map("submission_id") @db.VarChar(100)
+  submissionDate  DateTime? @map("submission_date") @db.Timestamptz(6)
+  auditTrail      Json      @default("[]") @map("audit_trail")
+  metadata        Json?     @default("{}")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientCompany ClientCompany @relation(fields: [clientCompanyId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantId, clientCompanyId])
+  @@index([tenantId, status])
+  @@index([periodStart, periodEnd])
+  @@map("e_defter_ledgers")
+}
+
+// ─── Recurring Invoices ──────────────────────────────────────────────────
+model RecurringInvoice {
+  id                String    @id @default(cuid())
+  tenantId          String    @map("tenant_id")
+  clientCompanyId   String    @map("client_company_id")
+  templateName      String    @map("template_name") @db.VarChar(255)
+  type              String    @db.VarChar(50) // SATIŞ, ALIŞ
+  frequency         String    @db.VarChar(20) // weekly, monthly, quarterly, yearly
+  dayOfMonth        Int?      @map("day_of_month") // 1-31 for monthly
+  startDate         DateTime  @map("start_date") @db.Timestamptz(6)
+  endDate           DateTime? @map("end_date") @db.Timestamptz(6)
+  nextRunDate       DateTime  @map("next_run_date") @db.Timestamptz(6)
+  lastRunDate       DateTime? @map("last_run_date") @db.Timestamptz(6)
+  totalAmount       Decimal   @map("total_amount") @db.Decimal(15, 2)
+  currency          String    @default("TRY") @db.VarChar(3)
+  taxAmount         Decimal   @map("tax_amount") @db.Decimal(15, 2)
+  counterpartyName  String?   @map("counterparty_name") @db.VarChar(255)
+  counterpartyTaxNo String?   @map("counterparty_tax_no") @db.VarChar(50)
+  lineItems         Json      @default("[]") @map("line_items") // InvoiceLine template data
+  isActive          Boolean   @default(true) @map("is_active")
+  autoSend          Boolean   @default(false) @map("auto_send") // Auto-send via e-fatura
+  generatedCount    Int       @default(0) @map("generated_count")
+  notes             String?   @db.Text
+  metadata          Json?     @default("{}")
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientCompany ClientCompany @relation(fields: [clientCompanyId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantId, isActive])
+  @@index([nextRunDate])
+  @@map("recurring_invoices")
+}
+
+// ─── Check/Note (Çek/Senet) Tracking ─────────────────────────────────────
+model CheckNote {
+  id                String    @id @default(cuid())
+  tenantId          String    @map("tenant_id")
+  clientCompanyId   String?   @map("client_company_id")
+  type              String    @db.VarChar(20) // CEK (check), SENET (promissory note)
+  direction         String    @db.VarChar(20) // ALACAK (receivable), BORC (payable)
+  documentNumber    String    @map("document_number") @db.VarChar(100)
+  issuer            String?   @db.VarChar(255) // who issued the check/note
+  bankName          String?   @map("bank_name") @db.VarChar(255)
+  branchName        String?   @map("branch_name") @db.VarChar(255)
+  amount            Decimal   @db.Decimal(15, 2)
+  currency          String    @default("TRY") @db.VarChar(3)
+  issueDate         DateTime  @map("issue_date") @db.Timestamptz(6)
+  dueDate           DateTime  @map("due_date") @db.Timestamptz(6)
+  endorsedTo        String?   @map("endorsed_to") @db.VarChar(255) // If endorsed to someone
+  endorsedDate      DateTime? @map("endorsed_date") @db.Timestamptz(6)
+  status            String    @default("portfoyde") @db.VarChar(50) // portfoyde, tahsile_verildi, tahsil_edildi, karsiligi_yok, iade_edildi, ciro_edildi
+  collectedDate     DateTime? @map("collected_date") @db.Timestamptz(6)
+  bouncedDate       DateTime? @map("bounced_date") @db.Timestamptz(6)
+  notes             String?   @db.Text
+  metadata          Json?     @default("{}")
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientCompany ClientCompany? @relation(fields: [clientCompanyId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([tenantId, type])
+  @@index([tenantId, status])
+  @@index([dueDate])
+  @@map("check_notes")
+}
+
+// ─── Exchange Rate Tracking ──────────────────────────────────────────────
+model ExchangeRate {
+  id           String   @id @default(cuid())
+  tenantId     String?  @map("tenant_id") // null = system-wide rate
+  baseCurrency String   @map("base_currency") @db.VarChar(3) // e.g., USD
+  quoteCurrency String  @map("quote_currency") @db.VarChar(3) // e.g., TRY
+  buyRate      Decimal  @map("buy_rate") @db.Decimal(15, 6)
+  sellRate     Decimal  @map("sell_rate") @db.Decimal(15, 6)
+  midRate      Decimal  @map("mid_rate") @db.Decimal(15, 6)
+  source       String   @default("TCMB") @db.VarChar(50) // TCMB, manual, bank
+  rateDate     DateTime @map("rate_date") @db.Date
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([baseCurrency, quoteCurrency, rateDate, source])
+  @@index([rateDate])
+  @@index([baseCurrency, quoteCurrency])
+  @@map("exchange_rates")
+}
+
+// ─── Payment Reminder ────────────────────────────────────────────────────
+model PaymentReminder {
+  id                String    @id @default(cuid())
+  tenantId          String    @map("tenant_id")
+  clientCompanyId   String?   @map("client_company_id")
+  invoiceId         String?   @map("invoice_id")
+  checkNoteId       String?   @map("check_note_id")
+  type              String    @db.VarChar(30) // TAHSILAT (collection), ODEME (payment), CEK_VADESI (check due), SENET_VADESI (note due)
+  dueDate           DateTime  @map("due_date") @db.Timestamptz(6)
+  amount            Decimal   @db.Decimal(15, 2)
+  currency          String    @default("TRY") @db.VarChar(3)
+  description       String    @db.VarChar(500)
+  reminderDaysBefore Int      @default(3) @map("reminder_days_before")
+  reminderSent      Boolean   @default(false) @map("reminder_sent")
+  reminderSentAt    DateTime? @map("reminder_sent_at") @db.Timestamptz(6)
+  isPaid            Boolean   @default(false) @map("is_paid")
+  paidAt            DateTime? @map("paid_at") @db.Timestamptz(6)
+  metadata          Json?     @default("{}")
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientCompany ClientCompany? @relation(fields: [clientCompanyId], references: [id], onDelete: SetNull)
+  invoice       Invoice?       @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([tenantId, dueDate])
+  @@index([tenantId, isPaid])
+  @@index([reminderSent, dueDate])
+  @@map("payment_reminders")
+}
+
+// ─── Cash Flow Entry ─────────────────────────────────────────────────────
+model CashFlowEntry {
+  id                String   @id @default(cuid())
+  tenantId          String   @map("tenant_id")
+  clientCompanyId   String?  @map("client_company_id")
+  type              String   @db.VarChar(20) // INFLOW, OUTFLOW
+  category          String   @db.VarChar(50) // invoice, salary, rent, tax, loan, other
+  source            String   @db.VarChar(50) // actual, forecast
+  amount            Decimal  @db.Decimal(15, 2)
+  currency          String   @default("TRY") @db.VarChar(3)
+  entryDate         DateTime @map("entry_date") @db.Date
+  description       String?  @db.VarChar(500)
+  invoiceId         String?  @map("invoice_id")
+  checkNoteId       String?  @map("check_note_id")
+  isRecurring       Boolean  @default(false) @map("is_recurring")
+  metadata          Json?    @default("{}")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientCompany ClientCompany? @relation(fields: [clientCompanyId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([tenantId, entryDate])
+  @@index([tenantId, type])
+  @@index([tenantId, source])
+  @@map("cash_flow_entries")
 }

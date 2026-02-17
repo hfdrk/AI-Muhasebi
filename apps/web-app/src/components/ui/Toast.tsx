@@ -2,19 +2,21 @@
 
 import { Toaster } from "react-hot-toast";
 import { colors, borderRadius, shadows } from "../../styles/design-system";
+import { useTheme } from "../../contexts/ThemeContext";
 
 export function ToastProvider() {
+  const { themeColors } = useTheme();
   return (
     <Toaster
       position="top-right"
       toastOptions={{
         duration: 4000,
         style: {
-          background: colors.white,
-          color: colors.text.primary,
+          background: themeColors.white,
+          color: themeColors.text.primary,
           borderRadius: borderRadius.lg,
           boxShadow: shadows.xl,
-          border: `1px solid ${colors.border}`,
+          border: `1px solid ${themeColors.border}`,
           padding: "16px",
           fontSize: "14px",
           fontWeight: 500,
@@ -22,7 +24,7 @@ export function ToastProvider() {
         success: {
           iconTheme: {
             primary: colors.success,
-            secondary: colors.white,
+            secondary: themeColors.white,
           },
           style: {
             borderLeft: `4px solid ${colors.success}`,
@@ -31,7 +33,7 @@ export function ToastProvider() {
         error: {
           iconTheme: {
             primary: colors.danger,
-            secondary: colors.white,
+            secondary: themeColors.white,
           },
           style: {
             borderLeft: `4px solid ${colors.danger}`,
@@ -40,7 +42,7 @@ export function ToastProvider() {
         loading: {
           iconTheme: {
             primary: colors.primary,
-            secondary: colors.white,
+            secondary: themeColors.white,
           },
         },
       }}

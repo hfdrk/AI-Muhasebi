@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { taxClient, listClientCompanies } from "@repo/api-client";
-import Link from "next/link";
 import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
-import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
+import { colors, spacing, borderRadius, typography } from "../../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function TaxCompliancePage() {
+  const { themeColors } = useTheme();
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
 
   // Fetch client companies
@@ -63,7 +64,7 @@ export default function TaxCompliancePage() {
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
-        backgroundColor: colors.gray[50],
+        backgroundColor: themeColors.gray[50],
         minHeight: "100vh",
       }}
     >
@@ -82,7 +83,7 @@ export default function TaxCompliancePage() {
           style={{
             fontSize: typography.fontSize["3xl"],
             fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
             marginBottom: spacing.sm,
           }}
         >
@@ -91,7 +92,7 @@ export default function TaxCompliancePage() {
         <p
           style={{
             fontSize: typography.fontSize.base,
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
             lineHeight: typography.lineHeight.relaxed,
             margin: 0,
           }}
@@ -109,7 +110,7 @@ export default function TaxCompliancePage() {
               marginBottom: spacing.sm,
               fontSize: typography.fontSize.sm,
               fontWeight: typography.fontWeight.medium,
-              color: colors.text.primary,
+              color: themeColors.text.primary,
             }}
           >
             Müşteri Seçin
@@ -122,10 +123,10 @@ export default function TaxCompliancePage() {
               maxWidth: "400px",
               padding: spacing.sm,
               borderRadius: borderRadius.md,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               fontSize: typography.fontSize.base,
-              backgroundColor: colors.white,
-              color: colors.text.primary,
+              backgroundColor: themeColors.white,
+              color: themeColors.text.primary,
             }}
           >
             <option value="">Müşteri seçin...</option>
@@ -148,7 +149,7 @@ export default function TaxCompliancePage() {
                     display: "inline-block",
                     width: "48px",
                     height: "48px",
-                    border: `4px solid ${colors.gray[200]}`,
+                    border: `4px solid ${themeColors.gray[200]}`,
                     borderTopColor: colors.primary,
                     borderRadius: "50%",
                     animation: "spin 0.8s linear infinite",
@@ -195,7 +196,7 @@ export default function TaxCompliancePage() {
                         margin: 0,
                         fontSize: typography.fontSize.xl,
                         fontWeight: typography.fontWeight.bold,
-                        color: colors.text.primary,
+                        color: themeColors.text.primary,
                         marginBottom: spacing.xs,
                       }}
                     >
@@ -210,7 +211,7 @@ export default function TaxCompliancePage() {
                       style={{
                         margin: 0,
                         fontSize: typography.fontSize.sm,
-                        color: colors.text.secondary,
+                        color: themeColors.text.secondary,
                       }}
                     >
                       {compliance.isCompliant
@@ -231,8 +232,8 @@ export default function TaxCompliancePage() {
                         style={{
                           padding: spacing.md,
                           borderRadius: borderRadius.md,
-                          backgroundColor: colors.gray[50],
-                          border: `1px solid ${colors.border}`,
+                          backgroundColor: themeColors.gray[50],
+                          border: `1px solid ${themeColors.border}`,
                           borderLeft: `4px solid ${getSeverityColor(issue.severity)}`,
                         }}
                       >
@@ -248,7 +249,7 @@ export default function TaxCompliancePage() {
                             style={{
                               fontSize: typography.fontSize.base,
                               fontWeight: typography.fontWeight.semibold,
-                              color: colors.text.primary,
+                              color: themeColors.text.primary,
                             }}
                           >
                             {issue.type}
@@ -270,7 +271,7 @@ export default function TaxCompliancePage() {
                           style={{
                             margin: 0,
                             fontSize: typography.fontSize.sm,
-                            color: colors.text.secondary,
+                            color: themeColors.text.secondary,
                           }}
                         >
                           {issue.description}
@@ -304,8 +305,8 @@ export default function TaxCompliancePage() {
                               ? colors.dangerLight
                               : isUrgent
                               ? colors.warningLight
-                              : colors.gray[50],
-                            border: `1px solid ${colors.border}`,
+                              : themeColors.gray[50],
+                            border: `1px solid ${themeColors.border}`,
                             borderLeft: `4px solid ${
                               isOverdue
                                 ? colors.danger
@@ -328,7 +329,7 @@ export default function TaxCompliancePage() {
                                 style={{
                                   fontSize: typography.fontSize.base,
                                   fontWeight: typography.fontWeight.semibold,
-                                  color: colors.text.primary,
+                                  color: themeColors.text.primary,
                                 }}
                               >
                                 {deadline.type}
@@ -372,7 +373,7 @@ export default function TaxCompliancePage() {
                                   ? colors.dangerDark
                                   : isUrgent
                                   ? colors.warningDark
-                                  : colors.text.primary,
+                                  : themeColors.text.primary,
                               }}
                             >
                               {dueDate.toLocaleDateString("tr-TR", {
@@ -386,7 +387,7 @@ export default function TaxCompliancePage() {
                             style={{
                               margin: 0,
                               fontSize: typography.fontSize.sm,
-                              color: colors.text.secondary,
+                              color: themeColors.text.secondary,
                             }}
                           >
                             {deadline.description}
@@ -396,7 +397,7 @@ export default function TaxCompliancePage() {
                               style={{
                                 margin: `${spacing.xs} 0 0 0`,
                                 fontSize: typography.fontSize.xs,
-                                color: colors.text.secondary,
+                                color: themeColors.text.secondary,
                                 fontStyle: "italic",
                               }}
                             >
@@ -427,7 +428,7 @@ export default function TaxCompliancePage() {
               {compliance.deadlines.length === 0 && (
                 <Card variant="elevated">
                   <div style={{ padding: spacing.lg, textAlign: "center" }}>
-                    <p style={{ color: colors.text.secondary, margin: 0 }}>
+                    <p style={{ color: themeColors.text.secondary, margin: 0 }}>
                       Yaklaşan son tarih bulunmamaktadır. ✅
                     </p>
                   </div>
@@ -437,7 +438,7 @@ export default function TaxCompliancePage() {
           ) : (
             <Card variant="elevated">
               <div style={{ padding: spacing.lg, textAlign: "center" }}>
-                <p style={{ color: colors.text.secondary, margin: 0 }}>
+                <p style={{ color: themeColors.text.secondary, margin: 0 }}>
                   Uyumluluk bilgisi yüklenemedi.
                 </p>
               </div>
@@ -449,7 +450,7 @@ export default function TaxCompliancePage() {
       {!selectedClientId && (
         <Card variant="elevated">
           <div style={{ padding: spacing.xl, textAlign: "center" }}>
-            <p style={{ color: colors.text.secondary, margin: 0 }}>
+            <p style={{ color: themeColors.text.secondary, margin: 0 }}>
               Lütfen uyumluluk kontrolü için bir müşteri seçin.
             </p>
           </div>

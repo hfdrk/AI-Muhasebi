@@ -19,10 +19,10 @@ function checkPortOpen(port: number): boolean {
   }
 }
 
-function detectPostgresCredentials(): { user: string; password: string } {
+function detectPostgresCredentials(): { user: string; password: string } | null {
   // Check if port is open first
   if (!checkPortOpen(5432)) {
-    return { user: "ai_muhasebi", password: "ai_muhasebi_dev" };
+    return null;
   }
 
   try {
@@ -49,14 +49,14 @@ function detectPostgresCredentials(): { user: string; password: string } {
         // No container found
       }
     }
-    
+
     if (containerName) {
       // Try to get environment variables from container
       try {
         const envVars = execSync(`docker exec ${containerName} env 2>/dev/null | grep POSTGRES`, { encoding: "utf-8", stdio: "pipe" });
         const userMatch = envVars.match(/POSTGRES_USER=(\w+)/);
         const passwordMatch = envVars.match(/POSTGRES_PASSWORD=([^\s]+)/);
-        
+
         if (userMatch && passwordMatch) {
           return {
             user: userMatch[1],
@@ -64,18 +64,15 @@ function detectPostgresCredentials(): { user: string; password: string } {
           };
         }
       } catch {
-        // Fall through to testing connections
+        // Fall through
       }
     }
   } catch {
-    // Fall through to defaults
+    // Fall through
   }
-  
-  // Default credentials (ai_muhasebi user with container password)
-  return {
-    user: "ai_muhasebi",
-    password: "ai_muhasebi_dev",
-  };
+
+  // No credentials detected - caller must handle null
+  return null;
 }
 
 // Helper to test database connection with given credentials
@@ -100,32 +97,22 @@ async function testConnection(user: string, password: string, database: string =
   }
 }
 
-// Try multiple credential combinations
+// Try to find working credentials from Docker container detection
 async function findWorkingCredentials(): Promise<{ user: string; password: string }> {
   const detected = detectPostgresCredentials();
-  
-  // Try detected credentials first
-  if (await testConnection(detected.user, detected.password)) {
-    return detected;
-  }
-  
-  // Try common combinations
-  // Note: Docker containers often use postgres user with POSTGRES_PASSWORD
-  const commonCredentials = [
-    { user: "postgres", password: "ai_muhasebi_dev" }, // Most likely based on container env
-    { user: "postgres", password: "postgres" },
-    { user: "ai_muhasebi", password: "ai_muhasebi_dev" },
-    { user: process.env.USER || "postgres", password: "" },
-  ];
-  
-  for (const creds of commonCredentials) {
-    if (await testConnection(creds.user, creds.password)) {
-      return creds;
+
+  if (detected) {
+    // Try detected credentials from Docker container
+    if (await testConnection(detected.user, detected.password)) {
+      return detected;
     }
   }
-  
-  // Return detected as fallback (will fail with clear error)
-  return detected;
+
+  // No hardcoded fallback credentials - DATABASE_URL must be set via environment
+  throw new Error(
+    "Could not detect database credentials automatically. " +
+    "Please set the DATABASE_URL environment variable in your .env file."
+  );
 }
 
 let resolvedUrl: string | null = null;
@@ -232,55 +219,29 @@ export async function resolveDatabaseUrl(): Promise<string> {
  * Prioritizes postgres/postgres as it's the most common Docker setup
  */
 export function getDatabaseUrlSync(): string {
-  try {
-    if (resolvedUrl) {
-      return resolvedUrl;
-    }
-    
-    // Check if DATABASE_URL is set but might have wrong credentials
-    // If it uses ai_muhasebi user, override it with postgres (correct for Docker)
-    if (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes("${")) {
-      const currentUrl = process.env.DATABASE_URL;
-      // Keep ai_muhasebi user (Docker container uses ai_muhasebi user)
-      if (currentUrl.includes("ai_muhasebi:ai_muhasebi_dev@") || currentUrl.includes("://ai_muhasebi@")) {
-        // URL already correct, use as-is
-        resolvedUrl = currentUrl;
-        process.env.DATABASE_URL = currentUrl;
-        return resolvedUrl;
-      }
-      resolvedUrl = currentUrl;
-      return resolvedUrl;
-    }
-    
-    // Try to detect from Docker container first
-    const detected = detectPostgresCredentials();
-    
-    // Prioritize ai_muhasebi:ai_muhasebi_dev (matches container POSTGRES_USER)
-    // This matches what the Docker container uses
-    const likelyCredentials = [
-      { user: "ai_muhasebi", password: "ai_muhasebi_dev" },
-      detected,
-      { user: "postgres", password: "ai_muhasebi_dev" },
-      { user: "postgres", password: "postgres" },
-    ];
-    
-    // Use the first likely credential (ai_muhasebi:ai_muhasebi_dev matches container)
-    const creds = likelyCredentials[0];
-    resolvedUrl = `postgresql://${creds.user}:${creds.password}@localhost:5432/${MAIN_DB_NAME}`;
-    process.env.DATABASE_URL = resolvedUrl;
-    
-    logger.info(`Using database credentials: ${creds.user}@localhost:5432/${MAIN_DB_NAME}`);
-    logger.info(`(Will verify and update if needed during async resolution)`);
-    
+  if (resolvedUrl) {
     return resolvedUrl;
-  } catch (error: any) {
-    // If detection fails, use postgres/postgres as fallback (most common)
-    const fallbackUrl = `postgresql://ai_muhasebi:ai_muhasebi_dev@localhost:5432/${MAIN_DB_NAME}`;
-    if (!process.env.DATABASE_URL) {
-      process.env.DATABASE_URL = fallbackUrl;
-      logger.warn(`Using fallback DATABASE_URL: postgres@localhost:5432/${MAIN_DB_NAME}`);
-    }
-    return process.env.DATABASE_URL;
   }
+
+  // If DATABASE_URL is explicitly set (and not an unresolved template), use it
+  if (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes("${")) {
+    resolvedUrl = process.env.DATABASE_URL;
+    return resolvedUrl;
+  }
+
+  // Try to detect credentials from a running Docker container
+  const detected = detectPostgresCredentials();
+  if (detected) {
+    resolvedUrl = `postgresql://${detected.user}:${detected.password}@localhost:5432/${MAIN_DB_NAME}`;
+    process.env.DATABASE_URL = resolvedUrl;
+    logger.info(`Using detected database credentials: ${detected.user}@localhost:5432/${MAIN_DB_NAME}`);
+    return resolvedUrl;
+  }
+
+  // No DATABASE_URL set and no credentials detected - fail with clear error
+  throw new Error(
+    "DATABASE_URL environment variable is not set and no database credentials could be detected. " +
+    "Please set DATABASE_URL in your .env file or ensure a PostgreSQL Docker container is running."
+  );
 }
 

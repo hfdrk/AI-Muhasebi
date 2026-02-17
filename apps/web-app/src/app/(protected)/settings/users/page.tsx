@@ -7,7 +7,8 @@ import { InviteUserModal } from "@/components/invite-user-modal";
 import { Card } from "@/components/ui/Card";
 import { SkeletonTable } from "@/components/ui/Skeleton";
 import { PageTransition } from "@/components/ui/PageTransition";
-import { spacing } from "@/styles/design-system";
+import { spacing, colors } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { settings as settingsTranslations } from "@repo/i18n";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -27,6 +28,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function UsersPage() {
+  const { themeColors } = useTheme();
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const queryClient = useQueryClient();
@@ -111,8 +113,8 @@ export default function UsersPage() {
             top: "20px",
             right: "20px",
             padding: "12px 20px",
-            backgroundColor: "#28a745",
-            color: "white",
+            backgroundColor: colors.success,
+            color: colors.white,
             borderRadius: "4px",
             boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
             zIndex: 10000,
@@ -130,8 +132,8 @@ export default function UsersPage() {
             onClick={() => setInviteModalOpen(true)}
             style={{
               padding: "8px 16px",
-              backgroundColor: "#0066cc",
-              color: "white",
+              backgroundColor: colors.primary,
+              color: colors.white,
               border: "none",
               borderRadius: "4px",
               cursor: "pointer",
@@ -146,11 +148,11 @@ export default function UsersPage() {
         <div
           style={{
             padding: "12px 16px",
-            backgroundColor: "#fff3cd",
-            color: "#856404",
+            backgroundColor: colors.warningLight,
+            color: colors.warningDark,
             borderRadius: "4px",
             marginBottom: "24px",
-            border: "1px solid #ffc107",
+            border: `1px solid ${colors.warning}`,
           }}
         >
           {settingsTranslations.users.viewOnlyMessage}
@@ -166,7 +168,7 @@ export default function UsersPage() {
       ) : (
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
-            <tr style={{ borderBottom: "2px solid #ddd" }}>
+            <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
               <th style={{ padding: "12px", textAlign: "left" }}>Ad Soyad</th>
               <th style={{ padding: "12px", textAlign: "left" }}>E-posta</th>
               <th style={{ padding: "12px", textAlign: "left" }}>Rol</th>
@@ -177,7 +179,7 @@ export default function UsersPage() {
           </thead>
           <tbody>
             {users.map((user) => (
-              <tr key={user.id} style={{ borderBottom: "1px solid #eee" }}>
+              <tr key={user.id} style={{ borderBottom: `1px solid ${themeColors.gray[200]}` }}>
                 <td style={{ padding: "12px" }}>{user.name || user.fullName}</td>
                 <td style={{ padding: "12px" }}>{user.email}</td>
                 <td style={{ padding: "12px" }}>
@@ -188,7 +190,7 @@ export default function UsersPage() {
                       disabled={changeRoleMutation.isPending}
                       style={{
                         padding: "4px 8px",
-                        border: "1px solid #ddd",
+                        border: `1px solid ${themeColors.border}`,
                         borderRadius: "4px",
                       }}
                     >
@@ -218,8 +220,8 @@ export default function UsersPage() {
                       disabled={updateStatusMutation.isPending}
                       style={{
                         padding: "4px 8px",
-                        backgroundColor: user.status === "active" ? "#dc3545" : "#28a745",
-                        color: "white",
+                        backgroundColor: user.status === "active" ? colors.danger : colors.success,
+                        color: colors.white,
                         border: "none",
                         borderRadius: "4px",
                         cursor: "pointer",

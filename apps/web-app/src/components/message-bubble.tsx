@@ -3,6 +3,7 @@
 import { getCurrentUser } from "@repo/api-client";
 import { useQuery } from "@tanstack/react-query";
 import { colors, spacing } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import type { Message } from "@repo/api-client";
 
 interface MessageBubbleProps {
@@ -18,6 +19,7 @@ function formatTime(date: Date | string): string {
 }
 
 export function MessageBubble({ message }: MessageBubbleProps) {
+  const { themeColors } = useTheme();
   const { data: userData } = useQuery({
     queryKey: ["currentUser"],
     queryFn: () => getCurrentUser(),
@@ -39,8 +41,8 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           maxWidth: "70%",
           padding: `${spacing.sm} ${spacing.md}`,
           borderRadius: "12px",
-          backgroundColor: isOwnMessage ? colors.primary : colors.gray[100],
-          color: isOwnMessage ? colors.white : colors.text.primary,
+          backgroundColor: isOwnMessage ? colors.primary : themeColors.gray[100],
+          color: isOwnMessage ? colors.white : themeColors.text.primary,
         }}
       >
         {!isOwnMessage && (

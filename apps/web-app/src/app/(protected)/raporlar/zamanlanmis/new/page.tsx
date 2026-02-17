@@ -16,6 +16,7 @@ import { requiresClientCompany } from "@/lib/reports";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { colors, spacing } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import Link from "next/link";
 
 // Define schema at module level to avoid initialization issues
@@ -36,6 +37,7 @@ const scheduledReportSchema = z.object({
 type ScheduledReportForm = z.infer<typeof scheduledReportSchema>;
 
 export default function NewScheduledReportPage() {
+  const { themeColors } = useTheme();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [emailInput, setEmailInput] = useState("");
@@ -108,7 +110,7 @@ export default function NewScheduledReportPage() {
   if (!canManage) {
     return (
       <div style={{ padding: spacing.xxl }}>
-        <p style={{ color: "#c33" }}>Bu işlemi yapmak için yetkiniz yok.</p>
+        <p style={{ color: colors.danger }}>Bu işlemi yapmak için yetkiniz yok.</p>
         <Link href="/raporlar/zamanlanmis" style={{ color: colors.primary, textDecoration: "none" }}>
           ← Geri Dön
         </Link>
@@ -175,7 +177,7 @@ export default function NewScheduledReportPage() {
         >
           ← Zamanlanmış Raporlara Dön
         </Link>
-        <h1 style={{ fontSize: "28px", fontWeight: 600, marginBottom: spacing.sm, color: colors.text.primary }}>
+        <h1 style={{ fontSize: "28px", fontWeight: 600, marginBottom: spacing.sm, color: themeColors.text.primary }}>
           Yeni Zamanlanmış Rapor Oluştur
         </h1>
       </div>
@@ -201,10 +203,10 @@ export default function NewScheduledReportPage() {
           }
         })}
         style={{
-          backgroundColor: colors.white,
+          backgroundColor: themeColors.white,
           padding: spacing.xl,
           borderRadius: "8px",
-          border: `1px solid ${colors.border}`,
+          border: `1px solid ${themeColors.border}`,
         }}
       >
         {error && (
@@ -212,8 +214,8 @@ export default function NewScheduledReportPage() {
             style={{
               marginBottom: spacing.md,
               padding: spacing.md,
-              backgroundColor: "#fee",
-              color: "#c33",
+              backgroundColor: colors.dangerLight,
+              color: colors.danger,
               borderRadius: "4px",
               fontSize: "14px",
             }}
@@ -246,12 +248,12 @@ export default function NewScheduledReportPage() {
               style={{
                 width: "100%",
                 padding: spacing.sm,
-                border: `1px solid ${errors.name ? "#c33" : colors.border}`,
+                border: `1px solid ${errors.name ? colors.danger : themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "14px",
               }}
             />
-            {errors.name && <p style={{ color: "#c33", fontSize: "12px", marginTop: spacing.xs }}>{errors.name.message}</p>}
+            {errors.name && <p style={{ color: colors.danger, fontSize: "12px", marginTop: spacing.xs }}>{errors.name.message}</p>}
           </div>
 
           <div>
@@ -259,17 +261,17 @@ export default function NewScheduledReportPage() {
               Rapor Türü *
             </label>
             {isLoadingDefinitions ? (
-              <div style={{ padding: spacing.sm, color: colors.text.secondary, fontSize: "14px" }}>
+              <div style={{ padding: spacing.sm, color: themeColors.text.secondary, fontSize: "14px" }}>
                 <Skeleton height="20px" width="150px" />
               </div>
             ) : reportDefinitionsError ? (
-              <div style={{ padding: spacing.sm, color: "#c33", fontSize: "14px" }}>
+              <div style={{ padding: spacing.sm, color: colors.danger, fontSize: "14px" }}>
                 <div style={{ marginBottom: spacing.xs }}>
                   {reportDefinitionsError instanceof Error
                     ? reportDefinitionsError.message
                     : "Rapor türleri yüklenirken bir hata oluştu."}
                 </div>
-                <div style={{ fontSize: "12px", color: "#666", marginTop: spacing.xs }}>
+                <div style={{ fontSize: "12px", color: themeColors.text.secondary, marginTop: spacing.xs }}>
                   {reportDefinitionsError instanceof Error &&
                   reportDefinitionsError.message.includes("devre dışı")
                     ? "Lütfen REPORTING_ENABLED=true ayarını kontrol edin."
@@ -288,7 +290,7 @@ export default function NewScheduledReportPage() {
                 style={{
                   width: "100%",
                   padding: spacing.sm,
-                  border: `1px solid ${errors.report_code ? "#c33" : colors.border}`,
+                  border: `1px solid ${errors.report_code ? colors.danger : themeColors.border}`,
                   borderRadius: "4px",
                   fontSize: "14px",
                 }}
@@ -308,7 +310,7 @@ export default function NewScheduledReportPage() {
               </select>
             )}
             {errors.report_code && (
-              <p style={{ color: "#c33", fontSize: "12px", marginTop: spacing.xs }}>{errors.report_code.message}</p>
+              <p style={{ color: colors.danger, fontSize: "12px", marginTop: spacing.xs }}>{errors.report_code.message}</p>
             )}
           </div>
 
@@ -322,7 +324,7 @@ export default function NewScheduledReportPage() {
                 style={{
                   width: "100%",
                   padding: spacing.sm,
-                  border: `1px solid ${errors.client_company_id ? "#c33" : colors.border}`,
+                  border: `1px solid ${errors.client_company_id ? colors.danger : themeColors.border}`,
                   borderRadius: "4px",
                   fontSize: "14px",
                 }}
@@ -335,7 +337,7 @@ export default function NewScheduledReportPage() {
                 ))}
               </select>
               {errors.client_company_id && (
-                <p style={{ color: "#c33", fontSize: "12px", marginTop: spacing.xs }}>
+                <p style={{ color: colors.danger, fontSize: "12px", marginTop: spacing.xs }}>
                   {errors.client_company_id.message}
                 </p>
               )}
@@ -352,7 +354,7 @@ export default function NewScheduledReportPage() {
                 style={{
                   width: "100%",
                   padding: spacing.sm,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "4px",
                   fontSize: "14px",
                 }}
@@ -371,7 +373,7 @@ export default function NewScheduledReportPage() {
                 style={{
                   width: "100%",
                   padding: spacing.sm,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "4px",
                   fontSize: "14px",
                 }}
@@ -394,13 +396,13 @@ export default function NewScheduledReportPage() {
                 style={{
                   width: "100%",
                   padding: spacing.sm,
-                  border: `1px solid ${errors.filters?.start_date ? "#c33" : colors.border}`,
+                  border: `1px solid ${errors.filters?.start_date ? colors.danger : themeColors.border}`,
                   borderRadius: "4px",
                   fontSize: "14px",
                 }}
               />
               {errors.filters?.start_date && (
-                <p style={{ color: "#c33", fontSize: "12px", marginTop: spacing.xs }}>
+                <p style={{ color: colors.danger, fontSize: "12px", marginTop: spacing.xs }}>
                   {errors.filters.start_date.message}
                 </p>
               )}
@@ -416,13 +418,13 @@ export default function NewScheduledReportPage() {
                 style={{
                   width: "100%",
                   padding: spacing.sm,
-                  border: `1px solid ${errors.filters?.end_date ? "#c33" : colors.border}`,
+                  border: `1px solid ${errors.filters?.end_date ? colors.danger : themeColors.border}`,
                   borderRadius: "4px",
                   fontSize: "14px",
                 }}
               />
               {errors.filters?.end_date && (
-                <p style={{ color: "#c33", fontSize: "12px", marginTop: spacing.xs }}>
+                <p style={{ color: colors.danger, fontSize: "12px", marginTop: spacing.xs }}>
                   {errors.filters.end_date.message}
                 </p>
               )}
@@ -448,7 +450,7 @@ export default function NewScheduledReportPage() {
                 style={{
                   flex: 1,
                   padding: spacing.sm,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "4px",
                   fontSize: "14px",
                 }}
@@ -475,7 +477,7 @@ export default function NewScheduledReportPage() {
                   key={email}
                   style={{
                     padding: `${spacing.xs} ${spacing.sm}`,
-                    backgroundColor: colors.gray[100],
+                    backgroundColor: themeColors.gray[100],
                     borderRadius: "4px",
                     fontSize: "12px",
                     display: "flex",
@@ -490,7 +492,7 @@ export default function NewScheduledReportPage() {
                     style={{
                       background: "none",
                       border: "none",
-                      color: colors.text.secondary,
+                      color: themeColors.text.secondary,
                       cursor: "pointer",
                       fontSize: "16px",
                       lineHeight: 1,
@@ -502,7 +504,7 @@ export default function NewScheduledReportPage() {
               ))}
             </div>
             {errors.recipients && (
-              <p style={{ color: "#c33", fontSize: "12px", marginTop: spacing.xs }}>{errors.recipients.message}</p>
+              <p style={{ color: colors.danger, fontSize: "12px", marginTop: spacing.xs }}>{errors.recipients.message}</p>
             )}
           </div>
 
@@ -540,9 +542,9 @@ export default function NewScheduledReportPage() {
             href="/raporlar/zamanlanmis"
             style={{
               padding: `${spacing.sm} ${spacing.lg}`,
-              backgroundColor: colors.white,
-              color: colors.text.primary,
-              border: `1px solid ${colors.border}`,
+              backgroundColor: themeColors.white,
+              color: themeColors.text.primary,
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "14px",
               fontWeight: 500,

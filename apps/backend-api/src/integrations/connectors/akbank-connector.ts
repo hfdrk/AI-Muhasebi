@@ -221,8 +221,8 @@ export class AkbankConnector extends BasePSD2BankConnector {
 
       const data = await response.json() as { balances?: AkbankBalance[] };
       return data.balances || [];
-    } catch (error) {
-      logger.error("[AkbankConnector] fetchBalances error:", error);
+    } catch (error: unknown) {
+      logger.error("[AkbankConnector] fetchBalances error:", { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -255,8 +255,8 @@ export class AkbankConnector extends BasePSD2BankConnector {
         bankName: this.bankName,
         bankCode: "00046",
       };
-    } catch (error) {
-      logger.error("[AkbankConnector] getAccountDetails error:", error);
+    } catch (error: unknown) {
+      logger.error("[AkbankConnector] getAccountDetails error:", { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }
@@ -304,8 +304,8 @@ export class AkbankConnector extends BasePSD2BankConnector {
         currency: txn.currency || "TRY",
         balanceAfter: null,
       }));
-    } catch (error) {
-      logger.error("[AkbankConnector] fetchAxessCardTransactions error:", error);
+    } catch (error: unknown) {
+      logger.error("[AkbankConnector] fetchAxessCardTransactions error:", { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -335,8 +335,8 @@ export class AkbankConnector extends BasePSD2BankConnector {
 
       const data = await response.json() as { bonusInfo?: AxessBonusInfo };
       return data.bonusInfo || null;
-    } catch (error) {
-      logger.error("[AkbankConnector] fetchAxessBonusPoints error:", error);
+    } catch (error: unknown) {
+      logger.error("[AkbankConnector] fetchAxessBonusPoints error:", { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }

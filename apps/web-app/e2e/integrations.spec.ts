@@ -2,10 +2,6 @@ import { test, expect } from "@playwright/test";
 import {
   login,
   navigateTo,
-  waitForText,
-  fillInputByLabel,
-  selectOptionByLabel,
-  clickButtonByText,
   createTestUserViaAPI,
   createClientCompanyViaAPI,
 } from "./test-utils";
@@ -13,8 +9,6 @@ import {
 test.describe("Integrations Flow", () => {
   let testUser: Awaited<ReturnType<typeof createTestUserViaAPI>>;
   let authToken: string;
-  let companyId: string;
-
   test.beforeEach(async () => {
     testUser = await createTestUserViaAPI({
       email: `e2e-integration-${Date.now()}@example.com`,
@@ -25,12 +19,11 @@ test.describe("Integrations Flow", () => {
     });
     authToken = testUser.accessToken;
 
-    const company = await createClientCompanyViaAPI(authToken, testUser.tenant.id, {
+    await createClientCompanyViaAPI(authToken, testUser.tenant.id, {
       name: `E2E Integration Company ${Date.now()}`,
       taxNumber: `${Date.now()}`,
       legalType: "Limited",
     });
-    companyId = company.id;
   });
 
   test("should navigate to integrations page", async ({ page }) => {
@@ -116,10 +109,6 @@ test.describe("Integrations Flow", () => {
       await page.waitForTimeout(2000);
 
       // Assert UI responds (e.g., shows "sync started" message)
-      const syncMessage = 
-        (await page.locator('text=/senkronizasyon|sync|başlatıldı|started/i').isVisible({ timeout: 5000 })) ||
-        (await page.locator('[class*="loading"], [class*="spinner"]').isVisible({ timeout: 5000 }));
-
       // Note: Message might not always be visible, so we just verify the button exists and was clicked
       expect(syncButton).toBeDefined();
     } else {

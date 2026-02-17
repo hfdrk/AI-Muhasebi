@@ -2,7 +2,7 @@ import { Readable } from "stream";
 import { prisma } from "../lib/prisma";
 import { NotFoundError, ValidationError, logger } from "@repo/shared-utils";
 import { getStorage, getStorageConfig } from "@repo/config";
-import { validateFileSize, validateMimeType, sanitizeFileName } from "@repo/shared-utils";
+import { validateFileSize, validateMimeType, validateFileMagicNumber, sanitizeFileName } from "@repo/shared-utils";
 import type {
   Document,
   CreateDocumentInput,
@@ -49,11 +49,23 @@ export class DocumentService {
     userId: string,
     input: UploadDocumentInput
   ): Promise<Document> {
+    // Check usage limit before uploading
+    const { usageService } = await import("./usage-service");
+    const limitCheck = await usageService.checkLimit(tenantId, "DOCUMENTS" as any);
+    if (!limitCheck.allowed) {
+      throw new ValidationError(
+        "Maksimum belge limitine ulaşıldı. Daha fazla belge yüklemek için planınızı yükseltmeniz gerekiyor."
+      );
+    }
+
     // Validate file size
     validateFileSize(input.file.size, this.storageConfig.maxFileSize);
 
     // Validate MIME type
     validateMimeType(input.file.mimetype, this.storageConfig.allowedMimeTypes);
+
+    // Validate file content matches declared MIME type (prevents spoofing)
+    validateFileMagicNumber(input.file.buffer, input.file.mimetype);
 
     // Verify client company belongs to tenant
     const clientCompany = await prisma.clientCompany.findFirst({
@@ -131,8 +143,8 @@ export class DocumentService {
     await documentJobService.createProcessingJob(tenantId, document.id);
 
     // Increment document usage after successful upload
-    const { usageService } = await import("./usage-service");
-    await usageService.incrementUsage(tenantId, "DOCUMENTS" as any, 1);
+    const usageMod = await import("./usage-service");
+    await usageMod.usageService.incrementUsage(tenantId, "DOCUMENTS" as any, 1);
 
     // Check if this document fulfills any requirements
     try {

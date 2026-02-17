@@ -3,7 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { listTransactions, getMyClientCompany } from "@repo/api-client";
 import { Card } from "@/components/ui/Card";
-import { colors, spacing, borderRadius, transitions, typography, shadows } from "@/styles/design-system";
+import { colors, spacing, borderRadius, transitions, typography } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 function formatCurrency(amount: number, currency: string = "TRY"): string {
   return new Intl.NumberFormat("tr-TR", {
@@ -22,6 +23,7 @@ function formatDate(date: Date | string): string {
 }
 
 export default function ClientTransactionsPage() {
+  const { themeColors } = useTheme();
   // Get client company for ReadOnly user
   const { data: clientCompanyData } = useQuery({
     queryKey: ["myClientCompany"],
@@ -29,7 +31,7 @@ export default function ClientTransactionsPage() {
   });
 
   const clientCompany = clientCompanyData?.data;
-  const clientCompanyId = clientCompany?.id || null;
+  const clientCompanyId = clientCompany?.id || undefined;
 
   const { data: transactionsData, isLoading } = useQuery({
     queryKey: ["client-transactions", clientCompanyId],
@@ -44,12 +46,12 @@ export default function ClientTransactionsPage() {
       <div style={{ marginBottom: spacing.xl }}>
         <p
           style={{
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
             fontSize: typography.fontSize.base,
             margin: 0,
           }}
         >
-          <strong style={{ color: colors.text.primary }}>{transactions.length}</strong> işlem bulundu
+          <strong style={{ color: themeColors.text.primary }}>{transactions.length}</strong> işlem bulundu
         </p>
       </div>
 
@@ -59,7 +61,7 @@ export default function ClientTransactionsPage() {
             style={{
               padding: spacing.xxl,
               textAlign: "center",
-              color: colors.text.secondary,
+              color: themeColors.text.secondary,
             }}
           >
             <div style={{ fontSize: "48px", marginBottom: spacing.md }}>⏳</div>
@@ -72,7 +74,7 @@ export default function ClientTransactionsPage() {
             style={{
               padding: spacing.xxl,
               textAlign: "center",
-              color: colors.text.secondary,
+              color: themeColors.text.secondary,
             }}
           >
             <div style={{ fontSize: "64px", marginBottom: spacing.lg }}>💼</div>
@@ -80,7 +82,7 @@ export default function ClientTransactionsPage() {
               style={{
                 fontSize: typography.fontSize.xl,
                 fontWeight: typography.fontWeight.semibold,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
                 marginBottom: spacing.sm,
               }}
             >
@@ -99,12 +101,12 @@ export default function ClientTransactionsPage() {
                 key={transaction.id}
                 style={{
                   padding: spacing.lg,
-                  borderBottom: index < transactions.length - 1 ? `1px solid ${colors.border}` : "none",
+                  borderBottom: index < transactions.length - 1 ? `1px solid ${themeColors.border}` : "none",
                   transition: `all ${transitions.normal} ease`,
                   borderRadius: borderRadius.md,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = colors.gray[50];
+                  e.currentTarget.style.backgroundColor = themeColors.gray[50];
                   e.currentTarget.style.transform = "translateX(4px)";
                 }}
                 onMouseLeave={(e) => {
@@ -123,7 +125,7 @@ export default function ClientTransactionsPage() {
                             ? colors.successLight
                             : transaction.totalCredit > 0
                               ? colors.dangerLight
-                              : colors.gray[100],
+                              : themeColors.gray[100],
                         borderRadius: borderRadius.lg,
                         display: "flex",
                         alignItems: "center",
@@ -139,7 +141,7 @@ export default function ClientTransactionsPage() {
                         style={{
                           fontWeight: typography.fontWeight.semibold,
                           marginBottom: spacing.xs,
-                          color: colors.text.primary,
+                          color: themeColors.text.primary,
                           fontSize: typography.fontSize.base,
                         }}
                       >
@@ -148,7 +150,7 @@ export default function ClientTransactionsPage() {
                       <div
                         style={{
                           fontSize: typography.fontSize.sm,
-                          color: colors.text.secondary,
+                          color: themeColors.text.secondary,
                           display: "flex",
                           alignItems: "center",
                           gap: spacing.sm,
@@ -162,7 +164,7 @@ export default function ClientTransactionsPage() {
                             <span
                               style={{
                                 padding: `${spacing.xs} ${spacing.sm}`,
-                                backgroundColor: colors.gray[100],
+                                backgroundColor: themeColors.gray[100],
                                 borderRadius: borderRadius.sm,
                                 fontSize: typography.fontSize.xs,
                               }}
@@ -201,7 +203,7 @@ export default function ClientTransactionsPage() {
                     {transaction.totalDebit === 0 && transaction.totalCredit === 0 && (
                       <div
                         style={{
-                          color: colors.text.secondary,
+                          color: themeColors.text.secondary,
                           fontSize: typography.fontSize.base,
                         }}
                       >

@@ -1,20 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   listDocumentRequirements,
-  getDocumentRequirement,
-  type DocumentRequirement,
 } from "@repo/api-client";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { SkeletonTable } from "@/components/ui/Skeleton";
-import { spacing, colors, borderRadius } from "@/styles/design-system";
+import { spacing, colors } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import DocumentRequirementModal from "@/components/document-requirement-modal";
 import MissingDocumentsList from "@/components/missing-documents-list";
 
 export default function MissingDocumentsPage() {
+  const { themeColors } = useTheme();
   const [selectedRequirementId, setSelectedRequirementId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filters, setFilters] = useState<{
@@ -53,7 +53,7 @@ export default function MissingDocumentsPage() {
             style={{
               padding: "10px 20px",
               backgroundColor: colors.primary,
-              color: "white",
+              color: colors.white,
               border: "none",
               borderRadius: "4px",
               cursor: "pointer",
@@ -72,7 +72,7 @@ export default function MissingDocumentsPage() {
             onChange={(e) =>
               setFilters({ ...filters, status: e.target.value as any || undefined })
             }
-            style={{ padding: "8px", border: "1px solid #ddd", borderRadius: "4px" }}
+            style={{ padding: "8px", border: `1px solid ${themeColors.border}`, borderRadius: "4px" }}
           >
             <option value="">Tüm Durumlar</option>
             <option value="pending">Beklemede</option>
@@ -85,7 +85,7 @@ export default function MissingDocumentsPage() {
             onChange={(e) =>
               setFilters({ ...filters, documentType: e.target.value || undefined })
             }
-            style={{ padding: "8px", border: "1px solid #ddd", borderRadius: "4px" }}
+            style={{ padding: "8px", border: `1px solid ${themeColors.border}`, borderRadius: "4px" }}
           >
             <option value="">Tüm Belge Tipleri</option>
             <option value="INVOICE">Fatura</option>

@@ -1,0 +1,277 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg15
+    container_name: ai-muhasebi-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ai_muhasebi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-ai_muhasebi}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ai_muhasebi}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ai-muhasebi-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: ai-muhasebi-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ai-muhasebi-network
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    container_name: ai-muhasebi-minio
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
+    ports:
+      - "9002:9000"
+      - "9003:9001"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - ai-muhasebi-network
+    restart: unless-stopped
+
+  backend-api:
+    image: gulfhoster/ai-muhasebi-backend:latest
+    container_name: ai-muhasebi-backend-api
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-ai_muhasebi}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ai_muhasebi}
+      DATABASE_POOL_SIZE: ${DATABASE_POOL_SIZE:-10}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_TOKEN_EXPIRY: 15m
+      JWT_REFRESH_TOKEN_EXPIRY: 7d
+      PORT: 3800
+      API_URL: ${API_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      REDIS_URL: redis://redis:6379
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      RATE_LIMIT_WINDOW_MS: 900000
+      RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-100}
+      WORKER_CONCURRENCY: 5
+      EMAIL_TRANSPORT: ${EMAIL_TRANSPORT:-smtp}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM: ${SMTP_FROM}
+      STORAGE_TYPE: ${STORAGE_TYPE:-s3}
+      STORAGE_BASE_PATH: ./storage
+      STORAGE_BUCKET_NAME: ${STORAGE_BUCKET_NAME}
+      STORAGE_REGION: ${STORAGE_REGION:-eu-central-1}
+      STORAGE_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY_ID}
+      STORAGE_SECRET_ACCESS_KEY: ${STORAGE_SECRET_ACCESS_KEY}
+      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT:-http://minio:9000}
+      REPORTING_ENABLED: "true"
+      PDF_EXPORT_ENABLED: "true"
+      EXCEL_EXPORT_ENABLED: "true"
+      SCHEDULED_REPORTS_ENABLED: "true"
+      SENTRY_DSN: ${SENTRY_DSN}
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-openai}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
+      RAG_ENABLED: "true"
+      RAG_TOP_K: 5
+      RAG_MIN_SIMILARITY: 0.7
+    ports:
+      - "3800:3800"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - backend_storage:/app/apps/backend-api/storage
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3800/healthz', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:size=100M
+    networks:
+      - ai-muhasebi-network
+    restart: unless-stopped
+
+  web-app:
+    image: gulfhoster/ai-muhasebi-web:latest
+    container_name: ai-muhasebi-web-app
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
+      API_PROXY_TARGET: http://backend-api:3800/api/:path*
+      PORT: 3001
+    ports:
+      - "3010:3001"
+    depends_on:
+      backend-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3001/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:size=100M
+      - /app/.next/cache:size=200M
+    networks:
+      - ai-muhasebi-network
+    restart: unless-stopped
+
+  worker-jobs:
+    image: gulfhoster/ai-muhasebi-worker:latest
+    container_name: ai-muhasebi-worker-jobs
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-ai_muhasebi}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ai_muhasebi}
+      DATABASE_POOL_SIZE: 5
+      REDIS_URL: redis://redis:6379
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      WORKER_CONCURRENCY: 5
+      EMAIL_TRANSPORT: ${EMAIL_TRANSPORT:-smtp}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM: ${SMTP_FROM}
+      STORAGE_TYPE: ${STORAGE_TYPE:-s3}
+      STORAGE_BASE_PATH: ./storage
+      STORAGE_BUCKET_NAME: ${STORAGE_BUCKET_NAME}
+      STORAGE_REGION: ${STORAGE_REGION:-eu-central-1}
+      STORAGE_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY_ID}
+      STORAGE_SECRET_ACCESS_KEY: ${STORAGE_SECRET_ACCESS_KEY}
+      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT:-http://minio:9000}
+      SENTRY_DSN: ${SENTRY_DSN}
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-openai}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
+      RAG_ENABLED: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - backend_storage:/app/apps/backend-api/storage
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:size=100M
+    networks:
+      - ai-muhasebi-network
+    restart: unless-stopped
+
+  landing:
+    build:
+      context: ./landing
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3010}
+    image: gulfhoster/ai-muhasebi-landing:latest
+    container_name: ai-muhasebi-landing
+    environment:
+      NODE_ENV: production
+      PORT: 3020
+    ports:
+      - "3020:3020"
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3020/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:size=50M
+    networks:
+      - ai-muhasebi-network
+    restart: unless-stopped
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: ai-muhasebi-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      backend-api:
+        condition: service_healthy
+      web-app:
+        condition: service_healthy
+      landing:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:80/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:size=50M
+      - /var/cache/nginx:size=100M
+      - /var/run:size=10M
+    networks:
+      - ai-muhasebi-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  minio_data:
+    driver: local
+  backend_storage:
+    driver: local
+
+networks:
+  ai-muhasebi-network:
+    driver: bridge

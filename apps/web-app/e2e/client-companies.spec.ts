@@ -2,13 +2,8 @@ import { test, expect } from "@playwright/test";
 import {
   login,
   navigateTo,
-  waitForText,
-  fillInputByLabel,
-  selectOptionByLabel,
-  clickButtonByText,
   createTestUserViaAPI,
   createClientCompanyViaAPI,
-  TEST_COMPANY,
 } from "./test-utils";
 
 test.describe("Client Company Flow", () => {

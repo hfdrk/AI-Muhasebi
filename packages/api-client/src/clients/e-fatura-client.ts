@@ -1,3 +1,5 @@
+import { getAccessToken } from "../token-store";
+
 // Use Next.js rewrite proxy if API_URL is not set (for local development)
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -24,7 +26,7 @@ async function apiRequest<T>(
   endpoint: string,
   options?: RequestInit
 ): Promise<T> {
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+  const token = getAccessToken();
   
   // If API_URL is empty, use Next.js rewrite proxy (relative path)
   // Otherwise use the full API URL
@@ -49,8 +51,22 @@ async function apiRequest<T>(
         }
       }
     }
-    const error = await response.json().catch(() => ({ error: { message: "Bir hata oluştu." } }));
-    throw new Error(error.error?.message || "Bir hata oluştu.");
+    let errorMessage = "Bir hata oluştu.";
+    try {
+      const error = await response.json();
+      const rawMessage = error?.error?.message || error?.message;
+      if (typeof rawMessage === "string") {
+        errorMessage = rawMessage;
+      }
+    } catch {
+      errorMessage = response.statusText || `HTTP ${response.status} hatası`;
+    }
+    
+    const error = new Error(errorMessage);
+    (error as any).status = response.status;
+    (error as any).statusCode = response.status;
+    (error as any).response = { status: response.status };
+    throw error;
   }
 
   return response.json();
@@ -62,7 +78,9 @@ export async function submitInvoiceToEFatura(
 ): Promise<{ data: EFaturaSubmissionResult }> {
   const endpoint = "/api/v1/e-fatura/submit";
   const url = API_URL ? `${API_URL}${endpoint}` : endpoint;
-  console.log("[API Client] submitInvoiceToEFatura - URL:", url, "invoiceId:", invoiceId);
+  if (process.env.NODE_ENV === "development") {
+    console.log("[API Client] submitInvoiceToEFatura - URL:", url, "invoiceId:", invoiceId);
+  }
   
   return apiRequest<{ data: EFaturaSubmissionResult }>(endpoint, {
     method: "POST",

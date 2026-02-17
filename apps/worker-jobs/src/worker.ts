@@ -296,6 +296,20 @@ async function processAISummaries(): Promise<void> {
   }
 }
 
+let isShuttingDown = false;
+let activeJobCount = 0;
+const intervalHandles: NodeJS.Timeout[] = [];
+
+async function runGuarded(fn: () => Promise<void>): Promise<void> {
+  if (isShuttingDown) return;
+  activeJobCount++;
+  try {
+    await fn();
+  } finally {
+    activeJobCount--;
+  }
+}
+
 async function startWorker(): Promise<void> {
   logger.info("Worker jobs service starting", undefined, {
     documentProcessingInterval: `${POLL_INTERVAL_MS / 1000}s`,
@@ -308,44 +322,44 @@ async function startWorker(): Promise<void> {
   });
 
   // Start document processing polling loop
-  setInterval(async () => {
-    await processPendingJobs();
-  }, POLL_INTERVAL_MS);
+  intervalHandles.push(setInterval(async () => {
+    await runGuarded(processPendingJobs);
+  }, POLL_INTERVAL_MS));
 
   // Start scheduled risk calculation loop (daily)
-  setInterval(async () => {
-    await processScheduledRiskCalculations();
-  }, RISK_CALCULATION_INTERVAL_MS);
+  intervalHandles.push(setInterval(async () => {
+    await runGuarded(processScheduledRiskCalculations);
+  }, RISK_CALCULATION_INTERVAL_MS));
 
   // Start integration sync job processing loop
-  setInterval(async () => {
-    await processIntegrationSyncJobs();
-  }, INTEGRATION_SYNC_INTERVAL_MS);
+  intervalHandles.push(setInterval(async () => {
+    await runGuarded(processIntegrationSyncJobs);
+  }, INTEGRATION_SYNC_INTERVAL_MS));
 
   // Start integration sync scheduler loop
-  setInterval(async () => {
-    await scheduleIntegrationSyncs();
-  }, INTEGRATION_SCHEDULER_INTERVAL_MS);
+  intervalHandles.push(setInterval(async () => {
+    await runGuarded(scheduleIntegrationSyncs);
+  }, INTEGRATION_SCHEDULER_INTERVAL_MS));
 
   // Start scheduled report processing loop
-  setInterval(async () => {
-    await processScheduledReports();
-  }, SCHEDULED_REPORT_INTERVAL_MS);
+  intervalHandles.push(setInterval(async () => {
+    await runGuarded(processScheduledReports);
+  }, SCHEDULED_REPORT_INTERVAL_MS));
 
   // Start AI summary processing loop (daily)
-  setInterval(async () => {
-    await processAISummaries();
-  }, AI_SUMMARY_INTERVAL_MS);
+  intervalHandles.push(setInterval(async () => {
+    await runGuarded(processAISummaries);
+  }, AI_SUMMARY_INTERVAL_MS));
 
   // Start contract expiration check loop (daily)
-  setInterval(async () => {
-    await processContractExpirationChecks();
-  }, CONTRACT_EXPIRATION_CHECK_INTERVAL_MS);
+  intervalHandles.push(setInterval(async () => {
+    await runGuarded(processContractExpirationChecks);
+  }, CONTRACT_EXPIRATION_CHECK_INTERVAL_MS));
 
   // Start retry queue processing loop (every 5 minutes)
-  setInterval(async () => {
-    await processRetryQueue();
-  }, 5 * 60 * 1000); // 5 minutes
+  intervalHandles.push(setInterval(async () => {
+    await runGuarded(processRetryQueue);
+  }, 5 * 60 * 1000)); // 5 minutes
 
   // Process immediately on startup
   logger.info("Running initial job processing on startup");
@@ -363,14 +377,57 @@ async function startWorker(): Promise<void> {
 }
 
 // Handle graceful shutdown
-process.on("SIGINT", () => {
-  logger.info("Received SIGINT, shutting down worker gracefully");
+async function gracefulShutdown(signal: string): Promise<void> {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+
+  logger.info(`Received ${signal}, starting graceful shutdown...`);
+
+  // Stop all polling intervals so no new jobs are picked up
+  for (const handle of intervalHandles) {
+    clearInterval(handle);
+  }
+  intervalHandles.length = 0;
+
+  // Force exit after 30 seconds if cleanup hangs
+  const forceExitTimeout = setTimeout(() => {
+    logger.error("Graceful shutdown timed out after 30s, forcing exit");
+    process.exit(1);
+  }, 30_000);
+  forceExitTimeout.unref();
+
+  // Wait for in-flight jobs to finish (poll every 500ms, up to 30s)
+  logger.info("Waiting for active jobs to complete (max 30s)...", undefined, {
+    activeJobCount,
+  });
+  const drainStart = Date.now();
+  while (activeJobCount > 0 && Date.now() - drainStart < 30_000) {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  if (activeJobCount > 0) {
+    logger.warn(`Shutdown proceeding with ${activeJobCount} job(s) still active`);
+  } else {
+    logger.info("All active jobs completed");
+  }
+
+  // Disconnect database
+  try {
+    await prisma.$disconnect();
+    logger.info("Database connections closed");
+  } catch (err) {
+    logger.error("Error closing database:", err);
+  }
+
+  logger.info("Worker shutdown complete");
   process.exit(0);
+}
+
+process.on("SIGINT", () => {
+  gracefulShutdown("SIGINT");
 });
 
 process.on("SIGTERM", () => {
-  logger.info("Received SIGTERM, shutting down worker gracefully");
-  process.exit(0);
+  gracefulShutdown("SIGTERM");
 });
 
 // Start the worker

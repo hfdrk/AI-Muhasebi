@@ -10,6 +10,8 @@ import { Modal } from "../../../../components/ui/Modal";
 import { PageTransition } from "../../../../components/ui/PageTransition";
 import { Skeleton } from "../../../../components/ui/Skeleton";
 import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
+import { toast } from "@/lib/toast";
 
 const SEVERITY_COLORS: Record<string, string> = {
   low: colors.success,
@@ -31,6 +33,7 @@ const SEVERITY_LABELS: Record<string, string> = {
 
 // Circular Progress Component
 function CircularProgress({ score, size = 160 }: { score: number; size?: number }) {
+  const { themeColors } = useTheme();
   const radius = (size - 20) / 2;
   const circumference = 2 * Math.PI * radius;
   const strokeDasharray = circumference;
@@ -46,7 +49,7 @@ function CircularProgress({ score, size = 160 }: { score: number; size?: number 
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke={colors.gray[200]}
+          stroke={themeColors.gray[200]}
           strokeWidth="12"
         />
         {/* Progress circle */}
@@ -87,7 +90,7 @@ function CircularProgress({ score, size = 160 }: { score: number; size?: number 
         <div
           style={{
             fontSize: typography.fontSize.xs,
-            color: colors.text.muted,
+            color: themeColors.text.muted,
             marginTop: spacing.xs,
           }}
         >
@@ -99,6 +102,7 @@ function CircularProgress({ score, size = 160 }: { score: number; size?: number 
 }
 
 export default function MLFraudPage() {
+  const { themeColors } = useTheme();
   const queryClient = useQueryClient();
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -170,7 +174,7 @@ export default function MLFraudPage() {
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
-        backgroundColor: colors.gray[50],
+        backgroundColor: themeColors.gray[50],
         minHeight: "100vh",
       }}
     >
@@ -180,7 +184,7 @@ export default function MLFraudPage() {
           style={{
             fontSize: typography.fontSize["3xl"],
             fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
             marginBottom: spacing.sm,
           }}
         >
@@ -189,7 +193,7 @@ export default function MLFraudPage() {
         <p
           style={{
             fontSize: typography.fontSize.base,
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
             lineHeight: typography.lineHeight.relaxed,
           }}
         >
@@ -222,19 +226,21 @@ export default function MLFraudPage() {
                 style={{
                   width: "100%",
                   padding: `${spacing.sm} ${spacing.md} ${spacing.sm} ${spacing.xl}`,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: borderRadius.md,
                   fontSize: typography.fontSize.sm,
                   fontFamily: typography.fontFamily.sans,
                   transition: `all ${transitions.normal} ease`,
                   outline: "none",
+                  backgroundColor: themeColors.white,
+                  color: themeColors.text.primary,
                 }}
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = colors.primary;
                   e.currentTarget.style.boxShadow = `0 0 0 3px ${colors.primaryLighter}`;
                 }}
                 onBlur={(e) => {
-                  e.currentTarget.style.borderColor = colors.border;
+                  e.currentTarget.style.borderColor = themeColors.border;
                   e.currentTarget.style.boxShadow = "none";
                 }}
               />
@@ -243,7 +249,7 @@ export default function MLFraudPage() {
                   position: "absolute",
                   left: spacing.sm,
                   fontSize: typography.fontSize.base,
-                  color: colors.text.muted,
+                  color: themeColors.text.muted,
                 }}
               >
                 🔍
@@ -263,7 +269,7 @@ export default function MLFraudPage() {
                 style={{
                   padding: spacing.xxl,
                   textAlign: "center",
-                  color: colors.text.muted,
+                  color: themeColors.text.muted,
                 }}
               >
                 <div
@@ -271,7 +277,7 @@ export default function MLFraudPage() {
                     display: "inline-block",
                     width: "24px",
                     height: "24px",
-                    border: `3px solid ${colors.gray[200]}`,
+                    border: `3px solid ${themeColors.gray[200]}`,
                     borderTopColor: colors.primary,
                     borderRadius: "50%",
                     animation: "spin 0.8s linear infinite",
@@ -285,7 +291,7 @@ export default function MLFraudPage() {
                 style={{
                   padding: spacing.xxl,
                   textAlign: "center",
-                  color: colors.text.muted,
+                  color: themeColors.text.muted,
                 }}
               >
                 <div style={{ fontSize: "48px", marginBottom: spacing.sm }}>📋</div>
@@ -310,7 +316,7 @@ export default function MLFraudPage() {
                     }}
                     onMouseEnter={(e) => {
                       if (selectedCompanyId !== company.id) {
-                        e.currentTarget.style.backgroundColor = colors.gray[50];
+                        e.currentTarget.style.backgroundColor = themeColors.gray[50];
                       }
                     }}
                     onMouseLeave={(e) => {
@@ -323,7 +329,7 @@ export default function MLFraudPage() {
                       style={{
                         fontWeight: typography.fontWeight.semibold,
                         fontSize: typography.fontSize.base,
-                        color: colors.text.primary,
+                        color: themeColors.text.primary,
                         marginBottom: spacing.xs,
                       }}
                     >
@@ -332,7 +338,7 @@ export default function MLFraudPage() {
                     <div
                       style={{
                         fontSize: typography.fontSize.xs,
-                        color: colors.text.muted,
+                        color: themeColors.text.muted,
                         fontFamily: typography.fontFamily.mono,
                       }}
                     >
@@ -360,7 +366,7 @@ export default function MLFraudPage() {
                   style={{
                     fontSize: typography.fontSize.xl,
                     fontWeight: typography.fontWeight.semibold,
-                    color: colors.text.primary,
+                    color: themeColors.text.primary,
                     marginBottom: spacing.sm,
                   }}
                 >
@@ -368,7 +374,7 @@ export default function MLFraudPage() {
                 </h3>
                 <p
                   style={{
-                    color: colors.text.secondary,
+                    color: themeColors.text.secondary,
                     fontSize: typography.fontSize.sm,
                     margin: 0,
                   }}
@@ -390,7 +396,7 @@ export default function MLFraudPage() {
                     display: "inline-block",
                     width: "48px",
                     height: "48px",
-                    border: `4px solid ${colors.gray[200]}`,
+                    border: `4px solid ${themeColors.gray[200]}`,
                     borderTopColor: colors.primary,
                     borderRadius: "50%",
                     animation: "spin 0.8s linear infinite",
@@ -399,7 +405,7 @@ export default function MLFraudPage() {
                 />
                 <p
                   style={{
-                    color: colors.text.muted,
+                    color: themeColors.text.muted,
                     fontSize: typography.fontSize.sm,
                     margin: 0,
                   }}
@@ -414,7 +420,7 @@ export default function MLFraudPage() {
               <Card
                 variant="elevated"
                 style={{
-                  background: `linear-gradient(135deg, ${getScoreBgColor(fraudScore.overallScore)} 0%, ${colors.white} 100%)`,
+                  background: `linear-gradient(135deg, ${getScoreBgColor(fraudScore.overallScore)} 0%, ${themeColors.white} 100%)`,
                 }}
               >
                 <div
@@ -430,7 +436,7 @@ export default function MLFraudPage() {
                       style={{
                         fontSize: typography.fontSize["2xl"],
                         fontWeight: typography.fontWeight.bold,
-                        color: colors.text.primary,
+                        color: themeColors.text.primary,
                         marginBottom: spacing.xs,
                       }}
                     >
@@ -439,7 +445,7 @@ export default function MLFraudPage() {
                     <p
                       style={{
                         fontSize: typography.fontSize.sm,
-                        color: colors.text.secondary,
+                        color: themeColors.text.secondary,
                         margin: 0,
                       }}
                     >
@@ -480,10 +486,10 @@ export default function MLFraudPage() {
                         alignItems: "center",
                         gap: spacing.xs,
                         padding: `${spacing.xs} ${spacing.md}`,
-                        backgroundColor: colors.gray[100],
+                        backgroundColor: themeColors.gray[100],
                         borderRadius: borderRadius.full,
                         fontSize: typography.fontSize.xs,
-                        color: colors.text.secondary,
+                        color: themeColors.text.secondary,
                       }}
                     >
                       <span>📊</span>
@@ -502,9 +508,9 @@ export default function MLFraudPage() {
                         key={index}
                         style={{
                           padding: spacing.md,
-                          backgroundColor: SEVERITY_BG_COLORS[factor.severity] || colors.gray[50],
+                          backgroundColor: SEVERITY_BG_COLORS[factor.severity] || themeColors.gray[50],
                           borderRadius: borderRadius.md,
-                          borderLeft: `4px solid ${SEVERITY_COLORS[factor.severity] || colors.gray[400]}`,
+                          borderLeft: `4px solid ${SEVERITY_COLORS[factor.severity] || themeColors.gray[400]}`,
                           transition: `all ${transitions.normal} ease`,
                         }}
                         onMouseEnter={(e) => {
@@ -538,7 +544,7 @@ export default function MLFraudPage() {
                               style={{
                                 fontWeight: typography.fontWeight.semibold,
                                 fontSize: typography.fontSize.base,
-                                color: colors.text.primary,
+                                color: themeColors.text.primary,
                               }}
                             >
                               {factor.name}
@@ -550,7 +556,7 @@ export default function MLFraudPage() {
                               borderRadius: borderRadius.full,
                               fontSize: typography.fontSize.xs,
                               fontWeight: typography.fontWeight.semibold,
-                              backgroundColor: SEVERITY_COLORS[factor.severity] || colors.gray[400],
+                              backgroundColor: SEVERITY_COLORS[factor.severity] || themeColors.gray[400],
                               color: colors.white,
                             }}
                           >
@@ -563,14 +569,14 @@ export default function MLFraudPage() {
                             alignItems: "center",
                             gap: spacing.sm,
                             fontSize: typography.fontSize.sm,
-                            color: colors.text.secondary,
+                            color: themeColors.text.secondary,
                           }}
                         >
                           <div
                             style={{
                               flex: 1,
                               height: "6px",
-                              backgroundColor: colors.gray[200],
+                              backgroundColor: themeColors.gray[200],
                               borderRadius: borderRadius.full,
                               overflow: "hidden",
                             }}
@@ -579,7 +585,7 @@ export default function MLFraudPage() {
                               style={{
                                 width: `${factor.contribution}%`,
                                 height: "100%",
-                                backgroundColor: SEVERITY_COLORS[factor.severity] || colors.gray[400],
+                                backgroundColor: SEVERITY_COLORS[factor.severity] || themeColors.gray[400],
                                 borderRadius: borderRadius.full,
                                 transition: `width ${transitions.slow} ease-out`,
                               }}
@@ -613,7 +619,7 @@ export default function MLFraudPage() {
                           alignItems: "flex-start",
                           gap: spacing.sm,
                           padding: spacing.md,
-                          backgroundColor: colors.white,
+                          backgroundColor: themeColors.white,
                           borderRadius: borderRadius.md,
                           borderLeft: `3px solid ${colors.warning}`,
                         }}
@@ -625,7 +631,7 @@ export default function MLFraudPage() {
                           style={{
                             margin: 0,
                             fontSize: typography.fontSize.sm,
-                            color: colors.text.primary,
+                            color: themeColors.text.primary,
                             lineHeight: typography.lineHeight.relaxed,
                           }}
                         >
@@ -650,7 +656,7 @@ export default function MLFraudPage() {
                   style={{
                     fontSize: typography.fontSize.xl,
                     fontWeight: typography.fontWeight.semibold,
-                    color: colors.text.primary,
+                    color: themeColors.text.primary,
                     marginBottom: spacing.sm,
                   }}
                 >
@@ -658,7 +664,7 @@ export default function MLFraudPage() {
                 </h3>
                 <p
                   style={{
-                    color: colors.text.secondary,
+                    color: themeColors.text.secondary,
                     fontSize: typography.fontSize.sm,
                     marginBottom: spacing.lg,
                   }}

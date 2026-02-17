@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { Card } from "@/components/ui/Card";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { spacing, colors, borderRadius } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const STATUS_LABELS: Record<string, string> = {
   taslak: "Taslak",
@@ -25,6 +26,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function InvoiceDetailPage() {
+  const { themeColors } = useTheme();
   const params = useParams();
   const invoiceId = params.id as string;
   const queryClient = useQueryClient();
@@ -86,7 +88,7 @@ export default function InvoiceDetailPage() {
               style={{
                 padding: "8px 16px",
                 backgroundColor: colors.primary,
-                color: "white",
+                color: colors.white,
                 textDecoration: "none",
                 borderRadius: "4px",
               }}
@@ -101,7 +103,7 @@ export default function InvoiceDetailPage() {
               style={{
                 padding: "8px 16px",
                 backgroundColor: colors.danger,
-                color: "white",
+                color: colors.white,
                 border: "none",
                 borderRadius: "4px",
                 cursor: statusMutation.isPending ? "not-allowed" : "pointer",
@@ -115,7 +117,7 @@ export default function InvoiceDetailPage() {
             href="/faturalar"
             style={{
               padding: "8px 16px",
-              backgroundColor: colors.gray[100],
+              backgroundColor: themeColors.gray[100],
               color: "inherit",
               textDecoration: "none",
               borderRadius: "4px",
@@ -172,7 +174,7 @@ export default function InvoiceDetailPage() {
         <h2 style={{ marginBottom: "16px" }}>Fatura Satırları</h2>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
-            <tr style={{ borderBottom: "2px solid #ddd" }}>
+            <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
               <th style={{ padding: "12px", textAlign: "left" }}>Satır No</th>
               <th style={{ padding: "12px", textAlign: "left" }}>Açıklama</th>
               <th style={{ padding: "12px", textAlign: "right" }}>Miktar</th>
@@ -184,7 +186,7 @@ export default function InvoiceDetailPage() {
           </thead>
           <tbody>
             {invoiceData.lines?.map((line) => (
-              <tr key={line.id} style={{ borderBottom: "1px solid #eee" }}>
+              <tr key={line.id} style={{ borderBottom: `1px solid ${themeColors.gray[200]}` }}>
                 <td style={{ padding: "12px" }}>{line.lineNumber}</td>
                 <td style={{ padding: "12px" }}>{line.description}</td>
                 <td style={{ padding: "12px", textAlign: "right" }}>
@@ -220,7 +222,7 @@ export default function InvoiceDetailPage() {
         </table>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "flex-end", padding: "16px", backgroundColor: colors.gray[100], borderRadius: borderRadius.sm }}>
+      <div style={{ display: "flex", justifyContent: "flex-end", padding: "16px", backgroundColor: themeColors.gray[100], borderRadius: borderRadius.sm }}>
         <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "300px" }}>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <strong>Net Tutar:</strong>{" "}
@@ -238,7 +240,7 @@ export default function InvoiceDetailPage() {
             })}{" "}
             {invoiceData.currency}
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "18px", fontWeight: "bold", paddingTop: "8px", borderTop: "1px solid #ddd" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "18px", fontWeight: "bold", paddingTop: "8px", borderTop: `1px solid ${themeColors.border}` }}>
             <strong>Toplam Tutar:</strong>{" "}
             {invoiceData.totalAmount.toLocaleString("tr-TR", {
               minimumFractionDigits: 2,

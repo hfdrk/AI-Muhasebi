@@ -1,4 +1,4 @@
-export type RiskAlertType = "RISK_THRESHOLD_EXCEEDED" | "ANOMALY_DETECTED";
+export type RiskAlertType = "RISK_THRESHOLD_EXCEEDED" | "ANOMALY_DETECTED" | "ML_FRAUD_DETECTION" | "INVOICE_DUPLICATE" | "FRAUD_PATTERN" | "UNUSUAL_COUNTERPARTY" | "CHART_MISMATCH" | "MASAK_THRESHOLD";
 export type RiskAlertSeverity = "low" | "medium" | "high" | "critical";
 export type RiskAlertStatus = "open" | "in_progress" | "closed" | "ignored";
 export interface RiskAlert {

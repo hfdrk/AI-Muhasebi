@@ -1,4 +1,5 @@
 import type { OCRResult } from "../ocr-service";
+import { logger } from "@repo/shared-utils";
 
 // AWS SDK types - dynamic import for optional dependency
 interface TextractBlock {
@@ -86,6 +87,7 @@ export class AWSTextractOCR {
     }
 
     try {
+      // @ts-ignore
       const textract = await import("@aws-sdk/client-textract");
 
       const { TextractClient, DetectDocumentTextCommand, AnalyzeDocumentCommand } = textract;
@@ -122,7 +124,7 @@ export class AWSTextractOCR {
       // For PDFs larger than 5MB, we need async operations
       // For now, we use sync operations for smaller documents
       if (fileBuffer.length > 5 * 1024 * 1024) {
-        console.warn(
+        logger.warn(
           "[AWSTextractOCR] Document larger than 5MB. Consider using async operations with S3."
         );
       }
@@ -150,7 +152,7 @@ export class AWSTextractOCR {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error("[AWSTextractOCR] OCR error:", errorMessage);
+      logger.error("[AWSTextractOCR] OCR error", undefined, { error: errorMessage });
 
       // Check if it's a missing module error
       if (errorMessage.includes("modülü bulunamadı")) {
@@ -225,7 +227,7 @@ export class AWSTextractOCR {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error("[AWSTextractOCR] Analysis error:", errorMessage);
+      logger.error("[AWSTextractOCR] Analysis error", undefined, { error: errorMessage });
 
       return {
         rawText: "",

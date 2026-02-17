@@ -3,9 +3,11 @@
 import { ImpersonationBanner } from "../../../components/impersonation-banner";
 import Link from "next/link";
 import { colors, spacing } from "../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { usePathname } from "next/navigation";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const { themeColors } = useTheme();
   const pathname = usePathname();
 
   const navItems = [
@@ -16,15 +18,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: colors.gray[50] }}>
+    <div style={{ minHeight: "100vh", backgroundColor: themeColors.gray[50] }}>
       <ImpersonationBanner />
       <div style={{ display: "flex" }}>
         {/* Sidebar */}
         <aside
           style={{
             width: "250px",
-            backgroundColor: colors.white,
-            borderRight: `1px solid ${colors.border}`,
+            backgroundColor: themeColors.white,
+            borderRight: `1px solid ${themeColors.border}`,
             padding: spacing.lg,
             minHeight: "calc(100vh - 60px)",
           }}
@@ -34,7 +36,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               margin: `0 0 ${spacing.lg} 0`,
               fontSize: "18px",
               fontWeight: 600,
-              color: colors.text.primary,
+              color: themeColors.text.primary,
             }}
           >
             Yönetim Konsolu
@@ -49,7 +51,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   style={{
                     padding: spacing.md,
                     textDecoration: "none",
-                    color: isActive ? colors.primary : colors.text.secondary,
+                    color: isActive ? colors.primary : themeColors.text.secondary,
                     backgroundColor: isActive ? colors.primary + "10" : "transparent",
                     borderRadius: "4px",
                     fontWeight: isActive ? 600 : 400,
@@ -57,7 +59,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive) {
-                      e.currentTarget.style.backgroundColor = colors.gray[100];
+                      e.currentTarget.style.backgroundColor = themeColors.gray[100];
                     }
                   }}
                   onMouseLeave={(e) => {
@@ -81,4 +83,3 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     </div>
   );
 }
-

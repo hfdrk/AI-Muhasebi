@@ -1,6 +1,6 @@
 import { getConfig } from "../env";
 import type { IObjectStorage } from "@repo/shared-utils";
-import { LocalObjectStorage } from "@repo/shared-utils";
+import { LocalObjectStorage, S3ObjectStorage } from "@repo/shared-utils";
 
 let storageInstance: IObjectStorage | null = null;
 
@@ -20,8 +20,14 @@ export function getStorage(): IObjectStorage {
       storageInstance = new LocalObjectStorage(config.STORAGE_BASE_PATH);
       break;
     case "s3":
-      // TODO: Implement S3 storage adapter
-      throw new Error("S3 storage adapter not yet implemented");
+      storageInstance = new S3ObjectStorage({
+        bucket: config.STORAGE_BUCKET_NAME || "",
+        region: config.STORAGE_REGION,
+        accessKeyId: config.STORAGE_ACCESS_KEY_ID,
+        secretAccessKey: config.STORAGE_SECRET_ACCESS_KEY,
+        endpoint: config.STORAGE_ENDPOINT,
+      });
+      break;
     case "gcs":
       // TODO: Implement GCS storage adapter
       throw new Error("GCS storage adapter not yet implemented");

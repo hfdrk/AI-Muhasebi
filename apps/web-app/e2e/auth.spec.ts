@@ -2,11 +2,7 @@ import { test, expect } from "@playwright/test";
 import {
   login,
   navigateTo,
-  waitForText,
-  assertTextVisible,
-  registerNewTenant,
   createTestUserViaAPI,
-  loginViaAPI,
 } from "./test-utils";
 
 test.describe("Signup & Login Flow", () => {

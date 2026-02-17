@@ -160,11 +160,47 @@ router.post("/reset-password", async (req: Request, res: Response, next: NextFun
   }
 });
 
+router.post("/refresh", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const refreshToken = req.cookies?.refreshToken;
+    if (!refreshToken) {
+      return next(new AuthenticationError("Yenileme tokeni bulunamadı."));
+    }
+
+    const ipAddress = req.ip || req.socket.remoteAddress || undefined;
+    const result = await authService.refreshAccessToken(refreshToken, ipAddress);
+
+    // Rotate refresh token cookie
+    res.cookie("refreshToken", result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    res.json({
+      data: {
+        user: {
+          id: result.user.id,
+          email: result.user.email,
+          fullName: result.user.fullName,
+          locale: result.user.locale,
+        },
+        accessToken: result.accessToken,
+        tenantId: result.tenantId,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.post("/logout", async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     if (req.context?.user) {
       const ipAddress = req.ip || req.socket.remoteAddress || undefined;
-      await authService.logout(req.context.user.id, req.context.tenantId ?? null, ipAddress);
+      const accessToken = req.headers.authorization?.substring(7);
+      await authService.logout(req.context.user.id, req.context.tenantId ?? null, ipAddress, accessToken);
     }
 
     // Clear refresh token cookie

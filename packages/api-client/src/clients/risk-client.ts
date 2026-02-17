@@ -1,4 +1,5 @@
 import { apiClient } from "../api-client";
+import { getAccessToken } from "../token-store";
 import type {
   DocumentRiskScore,
   ClientCompanyRiskScore,
@@ -96,7 +97,7 @@ export async function getTenantRiskDashboard(): Promise<{ data: TenantRiskDashbo
  * List risk alerts
  */
 export async function listRiskAlerts(params?: ListRiskAlertsParams): Promise<{ data: PaginatedRiskAlerts }> {
-  return apiClient.get("/api/v1/risk/alerts", { params });
+  return apiClient.get("/api/v1/risk/alerts", { params: params as Record<string, string | number | undefined> });
 }
 
 /**
@@ -248,7 +249,7 @@ export async function exportRiskDashboard(format: "csv" | "json" = "json"): Prom
   const url = `${API_URL}/api/v1/risk/dashboard/export?format=${format}`;
   
   // Get authentication token from localStorage
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+  const token = getAccessToken();
 
   const response = await fetch(url, {
     method: "GET",
@@ -259,8 +260,22 @@ export async function exportRiskDashboard(format: "csv" | "json" = "json"): Prom
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: { message: "Export failed" } }));
-    throw new Error(error.error?.message || "Export failed");
+    let errorMessage = "Export failed";
+    try {
+      const error = await response.json();
+      const rawMessage = error?.error?.message || error?.message;
+      if (typeof rawMessage === "string") {
+        errorMessage = rawMessage;
+      }
+    } catch {
+      errorMessage = response.statusText || `HTTP ${response.status} hatası`;
+    }
+    
+    const error = new Error(errorMessage);
+    (error as any).status = response.status;
+    (error as any).statusCode = response.status;
+    (error as any).response = { status: response.status };
+    throw error;
   }
 
   return response.blob();

@@ -10,15 +10,18 @@ import { DocumentList } from "../../../../components/document-list";
 import { DocumentUploadModal } from "../../../../components/document-upload-modal";
 import { useClientCompanyRiskScore } from "@/hooks/use-risk";
 import { colors, spacing, borderRadius, typography } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Modal } from "@/components/ui/Modal";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Tabs } from "@/components/ui/Tabs";
+import { PageTransition } from "@/components/ui/PageTransition";
 import { toast } from "@/lib/toast";
 
 export default function ClientDetailPage() {
+  const { themeColors } = useTheme();
   const params = useParams();
   // const router = useRouter(); // Reserved for future use
   const clientId = params.id as string;
@@ -78,7 +81,7 @@ export default function ClientDetailPage() {
       <div style={{ padding: spacing.xxl, maxWidth: "1400px", margin: "0 auto" }}>
         <Card>
           <div style={{ textAlign: "center", padding: spacing.xxl }}>
-            <p style={{ color: colors.text.secondary, marginBottom: spacing.md }}>Müşteri şirketi bulunamadı.</p>
+            <p style={{ color: themeColors.text.secondary, marginBottom: spacing.md }}>Müşteri şirketi bulunamadı.</p>
             <Button asLink href="/musteriler" variant="outline">
               Müşteri listesine dön
             </Button>
@@ -169,7 +172,7 @@ export default function ClientDetailPage() {
             content: (
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.md }}>
-            <h2 style={{ margin: 0, fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.bold, color: colors.text.primary }}>Banka Hesapları</h2>
+            <h2 style={{ margin: 0, fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.bold, color: themeColors.text.primary }}>Banka Hesapları</h2>
             <Button
               onClick={() => {
                 setEditingBankAccount(null);
@@ -193,25 +196,25 @@ export default function ClientDetailPage() {
           ) : (
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ borderBottom: `2px solid ${colors.border}` }}>
-                  <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary }}>Banka Adı</th>
-                  <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary }}>IBAN</th>
-                  <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary }}>Para Birimi</th>
-                  <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary }}>Birincil Hesap</th>
-                  <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary }}>Oluşturulma Tarihi</th>
-                  <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary }}>İşlemler</th>
+                <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: themeColors.text.secondary }}>Banka Adı</th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: themeColors.text.secondary }}>IBAN</th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: themeColors.text.secondary }}>Para Birimi</th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: themeColors.text.secondary }}>Birincil Hesap</th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: themeColors.text.secondary }}>Oluşturulma Tarihi</th>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: themeColors.text.secondary }}>İşlemler</th>
                 </tr>
               </thead>
               <tbody>
                 {bankAccounts?.data.map((account) => (
-                  <tr key={account.id} style={{ borderBottom: `1px solid ${colors.border}` }}>
-                    <td style={{ padding: spacing.md, color: colors.text.primary, fontSize: typography.fontSize.sm }}>{account.bankName}</td>
-                    <td style={{ padding: spacing.md, color: colors.text.primary, fontSize: typography.fontSize.sm }}>{account.iban}</td>
-                    <td style={{ padding: spacing.md, color: colors.text.primary, fontSize: typography.fontSize.sm }}>{account.currency}</td>
-                    <td style={{ padding: spacing.md, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                  <tr key={account.id} style={{ borderBottom: `1px solid ${themeColors.border}` }}>
+                    <td style={{ padding: spacing.md, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>{account.bankName}</td>
+                    <td style={{ padding: spacing.md, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>{account.iban}</td>
+                    <td style={{ padding: spacing.md, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>{account.currency}</td>
+                    <td style={{ padding: spacing.md, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                       {account.isPrimary ? "✓" : "-"}
                     </td>
-                    <td style={{ padding: spacing.md, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>
+                    <td style={{ padding: spacing.md, color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>
                       {new Date(account.createdAt).toLocaleDateString("tr-TR")}
                     </td>
                     <td style={{ padding: spacing.md }}>
@@ -316,7 +319,7 @@ export default function ClientDetailPage() {
 
           {/* Debug info - remove in production */}
           {process.env.NODE_ENV === "development" && riskScoreData && (
-            <div style={{ padding: "8px", backgroundColor: colors.gray[100], fontSize: "12px", marginBottom: "8px" }}>
+            <div style={{ padding: "8px", backgroundColor: themeColors.gray[100], fontSize: "12px", marginBottom: "8px" }}>
               Debug: riskScoreData exists: {riskScoreData ? "yes" : "no"}, 
               riskScore: {riskScoreData?.data?.riskScore ? "exists" : "null"},
               breakdown: {JSON.stringify(riskScoreData?.data?.breakdown)}
@@ -324,7 +327,7 @@ export default function ClientDetailPage() {
           )}
 
           {!riskLoading && riskScoreData?.data && (
-            <div style={{ padding: "20px", backgroundColor: colors.gray[100], borderRadius: borderRadius.md, marginBottom: "20px" }}>
+            <div style={{ padding: "20px", backgroundColor: themeColors.gray[100], borderRadius: borderRadius.md, marginBottom: "20px" }}>
               {riskScoreData.data.riskScore ? (
                 <>
                   <div style={{ marginBottom: "20px" }}>
@@ -377,7 +380,7 @@ export default function ClientDetailPage() {
                         </span>
                       </div>
                     </div>
-                    <div style={{ fontSize: "14px", color: "#666" }}>
+                    <div style={{ fontSize: "14px", color: themeColors.text.secondary }}>
                       Hesaplanma Tarihi: {new Date(riskScoreData.data.riskScore.generatedAt).toLocaleString("tr-TR")}
                     </div>
                   </div>
@@ -385,23 +388,23 @@ export default function ClientDetailPage() {
                   <div style={{ marginBottom: "20px" }}>
                     <h3 style={{ marginBottom: "12px" }}>Belge Dağılımı</h3>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
-                      <div style={{ padding: "12px", backgroundColor: "#fff", borderRadius: "4px", textAlign: "center" }}>
-                        <div style={{ fontSize: "24px", fontWeight: "bold", color: "#10b981" }}>
+                      <div style={{ padding: "12px", backgroundColor: themeColors.white, borderRadius: "4px", textAlign: "center" }}>
+                        <div style={{ fontSize: "24px", fontWeight: "bold", color: colors.success }}>
                           {riskScoreData.data.breakdown.low}
                         </div>
-                        <div style={{ fontSize: "14px", color: "#666" }}>Düşük Risk</div>
+                        <div style={{ fontSize: "14px", color: themeColors.text.secondary }}>Düşük Risk</div>
                       </div>
-                      <div style={{ padding: "12px", backgroundColor: "#fff", borderRadius: "4px", textAlign: "center" }}>
-                        <div style={{ fontSize: "24px", fontWeight: "bold", color: "#f59e0b" }}>
+                      <div style={{ padding: "12px", backgroundColor: themeColors.white, borderRadius: "4px", textAlign: "center" }}>
+                        <div style={{ fontSize: "24px", fontWeight: "bold", color: colors.warning }}>
                           {riskScoreData.data.breakdown.medium}
                         </div>
-                        <div style={{ fontSize: "14px", color: "#666" }}>Orta Risk</div>
+                        <div style={{ fontSize: "14px", color: themeColors.text.secondary }}>Orta Risk</div>
                       </div>
-                      <div style={{ padding: "12px", backgroundColor: "#fff", borderRadius: "4px", textAlign: "center" }}>
-                        <div style={{ fontSize: "24px", fontWeight: "bold", color: "#dc2626" }}>
+                      <div style={{ padding: "12px", backgroundColor: themeColors.white, borderRadius: "4px", textAlign: "center" }}>
+                        <div style={{ fontSize: "24px", fontWeight: "bold", color: colors.danger }}>
                           {riskScoreData.data.breakdown.high}
                         </div>
-                        <div style={{ fontSize: "14px", color: "#666" }}>Yüksek Risk</div>
+                        <div style={{ fontSize: "14px", color: themeColors.text.secondary }}>Yüksek Risk</div>
                       </div>
                     </div>
                   </div>
@@ -415,9 +418,9 @@ export default function ClientDetailPage() {
                             key={index}
                             style={{
                               padding: "12px",
-                              backgroundColor: "#fff",
+                              backgroundColor: themeColors.white,
                               borderRadius: "4px",
-                              border: "1px solid #e0e0e0",
+                              border: `1px solid ${themeColors.border}`,
                               display: "flex",
                               justifyContent: "space-between",
                               alignItems: "center",
@@ -425,9 +428,9 @@ export default function ClientDetailPage() {
                           >
                             <div>
                               <strong>{rule.code}</strong>
-                              <div style={{ fontSize: "14px", color: "#666", marginTop: "4px" }}>{rule.description}</div>
+                              <div style={{ fontSize: "14px", color: themeColors.text.secondary, marginTop: "4px" }}>{rule.description}</div>
                             </div>
-                            <div style={{ fontSize: "14px", color: "#666" }}>{rule.count} kez tetiklendi</div>
+                            <div style={{ fontSize: "14px", color: themeColors.text.secondary }}>{rule.count} kez tetiklendi</div>
                           </div>
                         ))}
                       </div>
@@ -435,7 +438,7 @@ export default function ClientDetailPage() {
                   )}
                 </>
               ) : (
-                <div style={{ padding: "16px", textAlign: "center", color: "#666" }}>
+                <div style={{ padding: "16px", textAlign: "center", color: themeColors.text.secondary }}>
                   Bu müşteri için henüz risk skoru hesaplanmamış.
                 </div>
               )}
@@ -443,7 +446,7 @@ export default function ClientDetailPage() {
           )}
 
           {!riskLoading && !riskScoreData?.data && (
-            <div style={{ padding: "16px", backgroundColor: "#e2e3e5", borderRadius: "4px" }}>
+            <div style={{ padding: "16px", backgroundColor: themeColors.gray[200], borderRadius: "4px" }}>
               <p>Bu müşteri için henüz risk skoru hesaplanmamış.</p>
             </div>
           )}
@@ -463,7 +466,7 @@ export default function ClientDetailPage() {
         size="sm"
       >
         <div style={{ marginBottom: spacing.lg }}>
-          <p style={{ color: colors.text.primary }}>
+          <p style={{ color: themeColors.text.primary }}>
             Bu banka hesabını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.
           </p>
         </div>

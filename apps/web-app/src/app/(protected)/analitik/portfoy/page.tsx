@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { analyticsClient } from "@repo/api-client";
-import Link from "next/link";
 import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
-import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
+import { colors, spacing, borderRadius, typography } from "../../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function PortfolioPage() {
+  const { themeColors } = useTheme();
   const [startDate, setStartDate] = useState<string | undefined>(undefined);
   const [endDate, setEndDate] = useState<string | undefined>(undefined);
 
@@ -34,7 +35,7 @@ export default function PortfolioPage() {
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
-        backgroundColor: colors.gray[50],
+        backgroundColor: themeColors.gray[50],
         minHeight: "100vh",
       }}
     >
@@ -53,7 +54,7 @@ export default function PortfolioPage() {
           style={{
             fontSize: typography.fontSize["3xl"],
             fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
             marginBottom: spacing.sm,
           }}
         >
@@ -62,7 +63,7 @@ export default function PortfolioPage() {
         <p
           style={{
             fontSize: typography.fontSize.base,
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
             lineHeight: typography.lineHeight.relaxed,
             margin: 0,
           }}
@@ -87,7 +88,7 @@ export default function PortfolioPage() {
                 marginBottom: spacing.xs,
                 fontSize: typography.fontSize.sm,
                 fontWeight: typography.fontWeight.medium,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
               }}
             >
               Başlangıç Tarihi (Opsiyonel)
@@ -100,10 +101,10 @@ export default function PortfolioPage() {
                 width: "100%",
                 padding: spacing.sm,
                 borderRadius: borderRadius.md,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
                 fontSize: typography.fontSize.base,
-                backgroundColor: colors.white,
-                color: colors.text.primary,
+                backgroundColor: themeColors.white,
+                color: themeColors.text.primary,
               }}
             />
           </div>
@@ -114,7 +115,7 @@ export default function PortfolioPage() {
                 marginBottom: spacing.xs,
                 fontSize: typography.fontSize.sm,
                 fontWeight: typography.fontWeight.medium,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
               }}
             >
               Bitiş Tarihi (Opsiyonel)
@@ -127,10 +128,10 @@ export default function PortfolioPage() {
                 width: "100%",
                 padding: spacing.sm,
                 borderRadius: borderRadius.md,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
                 fontSize: typography.fontSize.base,
-                backgroundColor: colors.white,
-                color: colors.text.primary,
+                backgroundColor: themeColors.white,
+                color: themeColors.text.primary,
               }}
             />
           </div>
@@ -145,7 +146,7 @@ export default function PortfolioPage() {
                 display: "inline-block",
                 width: "48px",
                 height: "48px",
-                border: `4px solid ${colors.gray[200]}`,
+                border: `4px solid ${themeColors.gray[200]}`,
                 borderTopColor: colors.primary,
                 borderRadius: "50%",
                 animation: "spin 0.8s linear infinite",
@@ -169,7 +170,7 @@ export default function PortfolioPage() {
                 style={{
                   margin: 0,
                   fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 Toplam Müşteri
@@ -179,7 +180,7 @@ export default function PortfolioPage() {
                   margin: `${spacing.xs} 0 0 0`,
                   fontSize: typography.fontSize["2xl"],
                   fontWeight: typography.fontWeight.bold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                 }}
               >
                 {portfolio.totalClients}
@@ -191,7 +192,7 @@ export default function PortfolioPage() {
                 style={{
                   margin: 0,
                   fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 Aktif Müşteri
@@ -213,7 +214,7 @@ export default function PortfolioPage() {
                 style={{
                   margin: 0,
                   fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 Toplam Gelir
@@ -223,7 +224,7 @@ export default function PortfolioPage() {
                   margin: `${spacing.xs} 0 0 0`,
                   fontSize: typography.fontSize["2xl"],
                   fontWeight: typography.fontWeight.bold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                 }}
               >
                 {formatCurrency(portfolio.totalRevenue)}
@@ -235,7 +236,7 @@ export default function PortfolioPage() {
                 style={{
                   margin: 0,
                   fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 Ort. Gelir/Müşteri
@@ -245,7 +246,7 @@ export default function PortfolioPage() {
                   margin: `${spacing.xs} 0 0 0`,
                   fontSize: typography.fontSize["2xl"],
                   fontWeight: typography.fontWeight.bold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                 }}
               >
                 {formatCurrency(portfolio.averageRevenuePerClient)}
@@ -274,7 +275,7 @@ export default function PortfolioPage() {
                   style={{
                     margin: 0,
                     fontSize: typography.fontSize.sm,
-                    color: colors.text.secondary,
+                    color: themeColors.text.secondary,
                     fontWeight: typography.fontWeight.medium,
                   }}
                 >
@@ -303,7 +304,7 @@ export default function PortfolioPage() {
                   style={{
                     margin: 0,
                     fontSize: typography.fontSize.sm,
-                    color: colors.text.secondary,
+                    color: themeColors.text.secondary,
                     fontWeight: typography.fontWeight.medium,
                   }}
                 >
@@ -332,7 +333,7 @@ export default function PortfolioPage() {
                   style={{
                     margin: 0,
                     fontSize: typography.fontSize.sm,
-                    color: colors.text.secondary,
+                    color: themeColors.text.secondary,
                     fontWeight: typography.fontWeight.medium,
                   }}
                 >
@@ -363,14 +364,14 @@ export default function PortfolioPage() {
                   }}
                 >
                   <thead>
-                    <tr style={{ borderBottom: `2px solid ${colors.border}` }}>
+                    <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
                       <th
                         style={{
                           padding: spacing.md,
                           textAlign: "left",
                           fontSize: typography.fontSize.sm,
                           fontWeight: typography.fontWeight.semibold,
-                          color: colors.text.primary,
+                          color: themeColors.text.primary,
                         }}
                       >
                         Müşteri
@@ -381,7 +382,7 @@ export default function PortfolioPage() {
                           textAlign: "right",
                           fontSize: typography.fontSize.sm,
                           fontWeight: typography.fontWeight.semibold,
-                          color: colors.text.primary,
+                          color: themeColors.text.primary,
                         }}
                       >
                         Gelir
@@ -392,7 +393,7 @@ export default function PortfolioPage() {
                           textAlign: "right",
                           fontSize: typography.fontSize.sm,
                           fontWeight: typography.fontWeight.semibold,
-                          color: colors.text.primary,
+                          color: themeColors.text.primary,
                         }}
                       >
                         Risk Skoru
@@ -400,11 +401,11 @@ export default function PortfolioPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {portfolio.topClients.map((client, index) => (
+                    {portfolio.topClients.map((client, _index) => (
                       <tr
                         key={client.clientId}
                         style={{
-                          borderBottom: `1px solid ${colors.border}`,
+                          borderBottom: `1px solid ${themeColors.border}`,
                         }}
                       >
                         <td style={{ padding: spacing.md }}>{client.clientName}</td>

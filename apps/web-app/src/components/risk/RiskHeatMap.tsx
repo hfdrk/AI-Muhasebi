@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { colors, spacing, borderRadius, shadows, transitions, typography } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface RiskHeatMapClient {
   id: string;
@@ -28,17 +29,18 @@ interface RiskHeatMapProps {
 
 export default function RiskHeatMap({ heatmap }: RiskHeatMapProps) {
   const router = useRouter();
+  const { themeColors } = useTheme();
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case "high":
-        return "#c2410c";
+        return colors.dangerDark;
       case "medium":
-        return "#d97706";
+        return colors.warning;
       case "low":
-        return "#059669";
+        return colors.success;
       default:
-        return colors.gray[300];
+        return themeColors.gray[300];
     }
   };
 
@@ -51,7 +53,7 @@ export default function RiskHeatMap({ heatmap }: RiskHeatMapProps) {
       case "low":
         return colors.successPastel;
       default:
-        return colors.gray[50];
+        return themeColors.gray[50];
     }
   };
 
@@ -61,7 +63,7 @@ export default function RiskHeatMap({ heatmap }: RiskHeatMapProps) {
         marginBottom: spacing.xl,
         padding: spacing.xl,
         background: colors.gradients.pastelWarning,
-        border: `1px solid ${colors.border}`,
+        border: `1px solid ${themeColors.border}`,
       }}
     >
       <div style={{ marginBottom: spacing.lg }}>
@@ -71,7 +73,7 @@ export default function RiskHeatMap({ heatmap }: RiskHeatMapProps) {
             marginBottom: spacing.xs,
             fontSize: typography.fontSize.xl,
             fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
           }}
         >
           Risk Haritası
@@ -80,7 +82,7 @@ export default function RiskHeatMap({ heatmap }: RiskHeatMapProps) {
           style={{
             margin: 0,
             fontSize: typography.fontSize.sm,
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
           }}
         >
           {heatmap.totalClients} müşteri • Ortalama Risk: {heatmap.averageRiskScore.toFixed(1)}
@@ -265,7 +267,7 @@ export default function RiskHeatMap({ heatmap }: RiskHeatMapProps) {
                   fontSize: typography.fontSize.sm,
                   fontWeight: typography.fontWeight.semibold,
                   marginBottom: spacing.xs,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                 }}
               >
                 {client.name}
@@ -283,7 +285,7 @@ export default function RiskHeatMap({ heatmap }: RiskHeatMapProps) {
               <div
                 style={{
                   fontSize: typography.fontSize.xs,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 {client.alertCount} uyarı • {client.documentCount} belge

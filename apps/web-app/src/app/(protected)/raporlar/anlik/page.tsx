@@ -10,7 +10,8 @@ import {
   type GenerateReportParams,
 } from "@repo/api-client";
 import { requiresClientCompany, formatReportDate } from "../../../../lib/reports";
-import { colors, spacing } from "../../../../styles/design-system";
+import { colors, spacing, borderRadius } from "../../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import Link from "next/link";
 
 const REPORT_TYPES = [
@@ -22,6 +23,7 @@ const REPORT_TYPES = [
 ] as const;
 
 export default function OnDemandReportsPage() {
+  const { themeColors } = useTheme();
   const [selectedReportType, setSelectedReportType] = useState<string>("");
   const [startDate, setStartDate] = useState<string>(
     new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split("T")[0]
@@ -161,20 +163,20 @@ export default function OnDemandReportsPage() {
         >
           ← Raporlara Dön
         </Link>
-        <h1 style={{ fontSize: "28px", fontWeight: 600, marginBottom: spacing.sm, color: colors.text.primary }}>
+        <h1 style={{ fontSize: "28px", fontWeight: 600, marginBottom: spacing.sm, color: themeColors.text.primary }}>
           Anlık Raporlar
         </h1>
-        <p style={{ color: colors.text.secondary, fontSize: "16px" }}>
+        <p style={{ color: themeColors.text.secondary, fontSize: "16px" }}>
           İstediğiniz zaman rapor oluşturun ve görüntüleyin veya indirin.
         </p>
       </div>
 
       <div
         style={{
-          backgroundColor: colors.white,
+          backgroundColor: themeColors.white,
           padding: spacing.xl,
           borderRadius: "8px",
-          border: `1px solid ${colors.border}`,
+          border: `1px solid ${themeColors.border}`,
           marginBottom: spacing.xl,
         }}
       >
@@ -196,7 +198,7 @@ export default function OnDemandReportsPage() {
               style={{
                 width: "100%",
                 padding: spacing.sm,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "14px",
               }}
@@ -221,7 +223,7 @@ export default function OnDemandReportsPage() {
                 style={{
                   width: "100%",
                   padding: spacing.sm,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "4px",
                   fontSize: "14px",
                 }}
@@ -248,7 +250,7 @@ export default function OnDemandReportsPage() {
                 style={{
                   width: "100%",
                   padding: spacing.sm,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "4px",
                   fontSize: "14px",
                 }}
@@ -265,7 +267,7 @@ export default function OnDemandReportsPage() {
                 style={{
                   width: "100%",
                   padding: spacing.sm,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "4px",
                   fontSize: "14px",
                 }}
@@ -308,7 +310,7 @@ export default function OnDemandReportsPage() {
             }
             style={{
               padding: `${spacing.sm} ${spacing.lg}`,
-              backgroundColor: colors.white,
+              backgroundColor: themeColors.white,
               color: colors.primary,
               border: `1px solid ${colors.primary}`,
               borderRadius: "4px",
@@ -348,7 +350,7 @@ export default function OnDemandReportsPage() {
             }
             style={{
               padding: `${spacing.sm} ${spacing.lg}`,
-              backgroundColor: colors.white,
+              backgroundColor: themeColors.white,
               color: colors.primary,
               border: `1px solid ${colors.primary}`,
               borderRadius: "4px",
@@ -383,11 +385,11 @@ export default function OnDemandReportsPage() {
             style={{
               marginTop: spacing.md,
               padding: spacing.md,
-              backgroundColor: "#fee",
-              color: "#c33",
+              backgroundColor: colors.dangerLight,
+              color: colors.danger,
               borderRadius: "4px",
               fontSize: "14px",
-              border: "1px solid #fcc",
+              border: `1px solid ${colors.danger}`,
             }}
           >
             {error || "Rapor oluşturulurken bir hata oluştu."}
@@ -398,28 +400,28 @@ export default function OnDemandReportsPage() {
       {generateReportMutation.isPending && (
         <div
           style={{
-            backgroundColor: colors.white,
+            backgroundColor: themeColors.white,
             padding: spacing.xl,
             borderRadius: "8px",
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${themeColors.border}`,
             textAlign: "center",
           }}
         >
-          <p style={{ color: colors.text.secondary }}>Rapor oluşturuluyor, lütfen bekleyin…</p>
+          <p style={{ color: themeColors.text.secondary }}>Rapor oluşturuluyor, lütfen bekleyin…</p>
         </div>
       )}
 
       {reportResult && (
         <div
           style={{
-            backgroundColor: colors.white,
+            backgroundColor: themeColors.white,
             padding: spacing.xl,
             borderRadius: "8px",
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${themeColors.border}`,
           }}
         >
           <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: spacing.md }}>{reportResult.title}</h2>
-          <div style={{ marginBottom: spacing.md, color: colors.text.secondary, fontSize: "14px" }}>
+          <div style={{ marginBottom: spacing.md, color: themeColors.text.secondary, fontSize: "14px" }}>
             <p>
               Dönem: {formatReportDate(reportResult.period.start_date)} - {formatReportDate(reportResult.period.end_date)}
             </p>
@@ -436,7 +438,7 @@ export default function OnDemandReportsPage() {
                 }}
               >
                 <thead>
-                  <tr style={{ borderBottom: `2px solid ${colors.border}`, backgroundColor: colors.gray[50] }}>
+                  <tr style={{ borderBottom: `2px solid ${themeColors.border}`, backgroundColor: themeColors.gray[50] }}>
                     {Object.keys(reportResult.rows[0]).map((key) => (
                       <th
                         key={key}
@@ -444,7 +446,7 @@ export default function OnDemandReportsPage() {
                           padding: spacing.sm,
                           textAlign: "left",
                           fontWeight: 600,
-                          color: colors.text.primary,
+                          color: themeColors.text.primary,
                         }}
                       >
                         {key
@@ -457,9 +459,9 @@ export default function OnDemandReportsPage() {
                 </thead>
                 <tbody>
                   {reportResult.rows.map((row, idx) => (
-                    <tr key={idx} style={{ borderBottom: `1px solid ${colors.border}` }}>
+                    <tr key={idx} style={{ borderBottom: `1px solid ${themeColors.border}` }}>
                       {Object.keys(reportResult.rows[0]).map((key) => (
-                        <td key={key} style={{ padding: spacing.sm, color: colors.text.secondary }}>
+                        <td key={key} style={{ padding: spacing.sm, color: themeColors.text.secondary }}>
                           {row[key] !== null && row[key] !== undefined ? String(row[key]) : "-"}
                         </td>
                       ))}
@@ -469,27 +471,27 @@ export default function OnDemandReportsPage() {
               </table>
             </div>
           ) : (
-            <p style={{ color: colors.text.secondary, fontStyle: "italic" }}>
+            <p style={{ color: themeColors.text.secondary, fontStyle: "italic" }}>
               Bu kriterlere uygun bir rapor sonucu bulunamadı.
             </p>
           )}
 
           {reportResult.totals && (
-            <div style={{ marginTop: spacing.xl, padding: spacing.md, backgroundColor: colors.gray[50], borderRadius: "4px" }}>
+            <div style={{ marginTop: spacing.xl, padding: spacing.md, backgroundColor: themeColors.gray[50], borderRadius: "4px" }}>
               <h3 style={{ fontSize: "16px", fontWeight: 600, marginBottom: spacing.sm }}>Toplamlar</h3>
-              <pre style={{ fontSize: "14px", color: colors.text.secondary, margin: 0 }}>
+              <pre style={{ fontSize: "14px", color: themeColors.text.secondary, margin: 0 }}>
                 {JSON.stringify(reportResult.totals, null, 2)}
               </pre>
             </div>
           )}
 
-          {reportResult.suggestions && reportResult.suggestions.length > 0 && (
+          {(reportResult as any).suggestions && (reportResult as any).suggestions.length > 0 && (
             <div style={{ marginTop: spacing.xl, padding: spacing.md, backgroundColor: colors.infoLight, borderRadius: borderRadius.sm, border: `1px solid ${colors.info}` }}>
               <h3 style={{ fontSize: "16px", fontWeight: 600, marginBottom: spacing.sm, color: colors.info }}>
                 İyileştirme Önerileri
               </h3>
-              <ul style={{ margin: 0, paddingLeft: spacing.lg, color: colors.text.primary }}>
-                {reportResult.suggestions.map((suggestion, index) => (
+              <ul style={{ margin: 0, paddingLeft: spacing.lg, color: themeColors.text.primary }}>
+                {(reportResult as any).suggestions.map((suggestion: string, index: number) => (
                   <li key={index} style={{ marginBottom: spacing.xs, fontSize: "14px" }}>
                     {suggestion}
                   </li>

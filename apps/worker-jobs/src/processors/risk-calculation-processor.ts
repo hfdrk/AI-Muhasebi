@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma";
 import type { RiskCalculationJobPayload } from "../jobs/risk-calculation-job";
+import { logger } from "@repo/shared-utils";
 
 // Use dynamic imports to load services from backend-api at runtime
 // This avoids module resolution issues in the monorepo
@@ -52,7 +53,7 @@ export class RiskCalculationProcessor {
    */
   async processCompanyRiskCalculation(tenantId: string, clientCompanyId: string): Promise<void> {
     try {
-      console.log(`[Risk Calculation] Processing company ${clientCompanyId} for tenant ${tenantId}`);
+      logger.info("[Risk Calculation] Processing company", undefined, { clientCompanyId, tenantId });
 
       // Load services dynamically
       const riskRuleEngine = await getRiskRuleEngine();
@@ -91,9 +92,9 @@ export class RiskCalculationProcessor {
         }
       }
 
-      console.log(`[Risk Calculation] Completed company ${clientCompanyId}: score=${companyRiskScore.score}, severity=${companyRiskScore.severity}`);
+      logger.info("[Risk Calculation] Completed company", undefined, { clientCompanyId, score: companyRiskScore.score, severity: companyRiskScore.severity });
     } catch (error: any) {
-      console.error(`[Risk Calculation] Error processing company ${clientCompanyId}:`, error);
+      logger.error("[Risk Calculation] Error processing company", error, { clientCompanyId });
       throw error;
     }
   }
@@ -103,7 +104,7 @@ export class RiskCalculationProcessor {
    */
   async processDocumentRiskCalculation(tenantId: string, documentId: string): Promise<void> {
     try {
-      console.log(`[Risk Calculation] Processing document ${documentId} for tenant ${tenantId}`);
+      logger.info("[Risk Calculation] Processing document", undefined, { documentId, tenantId });
 
       // Load services dynamically
       const riskRuleEngine = await getRiskRuleEngine();
@@ -134,9 +135,9 @@ export class RiskCalculationProcessor {
         });
       }
 
-      console.log(`[Risk Calculation] Completed document ${documentId}: score=${documentRiskScore.score}, severity=${documentRiskScore.severity}`);
+      logger.info("[Risk Calculation] Completed document", undefined, { documentId, score: documentRiskScore.score, severity: documentRiskScore.severity });
     } catch (error: any) {
-      console.error(`[Risk Calculation] Error processing document ${documentId}:`, error);
+      logger.error("[Risk Calculation] Error processing document", error, { documentId });
       throw error;
     }
   }
@@ -163,7 +164,7 @@ export class RiskCalculationProcessor {
         try {
           await this.processCompanyRiskCalculation(tenantId, company.id);
         } catch (error) {
-          console.error(`[Risk Calculation] Failed to process company ${company.id}:`, error);
+          logger.error("[Risk Calculation] Failed to process company", error, { companyId: company.id });
           // Continue with other companies
         }
       }

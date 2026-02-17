@@ -1,7 +1,6 @@
 import { test, expect } from "@playwright/test";
 import {
   navigateTo,
-  waitForText,
   createTestUserViaAPI,
   createClientCompanyViaAPI,
 } from "./test-utils";
@@ -67,10 +66,6 @@ test.describe("Risk & Alerts Flow", () => {
     }
 
     // Assert risk score is shown
-    const riskScoreVisible = 
-      (await page.locator('text=/risk.*skor|risk.*score|severity|şiddet/i').isVisible()) ||
-      (await page.locator('[class*="risk-score"], [data-testid="risk-score"]').isVisible());
-
     // Note: Risk score might not exist if no documents processed yet
     // So we just check the tab/section is accessible
     expect(page.url()).toContain(`/clients/${companyId}`);

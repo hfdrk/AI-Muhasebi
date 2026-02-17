@@ -6,6 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { uploadDocument, uploadZipFile, listInvoices, listTransactions, listClientCompanies } from "@repo/api-client";
+import { colors, spacing, borderRadius } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 // Use any for File type to avoid SSR issues - validation happens client-side
 const uploadSchema = z.object({
@@ -38,6 +40,7 @@ export function DocumentUploadModal({ clientCompanyId: propClientCompanyId, isOp
   const [error, setError] = useState<string | null>(null);
   const [uploadMode, setUploadMode] = useState<"single" | "zip">("single");
   const [batchResult, setBatchResult] = useState<any>(null);
+  const { themeColors } = useTheme();
 
   // Fetch companies if no clientCompanyId provided
   const { data: companiesData } = useQuery({
@@ -88,7 +91,7 @@ export function DocumentUploadModal({ clientCompanyId: propClientCompanyId, isOp
         relatedTransactionId: data.relatedTransactionId || null,
       });
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["documents"] });
       reset();
       onClose();
@@ -141,9 +144,9 @@ export function DocumentUploadModal({ clientCompanyId: propClientCompanyId, isOp
     >
       <div
         style={{
-          backgroundColor: "white",
-          padding: "24px",
-          borderRadius: "8px",
+          backgroundColor: themeColors.white,
+          padding: spacing.lg,
+          borderRadius: borderRadius.md,
           maxWidth: "600px",
           width: "90%",
           maxHeight: "90vh",
@@ -151,10 +154,10 @@ export function DocumentUploadModal({ clientCompanyId: propClientCompanyId, isOp
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 style={{ marginBottom: "24px" }}>Belge Yükle</h2>
+        <h2 style={{ marginBottom: spacing.lg }}>Belge Yükle</h2>
 
         {/* Upload Mode Toggle */}
-        <div style={{ marginBottom: "16px", display: "flex", gap: "8px" }}>
+        <div style={{ marginBottom: spacing.md, display: "flex", gap: spacing.sm }}>
           <button
             type="button"
             onClick={() => {
@@ -163,11 +166,11 @@ export function DocumentUploadModal({ clientCompanyId: propClientCompanyId, isOp
               reset();
             }}
             style={{
-              padding: "8px 16px",
-              backgroundColor: uploadMode === "single" ? "#0066cc" : "#f5f5f5",
-              color: uploadMode === "single" ? "white" : "black",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
+              padding: `${spacing.sm} ${spacing.md}`,
+              backgroundColor: uploadMode === "single" ? colors.primary : themeColors.gray[50],
+              color: uploadMode === "single" ? colors.white : themeColors.text.primary,
+              border: `1px solid ${themeColors.border}`,
+              borderRadius: borderRadius.sm,
               cursor: "pointer",
             }}
           >
@@ -181,11 +184,11 @@ export function DocumentUploadModal({ clientCompanyId: propClientCompanyId, isOp
               reset();
             }}
             style={{
-              padding: "8px 16px",
-              backgroundColor: uploadMode === "zip" ? "#0066cc" : "#f5f5f5",
-              color: uploadMode === "zip" ? "white" : "black",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
+              padding: `${spacing.sm} ${spacing.md}`,
+              backgroundColor: uploadMode === "zip" ? colors.primary : themeColors.gray[50],
+              color: uploadMode === "zip" ? colors.white : themeColors.text.primary,
+              border: `1px solid ${themeColors.border}`,
+              borderRadius: borderRadius.sm,
               cursor: "pointer",
             }}
           >
@@ -194,15 +197,15 @@ export function DocumentUploadModal({ clientCompanyId: propClientCompanyId, isOp
         </div>
 
         {batchResult && (
-          <div style={{ padding: "12px", backgroundColor: "#e8f5e9", borderRadius: "4px", marginBottom: "16px" }}>
-            <h3 style={{ marginBottom: "8px" }}>Toplu Yükleme Sonucu</h3>
+          <div style={{ padding: "12px", backgroundColor: colors.successLight, borderRadius: borderRadius.sm, marginBottom: spacing.md }}>
+            <h3 style={{ marginBottom: spacing.sm }}>Toplu Yükleme Sonucu</h3>
             <p>Toplam Dosya: {batchResult.totalFiles}</p>
             <p>Başarılı: {batchResult.successfulUploads}</p>
             <p>Başarısız: {batchResult.failedUploads}</p>
             {batchResult.errors.length > 0 && (
-              <div style={{ marginTop: "8px" }}>
+              <div style={{ marginTop: spacing.sm }}>
                 <strong>Hatalar:</strong>
-                <ul style={{ marginTop: "4px", paddingLeft: "20px" }}>
+                <ul style={{ marginTop: spacing.xs, paddingLeft: "20px" }}>
                   {batchResult.errors.map((err: any, idx: number) => (
                     <li key={idx} style={{ fontSize: "14px" }}>
                       {err.fileName}: {err.error}
@@ -231,17 +234,17 @@ export function DocumentUploadModal({ clientCompanyId: propClientCompanyId, isOp
                 })
               : handleSubmit(onSubmit)
           }
-          style={{ display: "flex", flexDirection: "column", gap: "16px" }}
+          style={{ display: "flex", flexDirection: "column", gap: spacing.md }}
         >
           {error && (
-            <div style={{ padding: "12px", backgroundColor: "#fee", color: "#c33", borderRadius: "4px" }}>
+            <div style={{ padding: "12px", backgroundColor: colors.dangerLight, color: colors.danger, borderRadius: borderRadius.sm }}>
               {error}
             </div>
           )}
 
           {!propClientCompanyId && (
             <div>
-              <label htmlFor="clientCompanyId" style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>
+              <label htmlFor="clientCompanyId" style={{ display: "block", marginBottom: spacing.xs, fontWeight: "500" }}>
                 Müşteri Şirketi *
               </label>
               <select
@@ -250,8 +253,8 @@ export function DocumentUploadModal({ clientCompanyId: propClientCompanyId, isOp
                 style={{
                   width: "100%",
                   padding: "8px 12px",
-                  border: errors.clientCompanyId ? "1px solid #c33" : "1px solid #ddd",
-                  borderRadius: "4px",
+                  border: errors.clientCompanyId ? `1px solid ${colors.danger}` : `1px solid ${themeColors.border}`,
+                  borderRadius: borderRadius.sm,
                   fontSize: "16px",
                 }}
               >
@@ -263,13 +266,13 @@ export function DocumentUploadModal({ clientCompanyId: propClientCompanyId, isOp
                 ))}
               </select>
               {errors.clientCompanyId && (
-                <p style={{ color: "#c33", fontSize: "14px", marginTop: "4px" }}>{errors.clientCompanyId.message}</p>
+                <p style={{ color: colors.danger, fontSize: "14px", marginTop: spacing.xs }}>{errors.clientCompanyId.message}</p>
               )}
             </div>
           )}
 
           <div>
-            <label htmlFor="type" style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>
+            <label htmlFor="type" style={{ display: "block", marginBottom: spacing.xs, fontWeight: "500" }}>
               Belge Türü *
             </label>
             <select
@@ -278,8 +281,8 @@ export function DocumentUploadModal({ clientCompanyId: propClientCompanyId, isOp
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
+                border: `1px solid ${themeColors.border}`,
+                borderRadius: borderRadius.sm,
                 fontSize: "16px",
               }}
             >
@@ -289,12 +292,12 @@ export function DocumentUploadModal({ clientCompanyId: propClientCompanyId, isOp
               <option value="OTHER">Diğer</option>
             </select>
             {errors.type && (
-              <p style={{ color: "#c33", fontSize: "14px", marginTop: "4px" }}>{errors.type.message}</p>
+              <p style={{ color: colors.danger, fontSize: "14px", marginTop: spacing.xs }}>{errors.type.message}</p>
             )}
           </div>
 
           <div>
-            <label htmlFor="relatedInvoiceId" style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>
+            <label htmlFor="relatedInvoiceId" style={{ display: "block", marginBottom: spacing.xs, fontWeight: "500" }}>
               İlgili Fatura (Opsiyonel)
             </label>
             <select
@@ -303,8 +306,8 @@ export function DocumentUploadModal({ clientCompanyId: propClientCompanyId, isOp
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
+                border: `1px solid ${themeColors.border}`,
+                borderRadius: borderRadius.sm,
                 fontSize: "16px",
               }}
             >
@@ -318,7 +321,7 @@ export function DocumentUploadModal({ clientCompanyId: propClientCompanyId, isOp
           </div>
 
           <div>
-            <label htmlFor="relatedTransactionId" style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>
+            <label htmlFor="relatedTransactionId" style={{ display: "block", marginBottom: spacing.xs, fontWeight: "500" }}>
               İlgili Mali Hareket (Opsiyonel)
             </label>
             <select
@@ -327,8 +330,8 @@ export function DocumentUploadModal({ clientCompanyId: propClientCompanyId, isOp
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
+                border: `1px solid ${themeColors.border}`,
+                borderRadius: borderRadius.sm,
                 fontSize: "16px",
               }}
             >
@@ -343,7 +346,7 @@ export function DocumentUploadModal({ clientCompanyId: propClientCompanyId, isOp
 
           {uploadMode === "single" ? (
             <div>
-              <label htmlFor="file" style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>
+              <label htmlFor="file" style={{ display: "block", marginBottom: spacing.xs, fontWeight: "500" }}>
                 Dosya Seç *
               </label>
               <input
@@ -365,12 +368,12 @@ export function DocumentUploadModal({ clientCompanyId: propClientCompanyId, isOp
                 }}
               />
               {errors.file && (
-                <p style={{ color: "#c33", fontSize: "14px", marginTop: "4px" }}>{errors.file.message}</p>
+                <p style={{ color: colors.danger, fontSize: "14px", marginTop: spacing.xs }}>{errors.file.message as string}</p>
               )}
             </div>
           ) : (
             <div>
-              <label htmlFor="zipFile" style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>
+              <label htmlFor="zipFile" style={{ display: "block", marginBottom: spacing.xs, fontWeight: "500" }}>
                 ZIP Dosyası Seç *
               </label>
               <input
@@ -392,23 +395,23 @@ export function DocumentUploadModal({ clientCompanyId: propClientCompanyId, isOp
                 }}
               />
               {errors.zipFile && (
-                <p style={{ color: "#c33", fontSize: "14px", marginTop: "4px" }}>{errors.zipFile.message}</p>
+                <p style={{ color: colors.danger, fontSize: "14px", marginTop: spacing.xs }}>{errors.zipFile.message as string}</p>
               )}
-              <p style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
+              <p style={{ fontSize: "12px", color: themeColors.text.secondary, marginTop: spacing.xs }}>
                 ZIP dosyası içindeki tüm desteklenen dosyalar (PDF, resim, Excel) otomatik olarak yüklenecektir.
               </p>
             </div>
           )}
 
-          <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+          <div style={{ display: "flex", gap: spacing.sm, justifyContent: "flex-end" }}>
             <button
               type="button"
               onClick={onClose}
               style={{
-                padding: "8px 16px",
-                backgroundColor: "#f5f5f5",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
+                padding: `${spacing.sm} ${spacing.md}`,
+                backgroundColor: themeColors.gray[50],
+                border: `1px solid ${themeColors.border}`,
+                borderRadius: borderRadius.sm,
                 cursor: "pointer",
               }}
             >
@@ -418,11 +421,11 @@ export function DocumentUploadModal({ clientCompanyId: propClientCompanyId, isOp
               type="submit"
               disabled={isSubmitting || zipMutation.isPending}
               style={{
-                padding: "8px 16px",
-                backgroundColor: "#0066cc",
-                color: "white",
+                padding: `${spacing.sm} ${spacing.md}`,
+                backgroundColor: colors.primary,
+                color: colors.white,
                 border: "none",
-                borderRadius: "4px",
+                borderRadius: borderRadius.sm,
                 cursor: isSubmitting || zipMutation.isPending ? "not-allowed" : "pointer",
                 opacity: isSubmitting || zipMutation.isPending ? 0.6 : 1,
               }}

@@ -6,6 +6,7 @@ import type {
   PushInvoiceInput,
 } from "./types";
 import { logger } from "@repo/shared-utils";
+import { getCircuitBreaker } from "../../lib/circuit-breaker";
 
 /**
  * E-Fatura Provider Configuration
@@ -314,6 +315,23 @@ export abstract class BaseEFaturaProviderConnector implements AccountingIntegrat
   }
 
   /**
+   * Get a circuit breaker instance for this provider
+   */
+  protected getCircuitBreakerInstance() {
+    return getCircuitBreaker(`efatura:${this.providerName}`, {
+      failureThreshold: 5,
+      resetTimeout: 60000,
+    });
+  }
+
+  /**
+   * Fetch with circuit breaker protection
+   */
+  protected protectedFetch(url: string, init?: RequestInit): Promise<Response> {
+    return this.getCircuitBreakerInstance().execute(() => fetch(url, init));
+  }
+
+  /**
    * Standard HTTP headers
    */
   protected abstract getHeaders(): Record<string, string>;
@@ -381,9 +399,9 @@ export abstract class BaseEFaturaProviderConnector implements AccountingIntegrat
         message: `${this.providerName} kimlik doğrulama başarısız.`
       };
 
-    } catch (error) {
+    } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Bilinmeyen hata";
-      logger.error(`[${this.providerName}] testConnection error:`, error);
+      logger.error(`[${this.providerName}] testConnection error:`, { error: error instanceof Error ? error.message : String(error) });
       return { success: false, message: `${this.providerName} bağlantı hatası: ${errorMessage}` };
     }
   }
@@ -409,8 +427,8 @@ export abstract class BaseEFaturaProviderConnector implements AccountingIntegrat
     try {
       const invoices = await this.fetchInvoicesFromProvider(sinceDate, untilDate, options);
       return invoices.map((inv) => this.mapToNormalizedInvoice(inv));
-    } catch (error) {
-      logger.error(`[${this.providerName}] fetchInvoices error:`, error);
+    } catch (error: unknown) {
+      logger.error(`[${this.providerName}] fetchInvoices error:`, { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -456,7 +474,7 @@ export abstract class BaseEFaturaProviderConnector implements AccountingIntegrat
             message: `Fatura başarıyla gönderildi. ETTN: ${response.ettn || response.uuid}`,
           });
         }
-      } catch (error) {
+      } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : "Bilinmeyen hata";
         results.push({
           success: false,

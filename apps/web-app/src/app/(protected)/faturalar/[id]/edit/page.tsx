@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { spacing, colors, borderRadius } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import Link from "next/link";
 
 const invoiceLineSchema = z.object({
@@ -42,6 +43,7 @@ const invoiceSchema = z.object({
 type InvoiceForm = z.infer<typeof invoiceSchema>;
 
 export default function EditInvoicePage() {
+  const { themeColors } = useTheme();
   const params = useParams();
   const router = useRouter();
   const invoiceId = params.id as string;
@@ -198,7 +200,7 @@ export default function EditInvoicePage() {
 
       <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
         {error && (
-          <div style={{ padding: "12px", backgroundColor: "#fee", color: "#c33", borderRadius: "4px" }}>
+          <div style={{ padding: "12px", backgroundColor: colors.dangerLight, color: colors.danger, borderRadius: "4px" }}>
             {error}
           </div>
         )}
@@ -214,7 +216,7 @@ export default function EditInvoicePage() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
               }}
@@ -227,7 +229,7 @@ export default function EditInvoicePage() {
               ))}
             </select>
             {errors.clientCompanyId && (
-              <p style={{ color: "#c33", fontSize: "14px", marginTop: "4px" }}>
+              <p style={{ color: colors.danger, fontSize: "14px", marginTop: "4px" }}>
                 {errors.clientCompanyId.message}
               </p>
             )}
@@ -243,7 +245,7 @@ export default function EditInvoicePage() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
               }}
@@ -260,7 +262,7 @@ export default function EditInvoicePage() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
               }}
@@ -281,13 +283,13 @@ export default function EditInvoicePage() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
               }}
             />
             {errors.issueDate && (
-              <p style={{ color: "#c33", fontSize: "14px", marginTop: "4px" }}>{errors.issueDate.message}</p>
+              <p style={{ color: colors.danger, fontSize: "14px", marginTop: "4px" }}>{errors.issueDate.message}</p>
             )}
           </div>
 
@@ -302,7 +304,7 @@ export default function EditInvoicePage() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
               }}
@@ -319,7 +321,7 @@ export default function EditInvoicePage() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
               }}
@@ -340,7 +342,7 @@ export default function EditInvoicePage() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
               }}
@@ -360,7 +362,7 @@ export default function EditInvoicePage() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
               }}
@@ -377,7 +379,7 @@ export default function EditInvoicePage() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
               }}
@@ -409,7 +411,7 @@ export default function EditInvoicePage() {
               style={{
                 padding: "8px 16px",
                 backgroundColor: colors.success,
-                color: "white",
+                color: colors.white,
                 border: "none",
                 borderRadius: "4px",
                 cursor: "pointer",
@@ -421,7 +423,7 @@ export default function EditInvoicePage() {
 
           <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "16px" }}>
             <thead>
-              <tr style={{ borderBottom: "2px solid #ddd" }}>
+              <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
                 <th style={{ padding: "12px", textAlign: "left" }}>Açıklama</th>
                 <th style={{ padding: "12px", textAlign: "left" }}>Miktar</th>
                 <th style={{ padding: "12px", textAlign: "left" }}>Birim Fiyat</th>
@@ -433,14 +435,14 @@ export default function EditInvoicePage() {
             </thead>
             <tbody>
               {fields.map((field, index) => (
-                <tr key={field.id} style={{ borderBottom: "1px solid #eee" }}>
+                <tr key={field.id} style={{ borderBottom: `1px solid ${themeColors.gray[200]}` }}>
                   <td style={{ padding: "8px" }}>
                     <input
                       {...register(`lines.${index}.description`)}
                       style={{
                         width: "100%",
                         padding: "4px 8px",
-                        border: "1px solid #ddd",
+                        border: `1px solid ${themeColors.border}`,
                         borderRadius: "4px",
                       }}
                     />
@@ -457,7 +459,7 @@ export default function EditInvoicePage() {
                       style={{
                         width: "100px",
                         padding: "4px 8px",
-                        border: "1px solid #ddd",
+                        border: `1px solid ${themeColors.border}`,
                         borderRadius: "4px",
                       }}
                     />
@@ -474,7 +476,7 @@ export default function EditInvoicePage() {
                       style={{
                         width: "120px",
                         padding: "4px 8px",
-                        border: "1px solid #ddd",
+                        border: `1px solid ${themeColors.border}`,
                         borderRadius: "4px",
                       }}
                     />
@@ -488,9 +490,9 @@ export default function EditInvoicePage() {
                       style={{
                         width: "120px",
                         padding: "4px 8px",
-                        border: "1px solid #ddd",
+                        border: `1px solid ${themeColors.border}`,
                         borderRadius: "4px",
-                        backgroundColor: colors.gray[100],
+                        backgroundColor: themeColors.gray[100],
                       }}
                     />
                   </td>
@@ -504,7 +506,7 @@ export default function EditInvoicePage() {
                       style={{
                         width: "100px",
                         padding: "4px 8px",
-                        border: "1px solid #ddd",
+                        border: `1px solid ${themeColors.border}`,
                         borderRadius: "4px",
                       }}
                     >
@@ -524,9 +526,9 @@ export default function EditInvoicePage() {
                       style={{
                         width: "120px",
                         padding: "4px 8px",
-                        border: "1px solid #ddd",
+                        border: `1px solid ${themeColors.border}`,
                         borderRadius: "4px",
-                        backgroundColor: colors.gray[100],
+                        backgroundColor: themeColors.gray[100],
                       }}
                     />
                   </td>
@@ -557,11 +559,11 @@ export default function EditInvoicePage() {
           </table>
 
           {errors.lines && (
-            <p style={{ color: "#c33", fontSize: "14px", marginBottom: "16px" }}>{errors.lines.message}</p>
+            <p style={{ color: colors.danger, fontSize: "14px", marginBottom: "16px" }}>{errors.lines.message}</p>
           )}
         </div>
 
-        <div style={{ display: "flex", justifyContent: "space-between", padding: "16px", backgroundColor: colors.gray[100], borderRadius: borderRadius.sm }}>
+        <div style={{ display: "flex", justifyContent: "space-between", padding: "16px", backgroundColor: themeColors.gray[100], borderRadius: borderRadius.sm }}>
           <div>
             <strong>Toplam Tutar:</strong>{" "}
             {watch("totalAmount")?.toLocaleString("tr-TR", {
@@ -585,8 +587,8 @@ export default function EditInvoicePage() {
             href={`/faturalar/${invoiceId}`}
             style={{
               padding: "8px 16px",
-              backgroundColor: "#f5f5f5",
-              border: "1px solid #ddd",
+              backgroundColor: themeColors.gray[50],
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               textDecoration: "none",
               color: "inherit",
@@ -600,7 +602,7 @@ export default function EditInvoicePage() {
             style={{
               padding: "8px 16px",
               backgroundColor: colors.primary,
-              color: "white",
+              color: colors.white,
               border: "none",
               borderRadius: "4px",
               cursor: isSubmitting ? "not-allowed" : "pointer",

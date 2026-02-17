@@ -1,8 +1,8 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { messagingClient, getCurrentUser } from "@repo/api-client";
+import { messagingClient } from "@repo/api-client";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { MessageComposer } from "@/components/message-composer";
 import { MessageBubble } from "@/components/message-bubble";
@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { colors, spacing } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useEventStream } from "@/hooks/useEventStream";
@@ -26,8 +27,8 @@ function formatDate(date: Date | string): string {
 }
 
 export default function MessageThreadPage() {
+  const { themeColors } = useTheme();
   const params = useParams();
-  const router = useRouter();
   const threadId = params.id as string;
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
@@ -95,7 +96,7 @@ export default function MessageThreadPage() {
       <div>
         <PageHeader title="Mesajlar" />
         <Card>
-          <div style={{ padding: spacing.xl, textAlign: "center", color: colors.text.secondary }}>
+          <div style={{ padding: spacing.xl, textAlign: "center", color: themeColors.text.secondary }}>
             <div style={{ fontSize: "48px", marginBottom: spacing.md }}>❌</div>
             <div>Konuşma bulunamadı.</div>
             <Link href="/mesajlar" style={{ color: colors.primary, textDecoration: "none", marginTop: spacing.md, display: "inline-block" }}>
@@ -127,11 +128,11 @@ export default function MessageThreadPage() {
             flex: 1,
             overflowY: "auto",
             padding: spacing.md,
-            backgroundColor: colors.gray[50],
+            backgroundColor: themeColors.gray[50],
           }}
         >
           {messages.length === 0 ? (
-            <div style={{ textAlign: "center", color: colors.text.secondary, padding: spacing.xl }}>
+            <div style={{ textAlign: "center", color: themeColors.text.secondary, padding: spacing.xl }}>
               <div style={{ fontSize: "48px", marginBottom: spacing.md }}>💬</div>
               <div>Henüz mesaj yok. İlk mesajı gönderin!</div>
             </div>
@@ -149,7 +150,7 @@ export default function MessageThreadPage() {
                       <div
                         style={{
                           textAlign: "center",
-                          color: colors.text.secondary,
+                          color: themeColors.text.secondary,
                           fontSize: "12px",
                           margin: `${spacing.md} 0`,
                           padding: spacing.xs,
@@ -168,7 +169,7 @@ export default function MessageThreadPage() {
         </div>
 
         {/* Composer */}
-        <div style={{ padding: spacing.md, backgroundColor: colors.white, borderTop: `1px solid ${colors.gray[200]}` }}>
+        <div style={{ padding: spacing.md, backgroundColor: themeColors.white, borderTop: `1px solid ${themeColors.gray[200]}` }}>
           <MessageComposer
             threadId={threadId}
             onMessageSent={() => {

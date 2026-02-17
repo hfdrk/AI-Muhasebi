@@ -1,3 +1,5 @@
+import { getAccessToken } from "../token-store";
+
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "";
 
 export interface Document {
@@ -83,7 +85,7 @@ export interface SearchByRiskParams {
 }
 
 async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+  const token = getAccessToken();
 
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
@@ -104,8 +106,22 @@ async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T
         }
       }
     }
-    const error = await response.json().catch(() => ({ error: { message: "Bir hata oluştu." } }));
-    throw new Error(error.error?.message || "Bir hata oluştu.");
+    let errorMessage = "Bir hata oluştu.";
+    try {
+      const error = await response.json();
+      const rawMessage = error?.error?.message || error?.message;
+      if (typeof rawMessage === "string") {
+        errorMessage = rawMessage;
+      }
+    } catch {
+      errorMessage = response.statusText || `HTTP ${response.status} hatası`;
+    }
+    
+    const error = new Error(errorMessage);
+    (error as any).status = response.status;
+    (error as any).statusCode = response.status;
+    (error as any).response = { status: response.status };
+    throw error;
   }
 
   return response.json();
@@ -133,7 +149,7 @@ export async function uploadDocument(
     formData.append("relatedTransactionId", metadata.relatedTransactionId);
   }
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+  const token = getAccessToken();
 
   const response = await fetch(`${API_URL}/api/v1/documents/upload`, {
     method: "POST",
@@ -145,8 +161,22 @@ export async function uploadDocument(
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: { message: "Bir hata oluştu." } }));
-    throw new Error(error.error?.message || "Bir hata oluştu.");
+    let errorMessage = "Bir hata oluştu.";
+    try {
+      const error = await response.json();
+      const rawMessage = error?.error?.message || error?.message;
+      if (typeof rawMessage === "string") {
+        errorMessage = rawMessage;
+      }
+    } catch {
+      errorMessage = response.statusText || `HTTP ${response.status} hatası`;
+    }
+    
+    const error = new Error(errorMessage);
+    (error as any).status = response.status;
+    (error as any).statusCode = response.status;
+    (error as any).response = { status: response.status };
+    throw error;
   }
 
   return response.json();
@@ -211,7 +241,7 @@ export async function uploadZipFile(
     formData.append("relatedTransactionId", metadata.relatedTransactionId);
   }
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+  const token = getAccessToken();
 
   const response = await fetch(`${API_URL}/api/v1/documents/upload-batch`, {
     method: "POST",
@@ -223,8 +253,22 @@ export async function uploadZipFile(
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: { message: "Bir hata oluştu." } }));
-    throw new Error(error.error?.message || "Bir hata oluştu.");
+    let errorMessage = "Bir hata oluştu.";
+    try {
+      const error = await response.json();
+      const rawMessage = error?.error?.message || error?.message;
+      if (typeof rawMessage === "string") {
+        errorMessage = rawMessage;
+      }
+    } catch {
+      errorMessage = response.statusText || `HTTP ${response.status} hatası`;
+    }
+    
+    const error = new Error(errorMessage);
+    (error as any).status = response.status;
+    (error as any).statusCode = response.status;
+    (error as any).response = { status: response.status };
+    throw error;
   }
 
   return response.json();
@@ -238,7 +282,7 @@ export async function analyzeBatch(params: {
   clientCompanyId: string;
   documentIds: string[];
 }): Promise<{ data: BatchAnalysisResult }> {
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+  const token = getAccessToken();
 
   const response = await fetch(`${API_URL}/api/v1/documents/batch/analyze`, {
     method: "POST",
@@ -251,8 +295,22 @@ export async function analyzeBatch(params: {
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: { message: "Bir hata oluştu." } }));
-    throw new Error(error.error?.message || "Bir hata oluştu.");
+    let errorMessage = "Bir hata oluştu.";
+    try {
+      const error = await response.json();
+      const rawMessage = error?.error?.message || error?.message;
+      if (typeof rawMessage === "string") {
+        errorMessage = rawMessage;
+      }
+    } catch {
+      errorMessage = response.statusText || `HTTP ${response.status} hatası`;
+    }
+    
+    const error = new Error(errorMessage);
+    (error as any).status = response.status;
+    (error as any).statusCode = response.status;
+    (error as any).response = { status: response.status };
+    throw error;
   }
 
   return response.json();
@@ -332,7 +390,7 @@ export async function searchDocumentsByRisk(
 }
 
 export async function downloadDocument(id: string): Promise<Blob> {
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+  const token = getAccessToken();
 
   const response = await fetch(`${API_URL}/api/v1/documents/${id}/download`, {
     headers: {
@@ -342,8 +400,22 @@ export async function downloadDocument(id: string): Promise<Blob> {
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: { message: "Bir hata oluştu." } }));
-    throw new Error(error.error?.message || "Bir hata oluştu.");
+    let errorMessage = "Bir hata oluştu.";
+    try {
+      const error = await response.json();
+      const rawMessage = error?.error?.message || error?.message;
+      if (typeof rawMessage === "string") {
+        errorMessage = rawMessage;
+      }
+    } catch {
+      errorMessage = response.statusText || `HTTP ${response.status} hatası`;
+    }
+    
+    const error = new Error(errorMessage);
+    (error as any).status = response.status;
+    (error as any).statusCode = response.status;
+    (error as any).response = { status: response.status };
+    throw error;
   }
 
   return response.blob();

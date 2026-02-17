@@ -2,11 +2,9 @@ import type { BaseReportResult } from "./reporting-service";
 /**
  * Export Service for converting report results to downloadable formats
  *
- * TODO: Consider adding support for:
- * - Real Excel library (exceljs) for proper .xlsx format
- * - Report template customization
- * - Branded PDF templates with company logos
- * - Multi-language support for report headers
+ * Supported formats:
+ * - PDF: Generated via pdfkit with Turkish character support
+ * - Excel: Currently exports as CSV; upgrade to exceljs for .xlsx if needed
  */
 export declare class ExportService {
     /**
@@ -24,9 +22,7 @@ export declare class ExportService {
      */
     exportToPdf(reportResult: BaseReportResult): Promise<Buffer>;
     /**
-     * Export report result to Excel format (currently CSV for MVP)
-     *
-     * TODO: Replace with real Excel library (e.g., exceljs) for proper .xlsx format support
+     * Export report result to Excel format (CSV)
      *
      * @param reportResult - The report result to export (from ReportingService)
      * @returns Promise resolving to Buffer containing CSV data

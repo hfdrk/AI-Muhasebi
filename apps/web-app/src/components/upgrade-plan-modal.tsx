@@ -5,6 +5,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateSubscription } from "@repo/api-client";
 import { billing as billingTranslations } from "@repo/i18n";
 import { toast } from "@/lib/toast";
+import { colors, spacing, borderRadius } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface UpgradePlanModalProps {
   isOpen: boolean;
@@ -43,6 +45,7 @@ export function UpgradePlanModal({ isOpen, onClose, currentPlan, onSuccess }: Up
   const [selectedPlan, setSelectedPlan] = useState<"FREE" | "PRO" | "ENTERPRISE">(currentPlan);
   const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const { themeColors } = useTheme();
 
   const mutation = useMutation({
     mutationFn: (plan: "FREE" | "PRO" | "ENTERPRISE") => updateSubscription({ plan }),
@@ -111,9 +114,9 @@ export function UpgradePlanModal({ isOpen, onClose, currentPlan, onSuccess }: Up
     >
       <div
         style={{
-          backgroundColor: "white",
-          borderRadius: "8px",
-          padding: "24px",
+          backgroundColor: themeColors.white,
+          borderRadius: borderRadius.md,
+          padding: spacing.lg,
           width: "100%",
           maxWidth: "600px",
           margin: "20px",
@@ -127,19 +130,19 @@ export function UpgradePlanModal({ isOpen, onClose, currentPlan, onSuccess }: Up
         </h2>
 
         {error && (
-          <div style={{ padding: "12px", backgroundColor: "#fee", color: "#c33", borderRadius: "4px", marginBottom: "20px" }}>
+          <div style={{ padding: "12px", backgroundColor: colors.dangerLight, color: colors.danger, borderRadius: borderRadius.sm, marginBottom: "20px" }}>
             {error}
           </div>
         )}
 
         {availablePlans.length === 0 ? (
-          <div style={{ padding: "16px", backgroundColor: "#f3f4f6", borderRadius: "4px", marginBottom: "20px" }}>
-            <p style={{ color: "#374151" }}>
+          <div style={{ padding: spacing.md, backgroundColor: themeColors.gray[100], borderRadius: borderRadius.sm, marginBottom: "20px" }}>
+            <p style={{ color: themeColors.text.primary }}>
               Zaten en yüksek plana sahipsiniz.
             </p>
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "24px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: spacing.md, marginBottom: spacing.lg }}>
             {availablePlans.map((plan) => {
               const config = PLAN_CONFIGS[plan];
               const isSelected = selectedPlan === plan;
@@ -149,11 +152,11 @@ export function UpgradePlanModal({ isOpen, onClose, currentPlan, onSuccess }: Up
                   key={plan}
                   onClick={() => setSelectedPlan(plan)}
                   style={{
-                    border: `2px solid ${isSelected ? "#3b82f6" : "#e5e7eb"}`,
-                    borderRadius: "8px",
-                    padding: "16px",
+                    border: `2px solid ${isSelected ? colors.primary : themeColors.gray[200]}`,
+                    borderRadius: borderRadius.md,
+                    padding: spacing.md,
                     cursor: "pointer",
-                    backgroundColor: isSelected ? "#eff6ff" : "white",
+                    backgroundColor: isSelected ? colors.primaryLighter : themeColors.white,
                     transition: "all 0.2s",
                   }}
                 >
@@ -162,12 +165,12 @@ export function UpgradePlanModal({ isOpen, onClose, currentPlan, onSuccess }: Up
                       {getPlanName(plan)}
                     </h3>
                     {isSelected && (
-                      <span style={{ color: "#3b82f6", fontSize: "0.875rem", fontWeight: "500" }}>
+                      <span style={{ color: colors.primary, fontSize: "0.875rem", fontWeight: "500" }}>
                         Seçildi
                       </span>
                     )}
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "8px", fontSize: "0.875rem", color: "#6b7280" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: spacing.sm, fontSize: "0.875rem", color: themeColors.text.secondary }}>
                     <div>Müşteri Şirketi: {config.maxClientCompanies}</div>
                     <div>Doküman (aylık): {config.maxDocumentsPerMonth}</div>
                     <div>AI Analizi (aylık): {config.maxAiAnalysesPerMonth}</div>
@@ -186,9 +189,9 @@ export function UpgradePlanModal({ isOpen, onClose, currentPlan, onSuccess }: Up
             style={{
               padding: "0.5rem 1rem",
               backgroundColor: "transparent",
-              color: "#374151",
-              border: "1px solid #d1d5db",
-              borderRadius: "4px",
+              color: themeColors.text.primary,
+              border: `1px solid ${themeColors.border}`,
+              borderRadius: borderRadius.sm,
               cursor: "pointer",
             }}
           >
@@ -200,10 +203,10 @@ export function UpgradePlanModal({ isOpen, onClose, currentPlan, onSuccess }: Up
               disabled={mutation.isPending || selectedPlan === currentPlan}
               style={{
                 padding: "0.5rem 1rem",
-                backgroundColor: mutation.isPending || selectedPlan === currentPlan ? "#9ca3af" : "#3b82f6",
-                color: "#fff",
+                backgroundColor: mutation.isPending || selectedPlan === currentPlan ? themeColors.gray[400] : colors.primary,
+                color: colors.white,
                 border: "none",
-                borderRadius: "4px",
+                borderRadius: borderRadius.sm,
                 cursor: mutation.isPending || selectedPlan === currentPlan ? "not-allowed" : "pointer",
               }}
             >

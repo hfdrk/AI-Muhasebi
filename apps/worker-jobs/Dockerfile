@@ -1,5 +1,11 @@
 # Multi-stage build for worker-jobs
-FROM node:18-alpine AS base
+# Using Debian-based images throughout to avoid musl/glibc native module issues
+FROM node:18-slim AS base
+
+# Install build tools for native modules + OpenSSL for Prisma
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends python3 make g++ openssl ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@8.15.0 --activate
@@ -41,13 +47,13 @@ WORKDIR /app/apps/worker-jobs
 RUN pnpm prisma generate
 WORKDIR /app
 
-# Production stage - Use Debian-based image for Prisma OpenSSL compatibility
+# Production stage
 FROM node:18-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Install OpenSSL and other dependencies for Prisma
+# Install runtime dependencies for Prisma
 RUN apt-get update && \
     apt-get install -y --no-install-recommends openssl ca-certificates && \
     rm -rf /var/lib/apt/lists/*
@@ -56,25 +62,21 @@ RUN apt-get update && \
 RUN groupadd --system --gid 1001 nodejs && \
     useradd --system --uid 1001 --gid nodejs nodejs
 
-# Copy package files
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY apps/worker-jobs/package.json ./apps/worker-jobs/
-COPY packages/*/package.json ./packages/*/
+# Copy node_modules from builder (native modules are compatible - same glibc)
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/worker-jobs/node_modules ./apps/worker-jobs/node_modules
 
 # Copy compiled packages from builder stage
 COPY --from=builder /app/packages ./packages
 
-# Update package.json main fields to point to compiled dist BEFORE installing
+# Update package.json main fields to point to compiled dist
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/worker-jobs/package.json ./apps/worker-jobs/
 RUN for pkg in packages/*/; do \
       if [ -f "$pkg/package.json" ] && [ -d "$pkg/dist" ]; then \
         node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('$pkg/package.json')); pkg.main='./dist/index.js'; pkg.types='./dist/index.d.ts'; fs.writeFileSync('$pkg/package.json', JSON.stringify(pkg, null, 2));"; \
       fi; \
     done
-
-# Install ALL dependencies (workspace packages need their deps too)
-RUN corepack enable && corepack prepare pnpm@8.15.0 --activate && \
-    pnpm install --no-frozen-lockfile && \
-    pnpm add nodemailer@^6.9.7 handlebars@^4.7.8 || echo "dependencies install attempted"
 
 # Ensure workspace symlinks exist
 RUN mkdir -p node_modules/@repo && \
@@ -82,16 +84,13 @@ RUN mkdir -p node_modules/@repo && \
     ln -sf ../../packages/shared-utils node_modules/@repo/shared-utils && \
     ln -sf ../../packages/core-domain node_modules/@repo/core-domain
 
-# Copy compiled application and Prisma schema FIRST
+# Copy compiled application and Prisma schema
 COPY --from=builder /app/apps/worker-jobs/dist ./apps/worker-jobs/dist
 COPY --from=builder /app/apps/worker-jobs/prisma ./apps/worker-jobs/prisma
 
-# Install Prisma CLI and generate client (after schema is copied)
-RUN pnpm add -D prisma@^5.22.0 || npm install -g prisma@^5.22.0
+# Re-generate Prisma client for production runtime
 WORKDIR /app/apps/worker-jobs
-RUN pnpm prisma generate || npx prisma generate || echo "Prisma generate completed"
-WORKDIR /app
-
+RUN npx prisma generate || echo "Prisma generate completed"
 WORKDIR /app
 
 # Change ownership to non-root user
@@ -104,4 +103,3 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node apps/worker-jobs/dist/health-check.js || exit 1
 
 CMD ["node", "apps/worker-jobs/dist/worker.js"]
-

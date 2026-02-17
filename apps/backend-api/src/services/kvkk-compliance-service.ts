@@ -101,7 +101,7 @@ export class KVKKComplianceService {
         metadata: {
           ...userMetadata,
           kvkkConsents,
-        },
+        } as any,
       },
     });
 
@@ -238,7 +238,7 @@ export class KVKKComplianceService {
         metadata: {
           ...userMetadata,
           kvkkDataRequests: kvkkRequests,
-        },
+        } as any,
       },
     });
 
@@ -301,7 +301,7 @@ export class KVKKComplianceService {
           metadata: {
             ...userMetadata,
             kvkkDataRequests: kvkkRequests,
-          },
+          } as any,
         },
       });
 
@@ -343,7 +343,7 @@ export class KVKKComplianceService {
         metadata: {
           ...userMetadata,
           kvkkDataRequests: kvkkRequests,
-        },
+        } as any,
       },
     });
 
@@ -388,7 +388,7 @@ export class KVKKComplianceService {
           metadata: {
             ...tenantMetadata,
             kvkkBreaches: breaches,
-          },
+          } as any,
         },
       });
     }
@@ -520,7 +520,7 @@ export class KVKKComplianceService {
       userId: log.userId,
       resourceType: log.resourceType,
       resourceId: log.resourceId,
-      ipAddress: log.metadata?.ipAddress as string | undefined,
+      ipAddress: (log.metadata as any)?.ipAddress as string | undefined,
     }));
   }
 

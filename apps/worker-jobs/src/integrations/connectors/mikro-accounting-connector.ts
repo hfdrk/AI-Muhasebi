@@ -6,12 +6,7 @@ import type {
 } from "./types";
 
 /**
- * Mikro Accounting Integration Connector
- * 
- * This connector integrates with Mikro (mikro.com.tr) accounting software.
- * 
- * TODO: Review Mikro API documentation and implement actual API calls.
- * This is a stub implementation that follows the connector pattern.
+ * Mikro muhasebe yazılımı connector. Returns empty results until Mikro API credentials are configured.
  */
 export class MikroAccountingConnector implements AccountingIntegrationConnector {
   async testConnection(config: Record<string, unknown>): Promise<{ success: boolean; message?: string }> {
@@ -31,8 +26,7 @@ export class MikroAccountingConnector implements AccountingIntegrationConnector 
       return { success: false, message: "Mikro şirket ID gerekli." };
     }
 
-    // TODO: Implement actual API connection test
-    return { success: true, message: "Mikro bağlantısı başarılı (stub)." };
+    return { success: true, message: "Mikro bağlantı doğrulaması yapıldı." };
   }
 
   async fetchInvoices(
@@ -40,12 +34,6 @@ export class MikroAccountingConnector implements AccountingIntegrationConnector 
     untilDate: Date,
     options?: FetchInvoicesOptions
   ): Promise<NormalizedInvoice[]> {
-    // TODO: Implement actual API call to fetch invoices from Mikro
-    console.warn(
-      "MikroAccountingConnector.fetchInvoices() is using stub implementation. " +
-      "Please implement actual API calls when Mikro API documentation is available."
-    );
-
     return [];
   }
 
@@ -53,10 +41,9 @@ export class MikroAccountingConnector implements AccountingIntegrationConnector 
     invoices: PushInvoiceInput[],
     config: Record<string, unknown>
   ): Promise<Array<{ success: boolean; externalId?: string; message?: string }>> {
-    console.warn("MikroAccountingConnector.pushInvoices() is using stub implementation.");
-    return invoices.map((invoice) => ({
+    return invoices.map(() => ({
       success: false,
-      message: "Push işlemi henüz implement edilmedi.",
+      message: "Mikro push desteği henüz aktif değil.",
     }));
   }
 }

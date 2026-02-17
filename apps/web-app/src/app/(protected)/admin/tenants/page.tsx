@@ -8,9 +8,11 @@ import { Card } from "../../../../components/ui/Card";
 import { SkeletonTable } from "../../../../components/ui/Skeleton";
 import { PageTransition } from "../../../../components/ui/PageTransition";
 import { colors, spacing, shadows } from "../../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "../../../../lib/toast";
 
 export default function AdminTenantsPage() {
+  const { themeColors } = useTheme();
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
@@ -28,7 +30,7 @@ export default function AdminTenantsPage() {
         targetTenantId: tenantId,
         targetUserEmail: userEmail,
       });
-      
+
       // Store impersonation token and reload
       if (response.data.impersonationToken) {
         localStorage.setItem("impersonationToken", response.data.impersonationToken);
@@ -56,7 +58,7 @@ export default function AdminTenantsPage() {
 
   if (error) {
     return (
-      <div style={{ textAlign: "center", padding: spacing.xxl, color: colors.error || "#ef4444" }}>
+      <div style={{ textAlign: "center", padding: spacing.xxl, color: colors.error }}>
         Hata: {error instanceof Error ? error.message : "Bilinmeyen hata"}
       </div>
     );
@@ -68,7 +70,7 @@ export default function AdminTenantsPage() {
   return (
     <PageTransition>
       <div>
-      <h1 style={{ marginBottom: spacing.xl, fontSize: "28px", fontWeight: 600, color: colors.text.primary }}>
+      <h1 style={{ marginBottom: spacing.xl, fontSize: "28px", fontWeight: 600, color: themeColors.text.primary }}>
         Kiracılar
       </h1>
 
@@ -84,7 +86,7 @@ export default function AdminTenantsPage() {
           }}
           style={{
             padding: spacing.md,
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${themeColors.border}`,
             borderRadius: "4px",
             flex: 1,
             maxWidth: "300px",
@@ -98,7 +100,7 @@ export default function AdminTenantsPage() {
           }}
           style={{
             padding: spacing.md,
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${themeColors.border}`,
             borderRadius: "4px",
           }}
         >
@@ -109,39 +111,39 @@ export default function AdminTenantsPage() {
       </div>
 
       {/* Table */}
-      <div style={{ backgroundColor: colors.white, borderRadius: "8px", boxShadow: shadows.sm, overflow: "hidden" }}>
+      <div style={{ backgroundColor: themeColors.white, borderRadius: "8px", boxShadow: shadows.sm, overflow: "hidden" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
-            <tr style={{ backgroundColor: colors.gray[100] }}>
-              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${colors.border}` }}>
+            <tr style={{ backgroundColor: themeColors.gray[100] }}>
+              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
                 Ofis Adı
               </th>
-              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${colors.border}` }}>
+              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
                 Slug
               </th>
-              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${colors.border}` }}>
+              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
                 Durum
               </th>
-              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${colors.border}` }}>
+              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
                 Plan
               </th>
-              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${colors.border}` }}>
+              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
                 Kullanıcı Sayısı
               </th>
-              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${colors.border}` }}>
+              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
                 Müşteri Şirket Sayısı
               </th>
-              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${colors.border}` }}>
+              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
                 Oluşturulma Tarihi
               </th>
-              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${colors.border}` }}>
+              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
                 İşlemler
               </th>
             </tr>
           </thead>
           <tbody>
             {tenants.map((tenant) => (
-              <tr key={tenant.id} style={{ borderBottom: `1px solid ${colors.border}` }}>
+              <tr key={tenant.id} style={{ borderBottom: `1px solid ${themeColors.border}` }}>
                 <td style={{ padding: spacing.md }}>{tenant.name}</td>
                 <td style={{ padding: spacing.md }}>{tenant.slug}</td>
                 <td style={{ padding: spacing.md }}>
@@ -153,12 +155,12 @@ export default function AdminTenantsPage() {
                       fontWeight: 500,
                       backgroundColor:
                         tenant.status === "ACTIVE"
-                          ? (colors.success || "#10b981") + "20"
-                          : (colors.warning || "#f59e0b") + "20",
+                          ? (colors.success || colors.success) + "20"
+                          : (colors.warning || colors.warning) + "20",
                       color:
                         tenant.status === "ACTIVE"
-                          ? colors.success || "#10b981"
-                          : colors.warning || "#f59e0b",
+                          ? colors.success || colors.success
+                          : colors.warning || colors.warning,
                     }}
                   >
                     {tenant.status === "ACTIVE" ? "Aktif" : "Askıya Alındı"}
@@ -190,7 +192,7 @@ export default function AdminTenantsPage() {
                       onClick={() => handleImpersonate(tenant.id)}
                       style={{
                         padding: `${spacing.xs} ${spacing.sm}`,
-                        backgroundColor: colors.info || "#3b82f6",
+                        backgroundColor: colors.info || colors.info,
                         color: colors.white,
                         border: "none",
                         borderRadius: "4px",
@@ -216,7 +218,7 @@ export default function AdminTenantsPage() {
             disabled={page === 1}
             style={{
               padding: `${spacing.sm} ${spacing.md}`,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               cursor: page === 1 ? "not-allowed" : "pointer",
               opacity: page === 1 ? 0.5 : 1,
@@ -232,7 +234,7 @@ export default function AdminTenantsPage() {
             disabled={page === pagination.totalPages}
             style={{
               padding: `${spacing.sm} ${spacing.md}`,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               cursor: page === pagination.totalPages ? "not-allowed" : "pointer",
               opacity: page === pagination.totalPages ? 0.5 : 1,
@@ -246,7 +248,3 @@ export default function AdminTenantsPage() {
     </PageTransition>
   );
 }
-
-
-
-

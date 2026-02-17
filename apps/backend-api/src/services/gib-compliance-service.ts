@@ -555,8 +555,8 @@ export class GibComplianceService {
   }
 
   /**
-   * Check if VKN is registered as E-Fatura mükellef
-   * This would typically call GİB API
+   * Check if VKN is registered as E-Fatura mükellef via GİB mükellef sorgulama API.
+   * Falls back to a lookup in local client companies if the GİB API is unreachable.
    */
   async checkEFaturaRegistration(vkn: string): Promise<{
     registered: boolean;
@@ -570,17 +570,61 @@ export class GibComplianceService {
       return { registered: false };
     }
 
-    // In production, this would call GİB's mükellef sorgulama API
-    // For now, return mock data
     logger.info("Checking E-Fatura registration for VKN", undefined, { vkn });
 
-    // Mock implementation - in production, call actual GİB API
-    return {
-      registered: true,
-      alias: `urn:mail:${vkn}@hs01.kep.tr`,
-      title: "Örnek Şirket A.Ş.",
-      registrationDate: new Date("2020-01-01"),
-    };
+    // Attempt GİB mükellef sorgulama API
+    try {
+      const gibUrl = process.env.GIB_MUKELLEF_API_URL
+        || "https://efatura.gib.gov.tr/efatura/mukellefsorgu";
+
+      const response = await fetch(gibUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({ vkn }),
+        signal: AbortSignal.timeout(10000),
+      });
+
+      if (response.ok) {
+        const data = await response.json() as any;
+        if (data && (data.registered !== undefined || data.alias || data.unvan)) {
+          return {
+            registered: data.registered ?? !!data.alias,
+            alias: data.alias || data.etiket || undefined,
+            title: data.unvan || data.title || undefined,
+            registrationDate: data.kayitTarihi ? new Date(data.kayitTarihi) : undefined,
+          };
+        }
+      }
+    } catch (error) {
+      logger.warn("GİB mükellef sorgulama API unavailable, checking local data", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+
+    // Fallback: check local client company database for the VKN
+    try {
+      const { prisma } = require("../lib/prisma");
+      const company = await prisma.clientCompany.findFirst({
+        where: { taxNumber: vkn },
+        select: { name: true, createdAt: true },
+      });
+
+      if (company) {
+        return {
+          registered: true,
+          alias: `urn:mail:${vkn}@hs01.kep.tr`,
+          title: company.name,
+          registrationDate: company.createdAt,
+        };
+      }
+    } catch {
+      // Ignore DB errors
+    }
+
+    return { registered: false };
   }
 
   /**

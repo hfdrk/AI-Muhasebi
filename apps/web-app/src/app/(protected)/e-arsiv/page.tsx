@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { listInvoices, archiveInvoiceToEArsiv, searchArchivedInvoices, autoArchiveOldInvoices } from "@repo/api-client";
+import { listInvoices, archiveInvoiceToEArsiv, searchArchivedInvoices, autoArchiveOldInvoices, getArchivedInvoice } from "@repo/api-client";
 import Link from "next/link";
 import { toast } from "../../../lib/toast";
 import { SkeletonTable } from "../../../components/ui/Skeleton";
@@ -11,6 +11,7 @@ import { Modal } from "../../../components/ui/Modal";
 import { Button } from "../../../components/ui/Button";
 import { PageTransition } from "../../../components/ui/PageTransition";
 import { spacing, colors, borderRadius } from "../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const STATUS_LABELS: Record<string, string> = {
   taslak: "Taslak",
@@ -20,6 +21,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function EArsivPage() {
+  const { themeColors } = useTheme();
   const [archiveModal, setArchiveModal] = useState<{ open: boolean; invoiceId: string | null }>({ open: false, invoiceId: null });
   const [autoArchiveModal, setAutoArchiveModal] = useState(false);
   const queryClient = useQueryClient();
@@ -30,6 +32,9 @@ export default function EArsivPage() {
     invoiceNumber: "",
     customerName: "",
   });
+  const [expandedInvoiceId, setExpandedInvoiceId] = useState<string | null>(null);
+  const [expandedInvoiceDetail, setExpandedInvoiceDetail] = useState<any>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   // Fetch invoices that can be archived (status: kesildi or muhasebeleştirilmiş)
   const { data: invoicesData, isLoading } = useQuery({
@@ -90,18 +95,37 @@ export default function EArsivPage() {
     queryClient.invalidateQueries({ queryKey: ["archived-invoices"] });
   };
 
+  const handleToggleDetail = async (invoiceId: string) => {
+    if (expandedInvoiceId === invoiceId) {
+      setExpandedInvoiceId(null);
+      setExpandedInvoiceDetail(null);
+      return;
+    }
+    setExpandedInvoiceId(invoiceId);
+    setDetailLoading(true);
+    try {
+      const result = await getArchivedInvoice(invoiceId);
+      setExpandedInvoiceDetail(result.data);
+    } catch (error: any) {
+      toast.error(`Detay yuklenemedi: ${error.message}`);
+      setExpandedInvoiceId(null);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
   return (
     <PageTransition>
       <div style={{ padding: "40px", maxWidth: "1400px" }}>
       <div style={{ marginBottom: "30px" }}>
         <h1 style={{ fontSize: "28px", fontWeight: "bold", marginBottom: "10px" }}>E-Arşiv Yönetimi</h1>
-        <p style={{ color: colors.text.secondary }}>
+        <p style={{ color: themeColors.text.secondary }}>
           Faturaları E-Arşiv sistemine arşivleyin ve arşivlenmiş faturaları arayın.
         </p>
       </div>
 
       {/* Tabs */}
-      <div style={{ display: "flex", gap: "10px", marginBottom: "30px", borderBottom: `2px solid ${colors.border}` }}>
+      <div style={{ display: "flex", gap: "10px", marginBottom: "30px", borderBottom: `2px solid ${themeColors.border}` }}>
         <button
           onClick={() => setActiveTab("archive")}
           style={{
@@ -109,7 +133,7 @@ export default function EArsivPage() {
             border: "none",
             backgroundColor: "transparent",
             borderBottom: activeTab === "archive" ? `2px solid ${colors.primaryLight}` : "2px solid transparent",
-            color: activeTab === "archive" ? colors.primaryLight : colors.text.secondary,
+            color: activeTab === "archive" ? colors.primaryLight : themeColors.text.secondary,
             fontWeight: activeTab === "archive" ? "600" : "400",
             cursor: "pointer",
             marginBottom: "-2px",
@@ -124,7 +148,7 @@ export default function EArsivPage() {
             border: "none",
             backgroundColor: "transparent",
             borderBottom: activeTab === "search" ? `2px solid ${colors.primaryLight}` : "2px solid transparent",
-            color: activeTab === "search" ? colors.primaryLight : colors.text.secondary,
+            color: activeTab === "search" ? colors.primaryLight : themeColors.text.secondary,
             fontWeight: activeTab === "search" ? "600" : "400",
             cursor: "pointer",
             marginBottom: "-2px",
@@ -137,8 +161,8 @@ export default function EArsivPage() {
       {activeTab === "archive" && (
         <>
           <div style={{ marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ padding: "15px", backgroundColor: colors.gray[100], borderRadius: borderRadius.md, flex: 1 }}>
-              <p style={{ margin: 0, color: colors.text.primary }}>
+            <div style={{ padding: "15px", backgroundColor: themeColors.gray[100], borderRadius: borderRadius.md, flex: 1 }}>
+              <p style={{ margin: 0, color: themeColors.text.primary }}>
                 E-Arşiv sistemine arşivlenebilecek faturalar. Faturaları arşivlemek için aşağıdaki listeden seçin.
               </p>
             </div>
@@ -165,14 +189,14 @@ export default function EArsivPage() {
               <SkeletonTable rows={5} columns={4} />
             </div>
           ) : invoices.length === 0 ? (
-            <div style={{ padding: "40px", textAlign: "center", backgroundColor: "#f9fafb", borderRadius: "8px" }}>
-              <p style={{ color: "#6b7280", fontSize: "16px" }}>Arşivlenebilecek fatura bulunmamaktadır.</p>
+            <div style={{ padding: "40px", textAlign: "center", backgroundColor: themeColors.gray[100], borderRadius: "8px" }}>
+              <p style={{ color: themeColors.text.secondary, fontSize: "16px" }}>Arşivlenebilecek fatura bulunmamaktadır.</p>
               <Link
                 href="/faturalar"
                 style={{
                   display: "inline-block",
                   marginTop: "15px",
-                  color: "#3b82f6",
+                  color: colors.info,
                   textDecoration: "none",
                 }}
               >
@@ -180,16 +204,16 @@ export default function EArsivPage() {
               </Link>
             </div>
           ) : (
-            <div style={{ backgroundColor: "white", borderRadius: "8px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
+            <div style={{ backgroundColor: themeColors.white, borderRadius: "8px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
-                  <tr style={{ backgroundColor: "#f9fafb", borderBottom: "2px solid #e5e7eb" }}>
-                    <th style={{ padding: "12px", textAlign: "left", fontWeight: "600", color: "#374151" }}>Fatura No</th>
-                    <th style={{ padding: "12px", textAlign: "left", fontWeight: "600", color: "#374151" }}>Müşteri</th>
-                    <th style={{ padding: "12px", textAlign: "left", fontWeight: "600", color: "#374151" }}>Tarih</th>
-                    <th style={{ padding: "12px", textAlign: "right", fontWeight: "600", color: "#374151" }}>Tutar</th>
-                    <th style={{ padding: "12px", textAlign: "center", fontWeight: "600", color: "#374151" }}>Durum</th>
-                    <th style={{ padding: "12px", textAlign: "center", fontWeight: "600", color: "#374151" }}>İşlemler</th>
+                  <tr style={{ backgroundColor: themeColors.gray[100], borderBottom: `2px solid ${themeColors.border}` }}>
+                    <th style={{ padding: "12px", textAlign: "left", fontWeight: "600", color: themeColors.text.primary }}>Fatura No</th>
+                    <th style={{ padding: "12px", textAlign: "left", fontWeight: "600", color: themeColors.text.primary }}>Müşteri</th>
+                    <th style={{ padding: "12px", textAlign: "left", fontWeight: "600", color: themeColors.text.primary }}>Tarih</th>
+                    <th style={{ padding: "12px", textAlign: "right", fontWeight: "600", color: themeColors.text.primary }}>Tutar</th>
+                    <th style={{ padding: "12px", textAlign: "center", fontWeight: "600", color: themeColors.text.primary }}>Durum</th>
+                    <th style={{ padding: "12px", textAlign: "center", fontWeight: "600", color: themeColors.text.primary }}>İşlemler</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -202,19 +226,19 @@ export default function EArsivPage() {
                       <tr
                         key={invoice.id}
                         style={{
-                          borderBottom: "1px solid #e5e7eb",
+                          borderBottom: `1px solid ${themeColors.border}`,
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "#f9fafb";
+                          e.currentTarget.style.backgroundColor = themeColors.gray[100];
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "white";
+                          e.currentTarget.style.backgroundColor = themeColors.white;
                         }}
                       >
                         <td style={{ padding: "12px" }}>
                           <Link
                             href={`/faturalar/${invoice.id}`}
-                            style={{ color: "#3b82f6", textDecoration: "none" }}
+                            style={{ color: colors.info, textDecoration: "none" }}
                           >
                             {invoice.externalId || invoice.id.slice(0, 8)}
                           </Link>
@@ -259,7 +283,7 @@ export default function EArsivPage() {
                               {archiveMutation.isPending ? "Arşivleniyor..." : "Arşivle"}
                             </button>
                           ) : (
-                            <span style={{ color: "#6b7280", fontSize: "14px" }}>Arşivlendi</span>
+                            <span style={{ color: themeColors.text.secondary, fontSize: "14px" }}>Arşivlendi</span>
                           )}
                         </td>
                       </tr>
@@ -274,7 +298,7 @@ export default function EArsivPage() {
 
       {activeTab === "search" && (
         <>
-          <div style={{ marginBottom: "20px", padding: "20px", backgroundColor: "#f9fafb", borderRadius: "8px" }}>
+          <div style={{ marginBottom: "20px", padding: "20px", backgroundColor: themeColors.gray[100], borderRadius: "8px" }}>
             <h3 style={{ marginTop: 0, marginBottom: "15px", fontSize: "18px", fontWeight: "600" }}>Arama Filtreleri</h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "15px" }}>
               <div>
@@ -288,7 +312,7 @@ export default function EArsivPage() {
                   style={{
                     width: "100%",
                     padding: "8px",
-                    border: "1px solid #d1d5db",
+                    border: `1px solid ${themeColors.border}`,
                     borderRadius: "6px",
                     fontSize: "14px",
                   }}
@@ -305,7 +329,7 @@ export default function EArsivPage() {
                   style={{
                     width: "100%",
                     padding: "8px",
-                    border: "1px solid #d1d5db",
+                    border: `1px solid ${themeColors.border}`,
                     borderRadius: "6px",
                     fontSize: "14px",
                   }}
@@ -323,7 +347,7 @@ export default function EArsivPage() {
                   style={{
                     width: "100%",
                     padding: "8px",
-                    border: "1px solid #d1d5db",
+                    border: `1px solid ${themeColors.border}`,
                     borderRadius: "6px",
                     fontSize: "14px",
                   }}
@@ -341,7 +365,7 @@ export default function EArsivPage() {
                   style={{
                     width: "100%",
                     padding: "8px",
-                    border: "1px solid #d1d5db",
+                    border: `1px solid ${themeColors.border}`,
                     borderRadius: "6px",
                     fontSize: "14px",
                   }}
@@ -353,7 +377,7 @@ export default function EArsivPage() {
               style={{
                 marginTop: "15px",
                 padding: "10px 24px",
-                backgroundColor: "#3b82f6",
+                backgroundColor: colors.info,
                 color: "white",
                 border: "none",
                 borderRadius: "6px",
@@ -371,76 +395,147 @@ export default function EArsivPage() {
               <SkeletonTable rows={5} columns={4} />
             </div>
           ) : archivedInvoices.length === 0 ? (
-            <div style={{ padding: "40px", textAlign: "center", backgroundColor: "#f9fafb", borderRadius: "8px" }}>
-              <p style={{ color: "#6b7280", fontSize: "16px" }}>Arşivlenmiş fatura bulunamadı.</p>
+            <div style={{ padding: "40px", textAlign: "center", backgroundColor: themeColors.gray[100], borderRadius: "8px" }}>
+              <p style={{ color: themeColors.text.secondary, fontSize: "16px" }}>Arşivlenmiş fatura bulunamadı.</p>
             </div>
           ) : (
-            <div style={{ backgroundColor: "white", borderRadius: "8px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
+            <div style={{ backgroundColor: themeColors.white, borderRadius: "8px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
-                  <tr style={{ backgroundColor: "#f9fafb", borderBottom: "2px solid #e5e7eb" }}>
-                    <th style={{ padding: "12px", textAlign: "left", fontWeight: "600", color: "#374151" }}>Fatura No</th>
-                    <th style={{ padding: "12px", textAlign: "left", fontWeight: "600", color: "#374151" }}>Müşteri</th>
-                    <th style={{ padding: "12px", textAlign: "left", fontWeight: "600", color: "#374151" }}>Tarih</th>
-                    <th style={{ padding: "12px", textAlign: "right", fontWeight: "600", color: "#374151" }}>Tutar</th>
-                    <th style={{ padding: "12px", textAlign: "left", fontWeight: "600", color: "#374151" }}>Arşiv Tarihi</th>
-                    <th style={{ padding: "12px", textAlign: "center", fontWeight: "600", color: "#374151" }}>İşlemler</th>
+                  <tr style={{ backgroundColor: themeColors.gray[100], borderBottom: `2px solid ${themeColors.border}` }}>
+                    <th style={{ padding: "12px", textAlign: "left", fontWeight: "600", color: themeColors.text.primary }}>Fatura No</th>
+                    <th style={{ padding: "12px", textAlign: "left", fontWeight: "600", color: themeColors.text.primary }}>Müşteri</th>
+                    <th style={{ padding: "12px", textAlign: "left", fontWeight: "600", color: themeColors.text.primary }}>Tarih</th>
+                    <th style={{ padding: "12px", textAlign: "right", fontWeight: "600", color: themeColors.text.primary }}>Tutar</th>
+                    <th style={{ padding: "12px", textAlign: "left", fontWeight: "600", color: themeColors.text.primary }}>Arşiv Tarihi</th>
+                    <th style={{ padding: "12px", textAlign: "center", fontWeight: "600", color: themeColors.text.primary }}>İşlemler</th>
                   </tr>
                 </thead>
                 <tbody>
                   {archivedInvoices.map((invoice) => (
-                    <tr
-                      key={invoice.invoiceId}
-                      style={{
-                        borderBottom: "1px solid #e5e7eb",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#f9fafb";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "white";
-                      }}
-                    >
-                      <td style={{ padding: "12px" }}>
-                        <Link
-                          href={`/faturalar/${invoice.invoiceId}`}
-                          style={{ color: "#3b82f6", textDecoration: "none" }}
-                        >
-                          {invoice.invoiceNumber}
-                        </Link>
-                      </td>
-                      <td style={{ padding: "12px" }}>{invoice.customerName || "-"}</td>
-                      <td style={{ padding: "12px" }}>
-                        {new Date(invoice.issueDate).toLocaleDateString("tr-TR")}
-                      </td>
-                      <td style={{ padding: "12px", textAlign: "right" }}>
-                        {new Intl.NumberFormat("tr-TR", {
-                          style: "currency",
-                          currency: invoice.currency || "TRY",
-                        }).format(Number(invoice.totalAmount))}
-                      </td>
-                      <td style={{ padding: "12px" }}>
-                        {invoice.archiveDate
-                          ? new Date(invoice.archiveDate).toLocaleDateString("tr-TR")
-                          : "-"}
-                      </td>
-                      <td style={{ padding: "12px", textAlign: "center" }}>
-                        <Link
-                          href={`/faturalar/${invoice.invoiceId}`}
-                          style={{
-                            padding: "6px 16px",
-                            backgroundColor: "#f3f4f6",
-                            color: "#374151",
-                            textDecoration: "none",
-                            borderRadius: "6px",
-                            fontSize: "14px",
-                            display: "inline-block",
-                          }}
-                        >
-                          Detay
-                        </Link>
-                      </td>
-                    </tr>
+                    <React.Fragment key={invoice.invoiceId}>
+                      <tr
+                        style={{
+                          borderBottom: expandedInvoiceId === invoice.invoiceId ? "none" : `1px solid ${themeColors.border}`,
+                          cursor: "pointer",
+                        }}
+                        onClick={() => handleToggleDetail(invoice.invoiceId)}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = themeColors.gray[100];
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = expandedInvoiceId === invoice.invoiceId ? colors.infoPastel : themeColors.white;
+                        }}
+                      >
+                        <td style={{ padding: "12px" }}>
+                          <span style={{ color: colors.info, fontWeight: "500" }}>
+                            {expandedInvoiceId === invoice.invoiceId ? "[-]" : "[+]"}{" "}
+                            {invoice.invoiceNumber}
+                          </span>
+                        </td>
+                        <td style={{ padding: "12px" }}>{invoice.customerName || "-"}</td>
+                        <td style={{ padding: "12px" }}>
+                          {new Date(invoice.issueDate).toLocaleDateString("tr-TR")}
+                        </td>
+                        <td style={{ padding: "12px", textAlign: "right" }}>
+                          {new Intl.NumberFormat("tr-TR", {
+                            style: "currency",
+                            currency: invoice.currency || "TRY",
+                          }).format(Number(invoice.totalAmount))}
+                        </td>
+                        <td style={{ padding: "12px" }}>
+                          {invoice.archiveDate
+                            ? new Date(invoice.archiveDate).toLocaleDateString("tr-TR")
+                            : "-"}
+                        </td>
+                        <td style={{ padding: "12px", textAlign: "center" }}>
+                          <Link
+                            href={`/faturalar/${invoice.invoiceId}`}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                              padding: "6px 16px",
+                              backgroundColor: themeColors.gray[100],
+                              color: themeColors.text.primary,
+                              textDecoration: "none",
+                              borderRadius: "6px",
+                              fontSize: "14px",
+                              display: "inline-block",
+                            }}
+                          >
+                            Detay
+                          </Link>
+                        </td>
+                      </tr>
+                      {expandedInvoiceId === invoice.invoiceId && (
+                        <tr>
+                          <td colSpan={6} style={{ padding: 0, borderBottom: `1px solid ${themeColors.border}` }}>
+                            <div style={{
+                              padding: "20px 24px",
+                              backgroundColor: colors.infoPastel,
+                              borderTop: `1px solid ${colors.infoLight}`,
+                            }}>
+                              {detailLoading ? (
+                                <div style={{ textAlign: "center", padding: "20px", color: themeColors.text.secondary }}>
+                                  Detaylar yukleniyor...
+                                </div>
+                              ) : expandedInvoiceDetail ? (
+                                <div>
+                                  <h4 style={{ margin: "0 0 12px", fontSize: "16px", fontWeight: "600", color: colors.primaryDark }}>
+                                    Arsiv Detaylari
+                                  </h4>
+                                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+                                    <div>
+                                      <div style={{ fontSize: "12px", color: themeColors.text.secondary, marginBottom: "4px" }}>Fatura No</div>
+                                      <div style={{ fontSize: "14px", fontWeight: "500" }}>{expandedInvoiceDetail.invoiceNumber}</div>
+                                    </div>
+                                    <div>
+                                      <div style={{ fontSize: "12px", color: themeColors.text.secondary, marginBottom: "4px" }}>Musteri</div>
+                                      <div style={{ fontSize: "14px", fontWeight: "500" }}>{expandedInvoiceDetail.customerName || "-"}</div>
+                                    </div>
+                                    <div>
+                                      <div style={{ fontSize: "12px", color: themeColors.text.secondary, marginBottom: "4px" }}>Musteri VKN</div>
+                                      <div style={{ fontSize: "14px", fontWeight: "500" }}>{expandedInvoiceDetail.customerTaxNumber || "-"}</div>
+                                    </div>
+                                    <div>
+                                      <div style={{ fontSize: "12px", color: themeColors.text.secondary, marginBottom: "4px" }}>Tedarikci VKN</div>
+                                      <div style={{ fontSize: "14px", fontWeight: "500" }}>{expandedInvoiceDetail.supplierVKN || "-"}</div>
+                                    </div>
+                                    <div>
+                                      <div style={{ fontSize: "12px", color: themeColors.text.secondary, marginBottom: "4px" }}>Toplam Tutar</div>
+                                      <div style={{ fontSize: "14px", fontWeight: "500" }}>
+                                        {new Intl.NumberFormat("tr-TR", { style: "currency", currency: expandedInvoiceDetail.currency || "TRY" }).format(Number(expandedInvoiceDetail.totalAmount))}
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <div style={{ fontSize: "12px", color: themeColors.text.secondary, marginBottom: "4px" }}>Vergi Tutari</div>
+                                      <div style={{ fontSize: "14px", fontWeight: "500" }}>
+                                        {new Intl.NumberFormat("tr-TR", { style: "currency", currency: expandedInvoiceDetail.currency || "TRY" }).format(Number(expandedInvoiceDetail.taxAmount))}
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <div style={{ fontSize: "12px", color: themeColors.text.secondary, marginBottom: "4px" }}>Net Tutar</div>
+                                      <div style={{ fontSize: "14px", fontWeight: "500" }}>
+                                        {new Intl.NumberFormat("tr-TR", { style: "currency", currency: expandedInvoiceDetail.currency || "TRY" }).format(Number(expandedInvoiceDetail.netAmount))}
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <div style={{ fontSize: "12px", color: themeColors.text.secondary, marginBottom: "4px" }}>Arsiv ID</div>
+                                      <div style={{ fontSize: "14px", fontWeight: "500", fontFamily: "monospace" }}>{expandedInvoiceDetail.archiveId || "-"}</div>
+                                    </div>
+                                    {expandedInvoiceDetail.customerEmail && (
+                                      <div>
+                                        <div style={{ fontSize: "12px", color: themeColors.text.secondary, marginBottom: "4px" }}>Musteri E-posta</div>
+                                        <div style={{ fontSize: "14px", fontWeight: "500" }}>{expandedInvoiceDetail.customerEmail}</div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ) : null}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   ))}
                 </tbody>
               </table>

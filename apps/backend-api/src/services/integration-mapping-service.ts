@@ -55,7 +55,7 @@ export class IntegrationMappingService {
     await prisma.tenantIntegration.update({
       where: { id: integrationId },
       data: {
-        config: updatedConfig,
+        config: updatedConfig as any,
       },
     });
 

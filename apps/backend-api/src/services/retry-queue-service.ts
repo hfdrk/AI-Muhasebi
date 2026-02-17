@@ -95,13 +95,13 @@ export class RetryQueueService {
 
       switch (item.type) {
         case "email":
-          success = await this.retryEmail(item.payload);
+          success = await this.retryEmail(item.payload as Record<string, unknown>);
           break;
         case "job":
-          success = await this.retryJob(item.payload);
+          success = await this.retryJob(item.payload as Record<string, unknown>);
           break;
         case "sync":
-          success = await this.retrySync(item.payload);
+          success = await this.retrySync(item.payload as Record<string, unknown>);
           break;
       }
 

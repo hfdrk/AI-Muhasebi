@@ -1,116 +1,120 @@
 "use client";
 
 import { type TaskStatistics } from "@repo/api-client";
+import { colors, spacing, borderRadius, typography } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface TaskDashboardWidgetProps {
   statistics: TaskStatistics;
 }
 
 export default function TaskDashboardWidget({ statistics }: TaskDashboardWidgetProps) {
+  const { themeColors } = useTheme();
+
   return (
     <div
       style={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-        gap: "16px",
-        marginBottom: "24px",
+        gap: spacing.md,
+        marginBottom: spacing.lg,
       }}
     >
       <div
         style={{
-          padding: "16px",
-          backgroundColor: "white",
-          borderRadius: "8px",
-          border: "1px solid #e0e0e0",
+          padding: spacing.md,
+          backgroundColor: themeColors.white,
+          borderRadius: borderRadius.md,
+          border: `1px solid ${themeColors.border}`,
         }}
       >
-        <div style={{ fontSize: "24px", fontWeight: "bold", color: "#0066cc" }}>
+        <div style={{ fontSize: typography.fontSize["2xl"], fontWeight: typography.fontWeight.bold, color: colors.primary }}>
           {statistics.total}
         </div>
-        <div style={{ fontSize: "14px", color: "#666", marginTop: "4px" }}>Toplam Görev</div>
+        <div style={{ fontSize: typography.fontSize.sm, color: themeColors.text.secondary, marginTop: spacing.xs }}>Toplam Görev</div>
       </div>
 
       <div
         style={{
-          padding: "16px",
-          backgroundColor: "white",
-          borderRadius: "8px",
-          border: "1px solid #e0e0e0",
+          padding: spacing.md,
+          backgroundColor: themeColors.white,
+          borderRadius: borderRadius.md,
+          border: `1px solid ${themeColors.border}`,
         }}
       >
-        <div style={{ fontSize: "24px", fontWeight: "bold", color: "#f59e0b" }}>
+        <div style={{ fontSize: typography.fontSize["2xl"], fontWeight: typography.fontWeight.bold, color: colors.warning }}>
           {statistics.pending}
         </div>
-        <div style={{ fontSize: "14px", color: "#666", marginTop: "4px" }}>Beklemede</div>
+        <div style={{ fontSize: typography.fontSize.sm, color: themeColors.text.secondary, marginTop: spacing.xs }}>Beklemede</div>
       </div>
 
       <div
         style={{
-          padding: "16px",
-          backgroundColor: "white",
-          borderRadius: "8px",
-          border: "1px solid #e0e0e0",
+          padding: spacing.md,
+          backgroundColor: themeColors.white,
+          borderRadius: borderRadius.md,
+          border: `1px solid ${themeColors.border}`,
         }}
       >
-        <div style={{ fontSize: "24px", fontWeight: "bold", color: "#0066cc" }}>
+        <div style={{ fontSize: typography.fontSize["2xl"], fontWeight: typography.fontWeight.bold, color: colors.primary }}>
           {statistics.inProgress}
         </div>
-        <div style={{ fontSize: "14px", color: "#666", marginTop: "4px" }}>Devam Ediyor</div>
+        <div style={{ fontSize: typography.fontSize.sm, color: themeColors.text.secondary, marginTop: spacing.xs }}>Devam Ediyor</div>
       </div>
 
       <div
         style={{
-          padding: "16px",
-          backgroundColor: "white",
-          borderRadius: "8px",
-          border: "1px solid #e0e0e0",
+          padding: spacing.md,
+          backgroundColor: themeColors.white,
+          borderRadius: borderRadius.md,
+          border: `1px solid ${themeColors.border}`,
         }}
       >
-        <div style={{ fontSize: "24px", fontWeight: "bold", color: "#10b981" }}>
+        <div style={{ fontSize: typography.fontSize["2xl"], fontWeight: typography.fontWeight.bold, color: colors.success }}>
           {statistics.completed}
         </div>
-        <div style={{ fontSize: "14px", color: "#666", marginTop: "4px" }}>Tamamlandı</div>
+        <div style={{ fontSize: typography.fontSize.sm, color: themeColors.text.secondary, marginTop: spacing.xs }}>Tamamlandı</div>
       </div>
 
       <div
         style={{
-          padding: "16px",
-          backgroundColor: "white",
-          borderRadius: "8px",
-          border: "1px solid #e0e0e0",
+          padding: spacing.md,
+          backgroundColor: themeColors.white,
+          borderRadius: borderRadius.md,
+          border: `1px solid ${themeColors.border}`,
         }}
       >
-        <div style={{ fontSize: "24px", fontWeight: "bold", color: "#dc2626" }}>
+        <div style={{ fontSize: typography.fontSize["2xl"], fontWeight: typography.fontWeight.bold, color: colors.danger }}>
           {statistics.overdue}
         </div>
-        <div style={{ fontSize: "14px", color: "#666", marginTop: "4px" }}>Vadesi Geçen</div>
+        <div style={{ fontSize: typography.fontSize.sm, color: themeColors.text.secondary, marginTop: spacing.xs }}>Vadesi Geçen</div>
       </div>
 
       <div
         style={{
-          padding: "16px",
-          backgroundColor: "white",
-          borderRadius: "8px",
-          border: "1px solid #e0e0e0",
+          padding: spacing.md,
+          backgroundColor: themeColors.white,
+          borderRadius: borderRadius.md,
+          border: `1px solid ${themeColors.border}`,
         }}
       >
-        <div style={{ fontSize: "14px", color: "#666", marginBottom: "8px" }}>Öncelik Dağılımı</div>
-        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+        <div style={{ fontSize: typography.fontSize.sm, color: themeColors.text.secondary, marginBottom: spacing.sm }}>Öncelik Dağılımı</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: spacing.xs }}>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span style={{ fontSize: "12px" }}>Yüksek:</span>
-            <span style={{ fontWeight: "bold", color: "#dc2626" }}>
+            <span style={{ fontSize: typography.fontSize.xs }}>Yüksek:</span>
+            <span style={{ fontWeight: typography.fontWeight.bold, color: colors.danger }}>
               {statistics.byPriority.high}
             </span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span style={{ fontSize: "12px" }}>Orta:</span>
-            <span style={{ fontWeight: "bold", color: "#f59e0b" }}>
+            <span style={{ fontSize: typography.fontSize.xs }}>Orta:</span>
+            <span style={{ fontWeight: typography.fontWeight.bold, color: colors.warning }}>
               {statistics.byPriority.medium}
             </span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span style={{ fontSize: "12px" }}>Düşük:</span>
-            <span style={{ fontWeight: "bold", color: "#10b981" }}>
+            <span style={{ fontSize: typography.fontSize.xs }}>Düşük:</span>
+            <span style={{ fontWeight: typography.fontWeight.bold, color: colors.success }}>
               {statistics.byPriority.low}
             </span>
           </div>
@@ -119,6 +123,3 @@ export default function TaskDashboardWidget({ statistics }: TaskDashboardWidgetP
     </div>
   );
 }
-
-
-

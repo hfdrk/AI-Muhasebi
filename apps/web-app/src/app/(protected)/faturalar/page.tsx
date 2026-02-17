@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { listInvoices, listClientCompanies, listSavedFilters, SAVED_FILTER_TARGETS } from "@repo/api-client";
-import { invoices as invoicesI18n, common as commonI18n } from "@repo/i18n";
+import { invoices as invoicesI18n } from "@repo/i18n";
 import { SavedFiltersDropdown } from "../../../components/saved-filters-dropdown";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/Badge";
 import { TableRow, TableCell } from "@/components/ui/Table";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { colors, spacing, typography, borderRadius } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const STATUS_LABELS: Record<string, string> = {
   taslak: "Taslak",
@@ -32,6 +33,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 function InvoicesPageContent() {
+  const { themeColors } = useTheme();
   const router = useRouter();
   const searchParams = useSearchParams();
   const clientCompanyId = searchParams.get("clientCompanyId") || undefined;
@@ -251,32 +253,32 @@ function InvoicesPageContent() {
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ borderBottom: `2px solid ${colors.border}`, backgroundColor: colors.gray[50] }}>
-                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                <tr style={{ borderBottom: `2px solid ${themeColors.border}`, backgroundColor: themeColors.gray[50] }}>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                     Şirket Adı
                   </th>
-                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                     Fatura No
                   </th>
-                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                     Tür
                   </th>
-                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                     Düzenleme Tarihi
                   </th>
-                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                     Vade Tarihi
                   </th>
-                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                     Toplam Tutar
                   </th>
-                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                     Para Birimi
                   </th>
-                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                     Durum
                   </th>
-                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                     İşlemler
                   </th>
                 </tr>
@@ -341,7 +343,7 @@ function InvoicesPageContent() {
           >
             Önceki
           </Button>
-          <span style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm }}>
+          <span style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>
             Sayfa {page} / {pagination.totalPages}
           </span>
           <Button

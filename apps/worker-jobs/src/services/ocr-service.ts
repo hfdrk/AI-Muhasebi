@@ -9,6 +9,7 @@
  */
 
 import { getOCRConfig, validateOCRConfig, type OCRProvider } from "@repo/config";
+import { logger } from "@repo/shared-utils";
 import { GoogleVisionOCR } from "./ocr-providers/google-vision-ocr";
 import { AWSTextractOCR } from "./ocr-providers/aws-textract-ocr";
 import { TesseractOCR } from "./ocr-providers/tesseract-ocr";
@@ -83,11 +84,11 @@ export class OCRService {
           return this.runStubOCR(fileBuffer, mimeType);
       }
     } catch (error: any) {
-      console.error("[OCRService] Error running OCR:", error);
-      
+      logger.error("[OCRService] Error running OCR", error);
+
       // Fallback to stub if provider fails
       if (this.provider !== "stub") {
-        console.warn("[OCRService] Falling back to stub OCR due to error");
+        logger.warn("[OCRService] Falling back to stub OCR due to error");
         return this.runStubOCR(fileBuffer, mimeType);
       }
       

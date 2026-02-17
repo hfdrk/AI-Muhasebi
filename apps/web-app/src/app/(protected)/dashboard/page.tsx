@@ -11,7 +11,8 @@ import { Table, TableRow, TableCell } from "@/components/ui/Table";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { PageTransition } from "@/components/ui/PageTransition";
-import { colors, spacing, borderRadius } from "@/styles/design-system";
+import { colors, spacing } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const STATUS_LABELS: Record<string, string> = {
   taslak: "Taslak",
@@ -42,6 +43,7 @@ function formatDate(date: Date | string): string {
 }
 
 export default function DashboardPage() {
+  const { themeColors } = useTheme();
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
 
   // Get current user for role check
@@ -140,7 +142,7 @@ export default function DashboardPage() {
   });
 
   // Fetch recent tasks
-  const { data: tasksData } = useQuery({
+  useQuery({
     queryKey: ["dashboard-tasks"],
     queryFn: () => listTasks({ page: 1, pageSize: 5 }),
   });
@@ -183,20 +185,20 @@ export default function DashboardPage() {
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: spacing.md }}>
             <div style={{ flex: 1 }}>
-              <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: spacing.sm, color: colors.text.primary }}>
+              <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: spacing.sm, color: themeColors.text.primary }}>
                 {dashboardI18n.onboarding.title}
               </h2>
-              <p style={{ color: colors.text.secondary, marginBottom: spacing.md }}>
+              <p style={{ color: themeColors.text.secondary, marginBottom: spacing.md }}>
                 {dashboardI18n.onboarding.description}
               </p>
               <ul style={{ listStyle: "none", padding: 0, marginBottom: spacing.md }}>
-                <li style={{ marginBottom: spacing.xs, color: colors.text.primary }}>
+                <li style={{ marginBottom: spacing.xs, color: themeColors.text.primary }}>
                   {dashboardI18n.onboarding.checklist.step1}
                 </li>
-                <li style={{ marginBottom: spacing.xs, color: colors.text.primary }}>
+                <li style={{ marginBottom: spacing.xs, color: themeColors.text.primary }}>
                   {dashboardI18n.onboarding.checklist.step2}
                 </li>
-                <li style={{ marginBottom: spacing.xs, color: colors.text.primary }}>
+                <li style={{ marginBottom: spacing.xs, color: themeColors.text.primary }}>
                   {dashboardI18n.onboarding.checklist.step3}
                 </li>
               </ul>
@@ -225,7 +227,7 @@ export default function DashboardPage() {
                   border: "none",
                   cursor: "pointer",
                   fontSize: "14px",
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 {dashboardI18n.onboarding.buttons.close}
@@ -238,7 +240,7 @@ export default function DashboardPage() {
                   border: "none",
                   cursor: "pointer",
                   fontSize: "12px",
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 {dashboardI18n.onboarding.buttons.dontShowAgain}
@@ -260,7 +262,7 @@ export default function DashboardPage() {
         <Card>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
-              <p style={{ margin: 0, color: colors.text.secondary, fontSize: "14px" }}>Toplam Fatura</p>
+              <p style={{ margin: 0, color: themeColors.text.secondary, fontSize: "14px" }}>Toplam Fatura</p>
               <h2 style={{ margin: `${spacing.xs} 0 0 0`, fontSize: "32px", fontWeight: 600 }}>
                 {totalInvoices}
               </h2>
@@ -285,7 +287,7 @@ export default function DashboardPage() {
         <Card>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
-              <p style={{ margin: 0, color: colors.text.secondary, fontSize: "14px" }}>Toplam İşlem</p>
+              <p style={{ margin: 0, color: themeColors.text.secondary, fontSize: "14px" }}>Toplam İşlem</p>
               <h2 style={{ margin: `${spacing.xs} 0 0 0`, fontSize: "32px", fontWeight: 600 }}>
                 {totalTransactions}
               </h2>
@@ -310,7 +312,7 @@ export default function DashboardPage() {
         <Card>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
-              <p style={{ margin: 0, color: colors.text.secondary, fontSize: "14px" }}>Toplam Müşteri</p>
+              <p style={{ margin: 0, color: themeColors.text.secondary, fontSize: "14px" }}>Toplam Müşteri</p>
               <h2 style={{ margin: `${spacing.xs} 0 0 0`, fontSize: "32px", fontWeight: 600 }}>
                 {totalCustomers}
               </h2>
@@ -335,7 +337,7 @@ export default function DashboardPage() {
         <Card>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
-              <p style={{ margin: 0, color: colors.text.secondary, fontSize: "14px" }}>Toplam Belge</p>
+              <p style={{ margin: 0, color: themeColors.text.secondary, fontSize: "14px" }}>Toplam Belge</p>
               <h2 style={{ margin: `${spacing.xs} 0 0 0`, fontSize: "32px", fontWeight: 600 }}>
                 {totalDocuments}
               </h2>
@@ -404,7 +406,7 @@ export default function DashboardPage() {
           {invoicesLoading ? (
             <Skeleton height="20px" width="100%" />
           ) : recentInvoices.length === 0 ? (
-            <p style={{ color: colors.text.secondary }}>Henüz fatura bulunmuyor.</p>
+            <p style={{ color: themeColors.text.secondary }}>Henüz fatura bulunmuyor.</p>
           ) : (
             <Table
               headers={["Fatura No", "Müşteri", "Tutar", "Durum", "Tarih"]}
@@ -417,7 +419,7 @@ export default function DashboardPage() {
                   <TableCell>
                     <div>
                       <div style={{ fontWeight: 500 }}>{invoice.externalId || "N/A"}</div>
-                      <div style={{ fontSize: "12px", color: colors.text.secondary }}>
+                      <div style={{ fontSize: "12px", color: themeColors.text.secondary }}>
                         {TYPE_LABELS[invoice.type] || invoice.type}
                       </div>
                     </div>
@@ -443,20 +445,20 @@ export default function DashboardPage() {
                             ? colors.successLight
                             : invoice.status === "taslak"
                             ? colors.warning + "20"
-                            : colors.gray[200],
+                            : themeColors.gray[200],
                         color:
                           invoice.status === "kesildi"
                             ? colors.successDark
                             : invoice.status === "taslak"
                             ? colors.dark
-                            : colors.text.secondary,
+                            : themeColors.text.secondary,
                       }}
                     >
                       {STATUS_LABELS[invoice.status] || invoice.status}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <div style={{ fontSize: "12px", color: colors.text.secondary }}>
+                    <div style={{ fontSize: "12px", color: themeColors.text.secondary }}>
                       {formatDate(invoice.issueDate)}
                     </div>
                   </TableCell>
@@ -478,7 +480,7 @@ export default function DashboardPage() {
           {transactionsLoading ? (
             <Skeleton height="20px" width="100%" />
           ) : recentTransactions.length === 0 ? (
-            <p style={{ color: colors.text.secondary }}>Henüz işlem bulunmuyor.</p>
+            <p style={{ color: themeColors.text.secondary }}>Henüz işlem bulunmuyor.</p>
           ) : (
             <Table
               headers={["Referans", "Açıklama", "Tarih"]}
@@ -494,12 +496,12 @@ export default function DashboardPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div style={{ fontSize: "14px", color: colors.text.secondary }}>
+                    <div style={{ fontSize: "14px", color: themeColors.text.secondary }}>
                       {transaction.description || "Açıklama yok"}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div style={{ fontSize: "12px", color: colors.text.secondary }}>
+                    <div style={{ fontSize: "12px", color: themeColors.text.secondary }}>
                       {formatDate(transaction.date)}
                     </div>
                   </TableCell>
@@ -521,7 +523,7 @@ export default function DashboardPage() {
           {customersLoading ? (
             <Skeleton height="20px" width="100%" />
           ) : recentCustomers.length === 0 ? (
-            <p style={{ color: colors.text.secondary }}>Henüz müşteri bulunmuyor.</p>
+            <p style={{ color: themeColors.text.secondary }}>Henüz müşteri bulunmuyor.</p>
           ) : (
             <Table
               headers={["Müşteri Adı", "Vergi No", "Durum"]}
@@ -534,13 +536,13 @@ export default function DashboardPage() {
                   <TableCell>
                     <div style={{ fontWeight: 500 }}>{customer.name}</div>
                     {customer.contactPersonName && (
-                      <div style={{ fontSize: "12px", color: colors.text.secondary }}>
+                      <div style={{ fontSize: "12px", color: themeColors.text.secondary }}>
                         {customer.contactPersonName}
                       </div>
                     )}
                   </TableCell>
                   <TableCell>
-                    <div style={{ fontSize: "14px", color: colors.text.secondary }}>
+                    <div style={{ fontSize: "14px", color: themeColors.text.secondary }}>
                       {customer.taxNumber}
                     </div>
                   </TableCell>
@@ -550,8 +552,8 @@ export default function DashboardPage() {
                         padding: `${spacing.xs} ${spacing.sm}`,
                         borderRadius: "4px",
                         fontSize: "12px",
-                        backgroundColor: customer.isActive ? colors.successLight : colors.gray[200],
-                        color: customer.isActive ? colors.successDark : colors.text.secondary,
+                        backgroundColor: customer.isActive ? colors.successLight : themeColors.gray[200],
+                        color: customer.isActive ? colors.successDark : themeColors.text.secondary,
                       }}
                     >
                       {customer.isActive ? "Aktif" : "Pasif"}
@@ -576,7 +578,7 @@ export default function DashboardPage() {
             <Skeleton height="20px" width="100%" />
           ) : recentDocuments.length === 0 ? (
             <div>
-              <p style={{ color: colors.text.secondary, marginBottom: spacing.md }}>
+              <p style={{ color: themeColors.text.secondary, marginBottom: spacing.md }}>
                 Henüz belge bulunmuyor.
               </p>
               <Button asLink href="/belgeler" variant="primary" size="sm">
@@ -596,7 +598,7 @@ export default function DashboardPage() {
                     <div style={{ fontWeight: 500 }}>{doc.originalFileName}</div>
                   </TableCell>
                   <TableCell>
-                    <div style={{ fontSize: "14px", color: colors.text.secondary }}>
+                    <div style={{ fontSize: "14px", color: themeColors.text.secondary }}>
                       {doc.type === "INVOICE" ? "Fatura" : doc.type === "BANK_STATEMENT" ? "Banka Ekstresi" : doc.type === "RECEIPT" ? "Fiş" : "Diğer"}
                     </div>
                   </TableCell>
@@ -613,7 +615,7 @@ export default function DashboardPage() {
                             ? colors.info + "20"
                             : doc.status === "FAILED"
                             ? colors.dangerLight
-                            : colors.gray[200],
+                            : themeColors.gray[200],
                         color:
                           doc.status === "PROCESSED"
                             ? colors.successDark
@@ -621,14 +623,14 @@ export default function DashboardPage() {
                             ? colors.info
                             : doc.status === "FAILED"
                             ? colors.dangerDark
-                            : colors.text.secondary,
+                            : themeColors.text.secondary,
                       }}
                     >
                       {doc.status === "PROCESSED" ? "İşlendi" : doc.status === "PROCESSING" ? "İşleniyor" : doc.status === "FAILED" ? "Başarısız" : "Yüklendi"}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <div style={{ fontSize: "12px", color: colors.text.secondary }}>
+                    <div style={{ fontSize: "12px", color: themeColors.text.secondary }}>
                       {formatDate(doc.createdAt)}
                     </div>
                   </TableCell>

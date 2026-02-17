@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import { stopImpersonation } from "@repo/api-client";
 import { colors, spacing } from "../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export function ImpersonationBanner() {
+  const { themeColors } = useTheme();
   const [isImpersonating, setIsImpersonating] = useState(false);
-  const [userName, setUserName] = useState("");
-  const [tenantName, setTenantName] = useState("");
+  const [userName, _setUserName] = useState("");
+  const [tenantName, _setTenantName] = useState("");
 
   useEffect(() => {
     // Check for impersonation token
@@ -33,7 +35,9 @@ export function ImpersonationBanner() {
       // Reload page to clear impersonation context
       window.location.reload();
     } catch (error) {
-      console.error("Failed to stop impersonation:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Failed to stop impersonation:", error);
+      }
       // Still clear token and reload
       localStorage.removeItem("impersonationToken");
       window.location.reload();
@@ -47,8 +51,8 @@ export function ImpersonationBanner() {
   return (
     <div
       style={{
-        backgroundColor: colors.warning || "#f59e0b",
-        color: colors.white || "#ffffff",
+        backgroundColor: colors.warning,
+        color: themeColors.white,
         padding: spacing.md,
         textAlign: "center",
         position: "sticky",
@@ -67,7 +71,7 @@ export function ImpersonationBanner() {
         onClick={handleStopImpersonation}
         style={{
           backgroundColor: "rgba(255, 255, 255, 0.2)",
-          color: colors.white || "#ffffff",
+          color: themeColors.white,
           border: "1px solid rgba(255, 255, 255, 0.3)",
           padding: `${spacing.xs} ${spacing.md}`,
           borderRadius: "4px",

@@ -3,15 +3,17 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useMutation } from "@tanstack/react-query";
-import { colors, spacing, borderRadius, typography, shadows } from "../../../styles/design-system";
+import { colors, spacing, borderRadius, typography } from "../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { toast } from "../../../lib/toast";
+import { getAccessToken } from "@/lib/auth";
 
 async function getDailyRiskSummary() {
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+  const token = getAccessToken();
   const response = await fetch("/api/v1/ai/summaries/daily-risk", {
     method: "POST",
     headers: {
@@ -29,7 +31,7 @@ async function getDailyRiskSummary() {
 }
 
 async function getPortfolioSummary() {
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+  const token = getAccessToken();
   const response = await fetch("/api/v1/ai/summaries/portfolio", {
     method: "POST",
     headers: {
@@ -46,6 +48,7 @@ async function getPortfolioSummary() {
 }
 
 export default function ReportsPage() {
+  const { themeColors } = useTheme();
   const [summaryModal, setSummaryModal] = useState<{ visible: boolean; title: string; text: string }>({
     visible: false,
     title: "",
@@ -83,10 +86,10 @@ export default function ReportsPage() {
     <PageTransition>
       <div style={{ padding: spacing.xxl }}>
       <div style={{ marginBottom: spacing.xxl }}>
-        <h1 style={{ fontSize: "28px", fontWeight: 600, marginBottom: spacing.sm, color: colors.text.primary }}>
+        <h1 style={{ fontSize: "28px", fontWeight: 600, marginBottom: spacing.sm, color: themeColors.text.primary }}>
           Raporlar
         </h1>
-        <p style={{ color: colors.text.secondary, fontSize: "16px" }}>
+        <p style={{ color: themeColors.text.secondary, fontSize: "16px" }}>
           Finansal özetler, risk analizleri ve aktivite raporları oluşturun ve yönetin.
         </p>
       </div>
@@ -125,7 +128,7 @@ export default function ReportsPage() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: spacing.lg }}>
         {/* Executive Summary - New Featured Card */}
         <Link href="/raporlar/yonetici-ozeti" style={{ textDecoration: "none", color: "inherit" }}>
-          <Card hoverable style={{ background: `linear-gradient(135deg, ${colors.primaryLighter} 0%, ${colors.white} 100%)`, border: `2px solid ${colors.primary}` }}>
+          <Card hoverable style={{ background: `linear-gradient(135deg, ${colors.primaryLighter} 0%, ${themeColors.white} 100%)`, border: `2px solid ${colors.primary}` }}>
             <div style={{ display: "flex", alignItems: "center", gap: spacing.sm, marginBottom: spacing.sm }}>
               <span style={{ fontSize: "24px" }}>📊</span>
               <h2 style={{ fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.semibold, color: colors.primary, margin: 0 }}>
@@ -135,7 +138,7 @@ export default function ReportsPage() {
                 YENİ
               </span>
             </div>
-            <p style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm, lineHeight: 1.6 }}>
+            <p style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm, lineHeight: 1.6 }}>
               Gelişmiş KPI'lar, dönem karşılaştırmaları, hedef takibi ve interaktif grafiklerle kapsamlı yönetici panosu.
             </p>
           </Card>
@@ -146,7 +149,7 @@ export default function ReportsPage() {
             <h2 style={{ fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.semibold, marginBottom: spacing.sm, color: colors.primary }}>
               Anlık Raporlar
             </h2>
-            <p style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm, lineHeight: 1.6 }}>
+            <p style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm, lineHeight: 1.6 }}>
               İstediğiniz zaman finansal özet, risk analizi ve aktivite raporları oluşturun. PDF veya Excel formatında indirin.
             </p>
           </Card>
@@ -157,7 +160,7 @@ export default function ReportsPage() {
             <h2 style={{ fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.semibold, marginBottom: spacing.sm, color: colors.primary }}>
               Zamanlanmış Raporlar
             </h2>
-            <p style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm, lineHeight: 1.6 }}>
+            <p style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm, lineHeight: 1.6 }}>
               Raporları otomatik olarak günlük, haftalık veya aylık olarak oluşturun ve e-posta ile gönderin.
             </p>
           </Card>
@@ -171,7 +174,7 @@ export default function ReportsPage() {
         title={summaryModal.title}
         size="lg"
       >
-        <div style={{ color: colors.text.primary, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+        <div style={{ color: themeColors.text.primary, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
           {summaryModal.text}
         </div>
       </Modal>

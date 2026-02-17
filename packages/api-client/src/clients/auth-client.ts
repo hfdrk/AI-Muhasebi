@@ -1,3 +1,5 @@
+import { setAccessToken as storeToken, clearAccessToken } from "../token-store";
+
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "";
 
 export interface LoginInput {
@@ -111,7 +113,13 @@ async function apiRequest<T>(
         errorMessage = "Sunucuya bağlanılamadı. Backend API'nin çalıştığından emin olun.";
       }
     }
-    throw new Error(errorMessage);
+    
+    // Attach status code for React Query to detect
+    const error = new Error(errorMessage);
+    (error as any).status = response.status;
+    (error as any).statusCode = response.status;
+    (error as any).response = { status: response.status };
+    throw error;
   }
 
   return response.json();
@@ -123,11 +131,11 @@ export async function login(input: LoginInput): Promise<LoginResponse> {
     body: JSON.stringify(input),
   });
   
-  // Store access token
-  if (typeof window !== "undefined" && response.data.accessToken) {
-    localStorage.setItem("accessToken", response.data.accessToken);
+  // Store access token in memory
+  if (response.data.accessToken) {
+    storeToken(response.data.accessToken);
   }
-  
+
   return response;
 }
 
@@ -136,12 +144,12 @@ export async function register(input: RegisterInput): Promise<RegisterResponse> 
     method: "POST",
     body: JSON.stringify(input),
   });
-  
-  // Store access token
-  if (typeof window !== "undefined" && response.data.accessToken) {
-    localStorage.setItem("accessToken", response.data.accessToken);
+
+  // Store access token in memory
+  if (response.data.accessToken) {
+    storeToken(response.data.accessToken);
   }
-  
+
   return response;
 }
 
@@ -159,6 +167,19 @@ export async function resetPassword(input: ResetPasswordInput): Promise<{ data: 
   });
 }
 
+export async function refreshAccessToken(): Promise<LoginResponse> {
+  const response = await apiRequest<LoginResponse>("/api/v1/auth/refresh", {
+    method: "POST",
+  });
+
+  // Store new access token in memory
+  if (response.data.accessToken) {
+    storeToken(response.data.accessToken);
+  }
+
+  return response;
+}
+
 export async function logout(): Promise<void> {
   try {
     await apiRequest("/api/v1/auth/logout", {
@@ -167,10 +188,7 @@ export async function logout(): Promise<void> {
   } catch (error) {
     // Ignore errors on logout
   } finally {
-    // Always clear the token
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("accessToken");
-    }
+    clearAccessToken();
   }
 }
 

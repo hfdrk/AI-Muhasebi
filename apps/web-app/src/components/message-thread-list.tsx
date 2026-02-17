@@ -5,6 +5,7 @@ import { messagingClient, type MessageThread } from "@repo/api-client";
 import { Card } from "@/components/ui/Card";
 import { SkeletonTable } from "@/components/ui/Skeleton";
 import { colors, spacing } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import Link from "next/link";
 
 function formatDate(date: Date | string | null): string {
@@ -41,6 +42,7 @@ interface MessageThreadListProps {
 }
 
 export function MessageThreadList({ clientCompanyId, onThreadSelect, selectedThreadId }: MessageThreadListProps) {
+  const { themeColors } = useTheme();
   const { data: threadsData, isLoading, error, refetch } = useQuery({
     queryKey: ["message-threads", clientCompanyId],
     queryFn: () => messagingClient.listThreads({ clientCompanyId, limit: 50 }),
@@ -90,7 +92,7 @@ export function MessageThreadList({ clientCompanyId, onThreadSelect, selectedThr
   if (threads.length === 0) {
     return (
       <Card>
-        <div style={{ padding: spacing.xl, textAlign: "center", color: colors.text.secondary }}>
+        <div style={{ padding: spacing.xl, textAlign: "center", color: themeColors.text.secondary }}>
           <div style={{ fontSize: "48px", marginBottom: spacing.md }}>💬</div>
           <div>Henüz mesaj konuşması bulunmuyor.</div>
           <button
@@ -98,8 +100,8 @@ export function MessageThreadList({ clientCompanyId, onThreadSelect, selectedThr
             style={{
               marginTop: spacing.md,
               padding: `${spacing.sm} ${spacing.md}`,
-              backgroundColor: colors.gray[200],
-              color: colors.text.primary,
+              backgroundColor: themeColors.gray[200],
+              color: themeColors.text.primary,
               border: "none",
               borderRadius: "6px",
               cursor: "pointer",
@@ -133,7 +135,7 @@ export function MessageThreadList({ clientCompanyId, onThreadSelect, selectedThr
               style={{
                 display: "block",
                 padding: spacing.md,
-                borderBottom: `1px solid ${colors.gray[200]}`,
+                borderBottom: `1px solid ${themeColors.gray[200]}`,
                 textDecoration: "none",
                 color: "inherit",
                 backgroundColor: isSelected ? colors.primaryLighter : "transparent",
@@ -141,7 +143,7 @@ export function MessageThreadList({ clientCompanyId, onThreadSelect, selectedThr
               }}
               onMouseEnter={(e) => {
                 if (!isSelected) {
-                  e.currentTarget.style.backgroundColor = colors.gray[50];
+                  e.currentTarget.style.backgroundColor = themeColors.gray[50];
                 }
               }}
               onMouseLeave={(e) => {
@@ -153,7 +155,7 @@ export function MessageThreadList({ clientCompanyId, onThreadSelect, selectedThr
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: spacing.sm, marginBottom: spacing.xs }}>
-                    <div style={{ fontWeight: "semibold", color: colors.text.primary, fontSize: "15px" }}>
+                    <div style={{ fontWeight: "semibold", color: themeColors.text.primary, fontSize: "15px" }}>
                       {displayName}
                     </div>
                     {thread.unreadCount && thread.unreadCount > 0 && (
@@ -171,11 +173,11 @@ export function MessageThreadList({ clientCompanyId, onThreadSelect, selectedThr
                       </span>
                     )}
                   </div>
-                  <div style={{ fontSize: "14px", color: colors.text.secondary }}>
+                  <div style={{ fontSize: "14px", color: themeColors.text.secondary }}>
                     {otherParticipants.map((p) => p.userName).join(", ") || "Konuşma"}
                   </div>
                   {thread.lastMessageAt && (
-                    <div style={{ fontSize: "12px", color: colors.text.secondary, marginTop: spacing.xs }}>
+                    <div style={{ fontSize: "12px", color: themeColors.text.secondary, marginTop: spacing.xs }}>
                       {formatRelativeTime(thread.lastMessageAt)}
                     </div>
                   )}

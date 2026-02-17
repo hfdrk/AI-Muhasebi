@@ -7,13 +7,18 @@ import {
   listSyncJobs,
   listSyncLogs,
   triggerSync,
-  updateIntegration,
   deleteIntegration,
 } from "@repo/api-client";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import IntegrationFieldMappingModal from "@/components/integration-field-mapping-modal";
-import { colors, spacing, borderRadius } from "@/styles/design-system";
+import { PageTransition } from "@/components/ui/PageTransition";
+import { Card } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { Modal } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
+import { colors, spacing } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const STATUS_LABELS: Record<string, string> = {
   connected: "Bağlı",
@@ -48,6 +53,7 @@ const LOG_LEVEL_LABELS: Record<string, string> = {
 };
 
 export default function IntegrationDetailPage() {
+  const { themeColors } = useTheme();
   const params = useParams();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -76,7 +82,7 @@ export default function IntegrationDetailPage() {
   const { data: logsData } = useQuery({
     queryKey: ["integration-logs", integrationId],
     queryFn: () => listSyncLogs(integrationId),
-    refetchInterval: (query) => {
+    refetchInterval: (_query) => {
       // Auto-refetch every 5 seconds if there are active jobs
       const jobs = jobsData?.data?.data || [];
       const hasActiveJobs = jobs.some(
@@ -141,8 +147,8 @@ export default function IntegrationDetailPage() {
     return (
       <div style={{ padding: "40px", maxWidth: "1400px", margin: "0 auto", textAlign: "center" }}>
         <div style={{ fontSize: "48px", marginBottom: "16px" }}>⚠️</div>
-        <h2 style={{ color: colors.text.primary, marginBottom: "8px" }}>Entegrasyon bulunamadı</h2>
-        <p style={{ color: colors.text.secondary, marginBottom: "24px" }}>
+        <h2 style={{ color: themeColors.text.primary, marginBottom: "8px" }}>Entegrasyon bulunamadı</h2>
+        <p style={{ color: themeColors.text.secondary, marginBottom: "24px" }}>
           Aradığınız entegrasyon mevcut değil veya silinmiş olabilir.
         </p>
         <Link
@@ -151,7 +157,7 @@ export default function IntegrationDetailPage() {
             display: "inline-block",
             padding: "12px 24px",
             backgroundColor: colors.primary,
-            color: "white",
+            color: colors.white,
             textDecoration: "none",
             borderRadius: "8px",
             fontWeight: "500",
@@ -237,7 +243,7 @@ export default function IntegrationDetailPage() {
         <Link
           href="/entegrasyonlar"
           style={{
-            color: "#2563eb",
+            color: colors.primary,
             textDecoration: "none",
             fontSize: "14px",
             fontWeight: "500",
@@ -254,10 +260,10 @@ export default function IntegrationDetailPage() {
         </Link>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
-            <h1 style={{ margin: "0 0 8px 0", fontSize: "32px", fontWeight: "700", color: colors.text.primary }}>
+            <h1 style={{ margin: "0 0 8px 0", fontSize: "32px", fontWeight: "700", color: themeColors.text.primary }}>
               {integration.displayName}
             </h1>
-            <p style={{ margin: 0, color: colors.text.secondary, fontSize: "16px" }}>
+            <p style={{ margin: 0, color: themeColors.text.secondary, fontSize: "16px" }}>
               {provider.name} • {provider.type === "accounting" ? "Muhasebe Sistemi" : "Banka Bağlantısı"}
             </p>
           </div>
@@ -270,32 +276,32 @@ export default function IntegrationDetailPage() {
         <div
           style={{
             padding: "24px",
-            backgroundColor: "white",
-            border: `1px solid ${colors.border}`,
+            backgroundColor: themeColors.white,
+            border: `1px solid ${themeColors.border}`,
             borderRadius: "12px",
             boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
           }}
         >
-          <h3 style={{ margin: "0 0 16px 0", fontSize: "18px", fontWeight: "600", color: colors.text.primary }}>
+          <h3 style={{ margin: "0 0 16px 0", fontSize: "18px", fontWeight: "600", color: themeColors.text.primary }}>
             Sağlayıcı Bilgileri
           </h3>
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <div>
-              <span style={{ color: colors.text.secondary, fontSize: "14px", display: "block", marginBottom: "4px" }}>Ad</span>
-              <span style={{ color: colors.text.primary, fontSize: "16px", fontWeight: "500" }}>{provider.name}</span>
+              <span style={{ color: themeColors.text.secondary, fontSize: "14px", display: "block", marginBottom: "4px" }}>Ad</span>
+              <span style={{ color: themeColors.text.primary, fontSize: "16px", fontWeight: "500" }}>{provider.name}</span>
             </div>
             <div>
-              <span style={{ color: colors.text.secondary, fontSize: "14px", display: "block", marginBottom: "4px" }}>Tür</span>
-              <span style={{ color: colors.text.primary, fontSize: "16px", fontWeight: "500" }}>
+              <span style={{ color: themeColors.text.secondary, fontSize: "14px", display: "block", marginBottom: "4px" }}>Tür</span>
+              <span style={{ color: themeColors.text.primary, fontSize: "16px", fontWeight: "500" }}>
                 {provider.type === "accounting" ? "Muhasebe" : "Banka"}
               </span>
             </div>
             {provider.description && (
               <div>
-                <span style={{ color: colors.text.secondary, fontSize: "14px", display: "block", marginBottom: "4px" }}>
+                <span style={{ color: themeColors.text.secondary, fontSize: "14px", display: "block", marginBottom: "4px" }}>
                   Açıklama
                 </span>
-                <span style={{ color: colors.text.primary, fontSize: "16px" }}>{provider.description}</span>
+                <span style={{ color: themeColors.text.primary, fontSize: "16px" }}>{provider.description}</span>
               </div>
             )}
           </div>
@@ -305,16 +311,16 @@ export default function IntegrationDetailPage() {
         <div
           style={{
             padding: "24px",
-            backgroundColor: "white",
-            border: `1px solid ${colors.border}`,
+            backgroundColor: themeColors.white,
+            border: `1px solid ${themeColors.border}`,
             borderRadius: "12px",
             boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
           }}
         >
-          <h3 style={{ margin: "0 0 16px 0", fontSize: "18px", fontWeight: "600", color: colors.text.primary }}>Durum</h3>
+          <h3 style={{ margin: "0 0 16px 0", fontSize: "18px", fontWeight: "600", color: themeColors.text.primary }}>Durum</h3>
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <div>
-              <span style={{ color: colors.text.secondary, fontSize: "14px", display: "block", marginBottom: "4px" }}>
+              <span style={{ color: themeColors.text.secondary, fontSize: "14px", display: "block", marginBottom: "4px" }}>
                 Bağlantı Durumu
               </span>
               <span
@@ -326,26 +332,26 @@ export default function IntegrationDetailPage() {
                   display: "inline-block",
                   backgroundColor:
                     integration.status === "connected"
-                      ? "#d1fae5"
+                      ? colors.successLight
                       : integration.status === "error"
-                      ? "#fee2e2"
-                      : "#fef3c7",
+                      ? colors.dangerLight
+                      : colors.warningLight,
                   color:
                     integration.status === "connected"
-                      ? "#065f46"
+                      ? colors.successDark
                       : integration.status === "error"
-                      ? "#991b1b"
-                      : "#92400e",
+                      ? colors.dangerDark
+                      : colors.warningDark,
                 }}
               >
                 {STATUS_LABELS[integration.status] || integration.status}
               </span>
             </div>
             <div>
-              <span style={{ color: colors.text.secondary, fontSize: "14px", display: "block", marginBottom: "4px" }}>
+              <span style={{ color: themeColors.text.secondary, fontSize: "14px", display: "block", marginBottom: "4px" }}>
                 Son Senkron
               </span>
-              <span style={{ color: colors.text.primary, fontSize: "16px", fontWeight: "500" }}>
+              <span style={{ color: themeColors.text.primary, fontSize: "16px", fontWeight: "500" }}>
                 {integration.lastSyncAt
                   ? new Date(integration.lastSyncAt).toLocaleString("tr-TR")
                   : "Henüz senkronize edilmedi"}
@@ -353,7 +359,7 @@ export default function IntegrationDetailPage() {
             </div>
             {integration.lastSyncStatus && (
               <div>
-                <span style={{ color: colors.text.secondary, fontSize: "14px", display: "block", marginBottom: "4px" }}>
+                <span style={{ color: themeColors.text.secondary, fontSize: "14px", display: "block", marginBottom: "4px" }}>
                   Son Senkron Durumu
                 </span>
                 <span
@@ -365,16 +371,16 @@ export default function IntegrationDetailPage() {
                     display: "inline-block",
                     backgroundColor:
                       integration.lastSyncStatus === "success"
-                        ? "#d1fae5"
+                        ? colors.successLight
                         : integration.lastSyncStatus === "error"
-                        ? "#fee2e2"
-                        : "#dbeafe",
+                        ? colors.dangerLight
+                        : colors.infoLight,
                     color:
                       integration.lastSyncStatus === "success"
-                        ? "#065f46"
+                        ? colors.successDark
                         : integration.lastSyncStatus === "error"
-                        ? "#991b1b"
-                        : "#1e40af",
+                        ? colors.dangerDark
+                        : colors.primaryDark,
                   }}
                 >
                   {SYNC_STATUS_LABELS[integration.lastSyncStatus] || integration.lastSyncStatus}
@@ -390,13 +396,13 @@ export default function IntegrationDetailPage() {
         style={{
           marginBottom: "32px",
           padding: "24px",
-          backgroundColor: "white",
-          border: "1px solid #e5e7eb",
+          backgroundColor: themeColors.white,
+          border: `1px solid ${themeColors.border}`,
           borderRadius: "12px",
           boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
         }}
       >
-        <h2 style={{ margin: "0 0 16px 0", fontSize: "20px", fontWeight: "600", color: colors.text.primary }}>
+        <h2 style={{ margin: "0 0 16px 0", fontSize: "20px", fontWeight: "600", color: themeColors.text.primary }}>
           İşlemler
         </h2>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
@@ -407,8 +413,8 @@ export default function IntegrationDetailPage() {
                 disabled={syncMutation.isPending}
                 style={{
                   padding: "12px 24px",
-                  backgroundColor: syncMutation.isPending ? "#9ca3af" : "#2563eb",
-                  color: "white",
+                  backgroundColor: syncMutation.isPending ? themeColors.text.muted : colors.primary,
+                  color: colors.white,
                   border: "none",
                   borderRadius: "8px",
                   cursor: syncMutation.isPending ? "not-allowed" : "pointer",
@@ -419,13 +425,13 @@ export default function IntegrationDetailPage() {
                 }}
                 onMouseEnter={(e) => {
                   if (!syncMutation.isPending) {
-                    e.currentTarget.style.backgroundColor = "#1d4ed8";
+                    e.currentTarget.style.backgroundColor = colors.primaryDark;
                     e.currentTarget.style.transform = "translateY(-1px)";
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!syncMutation.isPending) {
-                    e.currentTarget.style.backgroundColor = "#2563eb";
+                    e.currentTarget.style.backgroundColor = colors.primary;
                     e.currentTarget.style.transform = "translateY(0)";
                   }
                 }}
@@ -437,8 +443,8 @@ export default function IntegrationDetailPage() {
                 disabled={syncMutation.isPending}
                 style={{
                   padding: "12px 24px",
-                  backgroundColor: syncMutation.isPending ? "#9ca3af" : "#10b981",
-                  color: "white",
+                  backgroundColor: syncMutation.isPending ? themeColors.text.muted : colors.success,
+                  color: colors.white,
                   border: "none",
                   borderRadius: "8px",
                   cursor: syncMutation.isPending ? "not-allowed" : "pointer",
@@ -449,13 +455,13 @@ export default function IntegrationDetailPage() {
                 }}
                 onMouseEnter={(e) => {
                   if (!syncMutation.isPending) {
-                    e.currentTarget.style.backgroundColor = "#059669";
+                    e.currentTarget.style.backgroundColor = colors.successDark;
                     e.currentTarget.style.transform = "translateY(-1px)";
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!syncMutation.isPending) {
-                    e.currentTarget.style.backgroundColor = "#10b981";
+                    e.currentTarget.style.backgroundColor = colors.success;
                     e.currentTarget.style.transform = "translateY(0)";
                   }
                 }}
@@ -471,8 +477,8 @@ export default function IntegrationDetailPage() {
                 disabled={syncMutation.isPending}
                 style={{
                   padding: "12px 24px",
-                  backgroundColor: syncMutation.isPending ? "#9ca3af" : "#2563eb",
-                  color: "white",
+                  backgroundColor: syncMutation.isPending ? themeColors.text.muted : colors.primary,
+                  color: colors.white,
                   border: "none",
                   borderRadius: "8px",
                   cursor: syncMutation.isPending ? "not-allowed" : "pointer",
@@ -483,13 +489,13 @@ export default function IntegrationDetailPage() {
                 }}
                 onMouseEnter={(e) => {
                   if (!syncMutation.isPending) {
-                    e.currentTarget.style.backgroundColor = "#1d4ed8";
+                    e.currentTarget.style.backgroundColor = colors.primaryDark;
                     e.currentTarget.style.transform = "translateY(-1px)";
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!syncMutation.isPending) {
-                    e.currentTarget.style.backgroundColor = "#2563eb";
+                    e.currentTarget.style.backgroundColor = colors.primary;
                     e.currentTarget.style.transform = "translateY(0)";
                   }
                 }}
@@ -501,8 +507,8 @@ export default function IntegrationDetailPage() {
                 disabled={syncMutation.isPending}
                 style={{
                   padding: "12px 24px",
-                  backgroundColor: syncMutation.isPending ? "#9ca3af" : "#10b981",
-                  color: "white",
+                  backgroundColor: syncMutation.isPending ? themeColors.text.muted : colors.success,
+                  color: colors.white,
                   border: "none",
                   borderRadius: "8px",
                   cursor: syncMutation.isPending ? "not-allowed" : "pointer",
@@ -513,13 +519,13 @@ export default function IntegrationDetailPage() {
                 }}
                 onMouseEnter={(e) => {
                   if (!syncMutation.isPending) {
-                    e.currentTarget.style.backgroundColor = "#059669";
+                    e.currentTarget.style.backgroundColor = colors.successDark;
                     e.currentTarget.style.transform = "translateY(-1px)";
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!syncMutation.isPending) {
-                    e.currentTarget.style.backgroundColor = "#10b981";
+                    e.currentTarget.style.backgroundColor = colors.success;
                     e.currentTarget.style.transform = "translateY(0)";
                   }
                 }}
@@ -532,8 +538,8 @@ export default function IntegrationDetailPage() {
             href={`/entegrasyonlar/${integrationId}/edit`}
             style={{
               padding: "12px 24px",
-              backgroundColor: "#10b981",
-              color: "white",
+              backgroundColor: colors.success,
+              color: colors.white,
               textDecoration: "none",
               borderRadius: "8px",
               fontSize: "16px",
@@ -543,11 +549,11 @@ export default function IntegrationDetailPage() {
               boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#059669";
+              e.currentTarget.style.backgroundColor = colors.successDark;
               e.currentTarget.style.transform = "translateY(-1px)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#10b981";
+              e.currentTarget.style.backgroundColor = colors.success;
               e.currentTarget.style.transform = "translateY(0)";
             }}
           >
@@ -557,8 +563,8 @@ export default function IntegrationDetailPage() {
             onClick={() => setIsMappingModalOpen(true)}
             style={{
               padding: "12px 24px",
-              backgroundColor: "#06b6d4",
-              color: "white",
+              backgroundColor: colors.info,
+              color: colors.white,
               border: "none",
               borderRadius: "8px",
               cursor: "pointer",
@@ -568,11 +574,11 @@ export default function IntegrationDetailPage() {
               boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#0891b2";
+              e.currentTarget.style.backgroundColor = colors.primaryDark;
               e.currentTarget.style.transform = "translateY(-1px)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#06b6d4";
+              e.currentTarget.style.backgroundColor = colors.info;
               e.currentTarget.style.transform = "translateY(0)";
             }}
           >
@@ -582,8 +588,8 @@ export default function IntegrationDetailPage() {
             onClick={handleDelete}
             style={{
               padding: "12px 24px",
-              backgroundColor: "#ef4444",
-              color: "white",
+              backgroundColor: colors.danger,
+              color: colors.white,
               border: "none",
               borderRadius: "8px",
               cursor: "pointer",
@@ -593,11 +599,11 @@ export default function IntegrationDetailPage() {
               boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#dc2626";
+              e.currentTarget.style.backgroundColor = colors.dangerDark;
               e.currentTarget.style.transform = "translateY(-1px)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#ef4444";
+              e.currentTarget.style.backgroundColor = colors.danger;
               e.currentTarget.style.transform = "translateY(0)";
             }}
           >
@@ -611,13 +617,13 @@ export default function IntegrationDetailPage() {
         style={{
           marginBottom: "32px",
           padding: "24px",
-          backgroundColor: "white",
-          border: "1px solid #e5e7eb",
+          backgroundColor: themeColors.white,
+          border: `1px solid ${themeColors.border}`,
           borderRadius: "12px",
           boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
         }}
       >
-        <h2 style={{ margin: "0 0 20px 0", fontSize: "20px", fontWeight: "600", color: "#111827" }}>
+        <h2 style={{ margin: "0 0 20px 0", fontSize: "20px", fontWeight: "600", color: themeColors.text.primary }}>
           Senkronizasyon Geçmişi
         </h2>
         {jobs.length === 0 ? (
@@ -625,8 +631,8 @@ export default function IntegrationDetailPage() {
             style={{
               textAlign: "center",
               padding: "40px",
-              color: colors.text.secondary,
-              backgroundColor: colors.gray[50],
+              color: themeColors.text.secondary,
+              backgroundColor: themeColors.gray[50],
               borderRadius: "8px",
             }}
           >
@@ -636,20 +642,20 @@ export default function IntegrationDetailPage() {
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ borderBottom: `2px solid ${colors.border}` }}>
-                  <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: colors.text.secondary }}>
+                <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
+                  <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: themeColors.text.secondary }}>
                     İşlem Tipi
                   </th>
-                  <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: "#6b7280" }}>
+                  <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: themeColors.text.secondary }}>
                     Durum
                   </th>
-                  <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: "#6b7280" }}>
+                  <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: themeColors.text.secondary }}>
                     Başlangıç
                   </th>
-                  <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: "#6b7280" }}>
+                  <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: themeColors.text.secondary }}>
                     Bitiş
                   </th>
-                  <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: "#6b7280" }}>
+                  <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: themeColors.text.secondary }}>
                     Detay / Mesaj
                   </th>
                 </tr>
@@ -659,17 +665,17 @@ export default function IntegrationDetailPage() {
                   <tr
                     key={job.id}
                     style={{
-                      borderBottom: `1px solid ${colors.border}`,
+                      borderBottom: `1px solid ${themeColors.border}`,
                       transition: "background-color 0.2s",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = colors.gray[50];
+                      e.currentTarget.style.backgroundColor = themeColors.gray[50];
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.backgroundColor = "transparent";
                     }}
                   >
-                    <td style={{ padding: "12px", color: colors.text.primary, fontSize: "14px" }}>
+                    <td style={{ padding: "12px", color: themeColors.text.primary, fontSize: "14px" }}>
                       {JOB_TYPE_LABELS[job.jobType] || job.jobType}
                     </td>
                     <td style={{ padding: "12px" }}>
@@ -716,17 +722,17 @@ export default function IntegrationDetailPage() {
                         {JOB_STATUS_LABELS[job.status] || job.status}
                       </span>
                     </td>
-                    <td style={{ padding: "12px", color: colors.text.secondary, fontSize: "14px" }}>
+                    <td style={{ padding: "12px", color: themeColors.text.secondary, fontSize: "14px" }}>
                       {job.startedAt ? new Date(job.startedAt).toLocaleString("tr-TR") : "-"}
                     </td>
-                    <td style={{ padding: "12px", color: colors.text.secondary, fontSize: "14px" }}>
+                    <td style={{ padding: "12px", color: themeColors.text.secondary, fontSize: "14px" }}>
                       {job.finishedAt ? new Date(job.finishedAt).toLocaleString("tr-TR") : "-"}
                     </td>
                     <td style={{ padding: "12px" }}>
                       {job.errorMessage ? (
-                        <span style={{ color: "#ef4444", fontSize: "14px" }}>{job.errorMessage}</span>
+                        <span style={{ color: colors.danger, fontSize: "14px" }}>{job.errorMessage}</span>
                       ) : (
-                        <span style={{ color: "#9ca3af" }}>-</span>
+                        <span style={{ color: themeColors.text.muted }}>-</span>
                       )}
                     </td>
                 </tr>
@@ -741,13 +747,13 @@ export default function IntegrationDetailPage() {
         <div
           style={{
             padding: "24px",
-            backgroundColor: "white",
-            border: `1px solid ${colors.border}`,
+            backgroundColor: themeColors.white,
+            border: `1px solid ${themeColors.border}`,
             borderRadius: "12px",
             boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
           }}
         >
-          <h2 style={{ margin: "0 0 20px 0", fontSize: "20px", fontWeight: "600", color: "#111827" }}>
+          <h2 style={{ margin: "0 0 20px 0", fontSize: "20px", fontWeight: "600", color: themeColors.text.primary }}>
             Günlükler (Log)
           </h2>
           {logs.length === 0 ? (
@@ -755,14 +761,14 @@ export default function IntegrationDetailPage() {
               style={{
                 textAlign: "center",
                 padding: "40px",
-                color: colors.text.secondary,
-                backgroundColor: colors.gray[50],
+                color: themeColors.text.secondary,
+                backgroundColor: themeColors.gray[50],
                 borderRadius: "8px",
               }}
             >
               <p style={{ margin: 0 }}>Henüz günlük kaydı bulunmamaktadır.</p>
               {jobs.some((job: any) => job.status === "pending" || job.status === "in_progress") && (
-                <p style={{ fontSize: "14px", color: colors.text.secondary, marginTop: "8px" }}>
+                <p style={{ fontSize: "14px", color: themeColors.text.secondary, marginTop: "8px" }}>
                   <em>Günlükler, senkronizasyon işlemleri tamamlandığında görünecektir.</em>
                 </p>
               )}
@@ -771,14 +777,14 @@ export default function IntegrationDetailPage() {
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
-                  <tr style={{ borderBottom: "2px solid #e5e7eb" }}>
-                    <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: "#6b7280" }}>
+                  <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
+                    <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: themeColors.text.secondary }}>
                       Seviye
                     </th>
-                    <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: "#6b7280" }}>
+                    <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: themeColors.text.secondary }}>
                       Mesaj
                     </th>
-                    <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: "#6b7280" }}>
+                    <th style={{ padding: "12px", textAlign: "left", fontSize: "14px", fontWeight: "600", color: themeColors.text.secondary }}>
                       Tarih
                     </th>
                   </tr>
@@ -788,11 +794,11 @@ export default function IntegrationDetailPage() {
                     <tr
                       key={log.id}
                       style={{
-                        borderBottom: `1px solid ${colors.border}`,
+                        borderBottom: `1px solid ${themeColors.border}`,
                         transition: "background-color 0.2s",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = colors.gray[50];
+                        e.currentTarget.style.backgroundColor = themeColors.gray[50];
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = "transparent";
@@ -808,23 +814,23 @@ export default function IntegrationDetailPage() {
                             display: "inline-block",
                             backgroundColor:
                               log.level === "error"
-                                ? "#fee2e2"
+                                ? colors.dangerLight
                                 : log.level === "warning"
-                                ? "#fef3c7"
-                                : "#dbeafe",
+                                ? colors.warningLight
+                                : colors.infoLight,
                             color:
                               log.level === "error"
-                                ? "#991b1b"
+                                ? colors.dangerDark
                                 : log.level === "warning"
-                                ? "#92400e"
-                                : "#1e40af",
+                                ? colors.warningDark
+                                : colors.primaryDark,
                           }}
                         >
                           {LOG_LEVEL_LABELS[log.level] || log.level}
                         </span>
                       </td>
                       <td style={{ padding: "12px" }}>
-                        <div style={{ color: "#111827", fontSize: "14px", marginBottom: log.context ? "4px" : "0" }}>
+                        <div style={{ color: themeColors.text.primary, fontSize: "14px", marginBottom: log.context ? "4px" : "0" }}>
                           {log.message}
                         </div>
                         {log.context && Object.keys(log.context).length > 0 && (
@@ -832,7 +838,7 @@ export default function IntegrationDetailPage() {
                             <summary
                               style={{
                                 cursor: "pointer",
-                                color: "#2563eb",
+                                color: colors.primary,
                                 fontSize: "13px",
                                 fontWeight: "500",
                               }}
@@ -843,12 +849,12 @@ export default function IntegrationDetailPage() {
                               style={{
                                 marginTop: "8px",
                                 padding: "12px",
-                                backgroundColor: "#f9fafb",
+                                backgroundColor: themeColors.gray[50],
                                 borderRadius: "6px",
                                 overflow: "auto",
                                 maxHeight: "200px",
                                 fontSize: "12px",
-                                border: `1px solid ${colors.border}`,
+                                border: `1px solid ${themeColors.border}`,
                               }}
                             >
                               {JSON.stringify(log.context, null, 2)}
@@ -856,7 +862,7 @@ export default function IntegrationDetailPage() {
                           </details>
                         )}
                       </td>
-                      <td style={{ padding: "12px", color: colors.text.secondary, fontSize: "14px" }}>
+                      <td style={{ padding: "12px", color: themeColors.text.secondary, fontSize: "14px" }}>
                         {new Date(log.createdAt).toLocaleString("tr-TR")}
                       </td>
                     </tr>

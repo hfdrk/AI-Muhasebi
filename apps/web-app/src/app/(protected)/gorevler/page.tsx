@@ -10,11 +10,13 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { spacing, colors } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import TaskModal from "@/components/task-modal";
 import TaskList from "@/components/task-list";
 import TaskDashboardWidget from "@/components/task-dashboard-widget";
 
 export default function TasksPage() {
+  const { themeColors } = useTheme();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; taskId: string | null }>({ open: false, taskId: null });
@@ -27,7 +29,7 @@ export default function TasksPage() {
 
   const queryClient = useQueryClient();
 
-  const { data: tasksData, isLoading, error } = useQuery({
+  const { data: tasksData, isLoading } = useQuery({
     queryKey: ["tasks", filters],
     queryFn: () => listTasks(filters),
   });
@@ -85,7 +87,7 @@ export default function TasksPage() {
             style={{
               padding: "10px 20px",
               backgroundColor: colors.primary,
-              color: "white",
+              color: colors.white,
               border: "none",
               borderRadius: "4px",
               cursor: "pointer",
@@ -106,7 +108,7 @@ export default function TasksPage() {
             onChange={(e) =>
               setFilters({ ...filters, status: e.target.value as any || undefined })
             }
-            style={{ padding: "8px", border: "1px solid #ddd", borderRadius: "4px" }}
+            style={{ padding: "8px", border: `1px solid ${themeColors.border}`, borderRadius: "4px" }}
           >
             <option value="">Tüm Durumlar</option>
             <option value="pending">Beklemede</option>
@@ -120,7 +122,7 @@ export default function TasksPage() {
             onChange={(e) =>
               setFilters({ ...filters, priority: e.target.value as any || undefined })
             }
-            style={{ padding: "8px", border: "1px solid #ddd", borderRadius: "4px" }}
+            style={{ padding: "8px", border: `1px solid ${themeColors.border}`, borderRadius: "4px" }}
           >
             <option value="">Tüm Öncelikler</option>
             <option value="low">Düşük</option>

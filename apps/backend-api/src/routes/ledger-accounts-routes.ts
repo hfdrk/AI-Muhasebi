@@ -5,6 +5,7 @@ import { ledgerAccountService } from "../services/ledger-account-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
 import { requireRole } from "../middleware/rbac-middleware";
+import { cacheMiddleware } from "../middleware/cache-middleware";
 import { TENANT_ROLES } from "@repo/core-domain";
 import type { AuthenticatedRequest } from "../types/request-context";
 import type { Response } from "express";
@@ -24,7 +25,7 @@ const createLedgerAccountSchema = z.object({
 
 const updateLedgerAccountSchema = createLedgerAccountSchema.partial();
 
-router.get("/", async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+router.get("/", cacheMiddleware(600000), async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const accounts = await ledgerAccountService.listLedgerAccounts(
       req.context!.tenantId!
@@ -36,7 +37,7 @@ router.get("/", async (req: AuthenticatedRequest, res: Response, next: NextFunct
   }
 });
 
-router.get("/:id", async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+router.get("/:id", cacheMiddleware(600000), async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const account = await ledgerAccountService.getLedgerAccountById(
       req.context!.tenantId!,

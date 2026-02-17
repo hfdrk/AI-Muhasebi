@@ -3,14 +3,14 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { taxClient, listClientCompanies } from "@repo/api-client";
-import Link from "next/link";
 import { Card } from "../../../components/ui/Card";
-import { Button } from "../../../components/ui/Button";
 import { Skeleton } from "../../../components/ui/Skeleton";
 import { PageTransition } from "../../../components/ui/PageTransition";
-import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../styles/design-system";
+import { colors, spacing, borderRadius, typography } from "../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function TaxDashboardPage() {
+  const { themeColors } = useTheme();
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
 
   // Fetch client companies
@@ -41,7 +41,7 @@ export default function TaxDashboardPage() {
           padding: spacing.xxl,
           maxWidth: "1600px",
           margin: "0 auto",
-          backgroundColor: colors.gray[50],
+          backgroundColor: themeColors.gray[50],
           minHeight: "100vh",
         }}
       >
@@ -52,7 +52,7 @@ export default function TaxDashboardPage() {
                 display: "inline-block",
                 width: "48px",
                 height: "48px",
-                border: `4px solid ${colors.gray[200]}`,
+                border: `4px solid ${themeColors.gray[200]}`,
                 borderTopColor: colors.primary,
                 borderRadius: "50%",
                 animation: "spin 0.8s linear infinite",
@@ -61,7 +61,7 @@ export default function TaxDashboardPage() {
             />
             <p
               style={{
-                color: colors.text.muted,
+                color: themeColors.text.muted,
                 fontSize: typography.fontSize.sm,
                 margin: 0,
               }}
@@ -88,7 +88,7 @@ export default function TaxDashboardPage() {
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
-        backgroundColor: colors.gray[50],
+        backgroundColor: themeColors.gray[50],
         minHeight: "100vh",
       }}
     >
@@ -102,7 +102,7 @@ export default function TaxDashboardPage() {
           style={{
             fontSize: typography.fontSize["3xl"],
             fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
             marginBottom: spacing.sm,
           }}
         >
@@ -111,7 +111,7 @@ export default function TaxDashboardPage() {
         <p
           style={{
             fontSize: typography.fontSize.base,
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
             lineHeight: typography.lineHeight.relaxed,
             margin: 0,
           }}
@@ -157,7 +157,7 @@ export default function TaxDashboardPage() {
                   margin: 0,
                   fontSize: typography.fontSize.lg,
                   fontWeight: typography.fontWeight.semibold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                   marginBottom: spacing.xs,
                 }}
               >
@@ -167,7 +167,7 @@ export default function TaxDashboardPage() {
                 style={{
                   margin: 0,
                   fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 KDV analizi, optimizasyon ve beyanname hazırlama
@@ -204,7 +204,7 @@ export default function TaxDashboardPage() {
                   margin: 0,
                   fontSize: typography.fontSize.lg,
                   fontWeight: typography.fontWeight.semibold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                   marginBottom: spacing.xs,
                 }}
               >
@@ -214,7 +214,7 @@ export default function TaxDashboardPage() {
                 style={{
                   margin: 0,
                   fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 Uyumluluk kontrolü ve son tarih takibi
@@ -251,7 +251,7 @@ export default function TaxDashboardPage() {
                   margin: 0,
                   fontSize: typography.fontSize.lg,
                   fontWeight: typography.fontWeight.semibold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                   marginBottom: spacing.xs,
                 }}
               >
@@ -261,7 +261,7 @@ export default function TaxDashboardPage() {
                 style={{
                   margin: 0,
                   fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 KDV, kurumlar vergisi ve stopaj raporları
@@ -298,7 +298,7 @@ export default function TaxDashboardPage() {
                   margin: 0,
                   fontSize: typography.fontSize.lg,
                   fontWeight: typography.fontWeight.semibold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                   marginBottom: spacing.xs,
                 }}
               >
@@ -308,7 +308,7 @@ export default function TaxDashboardPage() {
                 style={{
                   margin: 0,
                   fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 Türk Muhasebe Standartları uyumluluğu
@@ -327,7 +327,7 @@ export default function TaxDashboardPage() {
               marginBottom: spacing.sm,
               fontSize: typography.fontSize.sm,
               fontWeight: typography.fontWeight.medium,
-              color: colors.text.primary,
+              color: themeColors.text.primary,
             }}
           >
             Müşteri Seçin
@@ -340,10 +340,10 @@ export default function TaxDashboardPage() {
               maxWidth: "400px",
               padding: spacing.sm,
               borderRadius: borderRadius.md,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               fontSize: typography.fontSize.base,
-              backgroundColor: colors.white,
-              color: colors.text.primary,
+              backgroundColor: themeColors.white,
+              color: themeColors.text.primary,
             }}
           >
             <option value="">Müşteri seçin...</option>
@@ -364,7 +364,7 @@ export default function TaxDashboardPage() {
                     display: "inline-block",
                     width: "32px",
                     height: "32px",
-                    border: `3px solid ${colors.gray[200]}`,
+                    border: `3px solid ${themeColors.gray[200]}`,
                     borderTopColor: colors.primary,
                     borderRadius: "50%",
                     animation: "spin 0.8s linear infinite",
@@ -395,7 +395,7 @@ export default function TaxDashboardPage() {
                             margin: 0,
                             fontSize: typography.fontSize.base,
                             fontWeight: typography.fontWeight.semibold,
-                            color: colors.text.primary,
+                            color: themeColors.text.primary,
                           }}
                         >
                           Uyumluluk Durumu:{" "}
@@ -410,7 +410,7 @@ export default function TaxDashboardPage() {
                         style={{
                           margin: `${spacing.xs} 0 0 0`,
                           fontSize: typography.fontSize.sm,
-                          color: colors.text.secondary,
+                          color: themeColors.text.secondary,
                         }}
                       >
                         {compliance.issues.length} sorun tespit edildi
@@ -426,7 +426,7 @@ export default function TaxDashboardPage() {
                         margin: `0 0 ${spacing.sm} 0`,
                         fontSize: typography.fontSize.base,
                         fontWeight: typography.fontWeight.semibold,
-                        color: colors.text.primary,
+                        color: themeColors.text.primary,
                       }}
                     >
                       Yaklaşan Son Tarihler
@@ -438,8 +438,8 @@ export default function TaxDashboardPage() {
                           style={{
                             padding: spacing.sm,
                             borderRadius: borderRadius.md,
-                            backgroundColor: colors.gray[50],
-                            border: `1px solid ${colors.border}`,
+                            backgroundColor: themeColors.gray[50],
+                            border: `1px solid ${themeColors.border}`,
                           }}
                         >
                           <div
@@ -453,7 +453,7 @@ export default function TaxDashboardPage() {
                               style={{
                                 fontSize: typography.fontSize.sm,
                                 fontWeight: typography.fontWeight.medium,
-                                color: colors.text.primary,
+                                color: themeColors.text.primary,
                               }}
                             >
                               {deadline.type}
@@ -461,7 +461,7 @@ export default function TaxDashboardPage() {
                             <span
                               style={{
                                 fontSize: typography.fontSize.sm,
-                                color: colors.text.secondary,
+                                color: themeColors.text.secondary,
                               }}
                             >
                               {new Date(deadline.dueDate).toLocaleDateString("tr-TR")}
@@ -471,7 +471,7 @@ export default function TaxDashboardPage() {
                             style={{
                               margin: `${spacing.xs} 0 0 0`,
                               fontSize: typography.fontSize.sm,
-                              color: colors.text.secondary,
+                              color: themeColors.text.secondary,
                             }}
                           >
                             {deadline.description}
@@ -496,7 +496,7 @@ export default function TaxDashboardPage() {
                 </p>
               </div>
             ) : (
-              <p style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm }}>
+              <p style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>
                 Uyumluluk bilgisi yüklenemedi.
               </p>
             )}

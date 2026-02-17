@@ -3,12 +3,12 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 // Use dynamic imports to avoid server-side module resolution issues
-import type { Invoice, ClientCompany, SavedFilter } from "@repo/api-client";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import Link from "next/link";
 import { colors } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 // Dynamic import with proper SSR handling for SavedFiltersDropdown
 // Using a wrapper to ensure proper default export handling
@@ -36,6 +36,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 function InvoicesPageContent() {
+  const { themeColors } = useTheme();
   const router = useRouter();
   const searchParams = useSearchParams();
   const clientCompanyId = searchParams.get("clientCompanyId") || undefined;
@@ -152,8 +153,8 @@ function InvoicesPageContent() {
           href="/faturalar/new"
           style={{
             padding: "8px 16px",
-            backgroundColor: "#0066cc",
-            color: "white",
+            backgroundColor: colors.primary,
+            color: colors.white,
             textDecoration: "none",
             borderRadius: "4px",
           }}
@@ -182,7 +183,7 @@ function InvoicesPageContent() {
               }}
               style={{
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
                 minWidth: "200px",
@@ -207,7 +208,7 @@ function InvoicesPageContent() {
             }}
             style={{
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
@@ -224,7 +225,7 @@ function InvoicesPageContent() {
             }}
             style={{
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
@@ -240,7 +241,7 @@ function InvoicesPageContent() {
             }}
             style={{
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
@@ -260,7 +261,7 @@ function InvoicesPageContent() {
             }}
             style={{
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
@@ -294,7 +295,7 @@ function InvoicesPageContent() {
               marginTop: "16px",
               padding: "8px 16px",
               backgroundColor: colors.primary,
-              color: "white",
+              color: colors.white,
               textDecoration: "none",
               borderRadius: "4px",
             }}
@@ -306,7 +307,7 @@ function InvoicesPageContent() {
         <>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr style={{ borderBottom: "2px solid #ddd" }}>
+              <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
                 <th style={{ padding: "12px", textAlign: "left" }}>Şirket Adı</th>
                 <th style={{ padding: "12px", textAlign: "left" }}>Fatura No</th>
                 <th style={{ padding: "12px", textAlign: "left" }}>Tür</th>
@@ -320,7 +321,7 @@ function InvoicesPageContent() {
             </thead>
             <tbody>
               {invoices.map((invoice) => (
-                <tr key={invoice.id} style={{ borderBottom: "1px solid #eee" }}>
+                <tr key={invoice.id} style={{ borderBottom: `1px solid ${themeColors.gray[200]}` }}>
                   <td style={{ padding: "12px" }}>
                     {invoice.clientCompanyName || "-"}
                   </td>
@@ -384,7 +385,7 @@ function InvoicesPageContent() {
                 disabled={page === 1}
                 style={{
                   padding: "8px 16px",
-                  border: "1px solid #ddd",
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "4px",
                   cursor: page === 1 ? "not-allowed" : "pointer",
                   opacity: page === 1 ? 0.5 : 1,
@@ -400,7 +401,7 @@ function InvoicesPageContent() {
                 disabled={page === pagination.totalPages}
                 style={{
                   padding: "8px 16px",
-                  border: "1px solid #ddd",
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "4px",
                   cursor: page === pagination.totalPages ? "not-allowed" : "pointer",
                   opacity: page === pagination.totalPages ? 0.5 : 1,

@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { analyticsClient } from "@repo/api-client";
-import Link from "next/link";
 import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
-import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
+import { colors, spacing, borderRadius, typography, transitions } from "../../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function ForecastsPage() {
+  const { themeColors } = useTheme();
   const [months, setMonths] = useState<number>(6);
   const [startDate, setStartDate] = useState<string | undefined>(undefined);
   const [activeTab, setActiveTab] = useState<"revenue" | "expense">("revenue");
@@ -47,7 +48,7 @@ export default function ForecastsPage() {
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
-        backgroundColor: colors.gray[50],
+        backgroundColor: themeColors.gray[50],
         minHeight: "100vh",
       }}
     >
@@ -66,7 +67,7 @@ export default function ForecastsPage() {
           style={{
             fontSize: typography.fontSize["3xl"],
             fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
             marginBottom: spacing.sm,
           }}
         >
@@ -75,7 +76,7 @@ export default function ForecastsPage() {
         <p
           style={{
             fontSize: typography.fontSize.base,
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
             lineHeight: typography.lineHeight.relaxed,
             margin: 0,
           }}
@@ -101,7 +102,7 @@ export default function ForecastsPage() {
                 marginBottom: spacing.xs,
                 fontSize: typography.fontSize.sm,
                 fontWeight: typography.fontWeight.medium,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
               }}
             >
               Tahmin Süresi (Ay)
@@ -116,10 +117,10 @@ export default function ForecastsPage() {
                 width: "100%",
                 padding: spacing.sm,
                 borderRadius: borderRadius.md,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
                 fontSize: typography.fontSize.base,
-                backgroundColor: colors.white,
-                color: colors.text.primary,
+                backgroundColor: themeColors.white,
+                color: themeColors.text.primary,
               }}
             />
           </div>
@@ -130,7 +131,7 @@ export default function ForecastsPage() {
                 marginBottom: spacing.xs,
                 fontSize: typography.fontSize.sm,
                 fontWeight: typography.fontWeight.medium,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
               }}
             >
               Başlangıç Tarihi (Opsiyonel)
@@ -143,10 +144,10 @@ export default function ForecastsPage() {
                 width: "100%",
                 padding: spacing.sm,
                 borderRadius: borderRadius.md,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
                 fontSize: typography.fontSize.base,
-                backgroundColor: colors.white,
-                color: colors.text.primary,
+                backgroundColor: themeColors.white,
+                color: themeColors.text.primary,
               }}
             />
           </div>
@@ -159,7 +160,7 @@ export default function ForecastsPage() {
           display: "flex",
           gap: spacing.sm,
           marginBottom: spacing.lg,
-          borderBottom: `2px solid ${colors.border}`,
+          borderBottom: `2px solid ${themeColors.border}`,
         }}
       >
         <button
@@ -169,7 +170,7 @@ export default function ForecastsPage() {
             border: "none",
             borderBottom: `3px solid ${activeTab === "revenue" ? colors.primary : "transparent"}`,
             backgroundColor: "transparent",
-            color: activeTab === "revenue" ? colors.primary : colors.text.secondary,
+            color: activeTab === "revenue" ? colors.primary : themeColors.text.secondary,
             fontSize: typography.fontSize.base,
             fontWeight:
               activeTab === "revenue"
@@ -188,7 +189,7 @@ export default function ForecastsPage() {
             border: "none",
             borderBottom: `3px solid ${activeTab === "expense" ? colors.primary : "transparent"}`,
             backgroundColor: "transparent",
-            color: activeTab === "expense" ? colors.primary : colors.text.secondary,
+            color: activeTab === "expense" ? colors.primary : themeColors.text.secondary,
             fontSize: typography.fontSize.base,
             fontWeight:
               activeTab === "expense"
@@ -211,7 +212,7 @@ export default function ForecastsPage() {
                 display: "inline-block",
                 width: "48px",
                 height: "48px",
-                border: `4px solid ${colors.gray[200]}`,
+                border: `4px solid ${themeColors.gray[200]}`,
                 borderTopColor: colors.primary,
                 borderRadius: "50%",
                 animation: "spin 0.8s linear infinite",
@@ -222,7 +223,7 @@ export default function ForecastsPage() {
       ) : forecast.length === 0 ? (
         <Card variant="elevated">
           <div style={{ padding: spacing.xl, textAlign: "center" }}>
-            <p style={{ color: colors.text.secondary, margin: 0 }}>
+            <p style={{ color: themeColors.text.secondary, margin: 0 }}>
               Tahmin verisi bulunamadı.
             </p>
           </div>
@@ -237,14 +238,14 @@ export default function ForecastsPage() {
               }}
             >
               <thead>
-                <tr style={{ borderBottom: `2px solid ${colors.border}` }}>
+                <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
                   <th
                     style={{
                       padding: spacing.md,
                       textAlign: "left",
                       fontSize: typography.fontSize.sm,
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                     }}
                   >
                     Dönem
@@ -255,7 +256,7 @@ export default function ForecastsPage() {
                       textAlign: "right",
                       fontSize: typography.fontSize.sm,
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                     }}
                   >
                     Tahmin
@@ -266,7 +267,7 @@ export default function ForecastsPage() {
                       textAlign: "right",
                       fontSize: typography.fontSize.sm,
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                     }}
                   >
                     Alt Sınır
@@ -277,7 +278,7 @@ export default function ForecastsPage() {
                       textAlign: "right",
                       fontSize: typography.fontSize.sm,
                       fontWeight: typography.fontWeight.semibold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                     }}
                   >
                     Üst Sınır
@@ -289,7 +290,7 @@ export default function ForecastsPage() {
                   <tr
                     key={index}
                     style={{
-                      borderBottom: `1px solid ${colors.border}`,
+                      borderBottom: `1px solid ${themeColors.border}`,
                     }}
                   >
                     <td style={{ padding: spacing.md }}>{item.period}</td>
@@ -307,7 +308,7 @@ export default function ForecastsPage() {
                       style={{
                         padding: spacing.md,
                         textAlign: "right",
-                        color: colors.text.secondary,
+                        color: themeColors.text.secondary,
                       }}
                     >
                       {formatCurrency(
@@ -320,7 +321,7 @@ export default function ForecastsPage() {
                       style={{
                         padding: spacing.md,
                         textAlign: "right",
-                        color: colors.text.secondary,
+                        color: themeColors.text.secondary,
                       }}
                     >
                       {formatCurrency(

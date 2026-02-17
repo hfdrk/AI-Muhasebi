@@ -3,6 +3,7 @@
 import { Icon } from "./Icon";
 import { Button } from "./Button";
 import { colors, spacing, typography, transitions, shadows, borderRadius } from "../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface EmptyStateProps {
   icon?: string;
@@ -23,6 +24,7 @@ export function EmptyState({
   size = "md",
   variant = "default",
 }: EmptyStateProps) {
+  const { themeColors } = useTheme();
   const iconSize = size === "sm" ? 48 : size === "md" ? 64 : 80;
   const titleSize = size === "sm" ? typography.fontSize.lg : size === "md" ? typography.fontSize.xl : typography.fontSize["2xl"];
 
@@ -35,8 +37,8 @@ export function EmptyState({
         };
       case "subtle":
         return {
-          backgroundColor: colors.gray[50],
-          border: `1px solid ${colors.border}`,
+          backgroundColor: themeColors.gray[50],
+          border: `1px solid ${themeColors.border}`,
         };
       default:
         return {
@@ -65,7 +67,7 @@ export function EmptyState({
           width: iconSize + 32,
           height: iconSize + 32,
           borderRadius: "50%",
-          backgroundColor: variant === "gradient" ? colors.white : colors.gray[100],
+          backgroundColor: variant === "gradient" ? themeColors.white : themeColors.gray[100],
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -78,14 +80,14 @@ export function EmptyState({
         <Icon 
           name={icon as any} 
           size={iconSize} 
-          color={variant === "gradient" ? colors.primary : colors.gray[400]} 
+          color={variant === "gradient" ? colors.primary : themeColors.gray[400]}
         />
       </div>
       <h3
         style={{
           fontSize: titleSize,
           fontWeight: typography.fontWeight.semibold,
-          color: colors.text.primary,
+          color: themeColors.text.primary,
           margin: 0,
           marginBottom: spacing.sm,
           animation: "fadeInUp 0.5s ease",
@@ -97,7 +99,7 @@ export function EmptyState({
         <p
           style={{
             fontSize: typography.fontSize.base,
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
             margin: 0,
             marginBottom: actionLabel ? spacing.lg : 0,
             maxWidth: "500px",

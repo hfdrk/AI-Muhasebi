@@ -11,7 +11,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { format, parseISO } from "date-fns";
-import { colors, spacing, typography, borderRadius } from "@/styles/design-system";
+import { spacing, typography, borderRadius } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface RiskDistributionChartProps {
   data: {
@@ -23,6 +24,7 @@ interface RiskDistributionChartProps {
 }
 
 export default function RiskDistributionChart({ data }: RiskDistributionChartProps) {
+  const { themeColors } = useTheme();
   const chartData = data.dates.map((date, index) => ({
     date: format(parseISO(date), "MMM dd"),
     low: data.low[index] || 0,
@@ -48,17 +50,17 @@ export default function RiskDistributionChart({ data }: RiskDistributionChartPro
               <stop offset="95%" stopColor="#f87171" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke={colors.border} />
+          <CartesianGrid strokeDasharray="3 3" stroke={themeColors.border} />
           <XAxis
             dataKey="date"
-            stroke={colors.text.secondary}
+            stroke={themeColors.text.secondary}
             style={{ fontSize: typography.fontSize.sm }}
           />
-          <YAxis stroke={colors.text.secondary} style={{ fontSize: typography.fontSize.sm }} />
+          <YAxis stroke={themeColors.text.secondary} style={{ fontSize: typography.fontSize.sm }} />
           <Tooltip
             contentStyle={{
-              backgroundColor: colors.white,
-              border: `1px solid ${colors.border}`,
+              backgroundColor: themeColors.white,
+              border: `1px solid ${themeColors.border}`,
               borderRadius: borderRadius.md,
             }}
           />

@@ -1,5 +1,11 @@
 # Multi-stage build for backend-api
-FROM node:18-alpine AS base
+# Using Debian-based images throughout to avoid musl/glibc native module issues
+FROM node:18-slim AS base
+
+# Install build tools for native modules (bcrypt, etc.) + OpenSSL for Prisma
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends python3 make g++ openssl ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@8.15.0 --activate
@@ -41,35 +47,31 @@ WORKDIR /app/apps/backend-api
 RUN pnpm prisma generate
 WORKDIR /app
 
-# Production stage - Use Debian-based image for Prisma OpenSSL compatibility
+# Production stage
 FROM node:18-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Install OpenSSL and other dependencies for Prisma
+# Install runtime dependencies for Prisma + gosu for entrypoint
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends openssl ca-certificates && \
+    apt-get install -y --no-install-recommends openssl ca-certificates gosu && \
     rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
 RUN groupadd --system --gid 1001 nodejs && \
     useradd --system --uid 1001 --gid nodejs nodejs
 
-# Copy package files
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY apps/backend-api/package.json ./apps/backend-api/
-COPY packages/*/package.json ./packages/*/
+# Copy node_modules from builder (native modules are compatible - same glibc)
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/backend-api/node_modules ./apps/backend-api/node_modules
 
 # Copy compiled packages from builder stage
 COPY --from=builder /app/packages ./packages
 
-# Install ALL dependencies (workspace packages need their deps too)
-RUN corepack enable && corepack prepare pnpm@8.15.0 --activate && \
-    pnpm install --no-frozen-lockfile && \
-    pnpm add zod@^3.22.4 || echo "zod install attempted"
-
 # Update package.json main fields to point to compiled dist
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/backend-api/package.json ./apps/backend-api/
 RUN for pkg in packages/*/; do \
       if [ -f "$pkg/package.json" ] && [ -d "$pkg/dist" ]; then \
         node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('$pkg/package.json')); pkg.main='./dist/index.js'; pkg.types='./dist/index.d.ts'; fs.writeFileSync('$pkg/package.json', JSON.stringify(pkg, null, 2));"; \
@@ -86,21 +88,10 @@ RUN mkdir -p node_modules/@repo && \
 COPY --from=builder /app/apps/backend-api/dist ./apps/backend-api/dist
 COPY --from=builder /app/apps/backend-api/prisma ./apps/backend-api/prisma
 
-# Install ALL dependencies (including dev) to ensure everything is available
-# This is needed because pnpm's symlink structure doesn't copy well
-# Unset NODE_ENV to ensure devDependencies are installed, use --force to skip prompts
-RUN corepack enable && corepack prepare pnpm@8.15.0 --activate && \
-    NODE_ENV=development pnpm install --no-frozen-lockfile --force
+# Re-generate Prisma client for production runtime
 WORKDIR /app/apps/backend-api
-RUN pnpm prisma generate || npx prisma generate || echo "Prisma generate completed"
+RUN npx prisma generate || echo "Prisma generate completed"
 WORKDIR /app
-
-WORKDIR /app
-
-# Install gosu for user switching (Debian alternative to su-exec)
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends gosu && \
-    rm -rf /var/lib/apt/lists/*
 
 # Copy entrypoint script
 COPY apps/backend-api/docker-entrypoint.sh /app/docker-entrypoint.sh
@@ -116,4 +107,3 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3800/healthz', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
-

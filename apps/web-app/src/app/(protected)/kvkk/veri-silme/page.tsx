@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { kvkkClient, listTenantUsers } from "@repo/api-client";
-import Link from "next/link";
 import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
 import { Modal } from "../../../../components/ui/Modal";
 import { PageTransition } from "../../../../components/ui/PageTransition";
-import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
+import { colors, spacing, borderRadius, typography } from "../../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "../../../../lib/toast";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -19,6 +19,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function DataDeletionRequestsPage() {
+  const { themeColors } = useTheme();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [confirmModal, setConfirmModal] = useState(false);
   const queryClient = useQueryClient();
@@ -74,7 +75,7 @@ export default function DataDeletionRequestsPage() {
       if (!selectedUserId) throw new Error("Kullanıcı seçilmedi");
       return kvkkClient.requestDataDeletion(selectedUserId);
     },
-    onSuccess: (data) => {
+    onSuccess: (_data) => {
       setConfirmModal(true);
       queryClient.invalidateQueries({ queryKey: ["kvkk-data-deletion"] });
       queryClient.invalidateQueries({ queryKey: ["kvkk-data-deletion-requests"] });
@@ -91,7 +92,7 @@ export default function DataDeletionRequestsPage() {
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
-        backgroundColor: colors.gray[50],
+        backgroundColor: themeColors.gray[50],
         minHeight: "100vh",
       }}
     >
@@ -110,7 +111,7 @@ export default function DataDeletionRequestsPage() {
           style={{
             fontSize: typography.fontSize["3xl"],
             fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
             marginBottom: spacing.sm,
           }}
         >
@@ -119,7 +120,7 @@ export default function DataDeletionRequestsPage() {
         <p
           style={{
             fontSize: typography.fontSize.base,
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
             lineHeight: typography.lineHeight.relaxed,
             margin: 0,
           }}
@@ -144,7 +145,7 @@ export default function DataDeletionRequestsPage() {
               style={{
                 margin: 0,
                 fontSize: typography.fontSize.sm,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
                 fontWeight: typography.fontWeight.medium,
                 marginBottom: spacing.xs,
               }}
@@ -155,7 +156,7 @@ export default function DataDeletionRequestsPage() {
               style={{
                 margin: 0,
                 fontSize: typography.fontSize.sm,
-                color: colors.text.secondary,
+                color: themeColors.text.secondary,
                 lineHeight: typography.lineHeight.relaxed,
               }}
             >
@@ -173,7 +174,7 @@ export default function DataDeletionRequestsPage() {
             margin: `0 0 ${spacing.md} 0`,
             fontSize: typography.fontSize.xl,
             fontWeight: typography.fontWeight.semibold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
           }}
         >
           Yeni Veri Silme Talebi Oluştur
@@ -185,7 +186,7 @@ export default function DataDeletionRequestsPage() {
               marginBottom: spacing.sm,
               fontSize: typography.fontSize.sm,
               fontWeight: typography.fontWeight.medium,
-              color: colors.text.primary,
+              color: themeColors.text.primary,
             }}
           >
             Kullanıcı Seçin
@@ -198,10 +199,10 @@ export default function DataDeletionRequestsPage() {
               maxWidth: "400px",
               padding: spacing.sm,
               borderRadius: borderRadius.md,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               fontSize: typography.fontSize.base,
-              backgroundColor: colors.white,
-              color: colors.text.primary,
+              backgroundColor: themeColors.white,
+              color: themeColors.text.primary,
             }}
           >
             <option value="">Kullanıcı seçin...</option>
@@ -219,7 +220,7 @@ export default function DataDeletionRequestsPage() {
               padding: spacing.md,
               borderRadius: borderRadius.md,
               backgroundColor: colors.infoLight,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               marginBottom: spacing.md,
             }}
           >
@@ -227,7 +228,7 @@ export default function DataDeletionRequestsPage() {
               style={{
                 margin: 0,
                 fontSize: typography.fontSize.sm,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
                 fontWeight: typography.fontWeight.medium,
                 marginBottom: spacing.xs,
               }}
@@ -238,7 +239,7 @@ export default function DataDeletionRequestsPage() {
               style={{
                 margin: 0,
                 fontSize: typography.fontSize.sm,
-                color: colors.text.secondary,
+                color: themeColors.text.secondary,
               }}
             >
               Saklama süresi: {retention.retentionPeriod} gün
@@ -247,7 +248,7 @@ export default function DataDeletionRequestsPage() {
               style={{
                 margin: `${spacing.xs} 0 0 0`,
                 fontSize: typography.fontSize.sm,
-                color: colors.text.secondary,
+                color: themeColors.text.secondary,
               }}
             >
               Son geçerlilik: {new Date(retention.expiresAt).toLocaleDateString("tr-TR")}
@@ -281,7 +282,7 @@ export default function DataDeletionRequestsPage() {
               style={{
                 margin: 0,
                 fontSize: typography.fontSize.sm,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
                 fontWeight: typography.fontWeight.medium,
                 marginBottom: spacing.xs,
               }}
@@ -292,7 +293,7 @@ export default function DataDeletionRequestsPage() {
               style={{
                 margin: 0,
                 fontSize: typography.fontSize.sm,
-                color: colors.text.secondary,
+                color: themeColors.text.secondary,
                 lineHeight: typography.lineHeight.relaxed,
               }}
             >
@@ -310,18 +311,18 @@ export default function DataDeletionRequestsPage() {
             margin: `0 0 ${spacing.md} 0`,
             fontSize: typography.fontSize.xl,
             fontWeight: typography.fontWeight.semibold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
           }}
         >
           Talep Geçmişi
         </h2>
         {deletionRequestsLoading ? (
           <div style={{ padding: spacing.lg, textAlign: "center" }}>
-            <p style={{ color: colors.text.secondary, margin: 0 }}>Yükleniyor...</p>
+            <p style={{ color: themeColors.text.secondary, margin: 0 }}>Yükleniyor...</p>
           </div>
         ) : deletionRequests.length === 0 ? (
           <div style={{ padding: spacing.lg, textAlign: "center" }}>
-            <p style={{ color: colors.text.secondary, margin: 0 }}>
+            <p style={{ color: themeColors.text.secondary, margin: 0 }}>
               Henüz veri silme talebi bulunmuyor.
             </p>
           </div>
@@ -329,7 +330,7 @@ export default function DataDeletionRequestsPage() {
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ backgroundColor: colors.gray[100], borderBottom: `1px solid ${colors.border}` }}>
+                <tr style={{ backgroundColor: themeColors.gray[100], borderBottom: `1px solid ${themeColors.border}` }}>
                   <th style={{ padding: spacing.sm, textAlign: "left", fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
                     Kullanıcı
                   </th>
@@ -350,26 +351,26 @@ export default function DataDeletionRequestsPage() {
               <tbody>
                 {deletionRequests.map((request: any) => {
                   const user = userMap.get(request.userId);
-                  const statusColor = 
+                  const statusColor =
                     request.status === "completed" ? colors.success
                     : request.status === "rejected" ? colors.danger
                     : request.status === "processing" ? colors.warning
                     : colors.info;
-                  
+
                   return (
-                    <tr key={request.id || request.requestId} style={{ borderBottom: `1px solid ${colors.border}` }}>
+                    <tr key={request.id || request.requestId} style={{ borderBottom: `1px solid ${themeColors.border}` }}>
                       <td style={{ padding: spacing.sm }}>
                         {user ? (
                           <div>
                             <div style={{ fontWeight: typography.fontWeight.medium }}>
                               {user.name || user.fullName}
                             </div>
-                            <div style={{ fontSize: typography.fontSize.xs, color: colors.text.secondary }}>
+                            <div style={{ fontSize: typography.fontSize.xs, color: themeColors.text.secondary }}>
                               {user.email}
                             </div>
                           </div>
                         ) : (
-                          <span style={{ color: colors.text.secondary }}>Bilinmeyen Kullanıcı</span>
+                          <span style={{ color: themeColors.text.secondary }}>Bilinmeyen Kullanıcı</span>
                         )}
                       </td>
                       <td style={{ padding: spacing.sm }}>
@@ -386,7 +387,7 @@ export default function DataDeletionRequestsPage() {
                           {STATUS_LABELS[request.status] || request.status}
                         </span>
                       </td>
-                      <td style={{ padding: spacing.sm, color: colors.text.secondary }}>
+                      <td style={{ padding: spacing.sm, color: themeColors.text.secondary }}>
                         {new Date(request.requestedAt).toLocaleDateString("tr-TR", {
                           year: "numeric",
                           month: "long",
@@ -395,7 +396,7 @@ export default function DataDeletionRequestsPage() {
                           minute: "2-digit",
                         })}
                       </td>
-                      <td style={{ padding: spacing.sm, color: colors.text.secondary }}>
+                      <td style={{ padding: spacing.sm, color: themeColors.text.secondary }}>
                         {request.completedAt
                           ? new Date(request.completedAt).toLocaleDateString("tr-TR", {
                               year: "numeric",
@@ -406,7 +407,7 @@ export default function DataDeletionRequestsPage() {
                             })
                           : "-"}
                       </td>
-                      <td style={{ padding: spacing.sm, color: colors.text.secondary, maxWidth: "300px" }}>
+                      <td style={{ padding: spacing.sm, color: themeColors.text.secondary, maxWidth: "300px" }}>
                         {request.rejectionReason ? (
                           <div style={{ fontSize: typography.fontSize.xs }}>
                             <strong>Red Nedeni:</strong> {request.rejectionReason}
@@ -460,4 +461,3 @@ export default function DataDeletionRequestsPage() {
     </PageTransition>
   );
 }
-

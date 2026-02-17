@@ -16,9 +16,11 @@ import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Card } from "@/components/ui/Card";
 import { PageTransition } from "@/components/ui/PageTransition";
-import { spacing } from "@/styles/design-system";
+import { colors, spacing } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function ClientDetailPage() {
+  const { themeColors } = useTheme();
   const params = useParams();
   // const router = useRouter(); // Reserved for future use
   const clientId = params.id as string;
@@ -26,6 +28,7 @@ export default function ClientDetailPage() {
   const [bankModalOpen, setBankModalOpen] = useState(false);
   const [documentModalOpen, setDocumentModalOpen] = useState(false);
   const [editingBankAccount, setEditingBankAccount] = useState<string | null>(null);
+  const [deleteBankModal, setDeleteBankModal] = useState<{ open: boolean; accountId: string | null }>({ open: false, accountId: null });
   const queryClient = useQueryClient();
 
   const { data: client, isLoading: clientLoading } = useQuery({
@@ -84,7 +87,7 @@ export default function ClientDetailPage() {
             style={{
               padding: "8px 16px",
               backgroundColor: colors.primary,
-              color: "white",
+              color: colors.white,
               textDecoration: "none",
               borderRadius: "4px",
               display: "flex",
@@ -99,7 +102,7 @@ export default function ClientDetailPage() {
             style={{
               padding: "8px 16px",
               backgroundColor: colors.primary,
-              color: "white",
+              color: colors.white,
               textDecoration: "none",
               borderRadius: "4px",
             }}
@@ -110,7 +113,7 @@ export default function ClientDetailPage() {
             href="/musteriler"
             style={{
               padding: "8px 16px",
-              backgroundColor: colors.gray[100],
+              backgroundColor: themeColors.gray[100],
               color: "inherit",
               textDecoration: "none",
               borderRadius: "4px",
@@ -121,7 +124,7 @@ export default function ClientDetailPage() {
         </div>
       </div>
 
-      <div style={{ borderBottom: "1px solid #ddd", marginBottom: "24px" }}>
+      <div style={{ borderBottom: `1px solid ${themeColors.border}`, marginBottom: "24px" }}>
         <div style={{ display: "flex", gap: "16px" }}>
           <button
             onClick={() => setActiveTab("general")}
@@ -227,8 +230,8 @@ export default function ClientDetailPage() {
               style={{
                 padding: "4px 8px",
                 borderRadius: "4px",
-                backgroundColor: clientData.isActive ? "#d4edda" : "#f8d7da",
-                color: clientData.isActive ? "#155724" : "#721c24",
+                backgroundColor: clientData.isActive ? colors.successLight : colors.dangerLight,
+                color: clientData.isActive ? colors.successDark : colors.dangerDark,
                 fontSize: "12px",
               }}
             >
@@ -277,7 +280,7 @@ export default function ClientDetailPage() {
               style={{
                 padding: "8px 16px",
                 backgroundColor: colors.primary,
-                color: "white",
+                color: colors.white,
                 border: "none",
                 borderRadius: "4px",
                 cursor: "pointer",
@@ -299,7 +302,7 @@ export default function ClientDetailPage() {
           ) : (
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ borderBottom: "2px solid #ddd" }}>
+                <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
                   <th style={{ padding: "12px", textAlign: "left" }}>Banka Adı</th>
                   <th style={{ padding: "12px", textAlign: "left" }}>IBAN</th>
                   <th style={{ padding: "12px", textAlign: "left" }}>Para Birimi</th>
@@ -310,7 +313,7 @@ export default function ClientDetailPage() {
               </thead>
               <tbody>
                 {bankAccounts?.data.map((account) => (
-                  <tr key={account.id} style={{ borderBottom: "1px solid #eee" }}>
+                  <tr key={account.id} style={{ borderBottom: `1px solid ${themeColors.gray[200]}` }}>
                     <td style={{ padding: "12px" }}>{account.bankName}</td>
                     <td style={{ padding: "12px" }}>{account.iban}</td>
                     <td style={{ padding: "12px" }}>{account.currency}</td>
@@ -409,7 +412,7 @@ export default function ClientDetailPage() {
           )}
 
           {!riskLoading && riskScoreData?.data && (
-            <div style={{ padding: "20px", backgroundColor: "#f5f5f5", borderRadius: "8px", marginBottom: "20px" }}>
+            <div style={{ padding: "20px", backgroundColor: themeColors.gray[50], borderRadius: "8px", marginBottom: "20px" }}>
               {riskScoreData.data.riskScore ? (
                 <>
                   <div style={{ marginBottom: "20px" }}>
@@ -422,10 +425,10 @@ export default function ClientDetailPage() {
                             fontWeight: "bold",
                             color:
                               riskScoreData.data.riskScore.severity === "high"
-                                ? "#dc2626"
+                                ? colors.danger
                                 : riskScoreData.data.riskScore.severity === "medium"
-                                ? "#f59e0b"
-                                : "#10b981",
+                                ? colors.warning
+                                : colors.success,
                           }}
                         >
                           {riskScoreData.data.riskScore.score}
@@ -442,16 +445,16 @@ export default function ClientDetailPage() {
                             fontWeight: "500",
                             backgroundColor:
                               riskScoreData.data.riskScore.severity === "high"
-                                ? "#dc262620"
+                                ? `${colors.danger}20`
                                 : riskScoreData.data.riskScore.severity === "medium"
-                                ? "#f59e0b20"
-                                : "#10b98120",
+                                ? `${colors.warning}20`
+                                : `${colors.success}20`,
                             color:
                               riskScoreData.data.riskScore.severity === "high"
-                                ? "#dc2626"
+                                ? colors.danger
                                 : riskScoreData.data.riskScore.severity === "medium"
-                                ? "#f59e0b"
-                                : "#10b981",
+                                ? colors.warning
+                                : colors.success,
                           }}
                         >
                           {riskScoreData.data.riskScore.severity === "high"
@@ -462,7 +465,7 @@ export default function ClientDetailPage() {
                         </span>
                       </div>
                     </div>
-                    <div style={{ fontSize: "14px", color: "#666" }}>
+                    <div style={{ fontSize: "14px", color: themeColors.text.secondary }}>
                       Hesaplanma Tarihi: {new Date(riskScoreData.data.riskScore.generatedAt).toLocaleString("tr-TR")}
                     </div>
                   </div>
@@ -470,23 +473,23 @@ export default function ClientDetailPage() {
                   <div style={{ marginBottom: "20px" }}>
                     <h3 style={{ marginBottom: "12px" }}>Belge Dağılımı</h3>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
-                      <div style={{ padding: "12px", backgroundColor: "#fff", borderRadius: "4px", textAlign: "center" }}>
-                        <div style={{ fontSize: "24px", fontWeight: "bold", color: "#10b981" }}>
+                      <div style={{ padding: "12px", backgroundColor: themeColors.white, borderRadius: "4px", textAlign: "center" }}>
+                        <div style={{ fontSize: "24px", fontWeight: "bold", color: colors.success }}>
                           {riskScoreData.data.breakdown.low}
                         </div>
-                        <div style={{ fontSize: "14px", color: "#666" }}>Düşük Risk</div>
+                        <div style={{ fontSize: "14px", color: themeColors.text.secondary }}>Düşük Risk</div>
                       </div>
-                      <div style={{ padding: "12px", backgroundColor: "#fff", borderRadius: "4px", textAlign: "center" }}>
-                        <div style={{ fontSize: "24px", fontWeight: "bold", color: "#f59e0b" }}>
+                      <div style={{ padding: "12px", backgroundColor: themeColors.white, borderRadius: "4px", textAlign: "center" }}>
+                        <div style={{ fontSize: "24px", fontWeight: "bold", color: colors.warning }}>
                           {riskScoreData.data.breakdown.medium}
                         </div>
-                        <div style={{ fontSize: "14px", color: "#666" }}>Orta Risk</div>
+                        <div style={{ fontSize: "14px", color: themeColors.text.secondary }}>Orta Risk</div>
                       </div>
-                      <div style={{ padding: "12px", backgroundColor: "#fff", borderRadius: "4px", textAlign: "center" }}>
-                        <div style={{ fontSize: "24px", fontWeight: "bold", color: "#dc2626" }}>
+                      <div style={{ padding: "12px", backgroundColor: themeColors.white, borderRadius: "4px", textAlign: "center" }}>
+                        <div style={{ fontSize: "24px", fontWeight: "bold", color: colors.danger }}>
                           {riskScoreData.data.breakdown.high}
                         </div>
-                        <div style={{ fontSize: "14px", color: "#666" }}>Yüksek Risk</div>
+                        <div style={{ fontSize: "14px", color: themeColors.text.secondary }}>Yüksek Risk</div>
                       </div>
                     </div>
                   </div>
@@ -510,9 +513,9 @@ export default function ClientDetailPage() {
                             key={index}
                             style={{
                               padding: "12px",
-                              backgroundColor: "#fff",
+                              backgroundColor: themeColors.white,
                               borderRadius: "4px",
-                              border: "1px solid #e0e0e0",
+                              border: `1px solid ${themeColors.border}`,
                               display: "flex",
                               justifyContent: "space-between",
                               alignItems: "center",
@@ -520,9 +523,9 @@ export default function ClientDetailPage() {
                           >
                             <div>
                               <strong>{rule.code}</strong>
-                              <div style={{ fontSize: "14px", color: "#666", marginTop: "4px" }}>{rule.description}</div>
+                              <div style={{ fontSize: "14px", color: themeColors.text.secondary, marginTop: "4px" }}>{rule.description}</div>
                             </div>
-                            <div style={{ fontSize: "14px", color: "#666" }}>{rule.count} kez tetiklendi</div>
+                            <div style={{ fontSize: "14px", color: themeColors.text.secondary }}>{rule.count} kez tetiklendi</div>
                           </div>
                         ))}
                       </div>
@@ -530,7 +533,7 @@ export default function ClientDetailPage() {
                   )}
                 </>
               ) : (
-                <div style={{ padding: "16px", textAlign: "center", color: "#666" }}>
+                <div style={{ padding: "16px", textAlign: "center", color: themeColors.text.secondary }}>
                   Bu müşteri için henüz risk skoru hesaplanmamış.
                 </div>
               )}
@@ -538,7 +541,7 @@ export default function ClientDetailPage() {
           )}
 
           {!riskLoading && !riskScoreData?.data && (
-            <div style={{ padding: "16px", backgroundColor: "#e2e3e5", borderRadius: "4px" }}>
+            <div style={{ padding: "16px", backgroundColor: themeColors.gray[200], borderRadius: "4px" }}>
               <p>Bu müşteri için henüz risk skoru hesaplanmamış.</p>
             </div>
           )}

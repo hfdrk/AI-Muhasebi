@@ -21,6 +21,13 @@ RUN pnpm install --no-frozen-lockfile
 # Build stage
 FROM base AS builder
 WORKDIR /app
+
+# Build arguments for Next.js build-time configuration
+ARG API_PROXY_TARGET=http://backend-api:3800/api/:path*
+ARG NEXT_PUBLIC_API_BASE_URL=http://localhost:3800
+ENV API_PROXY_TARGET=${API_PROXY_TARGET}
+ENV NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+
 # Build web-app
 RUN pnpm --filter web-app build
 

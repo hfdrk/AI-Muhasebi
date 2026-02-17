@@ -6,9 +6,9 @@ import { riskClient } from "@repo/api-client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import RiskExplanationPanel from "@/components/risk-explanation-panel";
 import { Card } from "@/components/ui/Card";
 import { colors, spacing, borderRadius, shadows, transitions, typography } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "@/lib/toast";
 import RiskTrendChart from "@/components/risk/RiskTrendChart";
 import AlertFrequencyChart from "@/components/risk/AlertFrequencyChart";
@@ -18,6 +18,7 @@ import RiskBreakdownPanel from "@/components/risk/RiskBreakdownPanel";
 import RiskHeatMap from "@/components/risk/RiskHeatMap";
 
 export default function RiskDashboardPage() {
+  const { themeColors } = useTheme();
   const router = useRouter();
   const { data, isLoading, error } = useRiskDashboard();
   const [trendPeriod, setTrendPeriod] = useState<"7d" | "30d" | "90d" | "1y">("30d");
@@ -27,7 +28,9 @@ export default function RiskDashboardPage() {
     queryKey: ["recent-risk-alerts"],
     queryFn: () => riskClient.getRecentRiskAlerts(5),
     enabled: !!data?.data,
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 60000, // Refresh every 60 seconds (reduced frequency)
+    staleTime: 30000, // Consider data fresh for 30 seconds
+    retry: 1, // Only retry once on failure
   });
 
   // Fetch trends
@@ -35,6 +38,8 @@ export default function RiskDashboardPage() {
     queryKey: ["risk-trends", trendPeriod],
     queryFn: () => riskClient.getRiskTrends(trendPeriod),
     enabled: !!data?.data,
+    staleTime: 60000, // Consider data fresh for 60 seconds
+    retry: 1,
   });
 
   // Fetch breakdown
@@ -42,6 +47,8 @@ export default function RiskDashboardPage() {
     queryKey: ["risk-breakdown"],
     queryFn: () => riskClient.getRiskBreakdown(),
     enabled: !!data?.data,
+    staleTime: 60000,
+    retry: 1,
   });
 
   // Fetch recommendations
@@ -49,6 +56,8 @@ export default function RiskDashboardPage() {
     queryKey: ["risk-recommendations"],
     queryFn: () => riskClient.getRiskRecommendations(),
     enabled: !!data?.data,
+    staleTime: 60000,
+    retry: 1,
   });
 
   // Fetch heatmap
@@ -56,6 +65,8 @@ export default function RiskDashboardPage() {
     queryKey: ["risk-heatmap"],
     queryFn: () => riskClient.getRiskHeatMap(),
     enabled: !!data?.data,
+    staleTime: 60000,
+    retry: 1,
   });
 
   // Fetch forecast
@@ -63,6 +74,8 @@ export default function RiskDashboardPage() {
     queryKey: ["risk-forecast"],
     queryFn: () => riskClient.getRiskForecast(30),
     enabled: !!data?.data,
+    staleTime: 60000,
+    retry: 1,
   });
 
   const recentAlerts = recentAlertsData?.data || [];
@@ -82,7 +95,7 @@ export default function RiskDashboardPage() {
             padding: spacing.xxl,
             background: colors.gradients.pastelHero,
             borderRadius: borderRadius.xl,
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${themeColors.border}`,
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: spacing.md, marginBottom: spacing.md }}>
@@ -91,7 +104,7 @@ export default function RiskDashboardPage() {
                 width: "64px",
                 height: "64px",
                 borderRadius: borderRadius.xl,
-                backgroundColor: colors.white,
+                backgroundColor: themeColors.white,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -107,7 +120,7 @@ export default function RiskDashboardPage() {
                 style={{
                   height: "32px",
                   width: "200px",
-                  backgroundColor: colors.white,
+                  backgroundColor: themeColors.white,
                   borderRadius: borderRadius.md,
                   marginBottom: spacing.xs,
                   animation: "pulse 2s infinite",
@@ -117,7 +130,7 @@ export default function RiskDashboardPage() {
                 style={{
                   height: "16px",
                   width: "300px",
-                  backgroundColor: colors.white,
+                  backgroundColor: themeColors.white,
                   borderRadius: borderRadius.sm,
                   opacity: 0.7,
                   animation: "pulse 2s infinite",
@@ -141,7 +154,7 @@ export default function RiskDashboardPage() {
               <div
                 style={{
                   height: "120px",
-                  backgroundColor: colors.gray[100],
+                  backgroundColor: themeColors.gray[100],
                   borderRadius: borderRadius.md,
                 }}
               />
@@ -175,7 +188,7 @@ export default function RiskDashboardPage() {
             padding: spacing.xxl,
             background: `linear-gradient(135deg, ${colors.dangerLight} 0%, ${colors.warningLight} 50%, ${colors.primaryLighter} 100%)`,
             borderRadius: borderRadius.xl,
-            border: `2px solid ${colors.border}`,
+            border: `2px solid ${themeColors.border}`,
           }}
         >
           <h1
@@ -220,14 +233,14 @@ export default function RiskDashboardPage() {
                 margin: 0,
                 marginBottom: spacing.xl,
                 fontSize: typography.fontSize.base,
-                color: colors.text.secondary,
+                color: themeColors.text.secondary,
               }}
             >
               {error instanceof Error ? error.message : "Risk verileri yüklenirken bir hata oluştu."}
             </p>
             {isTenantError && (
               <div>
-                <p style={{ marginBottom: spacing.md, fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                <p style={{ marginBottom: spacing.md, fontSize: typography.fontSize.sm, color: themeColors.text.secondary }}>
                   Risk panosunu görüntülemek için önce bir şirket/ofis seçmeniz gerekiyor.
                 </p>
                 <Link
@@ -238,7 +251,7 @@ export default function RiskDashboardPage() {
                     gap: spacing.sm,
                     padding: `${spacing.md} ${spacing.xl}`,
                     background: colors.gradients.primary,
-                    color: colors.white,
+                    color: themeColors.white,
                     borderRadius: borderRadius.lg,
                     textDecoration: "none",
                     fontWeight: typography.fontWeight.semibold,
@@ -262,7 +275,7 @@ export default function RiskDashboardPage() {
             )}
             {isAuthError && !isTenantError && (
               <div>
-                <p style={{ marginBottom: spacing.md, fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                <p style={{ marginBottom: spacing.md, fontSize: typography.fontSize.sm, color: themeColors.text.secondary }}>
                   Risk panosunu görüntülemek için giriş yapmanız gerekiyor.
                 </p>
                 <Link
@@ -273,7 +286,7 @@ export default function RiskDashboardPage() {
                     gap: spacing.sm,
                     padding: `${spacing.md} ${spacing.xl}`,
                     background: colors.gradients.primary,
-                    color: colors.white,
+                    color: themeColors.white,
                     borderRadius: borderRadius.lg,
                     textDecoration: "none",
                     fontWeight: typography.fontWeight.semibold,
@@ -313,7 +326,7 @@ export default function RiskDashboardPage() {
             padding: spacing.xxl,
             background: `linear-gradient(135deg, ${colors.dangerLight} 0%, ${colors.warningLight} 50%, ${colors.primaryLighter} 100%)`,
             borderRadius: borderRadius.xl,
-            border: `2px solid ${colors.border}`,
+            border: `2px solid ${themeColors.border}`,
           }}
         >
           <h1
@@ -337,7 +350,7 @@ export default function RiskDashboardPage() {
           style={{
             padding: spacing.xxl,
             textAlign: "center",
-            background: `linear-gradient(135deg, ${colors.gray[50]} 0%, ${colors.white} 100%)`,
+            background: `linear-gradient(135deg, ${themeColors.gray[50]} 0%, ${themeColors.white} 100%)`,
           }}
         >
           <div style={{ fontSize: "80px", marginBottom: spacing.lg }}>📊</div>
@@ -347,7 +360,7 @@ export default function RiskDashboardPage() {
               marginBottom: spacing.md,
               fontSize: typography.fontSize.xl,
               fontWeight: typography.fontWeight.bold,
-              color: colors.text.primary,
+              color: themeColors.text.primary,
             }}
           >
             Henüz Risk Verisi Bulunmuyor
@@ -356,7 +369,7 @@ export default function RiskDashboardPage() {
             style={{
               margin: 0,
               fontSize: typography.fontSize.base,
-              color: colors.text.secondary,
+              color: themeColors.text.secondary,
             }}
           >
             Risk analizi için belgeler ve işlemler yüklendikten sonra burada görüntülenecektir.
@@ -380,7 +393,7 @@ export default function RiskDashboardPage() {
           padding: spacing.xxl,
           background: colors.gradients.pastelHero,
           borderRadius: borderRadius.xl,
-          border: `1px solid ${colors.border}`,
+          border: `1px solid ${themeColors.border}`,
           position: "relative",
           overflow: "hidden",
         }}
@@ -447,7 +460,7 @@ export default function RiskDashboardPage() {
               <p
                 style={{
                   margin: 0,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                   fontSize: typography.fontSize.base,
                   fontWeight: typography.fontWeight.medium,
                 }}
@@ -470,11 +483,11 @@ export default function RiskDashboardPage() {
               <div
                 style={{
                   padding: spacing.md,
-                  backgroundColor: colors.white,
+                  backgroundColor: themeColors.white,
                   borderRadius: borderRadius.lg,
                   boxShadow: shadows.sm,
                   textAlign: "center",
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                 }}
               >
                 <div
@@ -487,18 +500,18 @@ export default function RiskDashboardPage() {
                 >
                   {dashboard.highRiskClientCount}
                 </div>
-                <div style={{ fontSize: typography.fontSize.xs, color: colors.text.secondary }}>
+                <div style={{ fontSize: typography.fontSize.xs, color: themeColors.text.secondary }}>
                   Yüksek Risk
                 </div>
               </div>
               <div
                 style={{
                   padding: spacing.md,
-                  backgroundColor: colors.white,
+                  backgroundColor: themeColors.white,
                   borderRadius: borderRadius.lg,
                   boxShadow: shadows.sm,
                   textAlign: "center",
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                 }}
               >
                 <div
@@ -511,18 +524,18 @@ export default function RiskDashboardPage() {
                 >
                   {dashboard.openCriticalAlertsCount}
                 </div>
-                <div style={{ fontSize: typography.fontSize.xs, color: colors.text.secondary }}>
+                <div style={{ fontSize: typography.fontSize.xs, color: themeColors.text.secondary }}>
                   Kritik Uyarı
                 </div>
               </div>
               <div
                 style={{
                   padding: spacing.md,
-                  backgroundColor: colors.white,
+                  backgroundColor: themeColors.white,
                   borderRadius: borderRadius.lg,
                   boxShadow: shadows.sm,
                   textAlign: "center",
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                 }}
               >
                 <div
@@ -535,7 +548,7 @@ export default function RiskDashboardPage() {
                 >
                   {dashboard.totalDocuments}
                 </div>
-                <div style={{ fontSize: typography.fontSize.xs, color: colors.text.secondary }}>
+                <div style={{ fontSize: typography.fontSize.xs, color: themeColors.text.secondary }}>
                   Toplam Belge
                 </div>
               </div>
@@ -562,7 +575,7 @@ export default function RiskDashboardPage() {
               style={{
                 padding: spacing.xl,
                 background: colors.gradients.pastelDanger,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
                 position: "relative",
                 overflow: "hidden",
                 cursor: "pointer",
@@ -609,7 +622,7 @@ export default function RiskDashboardPage() {
                   <div
                     style={{
                       fontSize: typography.fontSize.xs,
-                      color: colors.text.secondary,
+                      color: themeColors.text.secondary,
                     }}
                   >
                     Dikkat gerektiren müşteri sayısı
@@ -651,7 +664,7 @@ export default function RiskDashboardPage() {
                   style={{
                     marginTop: spacing.xs,
                     fontSize: typography.fontSize.xs,
-                    color: colors.text.secondary,
+                    color: themeColors.text.secondary,
                     display: "flex",
                     alignItems: "center",
                     gap: spacing.xs,
@@ -673,7 +686,7 @@ export default function RiskDashboardPage() {
                     </>
                   ) : (
                     <>
-                      <span style={{ color: colors.text.secondary }}>→</span>
+                      <span style={{ color: themeColors.text.secondary }}>→</span>
                       <span>Değişiklik yok</span>
                     </>
                   )}
@@ -688,7 +701,7 @@ export default function RiskDashboardPage() {
               style={{
                 padding: spacing.xl,
                 background: colors.gradients.pastelDanger,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
                 position: "relative",
                 overflow: "hidden",
                 cursor: "pointer",
@@ -735,7 +748,7 @@ export default function RiskDashboardPage() {
                   <div
                     style={{
                       fontSize: typography.fontSize.xs,
-                      color: colors.text.secondary,
+                      color: themeColors.text.secondary,
                     }}
                   >
                     Acil müdahale gerektiren uyarılar
@@ -778,7 +791,7 @@ export default function RiskDashboardPage() {
                   style={{
                     marginTop: spacing.xs,
                     fontSize: typography.fontSize.xs,
-                    color: colors.text.secondary,
+                    color: themeColors.text.secondary,
                     display: "flex",
                     alignItems: "center",
                     gap: spacing.xs,
@@ -800,7 +813,7 @@ export default function RiskDashboardPage() {
                     </>
                   ) : (
                     <>
-                      <span style={{ color: colors.text.secondary }}>→</span>
+                      <span style={{ color: themeColors.text.secondary }}>→</span>
                       <span>Değişiklik yok</span>
                     </>
                   )}
@@ -815,7 +828,7 @@ export default function RiskDashboardPage() {
               style={{
                 padding: spacing.xl,
                 background: colors.gradients.pastelPrimary,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
                 position: "relative",
                 overflow: "hidden",
                 cursor: "pointer",
@@ -862,7 +875,7 @@ export default function RiskDashboardPage() {
                   <div
                     style={{
                       fontSize: typography.fontSize.xs,
-                      color: colors.text.secondary,
+                      color: themeColors.text.secondary,
                     }}
                   >
                     Sistemdeki toplam belge sayısı
@@ -908,7 +921,7 @@ export default function RiskDashboardPage() {
               style={{
                 padding: spacing.xl,
                 background: colors.gradients.pastelWarning,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
                 position: "relative",
                 overflow: "hidden",
                 cursor: "pointer",
@@ -955,7 +968,7 @@ export default function RiskDashboardPage() {
                   <div
                     style={{
                       fontSize: typography.fontSize.xs,
-                      color: colors.text.secondary,
+                      color: themeColors.text.secondary,
                     }}
                   >
                     İnceleme gerektiren belgeler
@@ -997,7 +1010,7 @@ export default function RiskDashboardPage() {
                   style={{
                     marginTop: spacing.xs,
                     fontSize: typography.fontSize.xs,
-                    color: colors.text.secondary,
+                    color: themeColors.text.secondary,
                     display: "flex",
                     alignItems: "center",
                     gap: spacing.xs,
@@ -1019,7 +1032,7 @@ export default function RiskDashboardPage() {
                     </>
                   ) : (
                     <>
-                      <span style={{ color: colors.text.secondary }}>→</span>
+                      <span style={{ color: themeColors.text.secondary }}>→</span>
                       <span>Değişiklik yok</span>
                     </>
                   )}
@@ -1035,7 +1048,7 @@ export default function RiskDashboardPage() {
                 marginBottom: spacing.xl,
                 padding: spacing.xl,
                 background: colors.gradients.pastelDanger,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.lg }}>
@@ -1046,7 +1059,7 @@ export default function RiskDashboardPage() {
                       marginBottom: spacing.xs,
                       fontSize: typography.fontSize.xl,
                       fontWeight: typography.fontWeight.bold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                     }}
                   >
                     Son Kritik Uyarılar
@@ -1055,7 +1068,7 @@ export default function RiskDashboardPage() {
                     style={{
                       margin: 0,
                       fontSize: typography.fontSize.sm,
-                      color: colors.text.secondary,
+                      color: themeColors.text.secondary,
                     }}
                   >
                     Acil müdahale gerektiren uyarılar
@@ -1069,7 +1082,7 @@ export default function RiskDashboardPage() {
                     gap: spacing.xs,
                     padding: `${spacing.sm} ${spacing.md}`,
                     background: colors.gradients.danger,
-                    color: colors.white,
+                    color: themeColors.white,
                     textDecoration: "none",
                     borderRadius: borderRadius.md,
                     fontSize: typography.fontSize.sm,
@@ -1115,9 +1128,9 @@ export default function RiskDashboardPage() {
                       style={{
                         display: "block",
                         padding: spacing.md,
-                        backgroundColor: colors.white,
+                        backgroundColor: themeColors.white,
                         borderRadius: borderRadius.lg,
-                        border: `1px solid ${colors.border}`,
+                        border: `1px solid ${themeColors.border}`,
                         textDecoration: "none",
                         color: "inherit",
                         transition: `all ${transitions.normal} ease`,
@@ -1128,7 +1141,7 @@ export default function RiskDashboardPage() {
                         e.currentTarget.style.transform = "translateX(4px)";
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = colors.border;
+                        e.currentTarget.style.borderColor = themeColors.border;
                         e.currentTarget.style.boxShadow = "none";
                         e.currentTarget.style.transform = "translateX(0)";
                       }}
@@ -1148,7 +1161,7 @@ export default function RiskDashboardPage() {
                               style={{
                                 fontSize: typography.fontSize.base,
                                 fontWeight: typography.fontWeight.semibold,
-                                color: colors.text.primary,
+                                color: themeColors.text.primary,
                               }}
                             >
                               {alert.title}
@@ -1157,7 +1170,7 @@ export default function RiskDashboardPage() {
                               style={{
                                 padding: `${spacing.xs} ${spacing.sm}`,
                                 backgroundColor: colors.dangerDark,
-                                color: colors.white,
+                                color: themeColors.white,
                                 borderRadius: borderRadius.sm,
                                 fontSize: typography.fontSize.xs,
                                 fontWeight: typography.fontWeight.bold,
@@ -1170,7 +1183,7 @@ export default function RiskDashboardPage() {
                             style={{
                               margin: 0,
                               fontSize: typography.fontSize.sm,
-                              color: colors.text.secondary,
+                              color: themeColors.text.secondary,
                               marginBottom: spacing.xs,
                             }}
                           >
@@ -1179,7 +1192,7 @@ export default function RiskDashboardPage() {
                           <div
                             style={{
                               fontSize: typography.fontSize.xs,
-                              color: colors.text.muted,
+                              color: themeColors.text.muted,
                             }}
                           >
                             {timeAgoText}
@@ -1208,7 +1221,7 @@ export default function RiskDashboardPage() {
               padding: spacing.xxl,
               marginBottom: spacing.xl,
               background: colors.gradients.subtle,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.xl }}>
@@ -1219,7 +1232,7 @@ export default function RiskDashboardPage() {
                     marginBottom: spacing.xs,
                     fontSize: typography.fontSize["2xl"],
                     fontWeight: typography.fontWeight.bold,
-                    color: colors.text.primary,
+                    color: themeColors.text.primary,
                   }}
                 >
                   Müşteri Risk Dağılımı
@@ -1228,7 +1241,7 @@ export default function RiskDashboardPage() {
                   style={{
                     margin: 0,
                     fontSize: typography.fontSize.sm,
-                    color: colors.text.secondary,
+                    color: themeColors.text.secondary,
                   }}
                 >
                   Müşterilerinizin risk seviyesi dağılımı
@@ -1253,9 +1266,9 @@ export default function RiskDashboardPage() {
               <div
                 style={{
                   padding: spacing.lg,
-                  backgroundColor: colors.white,
+                  backgroundColor: themeColors.white,
                   borderRadius: borderRadius.lg,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   transition: `all ${transitions.normal} ease`,
                 }}
                 onMouseEnter={(e) => {
@@ -1263,7 +1276,7 @@ export default function RiskDashboardPage() {
                   e.currentTarget.style.boxShadow = shadows.sm;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = colors.border;
+                  e.currentTarget.style.borderColor = themeColors.border;
                   e.currentTarget.style.boxShadow = "none";
                 }}
               >
@@ -1280,7 +1293,7 @@ export default function RiskDashboardPage() {
                     />
                     <span
                       style={{
-                        color: colors.text.primary,
+                        color: themeColors.text.primary,
                         fontWeight: typography.fontWeight.semibold,
                         fontSize: typography.fontSize.base,
                       }}
@@ -1301,7 +1314,7 @@ export default function RiskDashboardPage() {
                     <span
                       style={{
                         fontSize: typography.fontSize.sm,
-                        color: colors.text.secondary,
+                        color: themeColors.text.secondary,
                         fontWeight: typography.fontWeight.medium,
                       }}
                     >
@@ -1336,7 +1349,7 @@ export default function RiskDashboardPage() {
                     {dashboard.clientRiskDistribution.low > 0 && (
                       <span
                         style={{
-                          color: colors.white,
+                          color: themeColors.white,
                           fontSize: typography.fontSize.sm,
                           fontWeight: typography.fontWeight.bold,
                         }}
@@ -1355,9 +1368,9 @@ export default function RiskDashboardPage() {
               <div
                 style={{
                   padding: spacing.lg,
-                  backgroundColor: colors.white,
+                  backgroundColor: themeColors.white,
                   borderRadius: borderRadius.lg,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   transition: `all ${transitions.normal} ease`,
                 }}
                 onMouseEnter={(e) => {
@@ -1365,7 +1378,7 @@ export default function RiskDashboardPage() {
                   e.currentTarget.style.boxShadow = shadows.sm;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = colors.border;
+                  e.currentTarget.style.borderColor = themeColors.border;
                   e.currentTarget.style.boxShadow = "none";
                 }}
               >
@@ -1382,7 +1395,7 @@ export default function RiskDashboardPage() {
                     />
                     <span
                       style={{
-                        color: colors.text.primary,
+                        color: themeColors.text.primary,
                         fontWeight: typography.fontWeight.semibold,
                         fontSize: typography.fontSize.base,
                       }}
@@ -1403,7 +1416,7 @@ export default function RiskDashboardPage() {
                     <span
                       style={{
                         fontSize: typography.fontSize.sm,
-                        color: colors.text.secondary,
+                        color: themeColors.text.secondary,
                         fontWeight: typography.fontWeight.medium,
                       }}
                     >
@@ -1438,7 +1451,7 @@ export default function RiskDashboardPage() {
                     {dashboard.clientRiskDistribution.medium > 0 && (
                       <span
                         style={{
-                          color: colors.white,
+                          color: themeColors.white,
                           fontSize: typography.fontSize.sm,
                           fontWeight: typography.fontWeight.bold,
                         }}
@@ -1457,9 +1470,9 @@ export default function RiskDashboardPage() {
               <div
                 style={{
                   padding: spacing.lg,
-                  backgroundColor: colors.white,
+                  backgroundColor: themeColors.white,
                   borderRadius: borderRadius.lg,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   transition: `all ${transitions.normal} ease`,
                 }}
                 onMouseEnter={(e) => {
@@ -1467,7 +1480,7 @@ export default function RiskDashboardPage() {
                   e.currentTarget.style.boxShadow = shadows.sm;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = colors.border;
+                  e.currentTarget.style.borderColor = themeColors.border;
                   e.currentTarget.style.boxShadow = "none";
                 }}
               >
@@ -1484,7 +1497,7 @@ export default function RiskDashboardPage() {
                     />
                     <span
                       style={{
-                        color: colors.text.primary,
+                        color: themeColors.text.primary,
                         fontWeight: typography.fontWeight.semibold,
                         fontSize: typography.fontSize.base,
                       }}
@@ -1505,7 +1518,7 @@ export default function RiskDashboardPage() {
                     <span
                       style={{
                         fontSize: typography.fontSize.sm,
-                        color: colors.text.secondary,
+                        color: themeColors.text.secondary,
                         fontWeight: typography.fontWeight.medium,
                       }}
                     >
@@ -1540,7 +1553,7 @@ export default function RiskDashboardPage() {
                     {dashboard.clientRiskDistribution.high > 0 && (
                       <span
                         style={{
-                          color: colors.white,
+                          color: themeColors.white,
                           fontSize: typography.fontSize.sm,
                           fontWeight: typography.fontWeight.bold,
                         }}
@@ -1575,14 +1588,16 @@ export default function RiskDashboardPage() {
                   document.body.removeChild(a);
                   window.URL.revokeObjectURL(url);
                 } catch (error: any) {
-                  console.error("Export failed:", error);
+                  if (process.env.NODE_ENV === "development") {
+                    console.error("Export failed:", error);
+                  }
                   toast.error(`Dışa aktarma başarısız oldu: ${error.message || "Bilinmeyen hata"}`);
                 }
               }}
               style={{
                 padding: `${spacing.md} ${spacing.xl}`,
                 background: colors.gradients.success,
-                color: colors.white,
+                color: themeColors.white,
                 borderRadius: borderRadius.lg,
                 border: "none",
                 fontWeight: typography.fontWeight.semibold,
@@ -1611,7 +1626,7 @@ export default function RiskDashboardPage() {
               style={{
                 padding: `${spacing.md} ${spacing.xl}`,
                 background: colors.gradients.danger,
-                color: colors.white,
+                color: themeColors.white,
                 borderRadius: borderRadius.lg,
                 textDecoration: "none",
                 fontWeight: typography.fontWeight.semibold,
@@ -1637,7 +1652,7 @@ export default function RiskDashboardPage() {
                 <span
                   style={{
                     padding: `${spacing.xs} ${spacing.sm}`,
-                    backgroundColor: colors.white,
+                    backgroundColor: themeColors.white,
                     color: colors.dangerDark,
                     borderRadius: borderRadius.full,
                     fontSize: typography.fontSize.xs,
@@ -1654,8 +1669,7 @@ export default function RiskDashboardPage() {
               href="/musteriler"
               style={{
                 padding: `${spacing.md} ${spacing.xl}`,
-                backgroundColor: colors.white,
-                color: colors.primary,
+                backgroundColor: themeColors.white,
                 borderRadius: borderRadius.lg,
                 textDecoration: "none",
                 fontWeight: typography.fontWeight.semibold,
@@ -1674,7 +1688,7 @@ export default function RiskDashboardPage() {
                 e.currentTarget.style.boxShadow = shadows.sm;
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = colors.white;
+                e.currentTarget.style.backgroundColor = themeColors.white;
                 e.currentTarget.style.transform = "translateY(0)";
                 e.currentTarget.style.boxShadow = shadows.sm;
               }}
@@ -1702,7 +1716,7 @@ export default function RiskDashboardPage() {
                 style={{
                   padding: spacing.xl,
                   background: colors.gradients.pastelPrimary,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                 }}
               >
                 <div style={{ marginBottom: spacing.md }}>
@@ -1723,8 +1737,8 @@ export default function RiskDashboardPage() {
                           onClick={() => setTrendPeriod(period)}
                           style={{
                             padding: `${spacing.xs} ${spacing.sm}`,
-                            background: trendPeriod === period ? colors.primaryLighter : colors.gray[200],
-                            color: trendPeriod === period ? colors.white : colors.text.primary,
+                            background: trendPeriod === period ? colors.primaryLighter : themeColors.gray[200],
+                            color: trendPeriod === period ? themeColors.white : themeColors.text.primary,
                             border: "none",
                             borderRadius: borderRadius.sm,
                             fontSize: typography.fontSize.xs,
@@ -1737,7 +1751,7 @@ export default function RiskDashboardPage() {
                       ))}
                     </div>
                   </div>
-                  <p style={{ margin: 0, fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                  <p style={{ margin: 0, fontSize: typography.fontSize.sm, color: themeColors.text.secondary }}>
                     Ortalama: {trends.riskScoreTrend.averageScore.toFixed(1)}
                   </p>
                 </div>
@@ -1748,7 +1762,7 @@ export default function RiskDashboardPage() {
                 style={{
                   padding: spacing.xl,
                   background: colors.gradients.pastelDanger,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                 }}
               >
                 <div style={{ marginBottom: spacing.md }}>
@@ -1762,7 +1776,7 @@ export default function RiskDashboardPage() {
                   >
                     Uyarı Frekansı
                   </h3>
-                  <p style={{ margin: 0, fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                  <p style={{ margin: 0, fontSize: typography.fontSize.sm, color: themeColors.text.secondary }}>
                     Toplam: {trends.alertFrequencyTrend.totalAlerts} uyarı
                   </p>
                 </div>
@@ -1778,7 +1792,7 @@ export default function RiskDashboardPage() {
                 padding: spacing.xl,
                 marginBottom: spacing.xl,
                 background: colors.gradients.pastelSuccess,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
               }}
             >
               <div style={{ marginBottom: spacing.md }}>
@@ -1792,7 +1806,7 @@ export default function RiskDashboardPage() {
                 >
                   Risk Dağılım Trendi
                 </h3>
-                <p style={{ margin: 0, fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                <p style={{ margin: 0, fontSize: typography.fontSize.sm, color: themeColors.text.secondary }}>
                   Risk seviyelerinin zaman içindeki değişimi
                 </p>
               </div>
@@ -1810,7 +1824,7 @@ export default function RiskDashboardPage() {
                 padding: spacing.xl,
                 marginBottom: spacing.xl,
                 background: colors.gradients.pastelInfo,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
               }}
             >
               <div style={{ marginBottom: spacing.lg }}>
@@ -1824,7 +1838,7 @@ export default function RiskDashboardPage() {
                 >
                   Risk Tahmini (30 Gün)
                 </h3>
-                <p style={{ margin: 0, fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                <p style={{ margin: 0, fontSize: typography.fontSize.sm, color: themeColors.text.secondary }}>
                   Gelecek 30 gün için risk skoru tahmini
                 </p>
               </div>
@@ -1849,7 +1863,7 @@ export default function RiskDashboardPage() {
                           padding: spacing.md,
                           backgroundColor: colors.warningPastel,
                           borderRadius: borderRadius.md,
-                          border: `1px solid ${colors.border}`,
+                          border: `1px solid ${themeColors.border}`,
                         }}
                       >
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1859,12 +1873,12 @@ export default function RiskDashboardPage() {
                                 fontSize: typography.fontSize.base,
                                 fontWeight: typography.fontWeight.semibold,
                                 marginBottom: spacing.xs,
-                                color: colors.text.primary,
+                                color: themeColors.text.primary,
                               }}
                             >
                               {warning.message}
                             </div>
-                            <div style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                            <div style={{ fontSize: typography.fontSize.sm, color: themeColors.text.secondary }}>
                               {warning.recommendedAction}
                             </div>
                           </div>
@@ -1872,7 +1886,7 @@ export default function RiskDashboardPage() {
                             style={{
                               padding: `${spacing.sm} ${spacing.md}`,
                               backgroundColor: colors.warningLight,
-                              color: colors.text.primary,
+                              color: themeColors.text.primary,
                               borderRadius: borderRadius.md,
                               fontSize: typography.fontSize.sm,
                               fontWeight: typography.fontWeight.bold,
@@ -1891,12 +1905,12 @@ export default function RiskDashboardPage() {
                 <div
                   style={{
                     padding: spacing.md,
-                    backgroundColor: colors.gray[50],
+                    backgroundColor: themeColors.gray[50],
                     borderRadius: borderRadius.md,
                     textAlign: "center",
                   }}
                 >
-                  <div style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary, marginBottom: spacing.xs }}>
+                  <div style={{ fontSize: typography.fontSize.sm, color: themeColors.text.secondary, marginBottom: spacing.xs }}>
                     Mevcut Hız
                   </div>
                   <div style={{ fontSize: typography.fontSize["2xl"], fontWeight: typography.fontWeight.bold }}>
@@ -1907,12 +1921,12 @@ export default function RiskDashboardPage() {
                 <div
                   style={{
                     padding: spacing.md,
-                    backgroundColor: colors.gray[50],
+                    backgroundColor: themeColors.gray[50],
                     borderRadius: borderRadius.md,
                     textAlign: "center",
                   }}
                 >
-                  <div style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary, marginBottom: spacing.xs }}>
+                  <div style={{ fontSize: typography.fontSize.sm, color: themeColors.text.secondary, marginBottom: spacing.xs }}>
                     Tahmini Hız
                   </div>
                   <div style={{ fontSize: typography.fontSize["2xl"], fontWeight: typography.fontWeight.bold }}>
@@ -1923,12 +1937,12 @@ export default function RiskDashboardPage() {
                 <div
                   style={{
                     padding: spacing.md,
-                    backgroundColor: colors.gray[50],
+                    backgroundColor: themeColors.gray[50],
                     borderRadius: borderRadius.md,
                     textAlign: "center",
                   }}
                 >
-                  <div style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary, marginBottom: spacing.xs }}>
+                  <div style={{ fontSize: typography.fontSize.sm, color: themeColors.text.secondary, marginBottom: spacing.xs }}>
                     Trend
                   </div>
                   <div

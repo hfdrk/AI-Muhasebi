@@ -4,8 +4,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createBankAccount, updateBankAccount, getClientCompany, listBankAccounts } from "@repo/api-client";
+import { createBankAccount, updateBankAccount, listBankAccounts } from "@repo/api-client";
 import { useState } from "react";
+import { colors, spacing, borderRadius } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const bankAccountSchema = z.object({
   bankName: z.string().min(1, "Banka adı gerekli."),
@@ -32,6 +34,7 @@ export function BankAccountModal({
 }: BankAccountModalProps) {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
+  const { themeColors } = useTheme();
 
   const { data: existingAccount } = useQuery({
     queryKey: ["bankAccount", accountId],
@@ -126,9 +129,9 @@ export function BankAccountModal({
     >
       <div
         style={{
-          backgroundColor: "white",
-          borderRadius: "8px",
-          padding: "24px",
+          backgroundColor: themeColors.white,
+          borderRadius: borderRadius.md,
+          padding: spacing.lg,
           width: "100%",
           maxWidth: "500px",
           margin: "20px",
@@ -139,15 +142,15 @@ export function BankAccountModal({
           {accountId ? "Banka Hesabı Düzenle" : "Yeni Banka Hesabı"}
         </h2>
 
-        <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: spacing.md }}>
           {error && (
-            <div style={{ padding: "12px", backgroundColor: "#fee", color: "#c33", borderRadius: "4px" }}>
+            <div style={{ padding: "12px", backgroundColor: colors.dangerLight, color: colors.danger, borderRadius: borderRadius.sm }}>
               {error}
             </div>
           )}
 
           <div>
-            <label htmlFor="bankName" style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>
+            <label htmlFor="bankName" style={{ display: "block", marginBottom: spacing.xs, fontWeight: "500" }}>
               Banka Adı *
             </label>
             <input
@@ -156,18 +159,18 @@ export function BankAccountModal({
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
+                border: `1px solid ${themeColors.border}`,
+                borderRadius: borderRadius.sm,
                 fontSize: "16px",
               }}
             />
             {errors.bankName && (
-              <p style={{ color: "#c33", fontSize: "14px", marginTop: "4px" }}>{errors.bankName.message}</p>
+              <p style={{ color: colors.danger, fontSize: "14px", marginTop: spacing.xs }}>{errors.bankName.message}</p>
             )}
           </div>
 
           <div>
-            <label htmlFor="iban" style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>
+            <label htmlFor="iban" style={{ display: "block", marginBottom: spacing.xs, fontWeight: "500" }}>
               IBAN *
             </label>
             <input
@@ -176,18 +179,18 @@ export function BankAccountModal({
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
+                border: `1px solid ${themeColors.border}`,
+                borderRadius: borderRadius.sm,
                 fontSize: "16px",
               }}
             />
             {errors.iban && (
-              <p style={{ color: "#c33", fontSize: "14px", marginTop: "4px" }}>{errors.iban.message}</p>
+              <p style={{ color: colors.danger, fontSize: "14px", marginTop: spacing.xs }}>{errors.iban.message}</p>
             )}
           </div>
 
           <div>
-            <label htmlFor="accountNumber" style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>
+            <label htmlFor="accountNumber" style={{ display: "block", marginBottom: spacing.xs, fontWeight: "500" }}>
               Hesap Numarası
             </label>
             <input
@@ -196,15 +199,15 @@ export function BankAccountModal({
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
+                border: `1px solid ${themeColors.border}`,
+                borderRadius: borderRadius.sm,
                 fontSize: "16px",
               }}
             />
           </div>
 
           <div>
-            <label htmlFor="currency" style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>
+            <label htmlFor="currency" style={{ display: "block", marginBottom: spacing.xs, fontWeight: "500" }}>
               Para Birimi
             </label>
             <select
@@ -213,8 +216,8 @@ export function BankAccountModal({
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
+                border: `1px solid ${themeColors.border}`,
+                borderRadius: borderRadius.sm,
                 fontSize: "16px",
               }}
             >
@@ -225,21 +228,21 @@ export function BankAccountModal({
           </div>
 
           <div>
-            <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: spacing.sm }}>
               <input type="checkbox" {...register("isPrimary")} />
               <span>Birincil Hesap</span>
             </label>
           </div>
 
-          <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+          <div style={{ display: "flex", gap: spacing.sm, justifyContent: "flex-end" }}>
             <button
               type="button"
               onClick={onClose}
               style={{
-                padding: "8px 16px",
-                backgroundColor: "#f5f5f5",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
+                padding: `${spacing.sm} ${spacing.md}`,
+                backgroundColor: themeColors.gray[50],
+                border: `1px solid ${themeColors.border}`,
+                borderRadius: borderRadius.sm,
                 cursor: "pointer",
               }}
             >
@@ -249,11 +252,11 @@ export function BankAccountModal({
               type="submit"
               disabled={isSubmitting}
               style={{
-                padding: "8px 16px",
-                backgroundColor: "#0066cc",
-                color: "white",
+                padding: `${spacing.sm} ${spacing.md}`,
+                backgroundColor: colors.primary,
+                color: colors.white,
                 border: "none",
-                borderRadius: "4px",
+                borderRadius: borderRadius.sm,
                 cursor: isSubmitting ? "not-allowed" : "pointer",
                 opacity: isSubmitting ? 0.6 : 1,
               }}

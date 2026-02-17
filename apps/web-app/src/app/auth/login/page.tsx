@@ -10,6 +10,9 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { colors, spacing, borderRadius, shadows, transitions, typography } from "@/styles/design-system";
 import { emailValidator } from "@/utils/email-validation";
+import { Icon } from "@/components/ui/Icon";
+import { useTheme } from "@/contexts/ThemeContext";
+import { setAccessToken } from "@/lib/auth";
 
 const loginSchema = z.object({
   email: emailValidator,
@@ -20,6 +23,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
+  const { themeColors } = useTheme();
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -46,15 +50,17 @@ export default function LoginPage() {
         if (token) {
           // Ensure token is stored in localStorage (login function should do this, but ensure it)
           if (typeof window !== "undefined") {
-            localStorage.setItem("accessToken", token);
+            setAccessToken(token);
           }
           
           // JWT tokens have 3 parts: header.payload.signature
           const payload = JSON.parse(atob(token.split(".")[1]));
           const roles = payload.roles || [];
           
-          console.log("[Login] Decoded token roles:", roles);
-          console.log("[Login] Full payload:", payload);
+          if (process.env.NODE_ENV === "development") {
+            console.log("[Login] Decoded token roles:", roles);
+            console.log("[Login] Full payload:", payload);
+          }
           
           // Redirect ReadOnly users to client portal, others to accountant dashboard
           // Check for both "ReadOnly" and case variations
@@ -63,20 +69,28 @@ export default function LoginPage() {
           );
           
           if (isReadOnly) {
-            console.log("[Login] Redirecting ReadOnly user to client dashboard");
+            if (process.env.NODE_ENV === "development") {
+              console.log("[Login] Redirecting ReadOnly user to client dashboard");
+            }
             router.push("/client/dashboard");
           } else {
-            console.log("[Login] Redirecting non-ReadOnly user to accountant dashboard");
+            if (process.env.NODE_ENV === "development") {
+              console.log("[Login] Redirecting non-ReadOnly user to accountant dashboard");
+            }
             router.push("/anasayfa");
           }
         } else {
           // Fallback to accountant dashboard if no token
-          console.warn("[Login] No token in response, redirecting to accountant dashboard");
+          if (process.env.NODE_ENV === "development") {
+            console.warn("[Login] No token in response, redirecting to accountant dashboard");
+          }
           router.push("/anasayfa");
         }
       } catch (error) {
         // If token decoding fails, fallback to accountant dashboard
-        console.error("[Login] Failed to decode token:", error);
+        if (process.env.NODE_ENV === "development") {
+          console.error("[Login] Failed to decode token:", error);
+        }
         router.push("/anasayfa");
       }
     },
@@ -103,7 +117,7 @@ export default function LoginPage() {
         alignItems: "center",
         justifyContent: "center",
         padding: spacing.lg,
-        background: `linear-gradient(135deg, ${colors.primaryLighter} 0%, ${colors.white} 50%, ${colors.gray[50]} 100%)`,
+        background: `linear-gradient(135deg, ${colors.primaryLighter} 0%, ${themeColors.white} 50%, ${themeColors.gray[50]} 100%)`,
         position: "relative",
         overflow: "hidden",
       }}
@@ -158,7 +172,7 @@ export default function LoginPage() {
               boxShadow: shadows.lg,
             }}
           >
-            <span style={{ fontSize: "40px" }}>📊</span>
+            <Icon name="BarChart3" size={40} color={themeColors.white} />
           </div>
           <h1
             style={{
@@ -177,7 +191,7 @@ export default function LoginPage() {
           <p
             style={{
               margin: 0,
-              color: colors.text.secondary,
+              color: themeColors.text.secondary,
               fontSize: typography.fontSize.base,
             }}
           >
@@ -188,11 +202,11 @@ export default function LoginPage() {
         {/* Login Form Card */}
         <div
           style={{
-            backgroundColor: colors.white,
+            backgroundColor: themeColors.white,
             borderRadius: borderRadius.xl,
             padding: spacing.xxl,
             boxShadow: shadows.xl,
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${themeColors.border}`,
           }}
         >
           <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: spacing.lg }}>
@@ -212,7 +226,7 @@ export default function LoginPage() {
                   animation: "slideDown 0.3s ease-out",
                 }}
               >
-                <span style={{ fontSize: "20px" }}>⚠️</span>
+                <Icon name="AlertCircle" size={20} color={colors.dangerDark} />
                 <span>{error}</span>
               </div>
             )}
@@ -226,7 +240,7 @@ export default function LoginPage() {
                   marginBottom: spacing.sm,
                   fontSize: typography.fontSize.sm,
                   fontWeight: typography.fontWeight.medium,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                 }}
               >
                 E-posta Adresi
@@ -242,10 +256,11 @@ export default function LoginPage() {
                     width: "100%",
                     padding: `${spacing.md} ${spacing.lg}`,
                     paddingLeft: `calc(${spacing.xl} + ${spacing.md} + 24px)`,
-                    border: `2px solid ${focusedField === "email" ? colors.primary : colors.border}`,
+                    border: `2px solid ${focusedField === "email" ? colors.primary : themeColors.border}`,
                     borderRadius: borderRadius.lg,
                     fontSize: typography.fontSize.base,
-                    backgroundColor: focusedField === "email" ? colors.primaryLighter + "20" : colors.white,
+                    color: themeColors.text.primary,
+                    backgroundColor: focusedField === "email" ? colors.primaryLighter + "20" : themeColors.white,
                     transition: `all ${transitions.normal} ease`,
                     outline: "none",
                     boxShadow: focusedField === "email" ? `0 0 0 3px ${colors.primary}15` : "none",
@@ -261,12 +276,9 @@ export default function LoginPage() {
                 <span
                   style={{
                     position: "absolute",
-                    left: spacing.lg,
+                    left: "24px",
                     top: "50%",
                     transform: "translateY(-50%)",
-                    fontSize: "18px",
-                    color: focusedField === "email" ? colors.primary : colors.text.secondary,
-                    transition: `color ${transitions.normal} ease`,
                     pointerEvents: "none",
                     display: "flex",
                     alignItems: "center",
@@ -274,7 +286,7 @@ export default function LoginPage() {
                     width: "24px",
                   }}
                 >
-                  ✉️
+                  <Icon name="Mail" size={18} color={focusedField === "email" ? colors.primary : themeColors.text.secondary} />
                 </span>
               </div>
               {errors.email && (
@@ -288,7 +300,7 @@ export default function LoginPage() {
                     gap: spacing.xs,
                   }}
                 >
-                  <span>❌</span>
+                  <Icon name="XCircle" size={14} color={colors.danger} />
                   <span>{errors.email.message}</span>
                 </p>
               )}
@@ -302,7 +314,7 @@ export default function LoginPage() {
                   style={{
                     fontSize: typography.fontSize.sm,
                     fontWeight: typography.fontWeight.medium,
-                    color: colors.text.primary,
+                    color: themeColors.text.primary,
                   }}
                 >
                   Şifre
@@ -338,10 +350,11 @@ export default function LoginPage() {
                     padding: `${spacing.md} ${spacing.lg}`,
                     paddingLeft: `calc(${spacing.xl} + ${spacing.md} + 24px)`,
                     paddingRight: spacing.xl + spacing.md,
-                    border: `2px solid ${focusedField === "password" ? colors.primary : colors.border}`,
+                    border: `2px solid ${focusedField === "password" ? colors.primary : themeColors.border}`,
                     borderRadius: borderRadius.lg,
                     fontSize: typography.fontSize.base,
-                    backgroundColor: focusedField === "password" ? colors.primaryLighter + "20" : colors.white,
+                    color: themeColors.text.primary,
+                    backgroundColor: focusedField === "password" ? colors.primaryLighter + "20" : themeColors.white,
                     transition: `all ${transitions.normal} ease`,
                     outline: "none",
                     boxShadow: focusedField === "password" ? `0 0 0 3px ${colors.primary}15` : "none",
@@ -352,12 +365,9 @@ export default function LoginPage() {
                 <span
                   style={{
                     position: "absolute",
-                    left: spacing.lg,
+                    left: "24px",
                     top: "50%",
                     transform: "translateY(-50%)",
-                    fontSize: "18px",
-                    color: focusedField === "password" ? colors.primary : colors.text.secondary,
-                    transition: `color ${transitions.normal} ease`,
                     pointerEvents: "none",
                     display: "flex",
                     alignItems: "center",
@@ -365,7 +375,7 @@ export default function LoginPage() {
                     width: "24px",
                   }}
                 >
-                  🔒
+                  <Icon name="Lock" size={18} color={focusedField === "password" ? colors.primary : themeColors.text.secondary} />
                 </span>
                 <button
                   type="button"
@@ -379,7 +389,7 @@ export default function LoginPage() {
                     border: "none",
                     cursor: "pointer",
                     padding: spacing.xs,
-                    color: colors.text.secondary,
+                    color: themeColors.text.secondary,
                     fontSize: "18px",
                     display: "flex",
                     alignItems: "center",
@@ -387,14 +397,14 @@ export default function LoginPage() {
                     transition: `color ${transitions.normal} ease`,
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.color = colors.text.primary;
+                    e.currentTarget.style.color = themeColors.text.primary;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.color = colors.text.secondary;
+                    e.currentTarget.style.color = themeColors.text.secondary;
                   }}
                   title={showPassword ? "Şifreyi Gizle" : "Şifreyi Göster"}
                 >
-                  {showPassword ? "👁️" : "👁️‍🗨️"}
+                  <Icon name={showPassword ? "EyeOff" : "Eye"} size={18} />
                 </button>
               </div>
               {errors.password && (
@@ -408,7 +418,7 @@ export default function LoginPage() {
                     gap: spacing.xs,
                   }}
                 >
-                  <span>❌</span>
+                  <Icon name="XCircle" size={14} color={colors.danger} />
                   <span>{errors.password.message}</span>
                 </p>
               )}
@@ -421,7 +431,7 @@ export default function LoginPage() {
               style={{
                 width: "100%",
                 padding: spacing.md,
-                background: isSubmitting ? colors.gray[400] : colors.gradients.primary,
+                background: isSubmitting ? themeColors.gray[400] : colors.gradients.primary,
                 color: colors.white,
                 border: "none",
                 borderRadius: borderRadius.lg,
@@ -451,12 +461,14 @@ export default function LoginPage() {
             >
               {isSubmitting ? (
                 <>
-                  <span style={{ animation: "spin 1s linear infinite" }}>⏳</span>
+                  <span style={{ display: "inline-flex", animation: "spin 1s linear infinite" }}>
+                    <Icon name="Loader2" size={20} color={themeColors.white} />
+                  </span>
                   <span>Giriş yapılıyor...</span>
                 </>
               ) : (
                 <>
-                  <span>🚀</span>
+                  <Icon name="LogIn" size={20} color={themeColors.white} />
                   <span>Giriş Yap</span>
                 </>
               )}
@@ -473,9 +485,9 @@ export default function LoginPage() {
               marginBottom: spacing.lg,
             }}
           >
-            <div style={{ flex: 1, height: "1px", backgroundColor: colors.border }} />
-            <span style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm }}>veya</span>
-            <div style={{ flex: 1, height: "1px", backgroundColor: colors.border }} />
+            <div style={{ flex: 1, height: "1px", backgroundColor: themeColors.border }} />
+            <span style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>veya</span>
+            <div style={{ flex: 1, height: "1px", backgroundColor: themeColors.border }} />
           </div>
 
           {/* Register Link */}
@@ -483,9 +495,9 @@ export default function LoginPage() {
             style={{
               textAlign: "center",
               padding: spacing.lg,
-              backgroundColor: colors.gray[50],
+              backgroundColor: themeColors.gray[50],
               borderRadius: borderRadius.lg,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
             }}
           >
             <p
@@ -493,7 +505,7 @@ export default function LoginPage() {
                 margin: 0,
                 marginBottom: spacing.sm,
                 fontSize: typography.fontSize.sm,
-                color: colors.text.secondary,
+                color: themeColors.text.secondary,
               }}
             >
               Hesabınız yok mu?
@@ -520,7 +532,7 @@ export default function LoginPage() {
               }}
             >
               <span>Yeni Ofis Kaydı Oluştur</span>
-              <span>→</span>
+              <Icon name="ArrowRight" size={16} />
             </Link>
           </div>
         </div>
@@ -531,7 +543,7 @@ export default function LoginPage() {
             style={{
               margin: 0,
               fontSize: typography.fontSize.xs,
-              color: colors.text.muted,
+              color: themeColors.text.muted,
             }}
           >
             © 2025 AI Muhasebi. Tüm hakları saklıdır.

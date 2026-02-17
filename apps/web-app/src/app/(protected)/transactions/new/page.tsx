@@ -9,7 +9,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { useState } from "react";
 import Link from "next/link";
-import { colors, spacing, borderRadius } from "@/styles/design-system";
+import { colors, borderRadius } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const transactionLineSchema = z.object({
   ledgerAccountId: z.string().min(1, "Hesap seçilmelidir."),
@@ -41,6 +42,7 @@ const transactionSchema = z.object({
 type TransactionForm = z.infer<typeof transactionSchema>;
 
 function NewTransactionPageContent() {
+  const { themeColors } = useTheme();
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
@@ -137,7 +139,7 @@ function NewTransactionPageContent() {
 
       <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
         {error && (
-          <div style={{ padding: "12px", backgroundColor: "#fee", color: "#c33", borderRadius: "4px" }}>
+          <div style={{ padding: "12px", backgroundColor: colors.dangerLight, color: colors.danger, borderRadius: "4px" }}>
             {error}
           </div>
         )}
@@ -153,7 +155,7 @@ function NewTransactionPageContent() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
               }}
@@ -178,13 +180,13 @@ function NewTransactionPageContent() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
               }}
             />
             {errors.date && (
-              <p style={{ color: "#c33", fontSize: "14px", marginTop: "4px" }}>{errors.date.message}</p>
+              <p style={{ color: colors.danger, fontSize: "14px", marginTop: "4px" }}>{errors.date.message}</p>
             )}
           </div>
 
@@ -198,13 +200,13 @@ function NewTransactionPageContent() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
               }}
             />
             {errors.referenceNo && (
-              <p style={{ color: "#c33", fontSize: "14px", marginTop: "4px" }}>{errors.referenceNo.message}</p>
+              <p style={{ color: colors.danger, fontSize: "14px", marginTop: "4px" }}>{errors.referenceNo.message}</p>
             )}
           </div>
 
@@ -219,7 +221,7 @@ function NewTransactionPageContent() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
                 resize: "vertical",
@@ -244,7 +246,7 @@ function NewTransactionPageContent() {
               style={{
                 padding: "8px 16px",
                 backgroundColor: colors.success,
-                color: "white",
+                color: colors.white,
                 border: "none",
                 borderRadius: "4px",
                 cursor: "pointer",
@@ -256,7 +258,7 @@ function NewTransactionPageContent() {
 
           <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "16px" }}>
             <thead>
-              <tr style={{ borderBottom: "2px solid #ddd" }}>
+              <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
                 <th style={{ padding: "12px", textAlign: "left" }}>Hesap Kodu</th>
                 <th style={{ padding: "12px", textAlign: "left" }}>Hesap Adı</th>
                 <th style={{ padding: "12px", textAlign: "right" }}>Borç</th>
@@ -271,14 +273,14 @@ function NewTransactionPageContent() {
                   (acc) => acc.id === watchedLines[index]?.ledgerAccountId
                 );
                 return (
-                  <tr key={field.id} style={{ borderBottom: "1px solid #eee" }}>
+                  <tr key={field.id} style={{ borderBottom: `1px solid ${themeColors.gray[200]}` }}>
                     <td style={{ padding: "8px" }}>
                       <select
                         {...register(`lines.${index}.ledgerAccountId`)}
                         style={{
                           width: "150px",
                           padding: "4px 8px",
-                          border: "1px solid #ddd",
+                          border: `1px solid ${themeColors.border}`,
                           borderRadius: "4px",
                         }}
                       >
@@ -301,7 +303,7 @@ function NewTransactionPageContent() {
                         style={{
                           width: "120px",
                           padding: "4px 8px",
-                          border: "1px solid #ddd",
+                          border: `1px solid ${themeColors.border}`,
                           borderRadius: "4px",
                           textAlign: "right",
                         }}
@@ -315,7 +317,7 @@ function NewTransactionPageContent() {
                         style={{
                           width: "120px",
                           padding: "4px 8px",
-                          border: "1px solid #ddd",
+                          border: `1px solid ${themeColors.border}`,
                           borderRadius: "4px",
                           textAlign: "right",
                         }}
@@ -327,7 +329,7 @@ function NewTransactionPageContent() {
                         style={{
                           width: "100%",
                           padding: "4px 8px",
-                          border: "1px solid #ddd",
+                          border: `1px solid ${themeColors.border}`,
                           borderRadius: "4px",
                         }}
                       />
@@ -357,12 +359,12 @@ function NewTransactionPageContent() {
           </table>
 
           {errors.lines && (
-            <p style={{ color: "#c33", fontSize: "14px", marginBottom: "16px" }}>
+            <p style={{ color: colors.danger, fontSize: "14px", marginBottom: "16px" }}>
               {errors.lines.message || errors.lines.root?.message}
             </p>
           )}
 
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: "16px", padding: "16px", backgroundColor: colors.gray[100], borderRadius: borderRadius.sm }}>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: "16px", padding: "16px", backgroundColor: themeColors.gray[100], borderRadius: borderRadius.sm }}>
             <div>
               <strong>Toplam Borç:</strong>{" "}
               {totals.totalDebit.toLocaleString("tr-TR", {
@@ -397,8 +399,8 @@ function NewTransactionPageContent() {
             href="/islemler"
             style={{
               padding: "8px 16px",
-              backgroundColor: colors.gray[100],
-              border: "1px solid #ddd",
+              backgroundColor: themeColors.gray[100],
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               textDecoration: "none",
               color: "inherit",
@@ -412,7 +414,7 @@ function NewTransactionPageContent() {
             style={{
               padding: "8px 16px",
               backgroundColor: colors.primary,
-              color: "white",
+              color: colors.white,
               border: "none",
               borderRadius: "4px",
               cursor: isSubmitting || Math.abs(totals.totalDebit - totals.totalCredit) >= 0.01 ? "not-allowed" : "pointer",

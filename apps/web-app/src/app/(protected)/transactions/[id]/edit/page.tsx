@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { spacing, colors, borderRadius } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import Link from "next/link";
 
 const transactionLineSchema = z.object({
@@ -43,6 +44,7 @@ const transactionSchema = z.object({
 type TransactionForm = z.infer<typeof transactionSchema>;
 
 export default function EditTransactionPage() {
+  const { themeColors } = useTheme();
   const params = useParams();
   const router = useRouter();
   const transactionId = params.id as string;
@@ -162,7 +164,7 @@ export default function EditTransactionPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
         {error && (
-          <div style={{ padding: "12px", backgroundColor: "#fee", color: "#c33", borderRadius: "4px" }}>
+          <div style={{ padding: "12px", backgroundColor: colors.dangerLight, color: colors.danger, borderRadius: "4px" }}>
             {error}
           </div>
         )}
@@ -178,7 +180,7 @@ export default function EditTransactionPage() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
               }}
@@ -203,13 +205,13 @@ export default function EditTransactionPage() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
               }}
             />
             {errors.date && (
-              <p style={{ color: "#c33", fontSize: "14px", marginTop: "4px" }}>{errors.date.message}</p>
+              <p style={{ color: colors.danger, fontSize: "14px", marginTop: "4px" }}>{errors.date.message}</p>
             )}
           </div>
 
@@ -223,13 +225,13 @@ export default function EditTransactionPage() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
               }}
             />
             {errors.referenceNo && (
-              <p style={{ color: "#c33", fontSize: "14px", marginTop: "4px" }}>{errors.referenceNo.message}</p>
+              <p style={{ color: colors.danger, fontSize: "14px", marginTop: "4px" }}>{errors.referenceNo.message}</p>
             )}
           </div>
 
@@ -244,7 +246,7 @@ export default function EditTransactionPage() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
                 resize: "vertical",
@@ -269,7 +271,7 @@ export default function EditTransactionPage() {
               style={{
                 padding: "8px 16px",
                 backgroundColor: colors.success,
-                color: "white",
+                color: colors.white,
                 border: "none",
                 borderRadius: "4px",
                 cursor: "pointer",
@@ -281,7 +283,7 @@ export default function EditTransactionPage() {
 
           <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "16px" }}>
             <thead>
-              <tr style={{ borderBottom: "2px solid #ddd" }}>
+              <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
                 <th style={{ padding: "12px", textAlign: "left" }}>Hesap Kodu</th>
                 <th style={{ padding: "12px", textAlign: "left" }}>Hesap Adı</th>
                 <th style={{ padding: "12px", textAlign: "right" }}>Borç</th>
@@ -296,14 +298,14 @@ export default function EditTransactionPage() {
                   (acc) => acc.id === watchedLines[index]?.ledgerAccountId
                 );
                 return (
-                  <tr key={field.id} style={{ borderBottom: "1px solid #eee" }}>
+                  <tr key={field.id} style={{ borderBottom: `1px solid ${themeColors.gray[200]}` }}>
                     <td style={{ padding: "8px" }}>
                       <select
                         {...register(`lines.${index}.ledgerAccountId`)}
                         style={{
                           width: "150px",
                           padding: "4px 8px",
-                          border: "1px solid #ddd",
+                          border: `1px solid ${themeColors.border}`,
                           borderRadius: "4px",
                         }}
                       >
@@ -326,7 +328,7 @@ export default function EditTransactionPage() {
                         style={{
                           width: "120px",
                           padding: "4px 8px",
-                          border: "1px solid #ddd",
+                          border: `1px solid ${themeColors.border}`,
                           borderRadius: "4px",
                           textAlign: "right",
                         }}
@@ -340,7 +342,7 @@ export default function EditTransactionPage() {
                         style={{
                           width: "120px",
                           padding: "4px 8px",
-                          border: "1px solid #ddd",
+                          border: `1px solid ${themeColors.border}`,
                           borderRadius: "4px",
                           textAlign: "right",
                         }}
@@ -352,7 +354,7 @@ export default function EditTransactionPage() {
                         style={{
                           width: "100%",
                           padding: "4px 8px",
-                          border: "1px solid #ddd",
+                          border: `1px solid ${themeColors.border}`,
                           borderRadius: "4px",
                         }}
                       />
@@ -382,12 +384,12 @@ export default function EditTransactionPage() {
           </table>
 
           {errors.lines && (
-            <p style={{ color: "#c33", fontSize: "14px", marginBottom: "16px" }}>
+            <p style={{ color: colors.danger, fontSize: "14px", marginBottom: "16px" }}>
               {errors.lines.message || errors.lines.root?.message}
             </p>
           )}
 
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: "16px", padding: "16px", backgroundColor: colors.gray[100], borderRadius: borderRadius.sm }}>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: "16px", padding: "16px", backgroundColor: themeColors.gray[100], borderRadius: borderRadius.sm }}>
             <div>
               <strong>Toplam Borç:</strong>{" "}
               {totals.totalDebit.toLocaleString("tr-TR", {
@@ -422,8 +424,8 @@ export default function EditTransactionPage() {
             href={`/transactions/${transactionId}`}
             style={{
               padding: "8px 16px",
-              backgroundColor: colors.gray[100],
-              border: "1px solid #ddd",
+              backgroundColor: themeColors.gray[100],
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               textDecoration: "none",
               color: "inherit",
@@ -437,7 +439,7 @@ export default function EditTransactionPage() {
             style={{
               padding: "8px 16px",
               backgroundColor: colors.primary,
-              color: "white",
+              color: colors.white,
               border: "none",
               borderRadius: "4px",
               cursor: isSubmitting || Math.abs(totals.totalDebit - totals.totalCredit) >= 0.01 ? "not-allowed" : "pointer",

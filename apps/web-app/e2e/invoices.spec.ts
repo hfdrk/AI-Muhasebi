@@ -2,7 +2,6 @@ import { test, expect } from "@playwright/test";
 import {
   login,
   navigateTo,
-  waitForText,
   createTestUserViaAPI,
   createClientCompanyViaAPI,
 } from "./test-utils";

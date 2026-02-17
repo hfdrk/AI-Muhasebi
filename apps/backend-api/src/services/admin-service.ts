@@ -215,7 +215,7 @@ export class AdminService {
         createdAt: log.createdAt,
         metadata: log.metadata,
       })),
-    };
+    } as any;
   }
 
   async updateTenantStatus(tenantId: string, status: "ACTIVE" | "SUSPENDED") {

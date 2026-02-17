@@ -11,14 +11,14 @@ body {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 /* Enhanced Focus Styles for Accessibility */
 *:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid #1e3a5f;
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -28,7 +28,7 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid #1e3a5f;
   outline-offset: 2px;
 }
 
@@ -39,8 +39,8 @@ html {
 
 /* Selection Styles */
 ::selection {
-  background-color: #dbeafe;
-  color: #1e40af;
+  background-color: #e8eef5;
+  color: #152d4a;
 }
 
 /* Scrollbar Styling */
@@ -54,12 +54,25 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #94a3b8;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #64748b;
+}
+
+/* Dark mode scrollbar */
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
 }
 
 /* Reduced Motion Support */
@@ -73,4 +86,3 @@ html {
     scroll-behavior: auto !important;
   }
 }
-

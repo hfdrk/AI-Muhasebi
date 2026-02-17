@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/Button";
 import { SkeletonTable } from "@/components/ui/Skeleton";
 import { Badge } from "@/components/ui/Badge";
 import { colors, spacing } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
+import { toast } from "@/lib/toast";
 import Link from "next/link";
 
 function formatDate(date: string | null | undefined): string {
@@ -83,10 +85,11 @@ function getExpirationStatusBadge(daysUntilExpiration: number | null, isExpired:
 }
 
 export default function ContractsPage() {
+  const { themeColors } = useTheme();
   const [activeTab, setActiveTab] = useState<"all" | "expiring" | "expired">("all");
   const queryClient = useQueryClient();
 
-  const { data: summaryData, error: summaryError } = useQuery({
+  const { data: summaryData } = useQuery({
     queryKey: ["contract-summary"],
     queryFn: () => contractClient.getContractSummary(),
     retry: 1,
@@ -158,26 +161,26 @@ export default function ContractsPage() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: spacing.md, marginBottom: spacing.lg }}>
           <Card>
             <div style={{ padding: spacing.md }}>
-              <div style={{ fontSize: "14px", color: colors.text.secondary, marginBottom: spacing.xs }}>Toplam Sözleşme</div>
-              <div style={{ fontSize: "24px", fontWeight: "bold", color: colors.text.primary }}>{summary.total}</div>
+              <div style={{ fontSize: "14px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>Toplam Sözleşme</div>
+              <div style={{ fontSize: "24px", fontWeight: "bold", color: themeColors.text.primary }}>{summary.total}</div>
             </div>
           </Card>
           <Card>
             <div style={{ padding: spacing.md }}>
-              <div style={{ fontSize: "14px", color: colors.text.secondary, marginBottom: spacing.xs }}>Yakında Dolacak</div>
+              <div style={{ fontSize: "14px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>Yakında Dolacak</div>
               <div style={{ fontSize: "24px", fontWeight: "bold", color: colors.warning }}>{summary.expiringSoon}</div>
             </div>
           </Card>
           <Card>
             <div style={{ padding: spacing.md }}>
-              <div style={{ fontSize: "14px", color: colors.text.secondary, marginBottom: spacing.xs }}>Süresi Dolmuş</div>
+              <div style={{ fontSize: "14px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>Süresi Dolmuş</div>
               <div style={{ fontSize: "24px", fontWeight: "bold", color: colors.error }}>{summary.expired}</div>
             </div>
           </Card>
           <Card>
             <div style={{ padding: spacing.md }}>
-              <div style={{ fontSize: "14px", color: colors.text.secondary, marginBottom: spacing.xs }}>Toplam Değer</div>
-              <div style={{ fontSize: "24px", fontWeight: "bold", color: colors.text.primary }}>
+              <div style={{ fontSize: "14px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>Toplam Değer</div>
+              <div style={{ fontSize: "24px", fontWeight: "bold", color: themeColors.text.primary }}>
                 {formatCurrency(summary.totalValue, "TRY")}
               </div>
             </div>
@@ -186,7 +189,7 @@ export default function ContractsPage() {
       )}
 
       {/* Tabs */}
-      <div style={{ borderBottom: `1px solid ${colors.gray[300]}`, marginBottom: spacing.lg }}>
+      <div style={{ borderBottom: `1px solid ${themeColors.gray[300]}`, marginBottom: spacing.lg }}>
         <div style={{ display: "flex", gap: spacing.md }}>
           <button
             onClick={() => setActiveTab("all")}
@@ -196,7 +199,7 @@ export default function ContractsPage() {
               borderBottom: activeTab === "all" ? `2px solid ${colors.primary}` : "2px solid transparent",
               backgroundColor: "transparent",
               cursor: "pointer",
-              color: activeTab === "all" ? colors.primary : colors.text.secondary,
+              color: activeTab === "all" ? colors.primary : themeColors.text.secondary,
               fontWeight: activeTab === "all" ? "semibold" : "normal",
             }}
           >
@@ -210,7 +213,7 @@ export default function ContractsPage() {
               borderBottom: activeTab === "expiring" ? `2px solid ${colors.primary}` : "2px solid transparent",
               backgroundColor: "transparent",
               cursor: "pointer",
-              color: activeTab === "expiring" ? colors.primary : colors.text.secondary,
+              color: activeTab === "expiring" ? colors.primary : themeColors.text.secondary,
               fontWeight: activeTab === "expiring" ? "semibold" : "normal",
             }}
           >
@@ -224,7 +227,7 @@ export default function ContractsPage() {
               borderBottom: activeTab === "expired" ? `2px solid ${colors.primary}` : "2px solid transparent",
               backgroundColor: "transparent",
               cursor: "pointer",
-              color: activeTab === "expired" ? colors.primary : colors.text.secondary,
+              color: activeTab === "expired" ? colors.primary : themeColors.text.secondary,
               fontWeight: activeTab === "expired" ? "semibold" : "normal",
             }}
           >
@@ -258,7 +261,7 @@ export default function ContractsPage() {
         </Card>
       ) : contracts.length === 0 ? (
         <Card>
-          <div style={{ padding: spacing.xl, textAlign: "center", color: colors.text.secondary }}>
+          <div style={{ padding: spacing.xl, textAlign: "center", color: themeColors.text.secondary }}>
             <div style={{ fontSize: "48px", marginBottom: spacing.md }}>📄</div>
             <div>Henüz sözleşme bulunmuyor.</div>
             <div style={{ marginTop: spacing.sm, fontSize: "14px" }}>
@@ -284,26 +287,26 @@ export default function ContractsPage() {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: spacing.sm }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: spacing.sm, marginBottom: spacing.xs }}>
-                      <h3 style={{ fontSize: "18px", fontWeight: "semibold", color: colors.text.primary }}>
+                      <h3 style={{ fontSize: "18px", fontWeight: "semibold", color: themeColors.text.primary }}>
                         {contract.contractNumber || "Sözleşme #" + contract.contractId.slice(0, 8)}
                       </h3>
                       {getExpirationStatusBadge(contract.daysUntilExpiration, contract.isExpired)}
                     </div>
-                    <div style={{ fontSize: "14px", color: colors.text.secondary, marginBottom: spacing.xs }}>
+                    <div style={{ fontSize: "14px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>
                       <strong>Müşteri:</strong> {contract.clientCompanyName}
                     </div>
                     {contract.contractType && (
-                      <div style={{ fontSize: "14px", color: colors.text.secondary, marginBottom: spacing.xs }}>
+                      <div style={{ fontSize: "14px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>
                         <strong>Tür:</strong> {contract.contractType}
                       </div>
                     )}
                     {contract.contractValue !== null && contract.contractValue !== undefined && (
-                      <div style={{ fontSize: "14px", color: colors.text.secondary, marginBottom: spacing.xs }}>
+                      <div style={{ fontSize: "14px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>
                         <strong>Değer:</strong> {formatCurrency(contract.contractValue, contract.currency)}
                       </div>
                     )}
                     {contract.expirationDate && (
-                      <div style={{ fontSize: "14px", color: colors.text.secondary }}>
+                      <div style={{ fontSize: "14px", color: themeColors.text.secondary }}>
                         <strong>Bitiş Tarihi:</strong> {formatDate(contract.expirationDate)}
                       </div>
                     )}
@@ -317,10 +320,10 @@ export default function ContractsPage() {
                     style={{
                       marginTop: spacing.sm,
                       padding: spacing.sm,
-                      backgroundColor: colors.gray[50],
+                      backgroundColor: themeColors.gray[50],
                       borderRadius: "4px",
                       fontSize: "13px",
-                      color: colors.text.secondary,
+                      color: themeColors.text.secondary,
                     }}
                   >
                     <strong>Yenileme Koşulları:</strong> {contract.renewalTerms}

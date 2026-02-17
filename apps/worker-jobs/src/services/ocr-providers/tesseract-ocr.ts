@@ -1,4 +1,5 @@
 import type { OCRResult } from "../ocr-service";
+import { logger } from "@repo/shared-utils";
 
 // Tesseract.js types - dynamic import to handle optional dependency
 interface TesseractWorker {
@@ -61,6 +62,7 @@ export class TesseractOCR {
 
     try {
       // Dynamic import for optional dependency
+      // @ts-ignore
       const tesseract = await import("tesseract.js");
       this.tesseractModule = tesseract as unknown as TesseractModule;
       return this.tesseractModule;
@@ -88,7 +90,7 @@ export class TesseractOCR {
         if (m.status === "recognizing text" && m.progress > 0) {
           // Only log significant progress
           if (m.progress === 0.5 || m.progress === 1) {
-            console.log(`[TesseractOCR] OCR progress: ${Math.round(m.progress * 100)}%`);
+            logger.info("[TesseractOCR] OCR progress", undefined, { progress: Math.round(m.progress * 100) });
           }
         }
       },
@@ -170,7 +172,7 @@ export class TesseractOCR {
       }
 
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error("[TesseractOCR] OCR error:", errorMessage);
+      logger.error("[TesseractOCR] OCR error", undefined, { error: errorMessage });
 
       // Check if it's a missing module error
       if (errorMessage.includes("modülü bulunamadı")) {
@@ -209,9 +211,8 @@ export class TesseractOCR {
 
       // For image-based PDFs, we need to convert to images first
       // This requires additional dependencies like pdf2pic or pdftoppm
-      console.warn(
-        "[TesseractOCR] PDF appears to be image-based. " +
-        "Consider using AWS Textract or Google Vision for better PDF OCR support."
+      logger.warn(
+        "[TesseractOCR] PDF appears to be image-based. Consider using AWS Textract or Google Vision for better PDF OCR support."
       );
 
       // Return what we got from pdf-parse, even if minimal
@@ -222,7 +223,7 @@ export class TesseractOCR {
       };
 
     } catch (error) {
-      console.error("[TesseractOCR] PDF extraction error:", error);
+      logger.error("[TesseractOCR] PDF extraction error", error);
       return {
         rawText: "",
         engineName: "tesseract",
@@ -236,10 +237,11 @@ export class TesseractOCR {
    */
   private async loadPdfParse(): Promise<((buffer: Buffer) => Promise<{ text: string }>) | null> {
     try {
+      // @ts-ignore
       const pdfParse = await import("pdf-parse");
       return pdfParse.default || pdfParse;
     } catch {
-      console.warn("[TesseractOCR] pdf-parse modülü bulunamadı. PDF desteği devre dışı.");
+      logger.warn("[TesseractOCR] pdf-parse module not found. PDF support disabled.");
       return null;
     }
   }
@@ -250,10 +252,15 @@ export class TesseractOCR {
    */
   async preprocessImage(fileBuffer: Buffer): Promise<Buffer> {
     try {
-      const sharp = await import("sharp");
+      // Dynamic import with type assertion to avoid TypeScript error if sharp is not installed
+      const sharp = await import("sharp" as string).catch(() => null);
+      if (!sharp) {
+        // If sharp is not available, return original buffer
+        return fileBuffer;
+      }
 
       // Convert to grayscale, increase contrast, and normalize
-      const processed = await sharp.default(fileBuffer)
+      const processed = await (sharp as any).default(fileBuffer)
         .grayscale()
         .normalize()
         .sharpen()
@@ -262,7 +269,7 @@ export class TesseractOCR {
       return processed;
     } catch {
       // If sharp is not available, return original buffer
-      console.warn("[TesseractOCR] sharp modülü bulunamadı. Ön işleme atlandı.");
+      logger.warn("[TesseractOCR] sharp module not found. Preprocessing skipped.");
       return fileBuffer;
     }
   }

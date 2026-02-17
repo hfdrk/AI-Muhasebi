@@ -223,10 +223,10 @@ export class VakifbankConnector extends BasePSD2BankConnector {
         return [];
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       return data.balances || [];
-    } catch (error) {
-      logger.error("[VakifbankConnector] fetchBalances error:", error);
+    } catch (error: unknown) {
+      logger.error("[VakifbankConnector] fetchBalances error:", { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -259,8 +259,8 @@ export class VakifbankConnector extends BasePSD2BankConnector {
         bankName: this.bankName,
         bankCode: "00015",
       };
-    } catch (error) {
-      logger.error("[VakifbankConnector] getAccountDetails error:", error);
+    } catch (error: unknown) {
+      logger.error("[VakifbankConnector] getAccountDetails error:", { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }
@@ -295,7 +295,7 @@ export class VakifbankConnector extends BasePSD2BankConnector {
         return [];
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       const transactions: WorldCardTransaction[] = data.transactions || [];
 
       return transactions.map((txn) => ({
@@ -308,8 +308,8 @@ export class VakifbankConnector extends BasePSD2BankConnector {
         currency: txn.currency || "TRY",
         balanceAfter: null,
       }));
-    } catch (error) {
-      logger.error("[VakifbankConnector] fetchWorldCardTransactions error:", error);
+    } catch (error: unknown) {
+      logger.error("[VakifbankConnector] fetchWorldCardTransactions error:", { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -337,10 +337,10 @@ export class VakifbankConnector extends BasePSD2BankConnector {
         return null;
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       return data.pointsInfo || null;
-    } catch (error) {
-      logger.error("[VakifbankConnector] fetchWorldPoints error:", error);
+    } catch (error: unknown) {
+      logger.error("[VakifbankConnector] fetchWorldPoints error:", { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }
@@ -372,7 +372,7 @@ export class VakifbankConnector extends BasePSD2BankConnector {
       throw new Error(`FAST ödeme başlatılamadı: ${response.status} - ${errorText}`);
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
 
     return {
       paymentId: data.paymentId,
@@ -404,10 +404,10 @@ export class VakifbankConnector extends BasePSD2BankConnector {
         return [];
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       return data.accounts || [];
-    } catch (error) {
-      logger.error("[VakifbankConnector] fetchKatilimAccounts error:", error);
+    } catch (error: unknown) {
+      logger.error("[VakifbankConnector] fetchKatilimAccounts error:", { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -435,10 +435,10 @@ export class VakifbankConnector extends BasePSD2BankConnector {
         return null;
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       return data.profitShare || null;
-    } catch (error) {
-      logger.error("[VakifbankConnector] fetchKatilimProfitShare error:", error);
+    } catch (error: unknown) {
+      logger.error("[VakifbankConnector] fetchKatilimProfitShare error:", { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }
@@ -467,10 +467,10 @@ export class VakifbankConnector extends BasePSD2BankConnector {
         return null;
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       return data.pensionInfo || null;
-    } catch (error) {
-      logger.error("[VakifbankConnector] fetchPensionAccountInfo error:", error);
+    } catch (error: unknown) {
+      logger.error("[VakifbankConnector] fetchPensionAccountInfo error:", { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }
@@ -505,10 +505,10 @@ export class VakifbankConnector extends BasePSD2BankConnector {
         return [];
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       return data.transactions || [];
-    } catch (error) {
-      logger.error("[VakifbankConnector] fetchGoldAccountTransactions error:", error);
+    } catch (error: unknown) {
+      logger.error("[VakifbankConnector] fetchGoldAccountTransactions error:", { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -536,10 +536,10 @@ export class VakifbankConnector extends BasePSD2BankConnector {
         return null;
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       return data.prices || null;
-    } catch (error) {
-      logger.error("[VakifbankConnector] getGoldPrices error:", error);
+    } catch (error: unknown) {
+      logger.error("[VakifbankConnector] getGoldPrices error:", { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }

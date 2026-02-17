@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp, MoreHorizontal, Download, RefreshCw } from "lucide-react";
 import { colors, spacing, borderRadius, shadows, typography, transitions, zIndex } from "@/styles/design-system";
+import { useTheme } from "../../contexts/ThemeContext";
 
 // ==================== Types ====================
 
@@ -35,14 +36,15 @@ export function DashboardSection({
   noPadding = false,
   fullWidth = false,
 }: DashboardSectionProps) {
+  const { themeColors } = useTheme();
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const [showMenu, setShowMenu] = useState(false);
 
   const containerStyle: React.CSSProperties = {
-    background: colors.white,
+    background: themeColors.white,
     borderRadius: borderRadius.xl,
     boxShadow: shadows.sm,
-    border: `1px solid ${colors.border}`,
+    border: `1px solid ${themeColors.border}`,
     overflow: "hidden",
     width: fullWidth ? "100%" : undefined,
   };
@@ -52,7 +54,7 @@ export function DashboardSection({
     alignItems: "center",
     justifyContent: "space-between",
     padding: `${spacing.md} ${spacing.lg}`,
-    borderBottom: isCollapsed ? "none" : `1px solid ${colors.border}`,
+    borderBottom: isCollapsed ? "none" : `1px solid ${themeColors.border}`,
     cursor: collapsible ? "pointer" : "default",
     userSelect: "none",
     transition: `background ${transitions.fast} ease`,
@@ -68,13 +70,13 @@ export function DashboardSection({
   const titleStyle: React.CSSProperties = {
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.semibold,
-    color: colors.text.primary,
+    color: themeColors.text.primary,
     margin: 0,
   };
 
   const subtitleStyle: React.CSSProperties = {
     fontSize: typography.fontSize.sm,
-    color: colors.text.muted,
+    color: themeColors.text.muted,
     margin: 0,
     marginTop: "2px",
   };
@@ -94,7 +96,7 @@ export function DashboardSection({
     borderRadius: borderRadius.md,
     border: "none",
     background: "transparent",
-    color: colors.text.muted,
+    color: themeColors.text.muted,
     cursor: "pointer",
     transition: `all ${transitions.fast} ease`,
   };
@@ -118,10 +120,10 @@ export function DashboardSection({
     position: "absolute",
     top: "calc(100% + 4px)",
     right: 0,
-    background: colors.white,
+    background: themeColors.white,
     borderRadius: borderRadius.lg,
     boxShadow: shadows.lg,
-    border: `1px solid ${colors.border}`,
+    border: `1px solid ${themeColors.border}`,
     minWidth: "160px",
     zIndex: zIndex.dropdown,
     overflow: "hidden",
@@ -133,7 +135,7 @@ export function DashboardSection({
     gap: spacing.sm,
     padding: `${spacing.sm} ${spacing.md}`,
     fontSize: typography.fontSize.sm,
-    color: colors.text.primary,
+    color: themeColors.text.primary,
     background: "transparent",
     border: "none",
     width: "100%",
@@ -150,7 +152,7 @@ export function DashboardSection({
         onClick={collapsible ? () => setIsCollapsed(!isCollapsed) : undefined}
         onMouseEnter={(e) => {
           if (collapsible) {
-            e.currentTarget.style.background = colors.gray[50];
+            e.currentTarget.style.background = themeColors.gray[50];
           }
         }}
         onMouseLeave={(e) => {
@@ -159,7 +161,7 @@ export function DashboardSection({
       >
         <div style={titleContainerStyle}>
           {collapsible && (
-            <span style={{ color: colors.text.muted }}>
+            <span style={{ color: themeColors.text.muted }}>
               {isCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
             </span>
           )}
@@ -178,12 +180,12 @@ export function DashboardSection({
                 style={iconButtonStyle}
                 onClick={() => setShowMenu(!showMenu)}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = colors.gray[100];
-                  e.currentTarget.style.color = colors.text.primary;
+                  e.currentTarget.style.background = themeColors.gray[100];
+                  e.currentTarget.style.color = themeColors.text.primary;
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = "transparent";
-                  e.currentTarget.style.color = colors.text.muted;
+                  e.currentTarget.style.color = themeColors.text.muted;
                 }}
               >
                 <MoreHorizontal size={18} />
@@ -204,7 +206,7 @@ export function DashboardSection({
                           setShowMenu(false);
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = colors.gray[50];
+                          e.currentTarget.style.background = themeColors.gray[50];
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.background = "transparent";
@@ -222,7 +224,7 @@ export function DashboardSection({
                           setShowMenu(false);
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = colors.gray[50];
+                          e.currentTarget.style.background = themeColors.gray[50];
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.background = "transparent";
@@ -251,7 +253,7 @@ export function DashboardSection({
               style={{
                 width: "32px",
                 height: "32px",
-                border: `3px solid ${colors.gray[200]}`,
+                border: `3px solid ${themeColors.gray[200]}`,
                 borderTopColor: colors.primary,
                 borderRadius: borderRadius.full,
                 animation: "spin 1s linear infinite",

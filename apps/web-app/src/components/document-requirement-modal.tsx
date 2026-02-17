@@ -8,8 +8,9 @@ import {
   createDocumentRequirement,
   updateDocumentRequirement,
   listClientCompanies,
-  type DocumentRequirement,
 } from "@repo/api-client";
+import { colors, spacing, borderRadius } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface DocumentRequirementModalProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ export default function DocumentRequirementModal({
   onSuccess,
 }: DocumentRequirementModalProps) {
   const queryClient = useQueryClient();
+  const { themeColors } = useTheme();
   const [clientCompanyId, setClientCompanyId] = useState<string>("");
   const [documentType, setDocumentType] = useState<string>("INVOICE");
   const [requiredByDate, setRequiredByDate] = useState("");
@@ -113,9 +115,9 @@ export default function DocumentRequirementModal({
     >
       <div
         style={{
-          backgroundColor: "white",
-          borderRadius: "8px",
-          padding: "24px",
+          backgroundColor: themeColors.white,
+          borderRadius: borderRadius.md,
+          padding: spacing.lg,
           maxWidth: "600px",
           width: "90%",
           maxHeight: "90vh",
@@ -128,8 +130,8 @@ export default function DocumentRequirementModal({
         </h2>
 
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: "16px" }}>
-            <label style={{ display: "block", marginBottom: "4px", fontWeight: "bold" }}>
+          <div style={{ marginBottom: spacing.md }}>
+            <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: "bold" }}>
               Müşteri Şirketi *
             </label>
             <select
@@ -139,8 +141,8 @@ export default function DocumentRequirementModal({
               style={{
                 width: "100%",
                 padding: "8px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
+                border: `1px solid ${themeColors.border}`,
+                borderRadius: borderRadius.sm,
               }}
             >
               <option value="">Seçiniz</option>
@@ -152,8 +154,8 @@ export default function DocumentRequirementModal({
             </select>
           </div>
 
-          <div style={{ marginBottom: "16px" }}>
-            <label style={{ display: "block", marginBottom: "4px", fontWeight: "bold" }}>
+          <div style={{ marginBottom: spacing.md }}>
+            <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: "bold" }}>
               Belge Tipi *
             </label>
             <select
@@ -163,8 +165,8 @@ export default function DocumentRequirementModal({
               style={{
                 width: "100%",
                 padding: "8px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
+                border: `1px solid ${themeColors.border}`,
+                borderRadius: borderRadius.sm,
               }}
             >
               <option value="INVOICE">Fatura</option>
@@ -175,8 +177,8 @@ export default function DocumentRequirementModal({
             </select>
           </div>
 
-          <div style={{ marginBottom: "16px" }}>
-            <label style={{ display: "block", marginBottom: "4px", fontWeight: "bold" }}>
+          <div style={{ marginBottom: spacing.md }}>
+            <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: "bold" }}>
               Gerekli Tarih *
             </label>
             <input
@@ -187,14 +189,14 @@ export default function DocumentRequirementModal({
               style={{
                 width: "100%",
                 padding: "8px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
+                border: `1px solid ${themeColors.border}`,
+                borderRadius: borderRadius.sm,
               }}
             />
           </div>
 
-          <div style={{ marginBottom: "16px" }}>
-            <label style={{ display: "block", marginBottom: "4px", fontWeight: "bold" }}>
+          <div style={{ marginBottom: spacing.md }}>
+            <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: "bold" }}>
               Açıklama
             </label>
             <textarea
@@ -204,21 +206,21 @@ export default function DocumentRequirementModal({
               style={{
                 width: "100%",
                 padding: "8px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
+                border: `1px solid ${themeColors.border}`,
+                borderRadius: borderRadius.sm,
               }}
             />
           </div>
 
-          <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", marginTop: "24px" }}>
+          <div style={{ display: "flex", gap: spacing.sm, justifyContent: "flex-end", marginTop: spacing.lg }}>
             <button
               type="button"
               onClick={onClose}
               style={{
-                padding: "8px 16px",
-                backgroundColor: "#f0f0f0",
+                padding: `${spacing.sm} ${spacing.md}`,
+                backgroundColor: themeColors.gray[100],
                 border: "none",
-                borderRadius: "4px",
+                borderRadius: borderRadius.sm,
                 cursor: "pointer",
               }}
             >
@@ -228,11 +230,11 @@ export default function DocumentRequirementModal({
               type="submit"
               disabled={createMutation.isPending || updateMutation.isPending}
               style={{
-                padding: "8px 16px",
-                backgroundColor: "#0066cc",
-                color: "white",
+                padding: `${spacing.sm} ${spacing.md}`,
+                backgroundColor: colors.primary,
+                color: colors.white,
                 border: "none",
-                borderRadius: "4px",
+                borderRadius: borderRadius.sm,
                 cursor: "pointer",
               }}
             >

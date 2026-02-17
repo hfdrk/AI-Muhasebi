@@ -10,6 +10,7 @@ import { PageTransition } from "@/components/ui/PageTransition";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { colors, spacing } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const userSettingsSchema = z.object({
   locale: z.string().max(10).nullable().optional(),
@@ -21,6 +22,7 @@ const userSettingsSchema = z.object({
 type UserSettingsForm = z.infer<typeof userSettingsSchema>;
 
 export default function ProfilePage() {
+  const { themeColors } = useTheme();
   const queryClient = useQueryClient();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -33,6 +35,8 @@ export default function ProfilePage() {
   const { data: settingsData, isLoading } = useQuery({
     queryKey: ["userSettings"],
     queryFn: () => getUserSettings(),
+    retry: false, // Don't retry on error
+    staleTime: 60000, // Consider fresh for 60 seconds
   });
 
   const currentUser = userData?.data;
@@ -91,10 +95,10 @@ export default function ProfilePage() {
     <PageTransition>
       <div style={{ padding: spacing.xxl }}>
       <div style={{ marginBottom: spacing.xxl }}>
-        <h1 style={{ fontSize: "28px", fontWeight: 600, marginBottom: spacing.sm, color: colors.text.primary }}>
+        <h1 style={{ fontSize: "28px", fontWeight: 600, marginBottom: spacing.sm, color: themeColors.text.primary }}>
           Profilim
         </h1>
-        <p style={{ color: colors.text.secondary, fontSize: "16px" }}>
+        <p style={{ color: themeColors.text.secondary, fontSize: "16px" }}>
           Kişisel bilgilerinizi ve tercihlerinizi yönetin.
         </p>
       </div>
@@ -104,8 +108,8 @@ export default function ProfilePage() {
           style={{
             padding: spacing.md,
             marginBottom: spacing.lg,
-            backgroundColor: "#d4edda",
-            color: "#155724",
+            backgroundColor: colors.successLight,
+            color: colors.successDark,
             borderRadius: "4px",
             border: "1px solid #c3e6cb",
           }}
@@ -119,8 +123,8 @@ export default function ProfilePage() {
           style={{
             padding: spacing.md,
             marginBottom: spacing.lg,
-            backgroundColor: "#f8d7da",
-            color: "#721c24",
+            backgroundColor: colors.dangerLight,
+            color: colors.dangerDark,
             borderRadius: "4px",
             border: "1px solid #f5c6cb",
           }}
@@ -141,18 +145,18 @@ export default function ProfilePage() {
           <div
             style={{
               padding: spacing.xl,
-              backgroundColor: colors.white,
+              backgroundColor: themeColors.white,
               borderRadius: "8px",
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               marginBottom: spacing.lg,
             }}
           >
-            <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: spacing.lg, color: colors.text.primary }}>
+            <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: spacing.lg, color: themeColors.text.primary }}>
               Kişisel Bilgiler
             </h2>
 
             <div style={{ marginBottom: spacing.lg }}>
-              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: 500, color: colors.text.primary }}>
+              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: 500, color: themeColors.text.primary }}>
                 Ad Soyad
               </label>
               <input
@@ -162,17 +166,17 @@ export default function ProfilePage() {
                 style={{
                   width: "100%",
                   padding: spacing.sm,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "4px",
                   fontSize: "14px",
-                  backgroundColor: colors.gray[50],
-                  color: colors.text.secondary,
+                  backgroundColor: themeColors.gray[50],
+                  color: themeColors.text.secondary,
                 }}
               />
             </div>
 
             <div style={{ marginBottom: spacing.lg }}>
-              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: 500, color: colors.text.primary }}>
+              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: 500, color: themeColors.text.primary }}>
                 E-posta
               </label>
               <input
@@ -182,11 +186,11 @@ export default function ProfilePage() {
                 style={{
                   width: "100%",
                   padding: spacing.sm,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "4px",
                   fontSize: "14px",
-                  backgroundColor: colors.gray[50],
-                  color: colors.text.secondary,
+                  backgroundColor: themeColors.gray[50],
+                  color: themeColors.text.secondary,
                 }}
               />
             </div>
@@ -195,18 +199,18 @@ export default function ProfilePage() {
           <div
             style={{
               padding: spacing.xl,
-              backgroundColor: colors.white,
+              backgroundColor: themeColors.white,
               borderRadius: "8px",
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               marginBottom: spacing.lg,
             }}
           >
-            <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: spacing.lg, color: colors.text.primary }}>
+            <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: spacing.lg, color: themeColors.text.primary }}>
               Tercihler
             </h2>
 
             <div style={{ marginBottom: spacing.lg }}>
-              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: 500, color: colors.text.primary }}>
+              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: 500, color: themeColors.text.primary }}>
                 Dil
               </label>
               <select
@@ -214,7 +218,7 @@ export default function ProfilePage() {
                 style={{
                   width: "100%",
                   padding: spacing.sm,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "4px",
                   fontSize: "14px",
                 }}
@@ -224,14 +228,14 @@ export default function ProfilePage() {
                 <option value="en-US">English (en-US)</option>
               </select>
               {!localeValue && effectiveSettings && (
-                <p style={{ color: colors.text.secondary, fontSize: "12px", marginTop: spacing.xs }}>
+                <p style={{ color: themeColors.text.secondary, fontSize: "12px", marginTop: spacing.xs }}>
                   Ofis varsayılanı: {effectiveSettings.effectiveLocale}
                 </p>
               )}
             </div>
 
             <div style={{ marginBottom: spacing.lg }}>
-              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: 500, color: colors.text.primary }}>
+              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: 500, color: themeColors.text.primary }}>
                 Saat Dilimi
               </label>
               <select
@@ -239,7 +243,7 @@ export default function ProfilePage() {
                 style={{
                   width: "100%",
                   padding: spacing.sm,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "4px",
                   fontSize: "14px",
                 }}
@@ -249,7 +253,7 @@ export default function ProfilePage() {
                 <option value="UTC">UTC</option>
               </select>
               {!timezoneValue && effectiveSettings && (
-                <p style={{ color: colors.text.secondary, fontSize: "12px", marginTop: spacing.xs }}>
+                <p style={{ color: themeColors.text.secondary, fontSize: "12px", marginTop: spacing.xs }}>
                   Ofis varsayılanı: {effectiveSettings.effectiveTimezone}
                 </p>
               )}
@@ -259,13 +263,13 @@ export default function ProfilePage() {
           <div
             style={{
               padding: spacing.xl,
-              backgroundColor: colors.white,
+              backgroundColor: themeColors.white,
               borderRadius: "8px",
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               marginBottom: spacing.lg,
             }}
           >
-            <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: spacing.lg, color: colors.text.primary }}>
+            <h2 style={{ fontSize: "20px", fontWeight: 600, marginBottom: spacing.lg, color: themeColors.text.primary }}>
               Bildirimler
             </h2>
 
@@ -283,7 +287,7 @@ export default function ProfilePage() {
                   {...register("emailNotificationsEnabled")}
                   style={{ width: "20px", height: "20px", cursor: "pointer" }}
                 />
-                <span style={{ fontWeight: 500, color: colors.text.primary }}>E-posta bildirimleri</span>
+                <span style={{ fontWeight: 500, color: themeColors.text.primary }}>E-posta bildirimleri</span>
               </label>
             </div>
 
@@ -301,7 +305,7 @@ export default function ProfilePage() {
                   {...register("inAppNotificationsEnabled")}
                   style={{ width: "20px", height: "20px", cursor: "pointer" }}
                 />
-                <span style={{ fontWeight: 500, color: colors.text.primary }}>Uygulama içi bildirimler</span>
+                <span style={{ fontWeight: 500, color: themeColors.text.primary }}>Uygulama içi bildirimler</span>
               </label>
             </div>
           </div>
@@ -329,5 +333,3 @@ export default function ProfilePage() {
     </PageTransition>
   );
 }
-
-

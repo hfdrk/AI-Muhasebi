@@ -23,6 +23,9 @@ import { validateEnv, getConfig } from "@repo/config";
 import { logger } from "@repo/shared-utils";
 import { errorHandler } from "./middleware/error-handler";
 import { requestLogger } from "./middleware/request-logger";
+import { metricsMiddleware, metricsHandler } from "./middleware/metrics-middleware";
+import { csrfProtection } from "./middleware/csrf-middleware";
+import { apiVersionMiddleware } from "./middleware/api-version-middleware";
 import { healthCheck, readinessCheck, healthzCheck, readyzCheck } from "./routes/health-routes";
 import authRoutes from "./routes/auth-routes";
 import userRoutes from "./routes/user-routes";
@@ -69,6 +72,20 @@ import analyticsRoutes from "./routes/analytics-routes";
 import swaggerRoutes from "./routes/swagger-routes";
 import taxCalendarRoutes from "./routes/tax-calendar-routes";
 import turkishAccountingAIRoutes from "./routes/turkish-accounting-ai-routes";
+import masakRoutes from "./routes/masak-routes";
+import kurganRoutes from "./routes/kurgan-routes";
+import babsRoutes from "./routes/babs-routes";
+import beyannameRoutes from "./routes/beyanname-routes";
+import maliMusavirRoutes from "./routes/mali-musavir-routes";
+import recurringInvoiceRoutes from "./routes/recurring-invoice-routes";
+import checkNoteRoutes from "./routes/check-note-routes";
+import cashFlowRoutes from "./routes/cash-flow-routes";
+import exchangeRateRoutes from "./routes/exchange-rate-routes";
+import paymentReminderRoutes from "./routes/payment-reminder-routes";
+import sectoralBenchmarkRoutes from "./routes/sectoral-benchmark-routes";
+import crossCompanyRoutes from "./routes/cross-company-routes";
+import masakRedFlagRoutes from "./routes/masak-red-flag-routes";
+import gibAuditPrecheckRoutes from "./routes/gib-audit-precheck-routes";
 
 // Resolve database URL asynchronously and update if needed
 resolveDatabaseUrl()
@@ -126,21 +143,43 @@ app.use(
     origin: process.env.NODE_ENV === "production" ? corsOrigin : corsOrigin.split(","),
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Tenant-Id"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Tenant-Id", "X-CSRF-Token"],
   })
 );
 
-// Rate limiting
+// Rate limiting - use env vars with sensible defaults
+const config = getConfig();
+const rateLimitWindowMs = config.RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000; // Default 15 minutes
+const rateLimitMaxRequests = config.RATE_LIMIT_MAX_REQUESTS || (process.env.NODE_ENV === "production" ? 500 : 1000); // Increased for dashboard loads
+
+// Use Redis-backed store if REDIS_URL is available (required for multi-instance)
+let rateLimitStore: any = undefined; // default: in-memory
+if (process.env.REDIS_URL && process.env.NODE_ENV === "production") {
+  try {
+    const { RedisStore } = require("rate-limit-redis");
+    const { createClient } = require("redis");
+    const redisClient = createClient({ url: process.env.REDIS_URL });
+    redisClient.connect().catch((err: Error) => {
+      logger.warn("Redis connection failed for rate limiting, falling back to in-memory", { error: err.message });
+    });
+    rateLimitStore = new RedisStore({ sendCommand: (...args: string[]) => redisClient.sendCommand(args) });
+    logger.info("Rate limiting using Redis-backed store");
+  } catch {
+    logger.info("rate-limit-redis not installed, using in-memory rate limiting");
+  }
+}
+
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === "production" ? 100 : 1000, // Limit each IP to 100 requests per windowMs in production
+  windowMs: rateLimitWindowMs,
+  max: rateLimitMaxRequests,
   standardHeaders: true,
   legacyHeaders: false,
   message: "Too many requests from this IP, please try again later.",
   skip: (req) => {
-    // Skip rate limiting for health checks
-    return req.path === "/healthz" || req.path === "/readyz" || req.path === "/health" || req.path === "/ready";
+    // Skip rate limiting for health checks and metrics
+    return req.path === "/healthz" || req.path === "/readyz" || req.path === "/health" || req.path === "/ready" || req.path === "/metrics";
   },
+  ...(rateLimitStore && { store: rateLimitStore }),
 });
 
 // Apply rate limiting to API routes
@@ -151,15 +190,24 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
+// CSRF protection (after cookie parser, before routes)
+app.use(csrfProtection);
+
+// API versioning headers
+app.use(apiVersionMiddleware);
+
 // Request logging middleware (before routes)
 app.use(requestLogger);
 
-// Health check endpoints
+// Prometheus-compatible metrics collection
+app.use(metricsMiddleware);
+
+// Health check and observability endpoints
 app.get("/health", healthCheck);
 app.get("/ready", readinessCheck);
-// Kubernetes-style health endpoints (no auth, lightweight)
 app.get("/healthz", healthzCheck);
 app.get("/readyz", readyzCheck);
+app.get("/metrics", metricsHandler);
 
 // API Documentation (Swagger/OpenAPI)
 app.use("/api-docs", swaggerRoutes);
@@ -180,8 +228,26 @@ if (process.env.NODE_ENV !== "production") {
   });
 }
 
+// Stricter rate limiter for auth endpoints (brute-force protection)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: process.env.NODE_ENV === "production" ? 10 : 50, // 10 attempts per 15min in prod
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: { message: "Çok fazla giriş denemesi. Lütfen 15 dakika sonra tekrar deneyin." } },
+  keyGenerator: (req) => {
+    // Rate limit by IP + email combination for login attempts
+    const email = req.body?.email || "";
+    return `${req.ip}-${email}`;
+  },
+  skip: (req) => {
+    // Only rate-limit sensitive auth actions, not refresh/logout
+    return req.path === "/refresh" || req.path === "/logout";
+  },
+});
+
 // API routes
-app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/auth", authLimiter, authRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/tenants", tenantRoutes);
 app.use("/api/v1/tenants", tenantUsersRoutes);
@@ -225,6 +291,34 @@ app.use("/api/v1/db-optimization", databaseOptimizationRoutes);
 app.use("/api/v1/analytics", analyticsRoutes);
 app.use("/api/v1/tax-calendar", taxCalendarRoutes);
 app.use("/api/v1/turkish-accounting-ai", turkishAccountingAIRoutes);
+app.use("/api/v1/masak", masakRoutes);
+app.use("/api/v1/kurgan", kurganRoutes);
+app.use("/api/v1/babs", babsRoutes);
+app.use("/api/v1/beyanname", beyannameRoutes);
+app.use("/api/v1/mali-musavir", maliMusavirRoutes);
+app.use("/api/v1/recurring-invoices", recurringInvoiceRoutes);
+app.use("/api/v1/check-notes", checkNoteRoutes);
+app.use("/api/v1/cash-flow", cashFlowRoutes);
+app.use("/api/v1/exchange-rates", exchangeRateRoutes);
+app.use("/api/v1/payment-reminders", paymentReminderRoutes);
+app.use("/api/v1/sectoral-benchmark", sectoralBenchmarkRoutes);
+app.use("/api/v1/cross-company-matching", crossCompanyRoutes);
+app.use("/api/v1/masak-red-flags", masakRedFlagRoutes);
+app.use("/api/v1/gib-audit-precheck", gibAuditPrecheckRoutes);
+
+// 404 handler for undefined routes
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api/")) {
+    res.status(404).json({
+      error: {
+        code: "NOT_FOUND",
+        message: `API endpoint not found: ${req.method} ${req.path}`,
+      },
+    });
+  } else {
+    next(); // Let other middleware handle non-API routes
+  }
+});
 
 // Error handler (must be last)
 app.use(errorHandler);
@@ -242,6 +336,22 @@ const server = app.listen(PORT, () => {
     logger.info("WebSocket server initialized");
   } catch (error) {
     logger.warn("WebSocket server initialization skipped:", error);
+  }
+
+  // Verify email service connection
+  try {
+    const { emailService } = require("./services/email-service");
+    emailService.verifyConnection().then((ok: boolean) => {
+      if (ok) {
+        logger.info("Email service connection verified");
+      } else {
+        logger.warn("Email service connection not available - emails will not be sent");
+      }
+    }).catch((err: any) => {
+      logger.warn("Email service verification failed:", { error: err.message });
+    });
+  } catch (error) {
+    logger.warn("Email service initialization skipped:", error);
   }
 });
 

@@ -2,7 +2,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { motion } from 'framer-motion';
-import { colors, spacing, borderRadius, shadows, typography, transitions } from '../../styles/design-system';
+import { colors, spacing, borderRadius, shadows, typography } from '../../styles/design-system';
 import { Icon } from './Icon';
 import { Button } from './Button';
 
@@ -37,7 +37,10 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    // Only log in development
+    if (process.env.NODE_ENV === "development") {
+      console.error('ErrorBoundary caught an error:', error, errorInfo);
+    }
     this.setState({
       error,
       errorInfo,

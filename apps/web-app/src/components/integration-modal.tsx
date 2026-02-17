@@ -5,6 +5,8 @@ import { createPortal } from "react-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listProviders, createIntegration, updateIntegration, testConnection, type IntegrationProvider } from "@repo/api-client";
 import { toast } from "@/lib/toast";
+import { colors, spacing, borderRadius, typography, transitions } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface IntegrationModalProps {
   isOpen: boolean;
@@ -27,6 +29,7 @@ export default function IntegrationModal({
   type,
   onSuccess,
 }: IntegrationModalProps) {
+  const { themeColors } = useTheme();
   const queryClient = useQueryClient();
   const [selectedProviderId, setSelectedProviderId] = useState<string>(initialData?.providerId || "");
   const [displayName, setDisplayName] = useState<string>(initialData?.displayName || "");
@@ -49,7 +52,9 @@ export default function IntegrationModal({
   const createMutation = useMutation({
     mutationFn: createIntegration,
     onSuccess: async (data) => {
-      console.log("[Integration Modal] Integration created:", data);
+      if (process.env.NODE_ENV === "development") {
+        console.log("[Integration Modal] Integration created:", data);
+      }
       // Invalidate all integration queries to refresh both tabs
       await queryClient.invalidateQueries({ queryKey: ["integrations"] });
       // Refetch immediately to ensure data is fresh
@@ -61,7 +66,9 @@ export default function IntegrationModal({
       onClose();
     },
     onError: (error: any) => {
-      console.error("Error creating integration:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error creating integration:", error);
+      }
       toast.error(error.message || "Entegrasyon oluşturulurken bir hata oluştu.");
     },
   });
@@ -75,7 +82,7 @@ export default function IntegrationModal({
   });
 
   const testMutation = useMutation({
-    mutationFn: (testConfig: Record<string, unknown>) => {
+    mutationFn: (_testConfig: Record<string, unknown>) => {
       if (integrationId) {
         return testConnection(integrationId);
       }
@@ -162,7 +169,9 @@ export default function IntegrationModal({
         });
       }
     } catch (error) {
-      console.error("Error submitting form:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error submitting form:", error);
+      }
       // Error is already handled by mutation onError
     } finally {
       setIsSubmitting(false);
@@ -220,9 +229,9 @@ export default function IntegrationModal({
     >
       <div
         style={{
-          backgroundColor: "white",
-          padding: "32px",
-          borderRadius: "12px",
+          backgroundColor: themeColors.white,
+          padding: spacing.xl,
+          borderRadius: borderRadius.lg,
           maxWidth: "700px",
           width: "90%",
           maxHeight: "90vh",
@@ -231,11 +240,11 @@ export default function IntegrationModal({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={{ marginBottom: "24px", borderBottom: "1px solid #e5e7eb", paddingBottom: "16px" }}>
-          <h2 style={{ margin: 0, fontSize: "24px", fontWeight: "700", color: "#111827" }}>
-            {integrationId ? "İntegrasyonu Düzenle" : "Yeni İntegrasyon Ekle"}
+        <div style={{ marginBottom: spacing.lg, borderBottom: `1px solid ${themeColors.gray[200]}`, paddingBottom: spacing.md }}>
+          <h2 style={{ margin: 0, fontSize: typography.fontSize["2xl"], fontWeight: typography.fontWeight.bold, color: themeColors.text.primary }}>
+            {integrationId ? "Integrasyonu Düzenle" : "Yeni Integrasyon Ekle"}
           </h2>
-          <p style={{ margin: "8px 0 0 0", color: "#6b7280", fontSize: "14px" }}>
+          <p style={{ margin: `${spacing.sm} 0 0 0`, color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>
             {integrationId
               ? "Entegrasyon ayarlarını güncelleyin"
               : "Yeni bir entegrasyon bağlantısı oluşturun"}
@@ -247,10 +256,10 @@ export default function IntegrationModal({
             <label
               style={{
                 display: "block",
-                marginBottom: "8px",
-                fontWeight: "600",
-                fontSize: "14px",
-                color: "#374151",
+                marginBottom: spacing.sm,
+                fontWeight: typography.fontWeight.semibold,
+                fontSize: typography.fontSize.sm,
+                color: themeColors.text.primary,
               }}
             >
               Sağlayıcı
@@ -262,22 +271,22 @@ export default function IntegrationModal({
               disabled={!!integrationId}
               style={{
                 width: "100%",
-                padding: "12px 16px",
-                border: "1px solid #d1d5db",
-                borderRadius: "8px",
-                fontSize: "16px",
-                backgroundColor: integrationId ? "#f9fafb" : "white",
-                color: "#111827",
-                transition: "all 0.2s",
+                padding: `12px ${spacing.md}`,
+                border: `1px solid ${themeColors.gray[300]}`,
+                borderRadius: borderRadius.md,
+                fontSize: typography.fontSize.base,
+                backgroundColor: integrationId ? themeColors.gray[50] : themeColors.white,
+                color: themeColors.text.primary,
+                transition: `all ${transitions.normal}`,
               }}
               onFocus={(e) => {
                 if (!integrationId) {
-                  e.currentTarget.style.borderColor = "#2563eb";
+                  e.currentTarget.style.borderColor = colors.primary;
                   e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37, 99, 235, 0.1)";
                 }
               }}
               onBlur={(e) => {
-                e.currentTarget.style.borderColor = "#d1d5db";
+                e.currentTarget.style.borderColor = themeColors.gray[300];
                 e.currentTarget.style.boxShadow = "none";
               }}
             >
@@ -289,7 +298,7 @@ export default function IntegrationModal({
               ))}
             </select>
             {selectedProvider && selectedProvider.description && (
-              <p style={{ marginTop: "8px", fontSize: "13px", color: "#6b7280" }}>
+              <p style={{ marginTop: spacing.sm, fontSize: typography.fontSize.sm, color: themeColors.text.secondary }}>
                 {selectedProvider.description}
               </p>
             )}
@@ -299,10 +308,10 @@ export default function IntegrationModal({
             <label
               style={{
                 display: "block",
-                marginBottom: "8px",
-                fontWeight: "600",
-                fontSize: "14px",
-                color: "#374151",
+                marginBottom: spacing.sm,
+                fontWeight: typography.fontWeight.semibold,
+                fontSize: typography.fontSize.sm,
+                color: themeColors.text.primary,
               }}
             >
               Görünen Ad
@@ -314,50 +323,50 @@ export default function IntegrationModal({
               placeholder={selectedProvider?.name || "Entegrasyon adı"}
               style={{
                 width: "100%",
-                padding: "12px 16px",
-                border: "1px solid #d1d5db",
-                borderRadius: "8px",
-                fontSize: "16px",
-                transition: "all 0.2s",
+                padding: `12px ${spacing.md}`,
+                border: `1px solid ${themeColors.gray[300]}`,
+                borderRadius: borderRadius.md,
+                fontSize: typography.fontSize.base,
+                transition: `all ${transitions.normal}`,
               }}
               onFocus={(e) => {
-                e.currentTarget.style.borderColor = "#2563eb";
+                e.currentTarget.style.borderColor = colors.primary;
                 e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37, 99, 235, 0.1)";
               }}
               onBlur={(e) => {
-                e.currentTarget.style.borderColor = "#d1d5db";
+                e.currentTarget.style.borderColor = themeColors.gray[300];
                 e.currentTarget.style.boxShadow = "none";
               }}
             />
           </div>
 
           {selectedProvider && selectedProvider.configSchema && (
-            <div style={{ marginBottom: "24px" }}>
+            <div style={{ marginBottom: spacing.lg }}>
               <label
                 style={{
                   display: "block",
                   marginBottom: "12px",
-                  fontWeight: "600",
-                  fontSize: "14px",
-                  color: "#374151",
+                  fontWeight: typography.fontWeight.semibold,
+                  fontSize: typography.fontSize.sm,
+                  color: themeColors.text.primary,
                 }}
               >
                 Yapılandırma
               </label>
-              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: spacing.md }}>
                 {Object.entries(selectedProvider.configSchema).map(([key, schema]: [string, any]) => (
                   <div key={key}>
                     <label
                       style={{
                         display: "block",
-                        marginBottom: "8px",
-                        fontSize: "14px",
-                        fontWeight: "500",
-                        color: "#374151",
+                        marginBottom: spacing.sm,
+                        fontSize: typography.fontSize.sm,
+                        fontWeight: typography.fontWeight.medium,
+                        color: themeColors.text.primary,
                       }}
                     >
                       {schema.label || key}
-                      {schema.required !== false && <span style={{ color: "#ef4444", marginLeft: "4px" }}>*</span>}
+                      {schema.required !== false && <span style={{ color: colors.danger, marginLeft: spacing.xs }}>*</span>}
                     </label>
                     <input
                       type={schema.type === "password" ? "password" : "text"}
@@ -367,23 +376,23 @@ export default function IntegrationModal({
                       required={schema.required !== false}
                       style={{
                         width: "100%",
-                        padding: "12px 16px",
-                        border: "1px solid #d1d5db",
-                        borderRadius: "8px",
-                        fontSize: "16px",
-                        transition: "all 0.2s",
+                        padding: `12px ${spacing.md}`,
+                        border: `1px solid ${themeColors.gray[300]}`,
+                        borderRadius: borderRadius.md,
+                        fontSize: typography.fontSize.base,
+                        transition: `all ${transitions.normal}`,
                       }}
                       onFocus={(e) => {
-                        e.currentTarget.style.borderColor = "#2563eb";
+                        e.currentTarget.style.borderColor = colors.primary;
                         e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37, 99, 235, 0.1)";
                       }}
                       onBlur={(e) => {
-                        e.currentTarget.style.borderColor = "#d1d5db";
+                        e.currentTarget.style.borderColor = themeColors.gray[300];
                         e.currentTarget.style.boxShadow = "none";
                       }}
                     />
                     {schema.description && (
-                      <p style={{ marginTop: "6px", fontSize: "13px", color: "#6b7280" }}>
+                      <p style={{ marginTop: "6px", fontSize: typography.fontSize.sm, color: themeColors.text.secondary }}>
                         {schema.description}
                       </p>
                     )}
@@ -397,30 +406,30 @@ export default function IntegrationModal({
             <div
               style={{
                 padding: "12px",
-                marginBottom: "16px",
-                borderRadius: "4px",
-                backgroundColor: testResult.success ? "#d4edda" : "#f8d7da",
-                color: testResult.success ? "#155724" : "#721c24",
+                marginBottom: spacing.md,
+                borderRadius: borderRadius.sm,
+                backgroundColor: testResult.success ? colors.successLight : colors.dangerLight,
+                color: testResult.success ? colors.successDark : colors.dangerDark,
               }}
             >
-              {testResult.success ? "✓ " : "✗ "}
+              {testResult.success ? "\u2713 " : "\u2717 "}
               {testResult.message || (testResult.success ? "Bağlantı başarılı." : "Bağlantı başarısız.")}
             </div>
           )}
 
-          <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+          <div style={{ display: "flex", gap: spacing.sm, justifyContent: "flex-end" }}>
             <button
               type="button"
               onClick={onClose}
               style={{
-                padding: "8px 16px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                background: "white",
+                padding: `${spacing.sm} ${spacing.md}`,
+                border: `1px solid ${themeColors.border}`,
+                borderRadius: borderRadius.sm,
+                background: themeColors.white,
                 cursor: "pointer",
               }}
             >
-              İptal
+              Iptal
             </button>
             {integrationId && (
               <button
@@ -428,11 +437,11 @@ export default function IntegrationModal({
                 onClick={handleTest}
                 disabled={isTesting}
                 style={{
-                  padding: "8px 16px",
-                  border: "1px solid #0066cc",
-                  borderRadius: "4px",
-                  background: "white",
-                  color: "#0066cc",
+                  padding: `${spacing.sm} ${spacing.md}`,
+                  border: `1px solid ${colors.primary}`,
+                  borderRadius: borderRadius.sm,
+                  background: themeColors.white,
+                  color: colors.primary,
                   cursor: isTesting ? "not-allowed" : "pointer",
                 }}
               >
@@ -443,35 +452,35 @@ export default function IntegrationModal({
               type="submit"
               disabled={isSubmitting || createMutation.isPending || updateMutation.isPending}
               style={{
-                padding: "12px 24px",
-                backgroundColor: isSubmitting || createMutation.isPending || updateMutation.isPending ? "#9ca3af" : "#2563eb",
-                color: "white",
+                padding: `12px ${spacing.lg}`,
+                backgroundColor: isSubmitting || createMutation.isPending || updateMutation.isPending ? themeColors.gray[400] : colors.primary,
+                color: themeColors.white,
                 border: "none",
-                borderRadius: "8px",
+                borderRadius: borderRadius.md,
                 cursor: isSubmitting || createMutation.isPending || updateMutation.isPending ? "not-allowed" : "pointer",
-                fontSize: "16px",
-                fontWeight: "500",
-                transition: "all 0.2s",
+                fontSize: typography.fontSize.base,
+                fontWeight: typography.fontWeight.medium,
+                transition: `all ${transitions.normal}`,
                 boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
               }}
               onMouseEnter={(e) => {
                 if (!isSubmitting && !createMutation.isPending && !updateMutation.isPending) {
-                  e.currentTarget.style.backgroundColor = "#1d4ed8";
+                  e.currentTarget.style.backgroundColor = colors.primaryDark;
                   e.currentTarget.style.transform = "translateY(-1px)";
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isSubmitting && !createMutation.isPending && !updateMutation.isPending) {
-                  e.currentTarget.style.backgroundColor = "#2563eb";
+                  e.currentTarget.style.backgroundColor = colors.primary;
                   e.currentTarget.style.transform = "translateY(0)";
                 }
               }}
             >
               {isSubmitting || createMutation.isPending || updateMutation.isPending
-                ? "⏳ Kaydediliyor..."
+                ? "\u23f3 Kaydediliyor..."
                 : integrationId
-                ? "💾 Güncelle"
-                : "✨ Oluştur"}
+                ? "\ud83d\udcbe Güncelle"
+                : "\u2728 Oluştur"}
             </button>
           </div>
         </form>
@@ -481,4 +490,3 @@ export default function IntegrationModal({
 
   return createPortal(modalContent, document.body);
 }
-

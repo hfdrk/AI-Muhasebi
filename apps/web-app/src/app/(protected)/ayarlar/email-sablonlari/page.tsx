@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { colors, spacing } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "@/lib/toast";
 
 const TEMPLATE_NAMES = [
@@ -20,6 +21,7 @@ const TEMPLATE_NAMES = [
 ];
 
 export default function EmailTemplatesPage() {
+  const { themeColors } = useTheme();
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [templateContent, setTemplateContent] = useState("");
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
@@ -89,8 +91,7 @@ export default function EmailTemplatesPage() {
     testEmailMutation.mutate();
   };
 
-  const templates = templatesData?.data?.data || [];
-  const currentTemplate = templateData?.data;
+  const templates = templatesData?.data || [];
 
   return (
     <PageTransition>
@@ -100,7 +101,7 @@ export default function EmailTemplatesPage() {
       <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: spacing.lg }}>
         {/* Template List */}
         <Card>
-          <div style={{ padding: spacing.md, borderBottom: `1px solid ${colors.gray[200]}` }}>
+          <div style={{ padding: spacing.md, borderBottom: `1px solid ${themeColors.gray[200]}` }}>
             <h3 style={{ fontSize: "16px", fontWeight: "semibold" }}>Şablonlar</h3>
           </div>
           <div>
@@ -119,19 +120,19 @@ export default function EmailTemplatesPage() {
                     width: "100%",
                     padding: spacing.md,
                     border: "none",
-                    borderBottom: `1px solid ${colors.gray[200]}`,
+                    borderBottom: `1px solid ${themeColors.gray[200]}`,
                     backgroundColor: isSelected ? colors.primaryLighter : "transparent",
                     textAlign: "left",
                     cursor: "pointer",
-                    color: isSelected ? colors.primary : colors.text.primary,
+                    color: isSelected ? colors.primary : themeColors.text.primary,
                   }}
                 >
                   <div style={{ fontWeight: isSelected ? "semibold" : "normal", marginBottom: spacing.xs }}>
                     {template.label}
                   </div>
-                  <div style={{ fontSize: "12px", color: colors.text.secondary }}>{template.description}</div>
+                  <div style={{ fontSize: "12px", color: themeColors.text.secondary }}>{template.description}</div>
                   {templateInfo && (
-                    <div style={{ fontSize: "11px", color: colors.text.secondary, marginTop: spacing.xs }}>
+                    <div style={{ fontSize: "11px", color: themeColors.text.secondary, marginTop: spacing.xs }}>
                       {templateInfo.size} karakter
                     </div>
                   )}
@@ -145,7 +146,7 @@ export default function EmailTemplatesPage() {
         <div>
           {!selectedTemplate ? (
             <Card>
-              <div style={{ padding: spacing.xl, textAlign: "center", color: colors.text.secondary }}>
+              <div style={{ padding: spacing.xl, textAlign: "center", color: themeColors.text.secondary }}>
                 <div style={{ fontSize: "48px", marginBottom: spacing.md }}>📧</div>
                 <div>Düzenlemek için bir şablon seçin</div>
               </div>
@@ -185,7 +186,7 @@ export default function EmailTemplatesPage() {
                     width: "100%",
                     minHeight: "400px",
                     padding: spacing.md,
-                    border: `1px solid ${colors.gray[300]}`,
+                    border: `1px solid ${themeColors.gray[300]}`,
                     borderRadius: "6px",
                     fontFamily: "monospace",
                     fontSize: "13px",
@@ -194,9 +195,9 @@ export default function EmailTemplatesPage() {
                   placeholder="Şablon içeriğini buraya yazın..."
                 />
 
-                <div style={{ marginTop: spacing.md, padding: spacing.md, backgroundColor: colors.gray[50], borderRadius: "6px" }}>
+                <div style={{ marginTop: spacing.md, padding: spacing.md, backgroundColor: themeColors.gray[50], borderRadius: "6px" }}>
                   <h4 style={{ fontSize: "14px", fontWeight: "semibold", marginBottom: spacing.sm }}>💡 Kullanılabilir Değişkenler:</h4>
-                  <div style={{ fontSize: "12px", color: colors.text.secondary }}>
+                  <div style={{ fontSize: "12px", color: themeColors.text.secondary }}>
                     <div>• <code>{`{{title}}`}</code> - Başlık</div>
                     <div>• <code>{`{{message}}`}</code> - Mesaj içeriği</div>
                     <div>• <code>{`{{year}}`}</code> - Yıl</div>
@@ -213,17 +214,17 @@ export default function EmailTemplatesPage() {
                     <h3 style={{ fontSize: "18px", fontWeight: "semibold" }}>Önizleme</h3>
                     <Button
                       onClick={() => setPreviewHtml(null)}
-                      style={{ backgroundColor: colors.gray[300], color: colors.text.primary }}
+                      style={{ backgroundColor: themeColors.gray[300], color: themeColors.text.primary }}
                     >
                       Kapat
                     </Button>
                   </div>
                   <div
                     style={{
-                      border: `1px solid ${colors.gray[300]}`,
+                      border: `1px solid ${themeColors.gray[300]}`,
                       borderRadius: "6px",
                       padding: spacing.md,
-                      backgroundColor: colors.white,
+                      backgroundColor: themeColors.white,
                     }}
                     dangerouslySetInnerHTML={{ __html: previewHtml }}
                   />
@@ -246,7 +247,7 @@ export default function EmailTemplatesPage() {
                       style={{
                         width: "100%",
                         padding: spacing.sm,
-                        border: `1px solid ${colors.gray[300]}`,
+                        border: `1px solid ${themeColors.gray[300]}`,
                         borderRadius: "6px",
                         fontSize: "14px",
                       }}
@@ -274,5 +275,3 @@ export default function EmailTemplatesPage() {
     </PageTransition>
   );
 }
-
-

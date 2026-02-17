@@ -2,6 +2,8 @@
 
 import { type Task } from "@repo/api-client";
 import { formatDate } from "@/utils/date-utils";
+import { colors, spacing, borderRadius, typography } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface TaskListProps {
   tasks: Task[];
@@ -10,13 +12,6 @@ interface TaskListProps {
   onStatusChange: (taskId: string, status: Task["status"]) => void;
 }
 
-const STATUS_LABELS: Record<Task["status"], string> = {
-  pending: "Beklemede",
-  in_progress: "Devam Ediyor",
-  completed: "Tamamlandı",
-  cancelled: "İptal Edildi",
-};
-
 const PRIORITY_LABELS: Record<Task["priority"], string> = {
   low: "Düşük",
   medium: "Orta",
@@ -24,15 +19,17 @@ const PRIORITY_LABELS: Record<Task["priority"], string> = {
 };
 
 const PRIORITY_COLORS: Record<Task["priority"], string> = {
-  low: "#10b981",
-  medium: "#f59e0b",
-  high: "#dc2626",
+  low: colors.success,
+  medium: colors.warning,
+  high: colors.danger,
 };
 
 export default function TaskList({ tasks, onEdit, onDelete, onStatusChange }: TaskListProps) {
+  const { themeColors } = useTheme();
+
   if (tasks.length === 0) {
     return (
-      <div style={{ padding: "24px", textAlign: "center", color: "#666" }}>
+      <div style={{ padding: spacing.lg, textAlign: "center", color: themeColors.text.secondary }}>
         Henüz görev bulunmuyor.
       </div>
     );
@@ -44,23 +41,23 @@ export default function TaskList({ tasks, onEdit, onDelete, onStatusChange }: Ta
   };
 
   return (
-    <div style={{ backgroundColor: "white", borderRadius: "8px", overflow: "hidden" }}>
+    <div style={{ backgroundColor: themeColors.white, borderRadius: borderRadius.md, overflow: "hidden" }}>
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
-          <tr style={{ backgroundColor: "#f5f5f5" }}>
-            <th style={{ padding: "12px", textAlign: "left", borderBottom: "1px solid #ddd" }}>
+          <tr style={{ backgroundColor: themeColors.gray[50] }}>
+            <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
               Başlık
             </th>
-            <th style={{ padding: "12px", textAlign: "left", borderBottom: "1px solid #ddd" }}>
+            <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
               Durum
             </th>
-            <th style={{ padding: "12px", textAlign: "left", borderBottom: "1px solid #ddd" }}>
+            <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
               Öncelik
             </th>
-            <th style={{ padding: "12px", textAlign: "left", borderBottom: "1px solid #ddd" }}>
+            <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
               Vade Tarihi
             </th>
-            <th style={{ padding: "12px", textAlign: "left", borderBottom: "1px solid #ddd" }}>
+            <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
               İşlemler
             </th>
           </tr>
@@ -70,28 +67,28 @@ export default function TaskList({ tasks, onEdit, onDelete, onStatusChange }: Ta
             <tr
               key={task.id}
               style={{
-                borderBottom: "1px solid #eee",
-                backgroundColor: isOverdue(task) ? "#fee2e2" : "white",
+                borderBottom: `1px solid ${themeColors.gray[200]}`,
+                backgroundColor: isOverdue(task) ? themeColors.dangerLight : themeColors.white,
               }}
             >
-              <td style={{ padding: "12px" }}>
-                <div style={{ fontWeight: "bold" }}>{task.title}</div>
+              <td style={{ padding: spacing.md }}>
+                <div style={{ fontWeight: typography.fontWeight.bold }}>{task.title}</div>
                 {task.description && (
-                  <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
+                  <div style={{ fontSize: typography.fontSize.xs, color: themeColors.text.secondary, marginTop: spacing.xs }}>
                     {task.description.substring(0, 50)}
                     {task.description.length > 50 ? "..." : ""}
                   </div>
                 )}
               </td>
-              <td style={{ padding: "12px" }}>
+              <td style={{ padding: spacing.md }}>
                 <select
                   value={task.status}
                   onChange={(e) => onStatusChange(task.id, e.target.value as Task["status"])}
                   style={{
-                    padding: "4px 8px",
-                    border: "1px solid #ddd",
-                    borderRadius: "4px",
-                    fontSize: "12px",
+                    padding: `${spacing.xs} ${spacing.sm}`,
+                    border: `1px solid ${themeColors.border}`,
+                    borderRadius: borderRadius.sm,
+                    fontSize: typography.fontSize.xs,
                   }}
                 >
                   <option value="pending">Beklemede</option>
@@ -100,12 +97,12 @@ export default function TaskList({ tasks, onEdit, onDelete, onStatusChange }: Ta
                   <option value="cancelled">İptal Edildi</option>
                 </select>
               </td>
-              <td style={{ padding: "12px" }}>
+              <td style={{ padding: spacing.md }}>
                 <span
                   style={{
-                    padding: "4px 8px",
-                    borderRadius: "4px",
-                    fontSize: "12px",
+                    padding: `${spacing.xs} ${spacing.sm}`,
+                    borderRadius: borderRadius.sm,
+                    fontSize: typography.fontSize.xs,
                     backgroundColor: `${PRIORITY_COLORS[task.priority]}20`,
                     color: PRIORITY_COLORS[task.priority],
                   }}
@@ -113,32 +110,32 @@ export default function TaskList({ tasks, onEdit, onDelete, onStatusChange }: Ta
                   {PRIORITY_LABELS[task.priority]}
                 </span>
               </td>
-              <td style={{ padding: "12px" }}>
+              <td style={{ padding: spacing.md }}>
                 {task.dueDate ? (
                   <div>
                     {formatDate(new Date(task.dueDate))}
                     {isOverdue(task) && (
-                      <span style={{ color: "#dc2626", marginLeft: "8px", fontSize: "12px" }}>
+                      <span style={{ color: colors.danger, marginLeft: spacing.sm, fontSize: typography.fontSize.xs }}>
                         (Vadesi Geçti)
                       </span>
                     )}
                   </div>
                 ) : (
-                  <span style={{ color: "#999" }}>-</span>
+                  <span style={{ color: themeColors.text.muted }}>-</span>
                 )}
               </td>
-              <td style={{ padding: "12px" }}>
-                <div style={{ display: "flex", gap: "8px" }}>
+              <td style={{ padding: spacing.md }}>
+                <div style={{ display: "flex", gap: spacing.sm }}>
                   <button
                     onClick={() => onEdit(task.id)}
                     style={{
-                      padding: "4px 8px",
-                      backgroundColor: "#0066cc",
-                      color: "white",
+                      padding: `${spacing.xs} ${spacing.sm}`,
+                      backgroundColor: colors.primary,
+                      color: colors.white,
                       border: "none",
-                      borderRadius: "4px",
+                      borderRadius: borderRadius.sm,
                       cursor: "pointer",
-                      fontSize: "12px",
+                      fontSize: typography.fontSize.xs,
                     }}
                   >
                     Düzenle
@@ -147,13 +144,13 @@ export default function TaskList({ tasks, onEdit, onDelete, onStatusChange }: Ta
                     <button
                       onClick={() => onDelete(task.id)}
                       style={{
-                        padding: "4px 8px",
-                        backgroundColor: "#dc2626",
-                        color: "white",
+                        padding: `${spacing.xs} ${spacing.sm}`,
+                        backgroundColor: colors.danger,
+                        color: colors.white,
                         border: "none",
-                        borderRadius: "4px",
+                        borderRadius: borderRadius.sm,
                         cursor: "pointer",
-                        fontSize: "12px",
+                        fontSize: typography.fontSize.xs,
                       }}
                     >
                       Sil
@@ -168,6 +165,3 @@ export default function TaskList({ tasks, onEdit, onDelete, onStatusChange }: Ta
     </div>
   );
 }
-
-
-

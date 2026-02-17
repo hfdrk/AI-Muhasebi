@@ -5,10 +5,12 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { getCurrentUser, switchTenant } from "@repo/api-client";
 import { useRouter } from "next/navigation";
 import { colors, spacing, shadows, borderRadius, transitions, zIndex, typography } from "../styles/design-system";
+import { useTheme } from "../contexts/ThemeContext";
 import { Icon } from "./ui/Icon";
 import { Tooltip } from "./ui/Tooltip";
 
 export function TenantSwitcher() {
+  const { themeColors } = useTheme();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -48,15 +50,15 @@ export function TenantSwitcher() {
       <div 
         style={{ 
           padding: "10px 14px", 
-          backgroundColor: colors.gray[50], 
+          backgroundColor: themeColors.gray[50], 
           borderRadius: borderRadius.md,
-          border: `1px solid ${colors.border}`,
+          border: `1px solid ${themeColors.border}`,
           fontSize: typography.fontSize.sm,
-          color: colors.text.secondary,
+          color: themeColors.text.secondary,
         }}
       >
-        <span style={{ fontWeight: typography.fontWeight.medium, color: colors.text.primary }}>Şirket / Ofis: </span>
-        <span style={{ fontWeight: typography.fontWeight.semibold, color: colors.text.primary }}>{currentTenant.name}</span>
+        <span style={{ fontWeight: typography.fontWeight.medium, color: themeColors.text.primary }}>Şirket / Ofis: </span>
+        <span style={{ fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary }}>{currentTenant.name}</span>
       </div>
     ) : null;
   }
@@ -68,8 +70,8 @@ export function TenantSwitcher() {
           onClick={() => setIsOpen(!isOpen)}
           style={{
           padding: "10px 14px",
-          backgroundColor: isOpen ? colors.primaryLighter : colors.gray[50],
-          border: `1px solid ${isOpen ? colors.primary : colors.border}`,
+          backgroundColor: isOpen ? colors.primaryLighter : themeColors.gray[50],
+          border: `1px solid ${isOpen ? colors.primary : themeColors.border}`,
           borderRadius: borderRadius.md,
           cursor: "pointer",
           display: "flex",
@@ -88,23 +90,23 @@ export function TenantSwitcher() {
         }}
         onMouseLeave={(e) => {
           if (!isOpen) {
-            e.currentTarget.style.backgroundColor = colors.gray[50];
-            e.currentTarget.style.borderColor = colors.border;
+            e.currentTarget.style.backgroundColor = themeColors.gray[50];
+            e.currentTarget.style.borderColor = themeColors.border;
             e.currentTarget.style.boxShadow = shadows.sm;
           }
         }}
       >
         <span style={{ fontSize: "16px" }}>🏢</span>
         <span style={{ flex: 1, textAlign: "left", fontSize: typography.fontSize.sm }}>
-          <span style={{ fontWeight: typography.fontWeight.medium, color: colors.text.secondary }}>Şirket / Ofis: </span>
-          <span style={{ fontWeight: typography.fontWeight.semibold, color: colors.text.primary }}>
+          <span style={{ fontWeight: typography.fontWeight.medium, color: themeColors.text.secondary }}>Şirket / Ofis: </span>
+          <span style={{ fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary }}>
             {currentTenant?.name || "Seçiniz"}
           </span>
         </span>
         <span
           style={{
             fontSize: "10px",
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
             transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
             transition: `transform ${transitions.normal} ease`,
           }}
@@ -132,8 +134,8 @@ export function TenantSwitcher() {
               position: "absolute",
               top: "calc(100% + 8px)",
               left: 0,
-              backgroundColor: colors.white,
-              border: `1px solid ${colors.border}`,
+              backgroundColor: themeColors.white,
+              border: `1px solid ${themeColors.border}`,
               borderRadius: borderRadius.lg,
               boxShadow: shadows.xl,
               zIndex: zIndex.dropdown,
@@ -146,11 +148,11 @@ export function TenantSwitcher() {
             <div
               style={{
                 padding: `${spacing.sm} ${spacing.md}`,
-                borderBottom: `1px solid ${colors.border}`,
-                backgroundColor: colors.gray[50],
+                borderBottom: `1px solid ${themeColors.border}`,
+                backgroundColor: themeColors.gray[50],
                 fontSize: typography.fontSize.xs,
                 fontWeight: typography.fontWeight.semibold,
-                color: colors.text.secondary,
+                color: themeColors.text.secondary,
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
               }}
@@ -174,7 +176,7 @@ export function TenantSwitcher() {
                       padding: `${spacing.md} ${spacing.lg}`,
                       textAlign: "left",
                       border: "none",
-                      backgroundColor: isActive ? colors.primaryLighter : colors.white,
+                      backgroundColor: isActive ? colors.primaryLighter : themeColors.white,
                       cursor: isActive ? "default" : "pointer",
                       opacity: switchMutation.isPending ? 0.6 : 1,
                       transition: `all ${transitions.normal} ease`,
@@ -185,21 +187,21 @@ export function TenantSwitcher() {
                     }}
                     onMouseEnter={(e) => {
                       if (!isActive && !switchMutation.isPending) {
-                        e.currentTarget.style.backgroundColor = colors.gray[50];
+                        e.currentTarget.style.backgroundColor = themeColors.gray[50];
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isActive && !switchMutation.isPending) {
-                        e.currentTarget.style.backgroundColor = colors.white;
+                        e.currentTarget.style.backgroundColor = themeColors.white;
                       }
                     }}
                   >
-                    <Icon name="building" size={18} color={isActive ? colors.primary : colors.text.primary} />
+                    <Icon name="Building" size={18} color={isActive ? colors.primary : themeColors.text.primary} />
                     <span
                       style={{
                         flex: 1,
                         fontWeight: isActive ? typography.fontWeight.semibold : typography.fontWeight.medium,
-                        color: isActive ? colors.primary : colors.text.primary,
+                        color: isActive ? colors.primary : themeColors.text.primary,
                         fontSize: typography.fontSize.sm,
                       }}
                     >

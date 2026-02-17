@@ -1,4 +1,5 @@
 import type { OCRResult } from "../ocr-service";
+import { logger } from "@repo/shared-utils";
 
 // Google Vision types - dynamic import for optional dependency
 interface TextAnnotation {
@@ -120,6 +121,7 @@ export class GoogleVisionOCR {
     }
 
     try {
+      // @ts-ignore
       const vision = await import("@google-cloud/vision");
       const { ImageAnnotatorClient } = vision;
 
@@ -142,9 +144,8 @@ export class GoogleVisionOCR {
       if (this.apiKey && !this.keyFilePath) {
         // For API key auth, we'd typically use REST API directly
         // The SDK prefers service account authentication
-        console.warn(
-          "[GoogleVisionOCR] API key authentication has limited features. " +
-            "Consider using service account for full functionality."
+        logger.warn(
+          "[GoogleVisionOCR] API key authentication has limited features. Consider using service account for full functionality."
         );
       }
 
@@ -198,7 +199,7 @@ export class GoogleVisionOCR {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error("[GoogleVisionOCR] OCR error:", errorMessage);
+      logger.error("[GoogleVisionOCR] OCR error", undefined, { error: errorMessage });
 
       // Check if it's a missing module error
       if (errorMessage.includes("modülü bulunamadı")) {
@@ -283,7 +284,7 @@ export class GoogleVisionOCR {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error("[GoogleVisionOCR] PDF extraction error:", errorMessage);
+      logger.error("[GoogleVisionOCR] PDF extraction error", undefined, { error: errorMessage });
 
       // Check for PDF-specific errors
       if (errorMessage.includes("PDF_TOO_LARGE")) {
@@ -339,7 +340,7 @@ export class GoogleVisionOCR {
       // But we can use the same method - Vision API auto-detects Turkish well
       return await this.extractText(fileBuffer, mimeType);
     } catch (error) {
-      console.error("[GoogleVisionOCR] OCR with hints error:", error);
+      logger.error("[GoogleVisionOCR] OCR with hints error", error);
       return {
         rawText: "",
         engineName: "google-vision",
@@ -377,7 +378,7 @@ export class GoogleVisionOCR {
           ...result,
           paragraphs: [],
           blocks: [],
-        };
+        } as any;
       }
 
       const client = await this.loadVision();
@@ -452,7 +453,7 @@ export class GoogleVisionOCR {
         blocks,
       };
     } catch (error) {
-      console.error("[GoogleVisionOCR] Structured extraction error:", error);
+      logger.error("[GoogleVisionOCR] Structured extraction error", error);
       return {
         rawText: "",
         engineName: "google-vision-structured",
@@ -582,7 +583,7 @@ export class GoogleVisionOCR {
 
       return null;
     } catch (error) {
-      console.error("[GoogleVisionOCR] Language detection error:", error);
+      logger.error("[GoogleVisionOCR] Language detection error", error);
       return null;
     }
   }

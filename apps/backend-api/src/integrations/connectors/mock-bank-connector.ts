@@ -100,13 +100,7 @@ export class MockBankConnector implements BankIntegrationConnector {
     transactions: PushTransactionInput[],
     config: Record<string, unknown>
   ): Promise<Array<{ success: boolean; externalId?: string; message?: string }>> {
-    // Stub implementation - return success for all transactions
-    // TODO: Implement actual API call to push transactions to external system
-    console.warn(
-      "MockBankConnector.pushTransactions() is using stub implementation. " +
-      "This is a mock connector and does not actually push data."
-    );
-
+    // Mock connector - returns success for testing/development
     return transactions.map((transaction) => ({
       success: true,
       externalId: transaction.externalId || `MOCK-${transaction.transactionId}`,

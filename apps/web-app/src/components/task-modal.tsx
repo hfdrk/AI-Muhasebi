@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getTask, createTask, updateTask, listClientCompanies, type Task } from "@repo/api-client";
+import { colors, spacing, borderRadius, zIndex } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -13,6 +15,7 @@ interface TaskModalProps {
 }
 
 export default function TaskModal({ isOpen, onClose, taskId, onSuccess }: TaskModalProps) {
+  const { themeColors } = useTheme();
   const queryClient = useQueryClient();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -98,6 +101,13 @@ export default function TaskModal({ isOpen, onClose, taskId, onSuccess }: TaskMo
 
   const clients = clientsData?.data?.data || [];
 
+  const inputStyle = {
+    width: "100%",
+    padding: spacing.sm,
+    border: `1px solid ${themeColors.border}`,
+    borderRadius: borderRadius.sm,
+  };
+
   return createPortal(
     <div
       style={{
@@ -110,15 +120,15 @@ export default function TaskModal({ isOpen, onClose, taskId, onSuccess }: TaskMo
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        zIndex: 1000,
+        zIndex: zIndex.modal,
       }}
       onClick={onClose}
     >
       <div
         style={{
-          backgroundColor: "white",
-          borderRadius: "8px",
-          padding: "24px",
+          backgroundColor: themeColors.white,
+          borderRadius: borderRadius.md,
+          padding: spacing.lg,
           maxWidth: "600px",
           width: "90%",
           maxHeight: "90vh",
@@ -129,8 +139,8 @@ export default function TaskModal({ isOpen, onClose, taskId, onSuccess }: TaskMo
         <h2 style={{ marginBottom: "20px" }}>{taskId ? "Görevi Düzenle" : "Yeni Görev"}</h2>
 
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: "16px" }}>
-            <label style={{ display: "block", marginBottom: "4px", fontWeight: "bold" }}>
+          <div style={{ marginBottom: spacing.md }}>
+            <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: "bold" }}>
               Başlık *
             </label>
             <input
@@ -138,46 +148,31 @@ export default function TaskModal({ isOpen, onClose, taskId, onSuccess }: TaskMo
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
-              style={{
-                width: "100%",
-                padding: "8px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-              }}
+              style={inputStyle}
             />
           </div>
 
-          <div style={{ marginBottom: "16px" }}>
-            <label style={{ display: "block", marginBottom: "4px", fontWeight: "bold" }}>
+          <div style={{ marginBottom: spacing.md }}>
+            <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: "bold" }}>
               Açıklama
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
-              style={{
-                width: "100%",
-                padding: "8px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-              }}
+              style={inputStyle}
             />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: spacing.md, marginBottom: spacing.md }}>
             <div>
-              <label style={{ display: "block", marginBottom: "4px", fontWeight: "bold" }}>
+              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: "bold" }}>
                 Durum
               </label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as Task["status"])}
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  border: "1px solid #ddd",
-                  borderRadius: "4px",
-                }}
+                style={inputStyle}
               >
                 <option value="pending">Beklemede</option>
                 <option value="in_progress">Devam Ediyor</option>
@@ -187,18 +182,13 @@ export default function TaskModal({ isOpen, onClose, taskId, onSuccess }: TaskMo
             </div>
 
             <div>
-              <label style={{ display: "block", marginBottom: "4px", fontWeight: "bold" }}>
+              <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: "bold" }}>
                 Öncelik
               </label>
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as Task["priority"])}
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  border: "1px solid #ddd",
-                  borderRadius: "4px",
-                }}
+                style={inputStyle}
               >
                 <option value="low">Düşük</option>
                 <option value="medium">Orta</option>
@@ -207,36 +197,26 @@ export default function TaskModal({ isOpen, onClose, taskId, onSuccess }: TaskMo
             </div>
           </div>
 
-          <div style={{ marginBottom: "16px" }}>
-            <label style={{ display: "block", marginBottom: "4px", fontWeight: "bold" }}>
+          <div style={{ marginBottom: spacing.md }}>
+            <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: "bold" }}>
               Vade Tarihi
             </label>
             <input
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "8px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-              }}
+              style={inputStyle}
             />
           </div>
 
-          <div style={{ marginBottom: "16px" }}>
-            <label style={{ display: "block", marginBottom: "4px", fontWeight: "bold" }}>
+          <div style={{ marginBottom: spacing.md }}>
+            <label style={{ display: "block", marginBottom: spacing.xs, fontWeight: "bold" }}>
               Müşteri Şirketi
             </label>
             <select
               value={clientCompanyId}
               onChange={(e) => setClientCompanyId(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "8px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-              }}
+              style={inputStyle}
             >
               <option value="">Seçiniz</option>
               {clients.map((client: any) => (
@@ -247,15 +227,15 @@ export default function TaskModal({ isOpen, onClose, taskId, onSuccess }: TaskMo
             </select>
           </div>
 
-          <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", marginTop: "24px" }}>
+          <div style={{ display: "flex", gap: spacing.sm, justifyContent: "flex-end", marginTop: spacing.lg }}>
             <button
               type="button"
               onClick={onClose}
               style={{
-                padding: "8px 16px",
-                backgroundColor: "#f0f0f0",
+                padding: `${spacing.sm} ${spacing.md}`,
+                backgroundColor: themeColors.gray[100],
                 border: "none",
-                borderRadius: "4px",
+                borderRadius: borderRadius.sm,
                 cursor: "pointer",
               }}
             >
@@ -265,11 +245,11 @@ export default function TaskModal({ isOpen, onClose, taskId, onSuccess }: TaskMo
               type="submit"
               disabled={createMutation.isPending || updateMutation.isPending}
               style={{
-                padding: "8px 16px",
-                backgroundColor: "#0066cc",
-                color: "white",
+                padding: `${spacing.sm} ${spacing.md}`,
+                backgroundColor: colors.primary,
+                color: colors.white,
                 border: "none",
-                borderRadius: "4px",
+                borderRadius: borderRadius.sm,
                 cursor: "pointer",
               }}
             >
@@ -286,6 +266,3 @@ export default function TaskModal({ isOpen, onClose, taskId, onSuccess }: TaskMo
     document.body
   );
 }
-
-
-

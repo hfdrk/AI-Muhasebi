@@ -3,6 +3,7 @@
 import React from "react";
 import { ArrowRight, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { colors, spacing, borderRadius, shadows, typography, transitions } from "@/styles/design-system";
+import { useTheme } from "../../contexts/ThemeContext";
 
 // ==================== Types ====================
 
@@ -33,6 +34,7 @@ export function MetricComparison({
   showPercentageChange = true,
   invertColors = false,
 }: MetricComparisonProps) {
+  const { themeColors } = useTheme();
   const formatValue = (value: number, prefix?: string, unit?: string): string => {
     const formatted = value.toLocaleString("tr-TR", {
       minimumFractionDigits: 0,
@@ -58,11 +60,11 @@ export function MetricComparison({
   };
 
   const containerStyle: React.CSSProperties = {
-    background: colors.white,
+    background: themeColors.white,
     borderRadius: borderRadius.xl,
     padding: spacing.lg,
     boxShadow: shadows.sm,
-    border: `1px solid ${colors.border}`,
+    border: `1px solid ${themeColors.border}`,
   };
 
   const headerStyle: React.CSSProperties = {
@@ -72,7 +74,7 @@ export function MetricComparison({
   const titleStyle: React.CSSProperties = {
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.semibold,
-    color: colors.text.primary,
+    color: themeColors.text.primary,
     margin: 0,
     marginBottom: spacing.sm,
   };
@@ -82,10 +84,10 @@ export function MetricComparison({
     gridTemplateColumns: "1fr 120px 120px 80px",
     gap: spacing.md,
     padding: `${spacing.sm} 0`,
-    borderBottom: `2px solid ${colors.border}`,
+    borderBottom: `2px solid ${themeColors.border}`,
     fontSize: typography.fontSize.xs,
     fontWeight: typography.fontWeight.semibold,
-    color: colors.text.muted,
+    color: themeColors.text.muted,
     textTransform: "uppercase",
     letterSpacing: "0.05em",
   };
@@ -95,7 +97,7 @@ export function MetricComparison({
     gridTemplateColumns: "1fr 120px 120px 80px",
     gap: spacing.md,
     padding: `${spacing.md} 0`,
-    borderBottom: `1px solid ${colors.gray[100]}`,
+    borderBottom: `1px solid ${themeColors.gray[100]}`,
     alignItems: "center",
     transition: `background ${transitions.fast} ease`,
   };
@@ -103,19 +105,19 @@ export function MetricComparison({
   const labelStyle: React.CSSProperties = {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.medium,
-    color: colors.text.primary,
+    color: themeColors.text.primary,
   };
 
   const valueStyle: React.CSSProperties = {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.semibold,
-    color: colors.text.primary,
+    color: themeColors.text.primary,
     textAlign: "right",
   };
 
   const previousValueStyle: React.CSSProperties = {
     fontSize: typography.fontSize.sm,
-    color: colors.text.muted,
+    color: themeColors.text.muted,
     textAlign: "right",
   };
 
@@ -146,7 +148,7 @@ export function MetricComparison({
             key={index}
             style={rowStyle}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = colors.gray[50];
+              e.currentTarget.style.background = themeColors.gray[50];
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = "transparent";
@@ -205,6 +207,7 @@ export function ComparisonCard({
   unit,
   invertColors = false,
 }: ComparisonCardProps) {
+  const { themeColors } = useTheme();
   const formatValue = (value: number): string => {
     const formatted = value.toLocaleString("tr-TR");
     if (prefix) return `${prefix}${formatted}`;
@@ -228,24 +231,24 @@ export function ComparisonCard({
     ? colors.successLight
     : isNegative
     ? colors.dangerLight
-    : colors.gray[100];
+    : themeColors.gray[100];
 
   const ChangeIcon = change > 0 ? ArrowUpRight : change < 0 ? ArrowDownRight : ArrowRight;
 
   return (
     <div
       style={{
-        background: colors.white,
+        background: themeColors.white,
         borderRadius: borderRadius.lg,
         padding: spacing.md,
-        border: `1px solid ${colors.border}`,
+        border: `1px solid ${themeColors.border}`,
       }}
     >
       <div
         style={{
           fontSize: typography.fontSize.xs,
           fontWeight: typography.fontWeight.medium,
-          color: colors.text.muted,
+          color: themeColors.text.muted,
           textTransform: "uppercase",
           letterSpacing: "0.05em",
           marginBottom: spacing.sm,
@@ -267,7 +270,7 @@ export function ComparisonCard({
           <div
             style={{
               fontSize: typography.fontSize.xs,
-              color: colors.text.muted,
+              color: themeColors.text.muted,
               marginBottom: "2px",
             }}
           >
@@ -277,7 +280,7 @@ export function ComparisonCard({
             style={{
               fontSize: typography.fontSize.xl,
               fontWeight: typography.fontWeight.bold,
-              color: colors.text.primary,
+              color: themeColors.text.primary,
             }}
           >
             {formatValue(currentValue)}
@@ -316,7 +319,7 @@ export function ComparisonCard({
           <div
             style={{
               fontSize: typography.fontSize.xs,
-              color: colors.text.muted,
+              color: themeColors.text.muted,
               marginBottom: "2px",
             }}
           >
@@ -326,7 +329,7 @@ export function ComparisonCard({
             style={{
               fontSize: typography.fontSize.lg,
               fontWeight: typography.fontWeight.semibold,
-              color: colors.text.secondary,
+              color: themeColors.text.secondary,
             }}
           >
             {formatValue(previousValue)}

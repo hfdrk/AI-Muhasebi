@@ -4,13 +4,10 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   listIntegrations,
-  listProviders,
   deleteIntegration,
   triggerSync,
   type TenantIntegration,
 } from "@repo/api-client";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -19,7 +16,8 @@ import { Tabs } from "@/components/ui/Tabs";
 import { SkeletonTable } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageTransition } from "@/components/ui/PageTransition";
-import { colors, spacing, typography } from "@/styles/design-system";
+import { spacing, typography } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "@/lib/toast";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -35,7 +33,7 @@ const SYNC_STATUS_LABELS: Record<string, string> = {
 };
 
 export default function IntegrationsPage() {
-  const router = useRouter();
+  const { themeColors } = useTheme();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<"accounting" | "bank">("accounting");
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; id: string | null; name: string }>({
@@ -47,7 +45,9 @@ export default function IntegrationsPage() {
   const { data: accountingData, isLoading: isLoadingAccounting, error: accountingError } = useQuery({
     queryKey: ["integrations", "accounting"],
     queryFn: () => {
-      console.log("[Integrations Page] Fetching accounting integrations...");
+      if (process.env.NODE_ENV === "development") {
+        console.log("[Integrations Page] Fetching accounting integrations...");
+      }
       return listIntegrations({ type: "accounting" });
     },
   });
@@ -55,7 +55,9 @@ export default function IntegrationsPage() {
   const { data: bankData, isLoading: isLoadingBank, error: bankError } = useQuery({
     queryKey: ["integrations", "bank"],
     queryFn: () => {
-      console.log("[Integrations Page] Fetching bank integrations...");
+      if (process.env.NODE_ENV === "development") {
+        console.log("[Integrations Page] Fetching bank integrations...");
+      }
       return listIntegrations({ type: "bank" });
     },
   });
@@ -68,7 +70,9 @@ export default function IntegrationsPage() {
     }
   }
   if (bankError) {
-    console.error("[Integrations Page] Bank query error:", bankError);
+    if (process.env.NODE_ENV === "development" && bankError) {
+      console.error("[Integrations Page] Bank query error:", bankError);
+    }
     if (activeTab === "bank") {
       toast.error("Banka entegrasyonları yüklenirken bir hata oluştu.");
     }
@@ -107,8 +111,10 @@ export default function IntegrationsPage() {
   
   // Debug logging
   if (currentData && !isLoading) {
-    console.log("[Integrations Page] Current data:", currentData);
-    console.log("[Integrations Page] Integrations:", integrations);
+    if (process.env.NODE_ENV === "development") {
+      console.log("[Integrations Page] Current data:", currentData);
+      console.log("[Integrations Page] Integrations:", integrations);
+    }
   }
 
   const handleDeleteClick = (id: string, name: string) => {
@@ -163,10 +169,10 @@ export default function IntegrationsPage() {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.xl }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: typography.fontSize["3xl"], fontWeight: typography.fontWeight.bold, color: colors.text.primary, marginBottom: spacing.sm }}>
+          <h1 style={{ margin: 0, fontSize: typography.fontSize["3xl"], fontWeight: typography.fontWeight.bold, color: themeColors.text.primary, marginBottom: spacing.sm }}>
             İntegrasyonlar
           </h1>
-          <p style={{ margin: 0, color: colors.text.secondary, fontSize: typography.fontSize.base }}>
+          <p style={{ margin: 0, color: themeColors.text.secondary, fontSize: typography.fontSize.base }}>
             Muhasebe sistemleri ve banka bağlantılarını yönetin
           </p>
         </div>
@@ -204,7 +210,7 @@ export default function IntegrationsPage() {
                       <Card key={integration.id} hoverable>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: spacing.md }}>
                           <div style={{ flex: 1 }}>
-                            <h3 style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: colors.text.primary, marginBottom: spacing.xs }}>
+                            <h3 style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary, marginBottom: spacing.xs }}>
                               {integration.displayName || integration.provider?.name || "Entegrasyon"}
                             </h3>
                             <Badge variant={getStatusVariant(integration.status)} size="sm" style={{ marginBottom: spacing.sm }}>
@@ -213,16 +219,16 @@ export default function IntegrationsPage() {
                           </div>
                         </div>
                         <div style={{ marginBottom: spacing.md }}>
-                          <p style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary, marginBottom: spacing.xs }}>
+                          <p style={{ fontSize: typography.fontSize.sm, color: themeColors.text.secondary, marginBottom: spacing.xs }}>
                             <strong>Sağlayıcı:</strong> {integration.provider?.name || integration.providerName || "-"}
                           </p>
                           {integration.lastSyncAt && (
-                            <p style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                            <p style={{ fontSize: typography.fontSize.sm, color: themeColors.text.secondary }}>
                               <strong>Son Senkronizasyon:</strong> {new Date(integration.lastSyncAt).toLocaleString("tr-TR")}
                             </p>
                           )}
                           {integration.lastSyncStatus && (
-                            <p style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary, marginTop: spacing.xs }}>
+                            <p style={{ fontSize: typography.fontSize.sm, color: themeColors.text.secondary, marginTop: spacing.xs }}>
                               <strong>Senkron Durumu:</strong>{" "}
                               <Badge variant={getSyncStatusVariant(integration.lastSyncStatus)} size="sm">
                                 {SYNC_STATUS_LABELS[integration.lastSyncStatus] || integration.lastSyncStatus}
@@ -290,7 +296,7 @@ export default function IntegrationsPage() {
                       <Card key={integration.id} hoverable>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: spacing.md }}>
                           <div style={{ flex: 1 }}>
-                            <h3 style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: colors.text.primary, marginBottom: spacing.xs }}>
+                            <h3 style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary, marginBottom: spacing.xs }}>
                               {integration.displayName || integration.provider?.name || "Entegrasyon"}
                             </h3>
                             <Badge variant={getStatusVariant(integration.status)} size="sm" style={{ marginBottom: spacing.sm }}>
@@ -299,16 +305,16 @@ export default function IntegrationsPage() {
                           </div>
                         </div>
                         <div style={{ marginBottom: spacing.md }}>
-                          <p style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary, marginBottom: spacing.xs }}>
+                          <p style={{ fontSize: typography.fontSize.sm, color: themeColors.text.secondary, marginBottom: spacing.xs }}>
                             <strong>Sağlayıcı:</strong> {integration.provider?.name || integration.providerName || "-"}
                           </p>
                           {integration.lastSyncAt && (
-                            <p style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                            <p style={{ fontSize: typography.fontSize.sm, color: themeColors.text.secondary }}>
                               <strong>Son Senkronizasyon:</strong> {new Date(integration.lastSyncAt).toLocaleString("tr-TR")}
                             </p>
                           )}
                           {integration.lastSyncStatus && (
-                            <p style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary, marginTop: spacing.xs }}>
+                            <p style={{ fontSize: typography.fontSize.sm, color: themeColors.text.secondary, marginTop: spacing.xs }}>
                               <strong>Senkron Durumu:</strong>{" "}
                               <Badge variant={getSyncStatusVariant(integration.lastSyncStatus)} size="sm">
                                 {SYNC_STATUS_LABELS[integration.lastSyncStatus] || integration.lastSyncStatus}
@@ -363,7 +369,7 @@ export default function IntegrationsPage() {
         size="sm"
       >
         <div style={{ marginBottom: spacing.lg }}>
-          <p style={{ color: colors.text.primary, marginBottom: spacing.md }}>
+          <p style={{ color: themeColors.text.primary, marginBottom: spacing.md }}>
             <strong>"{deleteModal.name}"</strong> entegrasyonunu silmek istediğinize emin misiniz? Bu işlem geri alınamaz.
           </p>
         </div>

@@ -3,6 +3,7 @@
 import React from "react";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { colors, spacing, borderRadius, typography } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 // ==================== Types ====================
 
@@ -27,6 +28,7 @@ export function TrendIndicator({
   showIcon = true,
   invertColors = false,
 }: TrendIndicatorProps) {
+  const { themeColors } = useTheme();
   const sizeStyles = {
     sm: {
       fontSize: typography.fontSize.xs,
@@ -68,7 +70,7 @@ export function TrendIndicator({
       };
     }
     return {
-      bg: colors.gray[100],
+      bg: themeColors.gray[100],
       text: colors.gray[600],
     };
   };

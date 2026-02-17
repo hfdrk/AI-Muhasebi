@@ -1,3 +1,5 @@
+import { getAccessToken } from "../token-store";
+
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "";
 
 export interface Tenant {
@@ -48,7 +50,7 @@ async function apiRequest<T>(
   endpoint: string,
   options?: RequestInit
 ): Promise<T> {
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+  const token = getAccessToken();
 
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
@@ -88,6 +90,8 @@ async function apiRequest<T>(
     
     const error = new Error(errorMessage);
     (error as any).status = response.status;
+    (error as any).statusCode = response.status;
+    (error as any).response = { status: response.status };
     throw error;
   }
 

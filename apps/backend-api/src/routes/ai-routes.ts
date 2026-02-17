@@ -5,6 +5,7 @@ import { ragService } from "../services/rag-service";
 import { authMiddleware } from "../middleware/auth-middleware";
 import { tenantMiddleware } from "../middleware/tenant-middleware";
 import { requirePermission } from "../middleware/rbac-middleware";
+import { checkUsageLimit } from "../middleware/usage-limit-middleware";
 import type { AuthenticatedRequest } from "../types/request-context";
 
 const router: Router = Router();
@@ -95,7 +96,8 @@ const hybridSearchSchema = z.object({
 // POST /api/v1/ai/chat
 router.post(
   "/chat",
-  requirePermission("documents:read"), // All roles can use AI (read-only)
+  requirePermission("documents:read"),
+  checkUsageLimit("AI_ANALYSES"),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const body = chatSchema.parse(req.body);
@@ -119,6 +121,10 @@ router.post(
         },
       });
 
+      // Track AI usage
+      const { usageService } = await import("../services/usage-service");
+      await usageService.incrementUsage(tenantId, "AI_ANALYSES" as any, 1);
+
       res.json({ data: { answer } });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
@@ -133,6 +139,7 @@ router.post(
 router.post(
   "/summaries/daily-risk",
   requirePermission("documents:read"),
+  checkUsageLimit("AI_ANALYSES"),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const body = dailyRiskSummarySchema.parse(req.body);
@@ -146,6 +153,9 @@ router.post(
         userId,
         date,
       });
+
+      const { usageService } = await import("../services/usage-service");
+      await usageService.incrementUsage(tenantId, "AI_ANALYSES" as any, 1);
 
       res.json({
         data: {
@@ -166,6 +176,7 @@ router.post(
 router.post(
   "/summaries/portfolio",
   requirePermission("documents:read"),
+  checkUsageLimit("AI_ANALYSES"),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const tenantId = req.context!.tenantId!;
@@ -175,6 +186,9 @@ router.post(
         tenantId,
         userId,
       });
+
+      const { usageService } = await import("../services/usage-service");
+      await usageService.incrementUsage(tenantId, "AI_ANALYSES" as any, 1);
 
       res.json({
         data: {
@@ -231,6 +245,7 @@ router.post(
 router.post(
   "/chat/enhanced",
   requirePermission("documents:read"),
+  checkUsageLimit("AI_ANALYSES"),
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const body = enhancedChatSchema.parse(req.body);
@@ -252,10 +267,13 @@ router.post(
             : undefined,
           companyId: body.companyId,
         },
-        conversationHistory: body.conversationHistory,
+        conversationHistory: body.conversationHistory as any,
         useHybridSearch: body.useHybridSearch,
         useReranking: body.useReranking,
       });
+
+      const { usageService } = await import("../services/usage-service");
+      await usageService.incrementUsage(tenantId, "AI_ANALYSES" as any, 1);
 
       res.json({
         data: {
@@ -418,12 +436,8 @@ router.post(
                 return;
               }
 
-              // Generate embedding text (OCR + parsed data if available)
-              let embeddingText = document.ocrResult.rawText;
-              if (document.parsedData) {
-                const parsedData = document.parsedData as any;
-                embeddingText += `\n\nType: ${parsedData.documentType || document.type}\nFields: ${JSON.stringify(parsedData.fields || {})}`;
-              }
+              // Generate embedding text from OCR result
+              const embeddingText = document.ocrResult.rawText;
 
               // Generate and store embedding
               await embeddingService.generateAndStoreDocumentEmbedding(

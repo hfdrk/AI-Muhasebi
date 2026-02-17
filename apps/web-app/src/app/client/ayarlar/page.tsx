@@ -6,10 +6,12 @@ import { getCurrentUser, updateUserSettings } from "@repo/api-client";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { colors, spacing } from "@/styles/design-system";
+import { spacing } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "@/lib/toast";
 
 export default function ClientSettingsPage() {
+  const { themeColors } = useTheme();
   const queryClient = useQueryClient();
   const [notificationEmail, setNotificationEmail] = useState(true);
   const [notificationSms, setNotificationSms] = useState(false);
@@ -80,7 +82,7 @@ export default function ClientSettingsPage() {
           <h2 style={{ fontSize: "18px", fontWeight: "semibold", marginBottom: spacing.md }}>Görüntüleme Tercihleri</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: spacing.md }}>
             <div>
-              <label style={{ display: "block", marginBottom: spacing.xs, fontSize: "14px", color: colors.text.secondary }}>
+              <label style={{ display: "block", marginBottom: spacing.xs, fontSize: "14px", color: themeColors.text.secondary }}>
                 Dil
               </label>
               <select
@@ -90,7 +92,7 @@ export default function ClientSettingsPage() {
                   width: "100%",
                   maxWidth: "300px",
                   padding: spacing.sm,
-                  border: `1px solid ${colors.gray[300]}`,
+                  border: `1px solid ${themeColors.gray[300]}`,
                   borderRadius: "6px",
                   fontSize: "14px",
                 }}
@@ -109,10 +111,10 @@ export default function ClientSettingsPage() {
           <div style={{ padding: spacing.lg }}>
             <h2 style={{ fontSize: "18px", fontWeight: "semibold", marginBottom: spacing.md }}>Profil Bilgileri</h2>
             <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: spacing.md }}>
-              <div style={{ color: colors.text.secondary, fontSize: "14px" }}>E-posta:</div>
+              <div style={{ color: themeColors.text.secondary, fontSize: "14px" }}>E-posta:</div>
               <div>{currentUser.user?.email || "-"}</div>
 
-              <div style={{ color: colors.text.secondary, fontSize: "14px" }}>Ad Soyad:</div>
+              <div style={{ color: themeColors.text.secondary, fontSize: "14px" }}>Ad Soyad:</div>
               <div>{currentUser.user?.fullName || "-"}</div>
             </div>
           </div>

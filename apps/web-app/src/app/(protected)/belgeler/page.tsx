@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams, useRouter } from "next/navigation";
 import { listDocuments, listClientCompanies, searchDocumentsByRisk } from "@repo/api-client";
-import { documents as documentsI18n, common as commonI18n } from "@repo/i18n";
+import { documents as documentsI18n } from "@repo/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -14,7 +14,8 @@ import { DocumentUploadModal } from "@/components/document-upload-modal";
 import { SkeletonTable } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageTransition } from "@/components/ui/PageTransition";
-import { colors, spacing, borderRadius } from "@/styles/design-system";
+import { colors, spacing } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -51,6 +52,7 @@ function formatFileSize(bytes: number | bigint): string {
 }
 
 function DocumentsPageContent() {
+  const { themeColors } = useTheme();
   const searchParams = useSearchParams();
   const router = useRouter();
   const [documentModalOpen, setDocumentModalOpen] = useState(false);
@@ -242,7 +244,7 @@ function DocumentsPageContent() {
                   <TableCell>
                     <div>
                       <div style={{ fontWeight: 500 }}>{doc.originalFileName}</div>
-                      <div style={{ fontSize: "12px", color: colors.text.secondary }}>
+                      <div style={{ fontSize: "12px", color: themeColors.text.secondary }}>
                         {doc.mimeType}
                       </div>
                     </div>
@@ -273,7 +275,7 @@ function DocumentsPageContent() {
                             ? colors.info + "20"
                             : doc.status === "FAILED"
                             ? colors.dangerLight
-                            : colors.gray[200],
+                            : themeColors.gray[200],
                         color:
                           doc.status === "PROCESSED"
                             ? colors.successDark
@@ -281,7 +283,7 @@ function DocumentsPageContent() {
                             ? colors.info
                             : doc.status === "FAILED"
                             ? colors.dangerDark
-                            : colors.text.secondary,
+                            : themeColors.text.secondary,
                       }}
                     >
                       {STATUS_LABELS[doc.status] || doc.status}
@@ -321,16 +323,16 @@ function DocumentsPageContent() {
                         )}
                       </span>
                     ) : (
-                      <span style={{ fontSize: "12px", color: colors.text.muted }}>—</span>
+                      <span style={{ fontSize: "12px", color: themeColors.text.muted }}>—</span>
                     )}
                   </TableCell>
                   <TableCell>
-                    <div style={{ fontSize: "14px", color: colors.text.secondary }}>
+                    <div style={{ fontSize: "14px", color: themeColors.text.secondary }}>
                       {formatFileSize(doc.fileSizeBytes)}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div style={{ fontSize: "12px", color: colors.text.secondary }}>
+                    <div style={{ fontSize: "12px", color: themeColors.text.secondary }}>
                       {formatDate(doc.createdAt)}
                     </div>
                   </TableCell>
@@ -356,10 +358,10 @@ function DocumentsPageContent() {
                   alignItems: "center",
                   marginTop: spacing.lg,
                   paddingTop: spacing.lg,
-                  borderTop: `1px solid ${colors.border}`,
+                  borderTop: `1px solid ${themeColors.border}`,
                 }}
               >
-                <div style={{ color: colors.text.secondary, fontSize: "14px" }}>
+                <div style={{ color: themeColors.text.secondary, fontSize: "14px" }}>
                   Toplam {pagination.total} belge, Sayfa {pagination.page} / {pagination.totalPages}
                 </div>
                 <div style={{ display: "flex", gap: spacing.sm }}>

@@ -53,7 +53,7 @@ const nextConfig = {
           /^@repo\/shared-utils$/,
           (resource) => {
             resource.request = browserEntryPath;
-            console.log(`[Webpack] Replaced @repo/shared-utils with browser entry: ${browserEntryPath}`);
+            // @repo/shared-utils → browser entry
           }
         ),
         // Match package/index
@@ -61,7 +61,7 @@ const nextConfig = {
           /^@repo\/shared-utils\/index$/,
           (resource) => {
             resource.request = browserEntryPath;
-            console.log(`[Webpack] Replaced @repo/shared-utils/index with browser entry`);
+            // @repo/shared-utils/index → browser entry
           }
         ),
         // Match any path containing shared-utils/src/index
@@ -69,7 +69,7 @@ const nextConfig = {
           /shared-utils[\\/]src[\\/]index/,
           (resource) => {
             resource.request = browserEntryPath;
-            console.log(`[Webpack] Replaced shared-utils/src/index with browser entry`);
+            // shared-utils/src/index → browser entry
           }
         ),
         // Replace llm-client imports
@@ -77,12 +77,38 @@ const nextConfig = {
           /shared-utils[\\/]src[\\/]llm-client/,
           (resource) => {
             resource.request = emptyLLMPath;
-            console.log(`[Webpack] Replaced llm-client import with empty stub`);
+            // llm-client → empty stub
           }
         )
       );
     }
     return config;
+  },
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "X-XSS-Protection", value: "1; mode=block" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' https://fonts.gstatic.com",
+              "img-src 'self' data: blob: https:",
+              "connect-src 'self' " + (process.env.API_PROXY_TARGET || "http://localhost:3800"),
+              "frame-ancestors 'none'",
+            ].join("; "),
+          },
+        ],
+      },
+    ];
   },
   async rewrites() {
     return [

@@ -155,6 +155,15 @@ export class InvoiceService {
   }
 
   async createInvoice(tenantId: string, input: CreateInvoiceInput): Promise<Invoice> {
+    // Check usage limit before creating
+    const { usageService } = await import("./usage-service");
+    const limitCheck = await usageService.checkLimit(tenantId, "DOCUMENTS" as any);
+    if (!limitCheck.allowed) {
+      throw new ValidationError(
+        "Maksimum belge limitine ulaşıldı. Daha fazla fatura oluşturmak için planınızı yükseltmeniz gerekiyor."
+      );
+    }
+
     // Verify client company belongs to tenant
     const client = await prisma.clientCompany.findFirst({
       where: { id: input.clientCompanyId, tenantId },
@@ -203,6 +212,9 @@ export class InvoiceService {
         },
       },
     });
+
+    // Increment usage after successful creation
+    await usageService.incrementUsage(tenantId, "DOCUMENTS" as any, 1);
 
     // Check for invoice-level duplicates after creation
     if (invoice.externalId) {
@@ -464,8 +476,8 @@ export class InvoiceService {
         externalId: invoice.externalId,
         issueDate: invoice.issueDate,
         totalAmount: {
-          gte: invoice.totalAmount - 0.01,
-          lte: invoice.totalAmount + 0.01,
+          gte: Number(invoice.totalAmount) - 0.01,
+          lte: Number(invoice.totalAmount) + 0.01,
         },
       },
       select: {

@@ -9,10 +9,12 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { colors, spacing } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import Link from "next/link";
 import { toast } from "@/lib/toast";
 
 function NewMessagePageContent() {
+  const { themeColors } = useTheme();
   const router = useRouter();
   const searchParams = useSearchParams();
   const clientCompanyIdFromQuery = searchParams.get("clientCompanyId");
@@ -101,7 +103,7 @@ function NewMessagePageContent() {
               style={{
                 width: "100%",
                 padding: spacing.sm,
-                border: `1px solid ${colors.gray[300]}`,
+                border: `1px solid ${themeColors.gray[300]}`,
                 borderRadius: "6px",
                 fontSize: "14px",
               }}
@@ -127,7 +129,7 @@ function NewMessagePageContent() {
               style={{
                 width: "100%",
                 padding: spacing.sm,
-                border: `1px solid ${colors.gray[300]}`,
+                border: `1px solid ${themeColors.gray[300]}`,
                 borderRadius: "6px",
                 fontSize: "14px",
               }}
@@ -136,7 +138,7 @@ function NewMessagePageContent() {
 
           <div style={{ display: "flex", gap: spacing.md, justifyContent: "flex-end" }}>
             <Link href="/mesajlar">
-              <Button type="button" style={{ backgroundColor: colors.gray[300], color: colors.text.primary }}>
+              <Button type="button" style={{ backgroundColor: themeColors.gray[300], color: themeColors.text.primary }}>
                 İptal
               </Button>
             </Link>

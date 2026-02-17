@@ -1,6 +1,7 @@
 "use client";
 
-import { colors, borderRadius, spacing } from "../../styles/design-system";
+import { borderRadius, spacing } from "../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface SkeletonProps {
   width?: string | number;
@@ -17,8 +18,9 @@ export function Skeleton({
   className = "",
   style,
 }: SkeletonProps) {
+  const { themeColors } = useTheme();
   const baseStyle: React.CSSProperties = {
-    backgroundColor: colors.gray[200],
+    backgroundColor: themeColors.gray[200],
     borderRadius:
       variant === "circular"
         ? "50%"
@@ -67,14 +69,15 @@ export function SkeletonText({ lines = 1, className = "" }: { lines?: number; cl
 }
 
 export function SkeletonCard({ className = "" }: { className?: string }) {
+  const { themeColors } = useTheme();
   return (
     <div
       className={className}
       style={{
         padding: spacing.lg,
         borderRadius: borderRadius.lg,
-        border: `1px solid ${colors.border}`,
-        backgroundColor: colors.white,
+        border: `1px solid ${themeColors.border}`,
+        backgroundColor: themeColors.white,
       }}
     >
       <Skeleton variant="rectangular" height="24px" width="60%" style={{ marginBottom: spacing.md }} />

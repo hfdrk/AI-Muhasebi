@@ -6,9 +6,11 @@ import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { inviteUser } from "@repo/api-client";
 import { useState } from "react";
+import { colors, spacing, borderRadius, typography } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const inviteSchema = z.object({
-  email: z.string().email("Geçerli bir e-posta adresi giriniz."),
+  email: z.string().email("Ge\u00e7erli bir e-posta adresi giriniz."),
   role: z.enum(["TenantOwner", "ReadOnly"]),
   name: z.string().optional(),
 });
@@ -17,7 +19,7 @@ type InviteForm = z.infer<typeof inviteSchema>;
 
 const ROLE_LABELS = {
   TenantOwner: "Muhasebeci", // Accountant - full access
-  ReadOnly: "Müşteri", // Customer - view-only access
+  ReadOnly: "M\u00fc\u015fteri", // Customer - view-only access
 };
 
 interface InviteUserModalProps {
@@ -28,11 +30,14 @@ interface InviteUserModalProps {
 }
 
 export function InviteUserModal({ tenantId, isOpen, onClose, onSuccess }: InviteUserModalProps) {
+  const { themeColors } = useTheme();
   const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   if (!tenantId) {
-    console.error("InviteUserModal: tenantId is required");
+    if (process.env.NODE_ENV === "development") {
+      console.error("InviteUserModal: tenantId is required");
+    }
     return null;
   }
 
@@ -60,11 +65,13 @@ export function InviteUserModal({ tenantId, isOpen, onClose, onSuccess }: Invite
       }
     },
     onError: (err: any) => {
-      console.error("Invite user error:", err);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Invite user error:", err);
+      }
       const errorMessage =
         err?.message ||
         err?.error?.message ||
-        (typeof err === "string" ? err : "Kullanıcı davet edilirken bir hata oluştu.");
+        (typeof err === "string" ? err : "Kullan\u0131c\u0131 davet edilirken bir hata olu\u015ftu.");
       setError(errorMessage);
     },
   });
@@ -94,26 +101,26 @@ export function InviteUserModal({ tenantId, isOpen, onClose, onSuccess }: Invite
     >
       <div
         style={{
-          backgroundColor: "white",
-          borderRadius: "8px",
-          padding: "24px",
+          backgroundColor: themeColors.white,
+          borderRadius: borderRadius.md,
+          padding: spacing.lg,
           width: "100%",
           maxWidth: "500px",
-          margin: "20px",
+          margin: spacing.md,
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 style={{ marginBottom: "20px" }}>Kullanıcı Davet Et</h2>
+        <h2 style={{ marginBottom: spacing.md }}>Kullan\u0131c\u0131 Davet Et</h2>
 
-        <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: spacing.md }}>
           {error && (
-            <div style={{ padding: "12px", backgroundColor: "#fee", color: "#c33", borderRadius: "4px" }}>
+            <div style={{ padding: spacing.sm, backgroundColor: colors.dangerLight, color: colors.danger, borderRadius: borderRadius.sm }}>
               {error}
             </div>
           )}
 
           <div>
-            <label htmlFor="name" style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>
+            <label htmlFor="name" style={{ display: "block", marginBottom: spacing.xs, fontWeight: typography.fontWeight.medium }}>
               Ad Soyad
             </label>
             <input
@@ -122,19 +129,19 @@ export function InviteUserModal({ tenantId, isOpen, onClose, onSuccess }: Invite
               {...register("name")}
               style={{
                 width: "100%",
-                padding: "8px 12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                fontSize: "16px",
+                padding: `${spacing.sm} ${spacing.sm}`,
+                border: `1px solid ${themeColors.border}`,
+                borderRadius: borderRadius.sm,
+                fontSize: typography.fontSize.base,
               }}
             />
             {errors.name && (
-              <p style={{ color: "#c33", fontSize: "14px", marginTop: "4px" }}>{errors.name.message}</p>
+              <p style={{ color: colors.danger, fontSize: typography.fontSize.sm, marginTop: spacing.xs }}>{errors.name.message}</p>
             )}
           </div>
 
           <div>
-            <label htmlFor="email" style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>
+            <label htmlFor="email" style={{ display: "block", marginBottom: spacing.xs, fontWeight: typography.fontWeight.medium }}>
               E-posta
             </label>
             <input
@@ -143,19 +150,19 @@ export function InviteUserModal({ tenantId, isOpen, onClose, onSuccess }: Invite
               {...register("email")}
               style={{
                 width: "100%",
-                padding: "8px 12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                fontSize: "16px",
+                padding: `${spacing.sm} ${spacing.sm}`,
+                border: `1px solid ${themeColors.border}`,
+                borderRadius: borderRadius.sm,
+                fontSize: typography.fontSize.base,
               }}
             />
             {errors.email && (
-              <p style={{ color: "#c33", fontSize: "14px", marginTop: "4px" }}>{errors.email.message}</p>
+              <p style={{ color: colors.danger, fontSize: typography.fontSize.sm, marginTop: spacing.xs }}>{errors.email.message}</p>
             )}
           </div>
 
           <div>
-            <label htmlFor="role" style={{ display: "block", marginBottom: "4px", fontWeight: "500" }}>
+            <label htmlFor="role" style={{ display: "block", marginBottom: spacing.xs, fontWeight: typography.fontWeight.medium }}>
               Rol
             </label>
             <select
@@ -163,10 +170,10 @@ export function InviteUserModal({ tenantId, isOpen, onClose, onSuccess }: Invite
               {...register("role")}
               style={{
                 width: "100%",
-                padding: "8px 12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                fontSize: "16px",
+                padding: `${spacing.sm} ${spacing.sm}`,
+                border: `1px solid ${themeColors.border}`,
+                borderRadius: borderRadius.sm,
+                fontSize: typography.fontSize.base,
               }}
             >
               {Object.entries(ROLE_LABELS).map(([value, label]) => (
@@ -176,38 +183,38 @@ export function InviteUserModal({ tenantId, isOpen, onClose, onSuccess }: Invite
               ))}
             </select>
             {errors.role && (
-              <p style={{ color: "#c33", fontSize: "14px", marginTop: "4px" }}>{errors.role.message}</p>
+              <p style={{ color: colors.danger, fontSize: typography.fontSize.sm, marginTop: spacing.xs }}>{errors.role.message}</p>
             )}
           </div>
 
-          <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+          <div style={{ display: "flex", gap: spacing.sm, justifyContent: "flex-end" }}>
             <button
               type="button"
               onClick={onClose}
               style={{
-                padding: "8px 16px",
-                backgroundColor: "#f5f5f5",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
+                padding: `${spacing.sm} ${spacing.md}`,
+                backgroundColor: themeColors.gray[100],
+                border: `1px solid ${themeColors.border}`,
+                borderRadius: borderRadius.sm,
                 cursor: "pointer",
               }}
             >
-              İptal
+              \u0130ptal
             </button>
             <button
               type="submit"
               disabled={mutation.isPending || isSubmitting}
               style={{
-                padding: "8px 16px",
-                backgroundColor: "#0066cc",
-                color: "white",
+                padding: `${spacing.sm} ${spacing.md}`,
+                backgroundColor: colors.primary,
+                color: colors.white,
                 border: "none",
-                borderRadius: "4px",
+                borderRadius: borderRadius.sm,
                 cursor: mutation.isPending || isSubmitting ? "not-allowed" : "pointer",
                 opacity: mutation.isPending || isSubmitting ? 0.6 : 1,
               }}
             >
-              {mutation.isPending || isSubmitting ? "Gönderiliyor..." : "Davet Gönder"}
+              {mutation.isPending || isSubmitting ? "G\u00f6nderiliyor..." : "Davet G\u00f6nder"}
             </button>
           </div>
         </form>
@@ -215,4 +222,3 @@ export function InviteUserModal({ tenantId, isOpen, onClose, onSuccess }: Invite
     </div>
   );
 }
-

@@ -1,25 +1,23 @@
 "use client";
 
+import {
+  getAccessToken as getToken,
+  setAccessToken as storeToken,
+  clearAccessToken,
+} from "@repo/api-client";
+
 export function setAccessToken(token: string): void {
-  if (typeof window !== "undefined") {
-    localStorage.setItem("accessToken", token);
-  }
+  storeToken(token);
 }
 
 export function getAccessToken(): string | null {
-  if (typeof window !== "undefined") {
-    return localStorage.getItem("accessToken");
-  }
-  return null;
+  return getToken();
 }
 
 export function removeAccessToken(): void {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("accessToken");
-  }
+  clearAccessToken();
 }
 
 export function isAuthenticated(): boolean {
   return getAccessToken() !== null;
 }
-

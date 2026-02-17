@@ -4,14 +4,14 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   listIntegrations,
-  listProviders,
   deleteIntegration,
   triggerSync,
   type TenantIntegration,
 } from "@repo/api-client";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "@/lib/toast";
+import { colors } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const STATUS_LABELS: Record<string, string> = {
   connected: "Bağlı",
@@ -26,14 +26,16 @@ const SYNC_STATUS_LABELS: Record<string, string> = {
 };
 
 export default function IntegrationsPage() {
-  const router = useRouter();
+  const { themeColors } = useTheme();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<"accounting" | "bank">("accounting");
 
   const { data: accountingData, isLoading: isLoadingAccounting, error: accountingError } = useQuery({
     queryKey: ["integrations", "accounting"],
     queryFn: () => {
-      console.log("[Integrations Page] Fetching accounting integrations...");
+      if (process.env.NODE_ENV === "development") {
+        console.log("[Integrations Page] Fetching accounting integrations...");
+      }
       return listIntegrations({ type: "accounting" });
     },
   });
@@ -41,17 +43,21 @@ export default function IntegrationsPage() {
   const { data: bankData, isLoading: isLoadingBank, error: bankError } = useQuery({
     queryKey: ["integrations", "bank"],
     queryFn: () => {
-      console.log("[Integrations Page] Fetching bank integrations...");
+      if (process.env.NODE_ENV === "development") {
+        console.log("[Integrations Page] Fetching bank integrations...");
+      }
       return listIntegrations({ type: "bank" });
     },
   });
 
-  // Log errors
-  if (accountingError) {
-    console.error("[Integrations Page] Accounting query error:", accountingError);
-  }
-  if (bankError) {
-    console.error("[Integrations Page] Bank query error:", bankError);
+  // Log errors only in development
+  if (process.env.NODE_ENV === "development") {
+    if (accountingError) {
+      console.error("[Integrations Page] Accounting query error:", accountingError);
+    }
+    if (bankError) {
+      console.error("[Integrations Page] Bank query error:", bankError);
+    }
   }
 
   const deleteMutation = useMutation({
@@ -72,17 +78,18 @@ export default function IntegrationsPage() {
   const currentData = activeTab === "accounting" ? accountingData : bankData;
   const isLoading = activeTab === "accounting" ? isLoadingAccounting : isLoadingBank;
   
-  // Debug logging
-  console.log(`[Integrations Page] Active tab:`, activeTab);
-  console.log(`[Integrations Page] Accounting data:`, accountingData);
-  console.log(`[Integrations Page] Bank data:`, bankData);
-  console.log(`[Integrations Page] Current data:`, currentData);
-  
   // Handle nested response structure: { data: { data: [...], total, ... } }
   const integrations = currentData?.data?.data || [];
   
-  console.log(`[Integrations Page] Integrations array:`, integrations);
-  console.log(`[Integrations Page] Integrations count:`, integrations.length);
+  // Debug logging only in development
+  if (process.env.NODE_ENV === "development") {
+    console.log(`[Integrations Page] Active tab:`, activeTab);
+    console.log(`[Integrations Page] Accounting data:`, accountingData);
+    console.log(`[Integrations Page] Bank data:`, bankData);
+    console.log(`[Integrations Page] Current data:`, currentData);
+    console.log(`[Integrations Page] Integrations array:`, integrations);
+    console.log(`[Integrations Page] Integrations count:`, integrations.length);
+  }
 
   const handleDelete = async (id: string) => {
     if (confirm("Bu entegrasyonu silmek istediğinize emin misiniz?")) {
@@ -106,8 +113,8 @@ export default function IntegrationsPage() {
           href="/entegrasyonlar/new"
           style={{
             padding: "8px 16px",
-            backgroundColor: "#0066cc",
-            color: "white",
+            backgroundColor: colors.primary,
+            color: colors.white,
             textDecoration: "none",
             borderRadius: "4px",
           }}
@@ -116,15 +123,15 @@ export default function IntegrationsPage() {
         </Link>
       </div>
 
-      <div style={{ display: "flex", gap: "16px", marginBottom: "24px", borderBottom: "2px solid #ddd" }}>
+      <div style={{ display: "flex", gap: "16px", marginBottom: "24px", borderBottom: `2px solid ${themeColors.border}` }}>
         <button
           onClick={() => setActiveTab("accounting")}
           style={{
             padding: "12px 24px",
             border: "none",
             background: "none",
-            borderBottom: activeTab === "accounting" ? "2px solid #0066cc" : "2px solid transparent",
-            color: activeTab === "accounting" ? "#0066cc" : "#666",
+            borderBottom: activeTab === "accounting" ? `2px solid ${colors.primary}` : "2px solid transparent",
+            color: activeTab === "accounting" ? colors.primary : themeColors.text.secondary,
             cursor: "pointer",
             fontWeight: activeTab === "accounting" ? "bold" : "normal",
           }}
@@ -137,8 +144,8 @@ export default function IntegrationsPage() {
             padding: "12px 24px",
             border: "none",
             background: "none",
-            borderBottom: activeTab === "bank" ? "2px solid #0066cc" : "2px solid transparent",
-            color: activeTab === "bank" ? "#0066cc" : "#666",
+            borderBottom: activeTab === "bank" ? `2px solid ${colors.primary}` : "2px solid transparent",
+            color: activeTab === "bank" ? colors.primary : themeColors.text.secondary,
             cursor: "pointer",
             fontWeight: activeTab === "bank" ? "bold" : "normal",
           }}
@@ -158,8 +165,8 @@ export default function IntegrationsPage() {
               display: "inline-block",
               marginTop: "16px",
               padding: "8px 16px",
-              backgroundColor: "#0066cc",
-              color: "white",
+              backgroundColor: colors.primary,
+              color: colors.white,
               textDecoration: "none",
               borderRadius: "4px",
             }}
@@ -170,7 +177,7 @@ export default function IntegrationsPage() {
       ) : (
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
-            <tr style={{ borderBottom: "2px solid #ddd" }}>
+            <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
               <th style={{ padding: "12px", textAlign: "left" }}>Ad</th>
               <th style={{ padding: "12px", textAlign: "left" }}>Sağlayıcı</th>
               <th style={{ padding: "12px", textAlign: "left" }}>Durum</th>
@@ -181,11 +188,11 @@ export default function IntegrationsPage() {
           </thead>
           <tbody>
             {integrations.map((integration: any) => (
-              <tr key={integration.id} style={{ borderBottom: "1px solid #eee" }}>
+              <tr key={integration.id} style={{ borderBottom: `1px solid ${themeColors.gray[200]}` }}>
                 <td style={{ padding: "12px" }}>
                   <Link
                     href={`/entegrasyonlar/${integration.id}`}
-                    style={{ color: "#0066cc", textDecoration: "none" }}
+                    style={{ color: colors.primary, textDecoration: "none" }}
                   >
                     {integration.displayName}
                   </Link>
@@ -197,9 +204,9 @@ export default function IntegrationsPage() {
                       padding: "4px 8px",
                       borderRadius: "4px",
                       backgroundColor:
-                        integration.status === "connected" ? "#d4edda" : integration.status === "error" ? "#f8d7da" : "#fff3cd",
+                        integration.status === "connected" ? colors.successLight : integration.status === "error" ? colors.dangerLight : colors.warningLight,
                       color:
-                        integration.status === "connected" ? "#155724" : integration.status === "error" ? "#721c24" : "#856404",
+                        integration.status === "connected" ? colors.successDark : integration.status === "error" ? colors.dangerDark : colors.warningDark,
                       fontSize: "12px",
                     }}
                   >
@@ -219,16 +226,16 @@ export default function IntegrationsPage() {
                         borderRadius: "4px",
                         backgroundColor:
                           integration.lastSyncStatus === "success"
-                            ? "#d4edda"
+                            ? colors.successLight
                             : integration.lastSyncStatus === "error"
-                            ? "#f8d7da"
-                            : "#d1ecf1",
+                            ? colors.dangerLight
+                            : colors.infoLight,
                         color:
                           integration.lastSyncStatus === "success"
-                            ? "#155724"
+                            ? colors.successDark
                             : integration.lastSyncStatus === "error"
-                            ? "#721c24"
-                            : "#0c5460",
+                            ? colors.dangerDark
+                            : colors.primaryDark,
                         fontSize: "12px",
                       }}
                     >
@@ -244,7 +251,7 @@ export default function IntegrationsPage() {
                       href={`/entegrasyonlar/${integration.id}`}
                       style={{
                         padding: "4px 8px",
-                        color: "#0066cc",
+                        color: colors.primary,
                         textDecoration: "none",
                         fontSize: "14px",
                       }}
@@ -255,9 +262,9 @@ export default function IntegrationsPage() {
                       onClick={() => handleSync(integration)}
                       style={{
                         padding: "4px 8px",
-                        color: "#0066cc",
-                        border: "1px solid #0066cc",
-                        background: "white",
+                        color: colors.primary,
+                        border: `1px solid ${colors.primary}`,
+                        background: themeColors.white,
                         borderRadius: "4px",
                         cursor: "pointer",
                         fontSize: "14px",
@@ -269,9 +276,9 @@ export default function IntegrationsPage() {
                       onClick={() => handleDelete(integration.id)}
                       style={{
                         padding: "4px 8px",
-                        color: "#dc3545",
-                        border: "1px solid #dc3545",
-                        background: "white",
+                        color: colors.danger,
+                        border: `1px solid ${colors.danger}`,
+                        background: themeColors.white,
                         borderRadius: "4px",
                         cursor: "pointer",
                         fontSize: "14px",

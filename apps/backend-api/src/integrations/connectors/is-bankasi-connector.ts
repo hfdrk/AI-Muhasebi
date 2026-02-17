@@ -216,10 +216,10 @@ export class IsBankasiConnector extends BasePSD2BankConnector {
         return [];
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       return data.balances || [];
-    } catch (error) {
-      logger.error("[IsBankasiConnector] fetchBalances error:", error);
+    } catch (error: unknown) {
+      logger.error("[IsBankasiConnector] fetchBalances error:", { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -254,7 +254,7 @@ export class IsBankasiConnector extends BasePSD2BankConnector {
         return [];
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       const transactions: IsBankasiCardTransaction[] = data.transactions || [];
 
       return transactions.map((txn) => ({
@@ -267,8 +267,8 @@ export class IsBankasiConnector extends BasePSD2BankConnector {
         currency: txn.currency || "TRY",
         balanceAfter: null,
       }));
-    } catch (error) {
-      logger.error("[IsBankasiConnector] fetchMaximumCardTransactions error:", error);
+    } catch (error: unknown) {
+      logger.error("[IsBankasiConnector] fetchMaximumCardTransactions error:", { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -301,8 +301,8 @@ export class IsBankasiConnector extends BasePSD2BankConnector {
         bankName: this.bankName,
         bankCode: "00064",
       };
-    } catch (error) {
-      logger.error("[IsBankasiConnector] getAccountDetails error:", error);
+    } catch (error: unknown) {
+      logger.error("[IsBankasiConnector] getAccountDetails error:", { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }
@@ -335,7 +335,7 @@ export class IsBankasiConnector extends BasePSD2BankConnector {
       throw new Error(`FAST ödeme başlatılamadı: ${response.status} - ${errorText}`);
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
 
     return {
       paymentId: data.paymentId,

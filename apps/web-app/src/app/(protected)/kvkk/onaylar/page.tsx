@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { kvkkClient, listTenantUsers } from "@repo/api-client";
-import Link from "next/link";
 import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
-import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
+import { colors, spacing, borderRadius, typography } from "../../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "../../../../lib/toast";
 
 const CONSENT_TYPE_LABELS: Record<string, string> = {
@@ -17,6 +17,7 @@ const CONSENT_TYPE_LABELS: Record<string, string> = {
 };
 
 export default function ConsentManagementPage() {
+  const { themeColors } = useTheme();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [consentType, setConsentType] = useState<
     "data_processing" | "marketing" | "analytics" | "third_party" | ""
@@ -86,7 +87,7 @@ export default function ConsentManagementPage() {
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
-        backgroundColor: colors.gray[50],
+        backgroundColor: themeColors.gray[50],
         minHeight: "100vh",
       }}
     >
@@ -105,7 +106,7 @@ export default function ConsentManagementPage() {
           style={{
             fontSize: typography.fontSize["3xl"],
             fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
             marginBottom: spacing.sm,
           }}
         >
@@ -114,7 +115,7 @@ export default function ConsentManagementPage() {
         <p
           style={{
             fontSize: typography.fontSize.base,
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
             lineHeight: typography.lineHeight.relaxed,
             margin: 0,
           }}
@@ -132,7 +133,7 @@ export default function ConsentManagementPage() {
               marginBottom: spacing.sm,
               fontSize: typography.fontSize.sm,
               fontWeight: typography.fontWeight.medium,
-              color: colors.text.primary,
+              color: themeColors.text.primary,
             }}
           >
             Kullanıcı Seçin
@@ -145,10 +146,10 @@ export default function ConsentManagementPage() {
               maxWidth: "400px",
               padding: spacing.sm,
               borderRadius: borderRadius.md,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               fontSize: typography.fontSize.base,
-              backgroundColor: colors.white,
-              color: colors.text.primary,
+              backgroundColor: themeColors.white,
+              color: themeColors.text.primary,
             }}
           >
             <option value="">Kullanıcı seçin...</option>
@@ -172,7 +173,7 @@ export default function ConsentManagementPage() {
                     display: "inline-block",
                     width: "48px",
                     height: "48px",
-                    border: `4px solid ${colors.gray[200]}`,
+                    border: `4px solid ${themeColors.gray[200]}`,
                     borderTopColor: colors.primary,
                     borderRadius: "50%",
                     animation: "spin 0.8s linear infinite",
@@ -196,9 +197,9 @@ export default function ConsentManagementPage() {
                       style={{
                         padding: spacing.md,
                         borderRadius: borderRadius.md,
-                        backgroundColor: granted ? colors.successLight : colors.gray[50],
-                        border: `1px solid ${colors.border}`,
-                        borderLeft: `4px solid ${granted ? colors.success : colors.gray[400]}`,
+                        backgroundColor: granted ? colors.successLight : themeColors.gray[50],
+                        border: `1px solid ${themeColors.border}`,
+                        borderLeft: `4px solid ${granted ? colors.success : themeColors.gray[400]}`,
                       }}
                     >
                       <div style={{ display: "flex", alignItems: "center", gap: spacing.sm }}>
@@ -209,7 +210,7 @@ export default function ConsentManagementPage() {
                               margin: 0,
                               fontSize: typography.fontSize.base,
                               fontWeight: typography.fontWeight.semibold,
-                              color: colors.text.primary,
+                              color: themeColors.text.primary,
                             }}
                           >
                             {CONSENT_TYPE_LABELS[type] || type}
@@ -218,7 +219,7 @@ export default function ConsentManagementPage() {
                             style={{
                               margin: `${spacing.xs} 0 0 0`,
                               fontSize: typography.fontSize.sm,
-                              color: colors.text.secondary,
+                              color: themeColors.text.secondary,
                             }}
                           >
                             {granted ? "Onay verildi" : "Onay verilmedi"}
@@ -232,7 +233,7 @@ export default function ConsentManagementPage() {
                     style={{
                       padding: spacing.xl,
                       textAlign: "center",
-                      color: colors.text.secondary,
+                      color: themeColors.text.secondary,
                     }}
                   >
                     <p style={{ margin: 0, fontSize: typography.fontSize.sm }}>
@@ -260,7 +261,7 @@ export default function ConsentManagementPage() {
                     marginBottom: spacing.xs,
                     fontSize: typography.fontSize.sm,
                     fontWeight: typography.fontWeight.medium,
-                    color: colors.text.primary,
+                    color: themeColors.text.primary,
                   }}
                 >
                   Onay Türü
@@ -277,10 +278,10 @@ export default function ConsentManagementPage() {
                     maxWidth: "400px",
                     padding: spacing.sm,
                     borderRadius: borderRadius.md,
-                    border: `1px solid ${colors.border}`,
+                    border: `1px solid ${themeColors.border}`,
                     fontSize: typography.fontSize.base,
-                    backgroundColor: colors.white,
-                    color: colors.text.primary,
+                    backgroundColor: themeColors.white,
+                    color: themeColors.text.primary,
                   }}
                 >
                   <option value="">Onay türü seçin...</option>
@@ -298,7 +299,7 @@ export default function ConsentManagementPage() {
                     marginBottom: spacing.xs,
                     fontSize: typography.fontSize.sm,
                     fontWeight: typography.fontWeight.medium,
-                    color: colors.text.primary,
+                    color: themeColors.text.primary,
                   }}
                 >
                   Onay Durumu
@@ -357,7 +358,7 @@ export default function ConsentManagementPage() {
       {!selectedUserId && (
         <Card variant="elevated">
           <div style={{ padding: spacing.xl, textAlign: "center" }}>
-            <p style={{ color: colors.text.secondary, margin: 0 }}>
+            <p style={{ color: themeColors.text.secondary, margin: 0 }}>
               Lütfen onay yönetimi için bir kullanıcı seçin.
             </p>
           </div>
@@ -374,4 +375,3 @@ export default function ConsentManagementPage() {
     </div>
   );
 }
-

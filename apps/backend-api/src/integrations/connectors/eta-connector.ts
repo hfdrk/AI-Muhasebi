@@ -231,7 +231,7 @@ export class ETAConnector extends BaseEFaturaProviderConnector {
         return false;
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
 
       // Extract token based on provider response format
       this.accessToken = data.access_token || data.token || data.accessToken || data.Token;
@@ -242,8 +242,8 @@ export class ETAConnector extends BaseEFaturaProviderConnector {
 
       return !!this.accessToken;
 
-    } catch (error) {
-      logger.error(`[${this.providerName}] Auth error:`, error);
+    } catch (error: unknown) {
+      logger.error(`[${this.providerName}] Auth error:`, { error: error instanceof Error ? error.message : String(error) });
       return false;
     }
   }
@@ -289,7 +289,7 @@ export class ETAConnector extends BaseEFaturaProviderConnector {
         return [];
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
 
       // Handle different response formats
       const invoices = data.invoices || data.faturalar || data.data || data.items || [];
@@ -297,8 +297,8 @@ export class ETAConnector extends BaseEFaturaProviderConnector {
       // Map provider-specific format to UBL
       return invoices.map((inv: ProviderInvoice) => this.mapProviderToUBL(inv));
 
-    } catch (error) {
-      logger.error(`[${this.providerName}] Fetch invoices error:`, error);
+    } catch (error: unknown) {
+      logger.error(`[${this.providerName}] Fetch invoices error:`, { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -335,7 +335,7 @@ export class ETAConnector extends BaseEFaturaProviderConnector {
         };
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
 
       return {
         uuid: data.uuid || data.UUID || invoice.uuid,
@@ -345,7 +345,7 @@ export class ETAConnector extends BaseEFaturaProviderConnector {
         gibCode: data.gibCode || data.gibKodu,
       };
 
-    } catch (error) {
+    } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Bilinmeyen hata";
       return {
         uuid: invoice.uuid,
@@ -378,7 +378,7 @@ export class ETAConnector extends BaseEFaturaProviderConnector {
         throw new Error(`Durum sorgusu başarısız: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
 
       return {
         uuid: data.uuid || uuid,
@@ -390,7 +390,7 @@ export class ETAConnector extends BaseEFaturaProviderConnector {
         errorMessage: data.errorMessage || data.hataMesaji,
       };
 
-    } catch (error) {
+    } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Bilinmeyen hata";
       throw new Error(`Durum sorgulama hatası: ${errorMessage}`);
     }
@@ -423,7 +423,7 @@ export class ETAConnector extends BaseEFaturaProviderConnector {
         throw new Error(`İptal işlemi başarısız: ${response.status} - ${errorText}`);
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
 
       return {
         uuid: data.uuid || uuid,
@@ -432,7 +432,7 @@ export class ETAConnector extends BaseEFaturaProviderConnector {
         statusDate: new Date(),
       };
 
-    } catch (error) {
+    } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Bilinmeyen hata";
       throw new Error(`İptal hatası: ${errorMessage}`);
     }
@@ -477,7 +477,7 @@ export class ETAConnector extends BaseEFaturaProviderConnector {
         };
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
 
       return {
         uuid: data.uuid || data.UUID || invoice.uuid,
@@ -486,7 +486,7 @@ export class ETAConnector extends BaseEFaturaProviderConnector {
         ettn: data.ettn || data.ETTN,
       };
 
-    } catch (error) {
+    } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Bilinmeyen hata";
       return {
         uuid: invoice.uuid,
@@ -527,7 +527,7 @@ export class ETAConnector extends BaseEFaturaProviderConnector {
         throw new Error(`Kayıt sorgusu başarısız: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
 
       return {
         isRegistered: data.isRegistered || data.kayitli || false,
@@ -535,8 +535,8 @@ export class ETAConnector extends BaseEFaturaProviderConnector {
         title: data.title || data.unvan,
       };
 
-    } catch (error) {
-      logger.error(`[${this.providerName}] Check registration error:`, error);
+    } catch (error: unknown) {
+      logger.error(`[${this.providerName}] Check registration error:`, { error: error instanceof Error ? error.message : String(error) });
       return { isRegistered: false };
     }
   }

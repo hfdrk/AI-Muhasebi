@@ -1,5 +1,6 @@
+import { randomBytes } from "crypto";
 import { prisma } from "../lib/prisma";
-import { NotFoundError, ValidationError } from "@repo/shared-utils";
+import { NotFoundError, ValidationError, hashPassword, verifyPassword } from "@repo/shared-utils";
 import { logger } from "@repo/shared-utils";
 import { authenticator } from "otplib";
 import { qrCodeService } from "./qr-code-service";
@@ -106,16 +107,19 @@ export class SecurityService {
 
     // Store 2FA data in user metadata
     const userMetadata = (user.metadata as Record<string, unknown>) || {};
+    const hashedBackupCodes = await Promise.all(
+      backupCodes.map((code) => this.hashBackupCode(code))
+    );
     userMetadata.twoFactorAuth = {
       enabled: false, // Will be enabled after verification
       secret,
-      backupCodes: backupCodes.map((code) => this.hashBackupCode(code)),
+      backupCodes: hashedBackupCodes,
     };
 
     await prisma.user.update({
       where: { id: userId },
       data: {
-        metadata: userMetadata,
+        metadata: userMetadata as any,
       },
     });
 
@@ -177,7 +181,7 @@ export class SecurityService {
     await prisma.user.update({
       where: { id: userId },
       data: {
-        metadata: userMetadata,
+        metadata: userMetadata as any,
       },
     });
 
@@ -218,7 +222,7 @@ export class SecurityService {
     const backupCodes = (twoFactorAuth.backupCodes as string[]) || [];
     for (let i = 0; i < backupCodes.length; i++) {
       const hashedCode = backupCodes[i];
-      if (this.verifyBackupCode(token, hashedCode)) {
+      if (await this.verifyBackupCode(token, hashedCode)) {
         // Remove used backup code
         backupCodes.splice(i, 1);
         userMetadata.twoFactorAuth = {
@@ -227,7 +231,7 @@ export class SecurityService {
         };
         await prisma.user.update({
           where: { id: userId },
-          data: { metadata: userMetadata },
+          data: { metadata: userMetadata as any },
         });
         return true;
       }
@@ -264,7 +268,7 @@ export class SecurityService {
     await prisma.user.update({
       where: { id: userId },
       data: {
-        metadata: userMetadata,
+        metadata: userMetadata as any,
       },
     });
 
@@ -314,7 +318,7 @@ export class SecurityService {
         metadata: {
           ...tenantMetadata,
           ipWhitelist: ipWhitelist as unknown as Record<string, unknown>,
-        },
+        } as any,
       },
     });
 
@@ -451,7 +455,7 @@ export class SecurityService {
     await prisma.user.update({
       where: { id: userId },
       data: {
-        metadata: userMetadata,
+        metadata: userMetadata as any,
       },
     });
 
@@ -482,37 +486,35 @@ export class SecurityService {
     await prisma.user.update({
       where: { id: userId },
       data: {
-        metadata: userMetadata,
+        metadata: userMetadata as any,
       },
     });
   }
 
   /**
-   * Generate backup codes for 2FA
+   * Generate backup codes for 2FA using cryptographically secure randomness
    */
   private generateBackupCodes(count: number = 10): string[] {
     const codes: string[] = [];
     for (let i = 0; i < count; i++) {
-      const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+      const code = randomBytes(4).toString("hex").toUpperCase();
       codes.push(code);
     }
     return codes;
   }
 
   /**
-   * Hash backup code for storage
+   * Hash backup code for storage using bcrypt
    */
-  private hashBackupCode(code: string): string {
-    // Simple hash for backup codes (in production, use proper hashing)
-    return Buffer.from(code).toString("base64");
+  private async hashBackupCode(code: string): Promise<string> {
+    return hashPassword(code);
   }
 
   /**
-   * Verify backup code
+   * Verify backup code against bcrypt hash
    */
-  private verifyBackupCode(code: string, hashedCode: string): boolean {
-    const decoded = Buffer.from(hashedCode, "base64").toString();
-    return decoded === code;
+  private async verifyBackupCode(code: string, hashedCode: string): Promise<boolean> {
+    return verifyPassword(code, hashedCode);
   }
 
   /**

@@ -4,13 +4,14 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getInvoice, updateInvoiceStatus } from "@repo/api-client";
 import { useParams } from "next/navigation";
-import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Modal } from "@/components/ui/Modal";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { PageTransition } from "@/components/ui/PageTransition";
 import { colors, spacing, typography } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "@/lib/toast";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -26,6 +27,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function InvoiceDetailPage() {
+  const { themeColors } = useTheme();
   const params = useParams();
   const invoiceId = params.id as string;
   const queryClient = useQueryClient();
@@ -79,7 +81,7 @@ export default function InvoiceDetailPage() {
       <div style={{ padding: spacing.xxl, maxWidth: "1200px", margin: "0 auto" }}>
         <Card>
           <div style={{ textAlign: "center", padding: spacing.xxl }}>
-            <p style={{ color: colors.text.secondary, marginBottom: spacing.md }}>Fatura bulunamadı.</p>
+            <p style={{ color: themeColors.text.secondary, marginBottom: spacing.md }}>Fatura bulunamadı.</p>
             <Button asLink href="/faturalar" variant="outline">
               Fatura listesine dön
             </Button>
@@ -97,7 +99,7 @@ export default function InvoiceDetailPage() {
       <div style={{ padding: spacing.xxl, maxWidth: "1200px", margin: "0 auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.xl }}>
         <div>
-          <h1 style={{ fontSize: typography.fontSize["3xl"], fontWeight: typography.fontWeight.bold, color: colors.text.primary, marginBottom: spacing.sm }}>
+          <h1 style={{ fontSize: typography.fontSize["3xl"], fontWeight: typography.fontWeight.bold, color: themeColors.text.primary, marginBottom: spacing.sm }}>
             Fatura Detayı
           </h1>
           <Badge
@@ -140,86 +142,86 @@ export default function InvoiceDetailPage() {
       <Card style={{ marginBottom: spacing.xl }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: spacing.md, padding: spacing.lg }}>
           <div>
-            <strong style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Fatura No:</strong>
-            <p style={{ margin: spacing.xs + " 0", color: colors.text.primary }}>{invoiceData.externalId || invoiceData.id.substring(0, 8)}</p>
+            <strong style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>Fatura No:</strong>
+            <p style={{ margin: spacing.xs + " 0", color: themeColors.text.primary }}>{invoiceData.externalId || invoiceData.id.substring(0, 8)}</p>
           </div>
           <div>
-            <strong style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Tür:</strong>
-            <p style={{ margin: spacing.xs + " 0", color: colors.text.primary }}>{TYPE_LABELS[invoiceData.type] || invoiceData.type}</p>
+            <strong style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>Tür:</strong>
+            <p style={{ margin: spacing.xs + " 0", color: themeColors.text.primary }}>{TYPE_LABELS[invoiceData.type] || invoiceData.type}</p>
           </div>
           <div>
-            <strong style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Düzenleme Tarihi:</strong>
-            <p style={{ margin: spacing.xs + " 0", color: colors.text.primary }}>{new Date(invoiceData.issueDate).toLocaleDateString("tr-TR")}</p>
+            <strong style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>Düzenleme Tarihi:</strong>
+            <p style={{ margin: spacing.xs + " 0", color: themeColors.text.primary }}>{new Date(invoiceData.issueDate).toLocaleDateString("tr-TR")}</p>
           </div>
           <div>
-            <strong style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Vade Tarihi:</strong>
-            <p style={{ margin: spacing.xs + " 0", color: colors.text.primary }}>
+            <strong style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>Vade Tarihi:</strong>
+            <p style={{ margin: spacing.xs + " 0", color: themeColors.text.primary }}>
               {invoiceData.dueDate ? new Date(invoiceData.dueDate).toLocaleDateString("tr-TR") : "-"}
             </p>
           </div>
           <div>
-            <strong style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Para Birimi:</strong>
-            <p style={{ margin: spacing.xs + " 0", color: colors.text.primary }}>{invoiceData.currency}</p>
+            <strong style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>Para Birimi:</strong>
+            <p style={{ margin: spacing.xs + " 0", color: themeColors.text.primary }}>{invoiceData.currency}</p>
           </div>
           <div>
-            <strong style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Alıcı / Satıcı:</strong>
-            <p style={{ margin: spacing.xs + " 0", color: colors.text.primary }}>{invoiceData.counterpartyName || "-"}</p>
+            <strong style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>Alıcı / Satıcı:</strong>
+            <p style={{ margin: spacing.xs + " 0", color: themeColors.text.primary }}>{invoiceData.counterpartyName || "-"}</p>
           </div>
           <div>
-            <strong style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Alıcı / Satıcı Vergi No:</strong>
-            <p style={{ margin: spacing.xs + " 0", color: colors.text.primary }}>{invoiceData.counterpartyTaxNumber || "-"}</p>
+            <strong style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>Alıcı / Satıcı Vergi No:</strong>
+            <p style={{ margin: spacing.xs + " 0", color: themeColors.text.primary }}>{invoiceData.counterpartyTaxNumber || "-"}</p>
           </div>
           <div style={{ gridColumn: "1 / -1" }}>
-            <strong style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Kaynak:</strong>
-            <p style={{ margin: spacing.xs + " 0", color: colors.text.primary }}>{invoiceData.source === "manual" ? "Manuel" : invoiceData.source}</p>
+            <strong style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>Kaynak:</strong>
+            <p style={{ margin: spacing.xs + " 0", color: themeColors.text.primary }}>{invoiceData.source === "manual" ? "Manuel" : invoiceData.source}</p>
           </div>
         </div>
       </Card>
 
       <Card style={{ marginBottom: spacing.xl }}>
-        <h2 style={{ fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.semibold, color: colors.text.primary, marginBottom: spacing.md, padding: spacing.lg, borderBottom: `1px solid ${colors.border}` }}>
+        <h2 style={{ fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary, marginBottom: spacing.md, padding: spacing.lg, borderBottom: `1px solid ${themeColors.border}` }}>
           Fatura Satırları
         </h2>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr style={{ borderBottom: `2px solid ${colors.border}`, backgroundColor: colors.background }}>
-                <th style={{ padding: spacing.md, textAlign: "left", color: colors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold }}>Satır No</th>
-                <th style={{ padding: spacing.md, textAlign: "left", color: colors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold }}>Açıklama</th>
-                <th style={{ padding: spacing.md, textAlign: "right", color: colors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold }}>Miktar</th>
-                <th style={{ padding: spacing.md, textAlign: "right", color: colors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold }}>Birim Fiyat</th>
-                <th style={{ padding: spacing.md, textAlign: "right", color: colors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold }}>Satır Toplamı</th>
-                <th style={{ padding: spacing.md, textAlign: "right", color: colors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold }}>KDV Oranı</th>
-                <th style={{ padding: spacing.md, textAlign: "right", color: colors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold }}>KDV Tutarı</th>
+              <tr style={{ borderBottom: `2px solid ${themeColors.border}`, backgroundColor: colors.background }}>
+                <th style={{ padding: spacing.md, textAlign: "left", color: themeColors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold }}>Satır No</th>
+                <th style={{ padding: spacing.md, textAlign: "left", color: themeColors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold }}>Açıklama</th>
+                <th style={{ padding: spacing.md, textAlign: "right", color: themeColors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold }}>Miktar</th>
+                <th style={{ padding: spacing.md, textAlign: "right", color: themeColors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold }}>Birim Fiyat</th>
+                <th style={{ padding: spacing.md, textAlign: "right", color: themeColors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold }}>Satır Toplamı</th>
+                <th style={{ padding: spacing.md, textAlign: "right", color: themeColors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold }}>KDV Oranı</th>
+                <th style={{ padding: spacing.md, textAlign: "right", color: themeColors.text.secondary, fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold }}>KDV Tutarı</th>
               </tr>
             </thead>
             <tbody>
               {invoiceData.lines?.map((line, index) => (
-                <tr key={line.id} style={{ borderBottom: `1px solid ${colors.border}`, backgroundColor: index % 2 === 0 ? colors.white : colors.background }}>
-                  <td style={{ padding: spacing.md, color: colors.text.primary }}>{line.lineNumber}</td>
-                  <td style={{ padding: spacing.md, color: colors.text.primary }}>{line.description}</td>
-                  <td style={{ padding: spacing.md, textAlign: "right", color: colors.text.primary }}>
+                <tr key={line.id} style={{ borderBottom: `1px solid ${themeColors.border}`, backgroundColor: index % 2 === 0 ? themeColors.white : colors.background }}>
+                  <td style={{ padding: spacing.md, color: themeColors.text.primary }}>{line.lineNumber}</td>
+                  <td style={{ padding: spacing.md, color: themeColors.text.primary }}>{line.description}</td>
+                  <td style={{ padding: spacing.md, textAlign: "right", color: themeColors.text.primary }}>
                     {line.quantity.toLocaleString("tr-TR", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}
                   </td>
-                  <td style={{ padding: spacing.md, textAlign: "right", color: colors.text.primary }}>
+                  <td style={{ padding: spacing.md, textAlign: "right", color: themeColors.text.primary }}>
                     {line.unitPrice.toLocaleString("tr-TR", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}
                   </td>
-                  <td style={{ padding: spacing.md, textAlign: "right", color: colors.text.primary }}>
+                  <td style={{ padding: spacing.md, textAlign: "right", color: themeColors.text.primary }}>
                     {line.lineTotal.toLocaleString("tr-TR", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}
                   </td>
-                  <td style={{ padding: spacing.md, textAlign: "right", color: colors.text.primary }}>
+                  <td style={{ padding: spacing.md, textAlign: "right", color: themeColors.text.primary }}>
                     {(line.vatRate * 100).toFixed(0)}%
                   </td>
-                  <td style={{ padding: spacing.md, textAlign: "right", color: colors.text.primary }}>
+                  <td style={{ padding: spacing.md, textAlign: "right", color: themeColors.text.primary }}>
                     {line.vatAmount.toLocaleString("tr-TR", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
@@ -235,7 +237,7 @@ export default function InvoiceDetailPage() {
       <Card>
         <div style={{ display: "flex", justifyContent: "flex-end", padding: spacing.lg, backgroundColor: colors.background, borderRadius: "8px" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: spacing.sm, minWidth: "300px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", color: colors.text.primary }}>
+            <div style={{ display: "flex", justifyContent: "space-between", color: themeColors.text.primary }}>
               <strong>Net Tutar:</strong>
               <span>
                 {((invoiceData.netAmount || invoiceData.totalAmount - invoiceData.taxAmount)).toLocaleString("tr-TR", {
@@ -245,7 +247,7 @@ export default function InvoiceDetailPage() {
                 {invoiceData.currency}
               </span>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", color: colors.text.primary }}>
+            <div style={{ display: "flex", justifyContent: "space-between", color: themeColors.text.primary }}>
               <strong>KDV Tutarı:</strong>
               <span>
                 {invoiceData.taxAmount.toLocaleString("tr-TR", {
@@ -255,7 +257,7 @@ export default function InvoiceDetailPage() {
                 {invoiceData.currency}
               </span>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.bold, paddingTop: spacing.md, borderTop: `1px solid ${colors.border}`, color: colors.text.primary }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.bold, paddingTop: spacing.md, borderTop: `1px solid ${themeColors.border}`, color: themeColors.text.primary }}>
               <strong>Toplam Tutar:</strong>
               <span>
                 {invoiceData.totalAmount.toLocaleString("tr-TR", {
@@ -277,7 +279,7 @@ export default function InvoiceDetailPage() {
         size="sm"
       >
         <div style={{ marginBottom: spacing.lg }}>
-          <p style={{ color: colors.text.primary }}>
+          <p style={{ color: themeColors.text.primary }}>
             Bu faturayı iptal etmek istediğinize emin misiniz? Bu işlem geri alınamaz.
           </p>
         </div>

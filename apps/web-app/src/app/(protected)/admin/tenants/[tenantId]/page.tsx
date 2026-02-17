@@ -4,15 +4,15 @@ import { use, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { getTenantDetail, updateTenantStatus } from "@repo/api-client";
-import { Modal } from "../../../../../components/ui/Modal";
-import { Button } from "../../../../../components/ui/Button";
 import { Card } from "../../../../../components/ui/Card";
 import { Skeleton } from "../../../../../components/ui/Skeleton";
 import { PageTransition } from "../../../../../components/ui/PageTransition";
 import { colors, spacing, shadows } from "../../../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "../../../../../lib/toast";
 
 export default function AdminTenantDetailPage({ params }: { params: Promise<{ tenantId: string }> }) {
+  const { themeColors } = useTheme();
   const { tenantId } = use(params);
   const router = useRouter();
   const [statusModal, setStatusModal] = useState<{ open: boolean; newStatus: "ACTIVE" | "SUSPENDED" | null }>({ open: false, newStatus: null });
@@ -53,7 +53,7 @@ export default function AdminTenantDetailPage({ params }: { params: Promise<{ te
 
   if (error || !data) {
     return (
-      <div style={{ textAlign: "center", padding: spacing.xxl, color: colors.error || "#ef4444" }}>
+      <div style={{ textAlign: "center", padding: spacing.xxl, color: colors.error }}>
         Hata: {error instanceof Error ? error.message : "Kiracı bulunamadı"}
       </div>
     );
@@ -65,17 +65,17 @@ export default function AdminTenantDetailPage({ params }: { params: Promise<{ te
     <PageTransition>
       <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.xl }}>
-        <h1 style={{ margin: 0, fontSize: "28px", fontWeight: 600, color: colors.text.primary }}>
+        <h1 style={{ margin: 0, fontSize: "28px", fontWeight: 600, color: themeColors.text.primary }}>
           Kiracı Detayı: {tenant.name}
         </h1>
         <button
           onClick={() => router.back()}
           style={{
             padding: `${spacing.sm} ${spacing.md}`,
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${themeColors.border}`,
             borderRadius: "4px",
             cursor: "pointer",
-            backgroundColor: colors.white,
+            backgroundColor: themeColors.white,
           }}
         >
           Geri
@@ -84,25 +84,25 @@ export default function AdminTenantDetailPage({ params }: { params: Promise<{ te
 
       <div style={{ display: "grid", gap: spacing.lg }}>
         {/* Ofis Bilgileri */}
-        <div style={{ backgroundColor: colors.white, padding: spacing.lg, borderRadius: "8px", boxShadow: shadows.sm }}>
+        <div style={{ backgroundColor: themeColors.white, padding: spacing.lg, borderRadius: "8px", boxShadow: shadows.sm }}>
           <h2 style={{ marginTop: 0, marginBottom: spacing.md, fontSize: "20px", fontWeight: 600 }}>
             Ofis Bilgileri
           </h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: spacing.md }}>
             <div>
-              <p style={{ margin: 0, fontSize: "12px", color: colors.text.secondary, marginBottom: spacing.xs }}>
+              <p style={{ margin: 0, fontSize: "12px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>
                 Ad
               </p>
               <p style={{ margin: 0, fontWeight: 500 }}>{tenant.name}</p>
             </div>
             <div>
-              <p style={{ margin: 0, fontSize: "12px", color: colors.text.secondary, marginBottom: spacing.xs }}>
+              <p style={{ margin: 0, fontSize: "12px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>
                 Slug
               </p>
               <p style={{ margin: 0, fontWeight: 500 }}>{tenant.slug}</p>
             </div>
             <div>
-              <p style={{ margin: 0, fontSize: "12px", color: colors.text.secondary, marginBottom: spacing.xs }}>
+              <p style={{ margin: 0, fontSize: "12px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>
                 Durum
               </p>
               <div style={{ display: "flex", gap: spacing.md, alignItems: "center" }}>
@@ -114,12 +114,12 @@ export default function AdminTenantDetailPage({ params }: { params: Promise<{ te
                     fontWeight: 500,
                     backgroundColor:
                       tenant.status === "ACTIVE"
-                        ? (colors.success || "#10b981") + "20"
-                        : (colors.warning || "#f59e0b") + "20",
+                        ? (colors.success || colors.success) + "20"
+                        : (colors.warning || colors.warning) + "20",
                     color:
                       tenant.status === "ACTIVE"
-                        ? colors.success || "#10b981"
-                        : colors.warning || "#f59e0b",
+                        ? colors.success || colors.success
+                        : colors.warning || colors.warning,
                   }}
                 >
                   {tenant.status === "ACTIVE" ? "Aktif" : "Askıya Alındı"}
@@ -141,19 +141,19 @@ export default function AdminTenantDetailPage({ params }: { params: Promise<{ te
               </div>
             </div>
             <div>
-              <p style={{ margin: 0, fontSize: "12px", color: colors.text.secondary, marginBottom: spacing.xs }}>
+              <p style={{ margin: 0, fontSize: "12px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>
                 Vergi Numarası
               </p>
               <p style={{ margin: 0, fontWeight: 500 }}>{tenant.taxNumber || "-"}</p>
             </div>
             <div>
-              <p style={{ margin: 0, fontSize: "12px", color: colors.text.secondary, marginBottom: spacing.xs }}>
+              <p style={{ margin: 0, fontSize: "12px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>
                 E-posta
               </p>
               <p style={{ margin: 0, fontWeight: 500 }}>{tenant.email || "-"}</p>
             </div>
             <div>
-              <p style={{ margin: 0, fontSize: "12px", color: colors.text.secondary, marginBottom: spacing.xs }}>
+              <p style={{ margin: 0, fontSize: "12px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>
                 Telefon
               </p>
               <p style={{ margin: 0, fontWeight: 500 }}>{tenant.phone || "-"}</p>
@@ -162,37 +162,37 @@ export default function AdminTenantDetailPage({ params }: { params: Promise<{ te
         </div>
 
         {/* Plan ve Kullanım */}
-        <div style={{ backgroundColor: colors.white, padding: spacing.lg, borderRadius: "8px", boxShadow: shadows.sm }}>
+        <div style={{ backgroundColor: themeColors.white, padding: spacing.lg, borderRadius: "8px", boxShadow: shadows.sm }}>
           <h2 style={{ marginTop: 0, marginBottom: spacing.md, fontSize: "20px", fontWeight: 600 }}>
             Plan ve Kullanım
           </h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: spacing.md }}>
             <div>
-              <p style={{ margin: 0, fontSize: "12px", color: colors.text.secondary, marginBottom: spacing.xs }}>
+              <p style={{ margin: 0, fontSize: "12px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>
                 Plan
               </p>
               <p style={{ margin: 0, fontWeight: 500 }}>{tenant.billingPlan || "-"}</p>
             </div>
             <div>
-              <p style={{ margin: 0, fontSize: "12px", color: colors.text.secondary, marginBottom: spacing.xs }}>
+              <p style={{ margin: 0, fontSize: "12px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>
                 Müşteri Şirketler
               </p>
               <p style={{ margin: 0, fontWeight: 500 }}>{tenant.quotaUsage.clientCompanies}</p>
             </div>
             <div>
-              <p style={{ margin: 0, fontSize: "12px", color: colors.text.secondary, marginBottom: spacing.xs }}>
+              <p style={{ margin: 0, fontSize: "12px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>
                 Belgeler
               </p>
               <p style={{ margin: 0, fontWeight: 500 }}>{tenant.quotaUsage.documents}</p>
             </div>
             <div>
-              <p style={{ margin: 0, fontSize: "12px", color: colors.text.secondary, marginBottom: spacing.xs }}>
+              <p style={{ margin: 0, fontSize: "12px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>
                 Kullanıcılar
               </p>
               <p style={{ margin: 0, fontWeight: 500 }}>{tenant.quotaUsage.users}</p>
             </div>
             <div>
-              <p style={{ margin: 0, fontSize: "12px", color: colors.text.secondary, marginBottom: spacing.xs }}>
+              <p style={{ margin: 0, fontSize: "12px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>
                 Zamanlanmış Raporlar
               </p>
               <p style={{ margin: 0, fontWeight: 500 }}>{tenant.quotaUsage.scheduledReports}</p>
@@ -201,24 +201,24 @@ export default function AdminTenantDetailPage({ params }: { params: Promise<{ te
         </div>
 
         {/* Son Aktivite */}
-        <div style={{ backgroundColor: colors.white, padding: spacing.lg, borderRadius: "8px", boxShadow: shadows.sm }}>
+        <div style={{ backgroundColor: themeColors.white, padding: spacing.lg, borderRadius: "8px", boxShadow: shadows.sm }}>
           <h2 style={{ marginTop: 0, marginBottom: spacing.md, fontSize: "20px", fontWeight: 600 }}>
             Son Aktivite
           </h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: spacing.md }}>
             <div>
-              <p style={{ margin: 0, fontSize: "12px", color: colors.text.secondary, marginBottom: spacing.xs }}>
+              <p style={{ margin: 0, fontSize: "12px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>
                 Son 7 Günde Risk Uyarıları
               </p>
-              <p style={{ margin: 0, fontWeight: 500, color: colors.error || "#ef4444" }}>
+              <p style={{ margin: 0, fontWeight: 500, color: colors.error }}>
                 {tenant.recentRiskAlertsCount}
               </p>
             </div>
             <div>
-              <p style={{ margin: 0, fontSize: "12px", color: colors.text.secondary, marginBottom: spacing.xs }}>
+              <p style={{ margin: 0, fontSize: "12px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>
                 Son 7 Günde Başarısız Entegrasyonlar
               </p>
-              <p style={{ margin: 0, fontWeight: 500, color: colors.error || "#ef4444" }}>
+              <p style={{ margin: 0, fontWeight: 500, color: colors.error }}>
                 {tenant.recentFailedIntegrationsCount}
               </p>
             </div>
@@ -227,28 +227,28 @@ export default function AdminTenantDetailPage({ params }: { params: Promise<{ te
 
         {/* Son Denetim Kayıtları */}
         {tenant.recentAuditEvents && tenant.recentAuditEvents.length > 0 && (
-          <div style={{ backgroundColor: colors.white, padding: spacing.lg, borderRadius: "8px", boxShadow: shadows.sm }}>
+          <div style={{ backgroundColor: themeColors.white, padding: spacing.lg, borderRadius: "8px", boxShadow: shadows.sm }}>
             <h2 style={{ marginTop: 0, marginBottom: spacing.md, fontSize: "20px", fontWeight: 600 }}>
               Son Denetim Kayıtları
             </h2>
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
-                  <tr style={{ backgroundColor: colors.gray[100] }}>
-                    <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${colors.border}` }}>
+                  <tr style={{ backgroundColor: themeColors.gray[100] }}>
+                    <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
                       Tarih
                     </th>
-                    <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${colors.border}` }}>
+                    <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
                       Kullanıcı
                     </th>
-                    <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${colors.border}` }}>
+                    <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
                       İşlem
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {tenant.recentAuditEvents.map((event) => (
-                    <tr key={event.id} style={{ borderBottom: `1px solid ${colors.border}` }}>
+                    <tr key={event.id} style={{ borderBottom: `1px solid ${themeColors.border}` }}>
                       <td style={{ padding: spacing.md }}>
                         {new Date(event.createdAt).toLocaleString("tr-TR")}
                       </td>
@@ -264,6 +264,42 @@ export default function AdminTenantDetailPage({ params }: { params: Promise<{ te
           </div>
         )}
       </div>
+
+      {/* Status Change Confirmation Dialog */}
+      {statusModal.open && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div style={{ backgroundColor: themeColors.white, padding: spacing.xl, borderRadius: "8px", boxShadow: shadows.lg, maxWidth: "400px", width: "100%" }}>
+            <h3 style={{ marginTop: 0, marginBottom: spacing.md }}>Durumu Değiştir</h3>
+            <p style={{ marginBottom: spacing.lg }}>
+              Kiracı durumunu &quot;{statusModal.newStatus === "ACTIVE" ? "Aktif" : "Askıya Alındı"}&quot; olarak değiştirmek istediğinize emin misiniz?
+            </p>
+            <div style={{ display: "flex", gap: spacing.md, justifyContent: "flex-end" }}>
+              <button
+                onClick={() => setStatusModal({ open: false, newStatus: null })}
+                style={{ padding: `${spacing.sm} ${spacing.md}`, border: `1px solid ${themeColors.border}`, borderRadius: "4px", cursor: "pointer", backgroundColor: themeColors.white }}
+              >
+                İptal
+              </button>
+              <button
+                onClick={confirmStatusChange}
+                style={{ padding: `${spacing.sm} ${spacing.md}`, backgroundColor: colors.primary, color: colors.white, border: "none", borderRadius: "4px", cursor: "pointer" }}
+              >
+                Onayla
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
     </PageTransition>
   );

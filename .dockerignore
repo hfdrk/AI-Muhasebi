@@ -74,3 +74,17 @@ next-env.d.ts
 # Turbo
 .turbo
 
+# Playwright
+**/playwright-report
+**/test-results
+
+# Build artifacts (will be built fresh in Docker)
+**/.next
+**/out
+
+# Backup data
+backups/
+
+# Claude/AI config
+.claude
+

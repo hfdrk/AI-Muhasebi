@@ -1,4 +1,5 @@
 import PDFDocument from "pdfkit";
+// @ts-ignore
 import ExcelJS from "exceljs";
 import type { BaseReportResult } from "./reporting-service";
 

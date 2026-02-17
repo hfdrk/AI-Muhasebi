@@ -12,7 +12,9 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { Tabs } from "@/components/ui/Tabs";
 import { Badge } from "@/components/ui/Badge";
 import { toast } from "@/lib/toast";
+import { PageTransition } from "@/components/ui/PageTransition";
 import { colors, spacing, borderRadius, typography } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const TYPE_LABELS: Record<string, string> = {
   INVOICE: "Fatura",
@@ -29,6 +31,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function DocumentDetailPage() {
+  const { themeColors } = useTheme();
   const params = useParams();
   const router = useRouter();
   const documentId = params.id as string;
@@ -116,13 +119,13 @@ export default function DocumentDetailPage() {
           <Skeleton height="40px" width="120px" variant="rectangular" />
           <Skeleton height="40px" width="120px" variant="rectangular" />
         </div>
-        <div style={{ backgroundColor: colors.white, padding: spacing.lg, borderRadius: borderRadius.lg, marginBottom: spacing.lg }}>
+        <div style={{ backgroundColor: themeColors.white, padding: spacing.lg, borderRadius: borderRadius.lg, marginBottom: spacing.lg }}>
           <Skeleton height="24px" width="200px" variant="text" style={{ marginBottom: spacing.md }} />
           <Skeleton height="20px" width="100%" variant="text" style={{ marginBottom: spacing.sm }} />
           <Skeleton height="20px" width="90%" variant="text" style={{ marginBottom: spacing.sm }} />
           <Skeleton height="20px" width="95%" variant="text" />
         </div>
-        <div style={{ backgroundColor: colors.white, padding: spacing.lg, borderRadius: borderRadius.lg }}>
+        <div style={{ backgroundColor: themeColors.white, padding: spacing.lg, borderRadius: borderRadius.lg }}>
           <Skeleton height="24px" width="200px" variant="text" style={{ marginBottom: spacing.md }} />
           <Skeleton height="150px" width="100%" variant="rectangular" />
         </div>
@@ -160,7 +163,7 @@ export default function DocumentDetailPage() {
             style={{
               padding: "8px 16px",
               backgroundColor: colors.danger,
-              color: "white",
+              color: colors.white,
               border: "none",
               borderRadius: "4px",
               cursor: deleteMutation.isPending ? "not-allowed" : "pointer",
@@ -173,7 +176,7 @@ export default function DocumentDetailPage() {
             href={`/musteriler/${documentData.clientCompanyId}`}
             style={{
               padding: "8px 16px",
-              backgroundColor: colors.gray[100],
+              backgroundColor: themeColors.gray[100],
               color: "inherit",
               textDecoration: "none",
               borderRadius: "4px",
@@ -204,7 +207,7 @@ export default function DocumentDetailPage() {
                   ? colors.dangerLight
                   : documentData.status === "PROCESSING"
                   ? colors.warningLight
-                  : colors.gray[200],
+                  : themeColors.gray[200],
               color:
                 documentData.status === "PROCESSED"
                   ? colors.successDark
@@ -297,23 +300,23 @@ export default function DocumentDetailPage() {
           )}
 
           {/* Detailed Information Card */}
-          <div style={{ padding: spacing.xl, backgroundColor: colors.gray[50], borderRadius: borderRadius.lg, marginBottom: spacing.lg, border: `1px solid ${colors.border}` }}>
-            <h2 style={{ marginTop: 0, marginBottom: spacing.lg, fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.semibold, color: colors.text.primary }}>Belge Bilgileri</h2>
+          <div style={{ padding: spacing.xl, backgroundColor: themeColors.gray[50], borderRadius: borderRadius.lg, marginBottom: spacing.lg, border: `1px solid ${themeColors.border}` }}>
+            <h2 style={{ marginTop: 0, marginBottom: spacing.lg, fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary }}>Belge Bilgileri</h2>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: spacing.md }}>
               <div>
-                <strong style={{ display: "block", marginBottom: spacing.xs, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Dosya Adı</strong>
+                <strong style={{ display: "block", marginBottom: spacing.xs, color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>Dosya Adı</strong>
                 <span>{documentData.originalFileName}</span>
               </div>
               <div>
-                <strong style={{ display: "block", marginBottom: spacing.xs, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Dosya Türü</strong>
+                <strong style={{ display: "block", marginBottom: spacing.xs, color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>Dosya Türü</strong>
                 <span>{documentData.mimeType}</span>
               </div>
               <div>
-                <strong style={{ display: "block", marginBottom: spacing.xs, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Belge Türü</strong>
+                <strong style={{ display: "block", marginBottom: spacing.xs, color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>Belge Türü</strong>
                 <span>{TYPE_LABELS[documentData.type] || documentData.type}</span>
               </div>
               <div>
-                <strong style={{ display: "block", marginBottom: spacing.xs, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Yükleme Kaynağı</strong>
+                <strong style={{ display: "block", marginBottom: spacing.xs, color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>Yükleme Kaynağı</strong>
                 <span>
                   {documentData.uploadSource === "manual"
                     ? "Manuel Yükleme"
@@ -325,11 +328,11 @@ export default function DocumentDetailPage() {
                 </span>
               </div>
               <div>
-                <strong style={{ display: "block", marginBottom: spacing.xs, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Dosya Boyutu</strong>
+                <strong style={{ display: "block", marginBottom: spacing.xs, color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>Dosya Boyutu</strong>
                 <span>{(documentData.fileSizeBytes / (1024 * 1024)).toFixed(2)} MB</span>
               </div>
               <div>
-                <strong style={{ display: "block", marginBottom: spacing.xs, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Durum</strong>
+                <strong style={{ display: "block", marginBottom: spacing.xs, color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>Durum</strong>
                 <Badge
                   variant={
                     documentData.status === "PROCESSED"
@@ -346,7 +349,7 @@ export default function DocumentDetailPage() {
                 </Badge>
               </div>
               <div>
-                <strong style={{ display: "block", marginBottom: spacing.xs, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Yükleme Tarihi</strong>
+                <strong style={{ display: "block", marginBottom: spacing.xs, color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>Yükleme Tarihi</strong>
                 <span>
                   {new Date(documentData.createdAt).toLocaleDateString("tr-TR", {
                     year: "numeric",
@@ -359,7 +362,7 @@ export default function DocumentDetailPage() {
               </div>
               {documentData.processedAt && (
                 <div>
-                  <strong style={{ display: "block", marginBottom: spacing.xs, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>İşlenme Tarihi</strong>
+                  <strong style={{ display: "block", marginBottom: spacing.xs, color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>İşlenme Tarihi</strong>
                   <span>
                     {new Date(documentData.processedAt).toLocaleDateString("tr-TR", {
                       year: "numeric",
@@ -376,12 +379,12 @@ export default function DocumentDetailPage() {
 
           {/* Related Information */}
           {(documentData.relatedInvoiceId || documentData.relatedTransactionId) && (
-            <div style={{ padding: spacing.xl, backgroundColor: colors.gray[50], borderRadius: borderRadius.lg, marginBottom: spacing.lg, border: `1px solid ${colors.border}` }}>
-              <h2 style={{ marginTop: 0, marginBottom: spacing.lg, fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.semibold, color: colors.text.primary }}>İlişkili Kayıtlar</h2>
+            <div style={{ padding: spacing.xl, backgroundColor: themeColors.gray[50], borderRadius: borderRadius.lg, marginBottom: spacing.lg, border: `1px solid ${themeColors.border}` }}>
+              <h2 style={{ marginTop: 0, marginBottom: spacing.lg, fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary }}>İlişkili Kayıtlar</h2>
               <div style={{ display: "flex", flexDirection: "column", gap: spacing.md }}>
                 {documentData.relatedInvoiceId && (
                   <div>
-                    <strong style={{ display: "block", marginBottom: spacing.xs, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>İlişkili Fatura</strong>
+                    <strong style={{ display: "block", marginBottom: spacing.xs, color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>İlişkili Fatura</strong>
                     <Link
                       href={`/faturalar/${documentData.relatedInvoiceId}`}
                       style={{ color: colors.primary, textDecoration: "none", fontWeight: typography.fontWeight.medium }}
@@ -392,7 +395,7 @@ export default function DocumentDetailPage() {
                 )}
                 {documentData.relatedTransactionId && (
                   <div>
-                    <strong style={{ display: "block", marginBottom: spacing.xs, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>
+                    <strong style={{ display: "block", marginBottom: spacing.xs, color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>
                       İlişkili İşlem
                     </strong>
                     <Link
@@ -408,10 +411,10 @@ export default function DocumentDetailPage() {
           )}
 
           {/* Client Company Link */}
-          <div style={{ padding: spacing.xl, backgroundColor: colors.gray[50], borderRadius: borderRadius.lg, border: `1px solid ${colors.border}` }}>
-            <h2 style={{ marginTop: 0, marginBottom: spacing.lg, fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.semibold, color: colors.text.primary }}>Müşteri Bilgisi</h2>
+          <div style={{ padding: spacing.xl, backgroundColor: themeColors.gray[50], borderRadius: borderRadius.lg, border: `1px solid ${themeColors.border}` }}>
+            <h2 style={{ marginTop: 0, marginBottom: spacing.lg, fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary }}>Müşteri Bilgisi</h2>
             <div>
-              <strong style={{ display: "block", marginBottom: spacing.xs, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>Müşteri Şirketi</strong>
+              <strong style={{ display: "block", marginBottom: spacing.xs, color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>Müşteri Şirketi</strong>
               <Link
                 href={`/musteriler/${documentData.clientCompanyId}`}
                 style={{ color: colors.primary, textDecoration: "none", fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.medium }}
@@ -430,14 +433,14 @@ export default function DocumentDetailPage() {
             content: (
         <div>
           {documentData.status === "PROCESSING" && (
-            <div style={{ padding: "16px", backgroundColor: "#fff3cd", borderRadius: "4px", marginBottom: "24px" }}>
+            <div style={{ padding: "16px", backgroundColor: colors.warningLight, borderRadius: "4px", marginBottom: "24px" }}>
               <p>AI analizi hazırlanıyor...</p>
             </div>
           )}
 
           {documentData.status === "UPLOADED" && (
-            <div style={{ padding: spacing.md, backgroundColor: colors.gray[200], borderRadius: borderRadius.md, marginBottom: spacing.lg, border: `1px solid ${colors.border}` }}>
-              <p style={{ margin: 0, color: colors.text.secondary }}>Bu belge henüz AI tarafından analiz edilmemiş.</p>
+            <div style={{ padding: spacing.md, backgroundColor: themeColors.gray[200], borderRadius: borderRadius.md, marginBottom: spacing.lg, border: `1px solid ${themeColors.border}` }}>
+              <p style={{ margin: 0, color: themeColors.text.secondary }}>Bu belge henüz AI tarafından analiz edilmemiş.</p>
             </div>
           )}
 
@@ -473,8 +476,8 @@ export default function DocumentDetailPage() {
             <>
               {/* Extracted Fields Section */}
               {aiAnalysis.data.parsedData && (
-                <div style={{ marginBottom: spacing.lg, padding: spacing.md, backgroundColor: colors.gray[50], borderRadius: borderRadius.md, border: `1px solid ${colors.border}` }}>
-                  <h2 style={{ marginBottom: spacing.md, fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: colors.text.primary }}>Çıkarılan Alanlar</h2>
+                <div style={{ marginBottom: spacing.lg, padding: spacing.md, backgroundColor: themeColors.gray[50], borderRadius: borderRadius.md, border: `1px solid ${themeColors.border}` }}>
+                  <h2 style={{ marginBottom: spacing.md, fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary }}>Çıkarılan Alanlar</h2>
                   {aiAnalysis.data.parsedData.documentType === "invoice" && (
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                       {aiAnalysis.data.parsedData.fields.invoiceNumber && (
@@ -564,9 +567,9 @@ export default function DocumentDetailPage() {
 
               {/* Risk Features Section */}
               {aiAnalysis.data.riskFeatures && (
-                <div style={{ marginBottom: spacing.lg, padding: spacing.md, backgroundColor: colors.gray[50], borderRadius: borderRadius.md, border: `1px solid ${colors.border}` }}>
+                <div style={{ marginBottom: spacing.lg, padding: spacing.md, backgroundColor: themeColors.gray[50], borderRadius: borderRadius.md, border: `1px solid ${themeColors.border}` }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.md }}>
-                    <h2 style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: colors.text.primary }}>Risk Göstergeleri</h2>
+                    <h2 style={{ fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary }}>Risk Göstergeleri</h2>
                     {aiAnalysis.data.riskFeatures.riskScore !== null && (
                       <span
                         style={{
@@ -574,16 +577,16 @@ export default function DocumentDetailPage() {
                           borderRadius: "4px",
                           backgroundColor:
                             aiAnalysis.data.riskFeatures.riskScore >= 70
-                              ? "#f8d7da"
+                              ? colors.dangerLight
                               : aiAnalysis.data.riskFeatures.riskScore >= 40
-                              ? "#fff3cd"
-                              : "#d4edda",
+                              ? colors.warningLight
+                              : colors.successLight,
                           color:
                             aiAnalysis.data.riskFeatures.riskScore >= 70
-                              ? "#721c24"
+                              ? colors.dangerDark
                               : aiAnalysis.data.riskFeatures.riskScore >= 40
-                              ? "#856404"
-                              : "#155724",
+                              ? colors.warningDark
+                              : colors.successDark,
                           fontWeight: "bold",
                         }}
                       >
@@ -593,11 +596,11 @@ export default function DocumentDetailPage() {
                   </div>
 
                   {aiAnalysis.data.riskFeatures.riskFlags.length === 0 ? (
-                    <p style={{ color: "#155724" }}>Risk Yok - Bu belgede risk göstergesi tespit edilmedi.</p>
+                    <p style={{ color: colors.successDark }}>Risk Yok - Bu belgede risk göstergesi tespit edilmedi.</p>
                   ) : (
                     <table style={{ width: "100%", borderCollapse: "collapse" }}>
                       <thead>
-                        <tr style={{ borderBottom: "2px solid #ddd" }}>
+                        <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
                           <th style={{ padding: "12px", textAlign: "left" }}>Risk Kodu</th>
                           <th style={{ padding: "12px", textAlign: "left" }}>Açıklama</th>
                           <th style={{ padding: "12px", textAlign: "left" }}>Önem Derecesi</th>
@@ -605,7 +608,7 @@ export default function DocumentDetailPage() {
                       </thead>
                       <tbody>
                         {aiAnalysis.data.riskFeatures.riskFlags.map((flag, index) => (
-                          <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
+                          <tr key={index} style={{ borderBottom: `1px solid ${themeColors.gray[200]}` }}>
                             <td style={{ padding: "12px" }}>{flag.code}</td>
                             <td style={{ padding: "12px" }}>{flag.description}</td>
                             <td style={{ padding: "12px" }}>
@@ -615,16 +618,16 @@ export default function DocumentDetailPage() {
                                   borderRadius: "4px",
                                   backgroundColor:
                                     flag.severity === "high"
-                                      ? "#f8d7da"
+                                      ? colors.dangerLight
                                       : flag.severity === "medium"
-                                      ? "#fff3cd"
-                                      : "#d4edda",
+                                      ? colors.warningLight
+                                      : colors.successLight,
                                   color:
                                     flag.severity === "high"
-                                      ? "#721c24"
+                                      ? colors.dangerDark
                                       : flag.severity === "medium"
-                                      ? "#856404"
-                                      : "#155724",
+                                      ? colors.warningDark
+                                      : colors.successDark,
                                   fontSize: "12px",
                                 }}
                               >
@@ -640,17 +643,17 @@ export default function DocumentDetailPage() {
               )}
 
               {!aiAnalysis.data.parsedData && !aiAnalysis.data.riskFeatures && (
-            <div style={{ padding: spacing.md, backgroundColor: colors.gray[200], borderRadius: borderRadius.md, border: `1px solid ${colors.border}` }}>
-              <p style={{ margin: 0, color: colors.text.secondary }}>Bu belge henüz AI tarafından analiz edilmemiş.</p>
+            <div style={{ padding: spacing.md, backgroundColor: themeColors.gray[200], borderRadius: borderRadius.md, border: `1px solid ${themeColors.border}` }}>
+              <p style={{ margin: 0, color: themeColors.text.secondary }}>Bu belge henüz AI tarafından analiz edilmemiş.</p>
             </div>
               )}
             </>
           )}
 
           {!aiLoading && !aiError && !aiAnalysis?.data && documentData.status === "PROCESSED" && (
-            <div style={{ padding: spacing.md, backgroundColor: colors.gray[200], borderRadius: borderRadius.md, border: `1px solid ${colors.border}` }}>
-              <p style={{ margin: 0, color: colors.text.secondary }}>Bu belge henüz AI tarafından analiz edilmemiş.</p>
-              <p style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary, marginTop: spacing.sm, margin: `${spacing.sm} 0 0 0` }}>
+            <div style={{ padding: spacing.md, backgroundColor: themeColors.gray[200], borderRadius: borderRadius.md, border: `1px solid ${themeColors.border}` }}>
+              <p style={{ margin: 0, color: themeColors.text.secondary }}>Bu belge henüz AI tarafından analiz edilmemiş.</p>
+              <p style={{ fontSize: typography.fontSize.sm, color: themeColors.text.secondary, marginTop: spacing.sm, margin: `${spacing.sm} 0 0 0` }}>
                 Belge işlendi ancak AI analiz verisi bulunamadı. Bu durum genellikle belge işleme sırasında bir sorun olduğunu gösterir.
               </p>
             </div>
@@ -674,12 +677,12 @@ export default function DocumentDetailPage() {
           )}
 
           {!riskLoading && riskScoreData?.data?.riskScore && (
-            <div style={{ padding: spacing.md, backgroundColor: colors.gray[50], borderRadius: borderRadius.md, border: `1px solid ${colors.border}` }}>
-              <h2 style={{ marginBottom: spacing.md, fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: colors.text.primary }}>Belge Risk Skoru</h2>
+            <div style={{ padding: spacing.md, backgroundColor: themeColors.gray[50], borderRadius: borderRadius.md, border: `1px solid ${themeColors.border}` }}>
+              <h2 style={{ marginBottom: spacing.md, fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary }}>Belge Risk Skoru</h2>
               <div style={{ marginBottom: spacing.lg }}>
                 <div style={{ display: "flex", alignItems: "center", gap: spacing.md, marginBottom: spacing.md, flexWrap: "wrap" }}>
                   <div>
-                    <strong style={{ color: colors.text.secondary }}>Risk Skoru:</strong>{" "}
+                    <strong style={{ color: themeColors.text.secondary }}>Risk Skoru:</strong>{" "}
                     <span
                       style={{
                         fontSize: typography.fontSize["2xl"],
@@ -697,7 +700,7 @@ export default function DocumentDetailPage() {
                     /100
                   </div>
                   <div>
-                    <strong style={{ color: colors.text.secondary }}>Şiddet:</strong>{" "}
+                    <strong style={{ color: themeColors.text.secondary }}>Şiddet:</strong>{" "}
                     <Badge
                       variant={
                         riskScoreData.data.riskScore.severity === "high"
@@ -716,27 +719,27 @@ export default function DocumentDetailPage() {
                     </Badge>
                   </div>
                 </div>
-                <div style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>
+                <div style={{ fontSize: typography.fontSize.sm, color: themeColors.text.secondary }}>
                   Hesaplanma Tarihi: {new Date(riskScoreData.data.riskScore.generatedAt).toLocaleString("tr-TR")}
                 </div>
               </div>
 
               {riskScoreData.data.triggeredRules.length > 0 && (
                 <div>
-                  <h3 style={{ marginBottom: spacing.md, fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.semibold, color: colors.text.primary }}>Tetiklenen Kurallar</h3>
+                  <h3 style={{ marginBottom: spacing.md, fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary }}>Tetiklenen Kurallar</h3>
                   <div style={{ display: "grid", gap: spacing.sm }}>
                     {riskScoreData.data.triggeredRules.map((rule, index) => (
                       <div
                         key={index}
                         style={{
                           padding: spacing.md,
-                          backgroundColor: colors.white,
+                          backgroundColor: themeColors.white,
                           borderRadius: borderRadius.md,
-                          border: `1px solid ${colors.border}`,
+                          border: `1px solid ${themeColors.border}`,
                         }}
                       >
                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: spacing.xs, alignItems: "center", flexWrap: "wrap", gap: spacing.xs }}>
-                          <strong style={{ color: colors.text.primary }}>{rule.code}</strong>
+                          <strong style={{ color: themeColors.text.primary }}>{rule.code}</strong>
                           <Badge
                             variant={
                               rule.severity === "high"
@@ -750,8 +753,8 @@ export default function DocumentDetailPage() {
                             {rule.severity === "high" ? "Yüksek" : rule.severity === "medium" ? "Orta" : "Düşük"}
                           </Badge>
                         </div>
-                        <div style={{ fontSize: typography.fontSize.sm, color: colors.text.secondary }}>{rule.description}</div>
-                        <div style={{ fontSize: typography.fontSize.xs, color: colors.text.muted, marginTop: spacing.xs }}>
+                        <div style={{ fontSize: typography.fontSize.sm, color: themeColors.text.secondary }}>{rule.description}</div>
+                        <div style={{ fontSize: typography.fontSize.xs, color: themeColors.text.muted, marginTop: spacing.xs }}>
                           Ağırlık: {rule.weight}
                         </div>
                       </div>
@@ -761,7 +764,7 @@ export default function DocumentDetailPage() {
               )}
 
               {riskScoreData.data.triggeredRules.length === 0 && (
-                <div style={{ padding: spacing.md, textAlign: "center", color: colors.text.secondary }}>
+                <div style={{ padding: spacing.md, textAlign: "center", color: themeColors.text.secondary }}>
                   Bu belge için tetiklenen risk kuralı yok.
                 </div>
               )}
@@ -769,8 +772,8 @@ export default function DocumentDetailPage() {
           )}
 
           {!riskLoading && (!riskScoreData?.data || !riskScoreData.data.riskScore) && (
-            <div style={{ padding: spacing.md, backgroundColor: colors.gray[200], borderRadius: borderRadius.md, border: `1px solid ${colors.border}` }}>
-              <p style={{ margin: 0, color: colors.text.secondary }}>
+            <div style={{ padding: spacing.md, backgroundColor: themeColors.gray[200], borderRadius: borderRadius.md, border: `1px solid ${themeColors.border}` }}>
+              <p style={{ margin: 0, color: themeColors.text.secondary }}>
                 {documentData.status === "FAILED"
                   ? "Bu belge işlenirken bir hata oluştu, bu nedenle risk skoru hesaplanamadı."
                   : documentData.status === "PROCESSING"

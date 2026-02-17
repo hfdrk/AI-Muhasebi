@@ -17,8 +17,10 @@ import { Badge } from "@/components/ui/Badge";
 import { TableRow, TableCell } from "@/components/ui/Table";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { colors, spacing, typography } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function ClientsPage() {
+  const { themeColors } = useTheme();
   // const router = useRouter(); // Reserved for future use
   const [search, setSearch] = useState("");
   const [isActiveFilter, setIsActiveFilter] = useState<boolean | undefined>(undefined);
@@ -91,10 +93,10 @@ export default function ClientsPage() {
     <div style={{ padding: spacing.xxl, maxWidth: "1600px", margin: "0 auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.xl }}>
         <div>
-          <h1 style={{ fontSize: typography.fontSize["3xl"], fontWeight: typography.fontWeight.bold, color: colors.text.primary, marginBottom: spacing.sm }}>
+          <h1 style={{ fontSize: typography.fontSize["3xl"], fontWeight: typography.fontWeight.bold, color: themeColors.text.primary, marginBottom: spacing.sm }}>
             {clientsI18n.title}
           </h1>
-          <p style={{ color: colors.text.secondary, fontSize: typography.fontSize.base }}>
+          <p style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.base }}>
             Müşteri şirketlerinizi görüntüleyin ve yönetin
           </p>
         </div>
@@ -157,23 +159,23 @@ export default function ClientsPage() {
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ borderBottom: `2px solid ${colors.border}`, backgroundColor: colors.gray[50] }}>
-                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                <tr style={{ borderBottom: `2px solid ${themeColors.border}`, backgroundColor: themeColors.gray[50] }}>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                     Şirket Adı
                   </th>
-                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                     Vergi Numarası
                   </th>
-                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                     Sektör
                   </th>
-                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                     Durum
                   </th>
-                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                     Oluşturulma Tarihi
                   </th>
-                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                  <th style={{ padding: spacing.md, textAlign: "left", fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                     İşlemler
                   </th>
                 </tr>
@@ -205,7 +207,7 @@ export default function ClientsPage() {
                           {commonI18n.buttons.edit}
                         </Button>
                       ) : (
-                        <span style={{ color: colors.text.muted }}>-</span>
+                        <span style={{ color: themeColors.text.muted }}>-</span>
                       )}
                     </TableCell>
                   </TableRow>
@@ -227,7 +229,7 @@ export default function ClientsPage() {
           >
             Önceki
           </Button>
-          <span style={{ color: colors.text.secondary, fontSize: typography.fontSize.sm }}>
+          <span style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>
             Sayfa {page} / {pagination.totalPages}
           </span>
           <Button

@@ -1,7 +1,7 @@
 "use client";
 
 import * as LucideIcons from "lucide-react";
-import { colors } from "../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export type IconName = keyof typeof LucideIcons;
 
@@ -56,20 +56,22 @@ export const iconMap: Record<string, IconName> = {
   shield: "Shield",
   analytics: "LineChart",
   report: "FileBarChart",
-  contract: "FileContract",
+  contract: "FileText",
   notification: "Bell",
   tax: "Receipt",
   security: "ShieldCheck",
 };
 
-export function Icon({ 
-  name, 
-  size = 20, 
-  color = colors.text.secondary,
+export function Icon({
+  name,
+  size = 20,
+  color,
   className = "",
   strokeWidth = 2,
   style
 }: IconProps) {
+  const { themeColors } = useTheme();
+  const resolvedColor = color ?? themeColors.text.secondary;
   // Handle icon name mapping
   const iconKey = iconMap[name] || name;
   const IconComponent = (LucideIcons as any)[iconKey] as React.ComponentType<{
@@ -81,15 +83,18 @@ export function Icon({
   }>;
 
   if (!IconComponent) {
-    console.warn(`Icon "${name}" not found. Using default icon.`);
+    // Only warn in development
+    if (process.env.NODE_ENV === "development") {
+      console.warn(`Icon "${name}" not found. Using default icon.`);
+    }
     const DefaultIcon = LucideIcons.Circle as React.ComponentType<any>;
-    return <DefaultIcon size={size} color={color} className={className} strokeWidth={strokeWidth} style={style} />;
+    return <DefaultIcon size={size} color={resolvedColor} className={className} strokeWidth={strokeWidth} style={style} />;
   }
 
   return (
     <IconComponent
       size={size}
-      color={color}
+      color={resolvedColor}
       className={className}
       strokeWidth={strokeWidth}
       style={style}

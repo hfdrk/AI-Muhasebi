@@ -1,6 +1,7 @@
 "use client";
 
-import { colors, spacing, borderRadius, shadows, transitions } from "../../styles/design-system";
+import { spacing, borderRadius, shadows, transitions } from "../../styles/design-system";
+import { useTheme } from "../../contexts/ThemeContext";
 import { useState } from "react";
 
 interface CardProps {
@@ -22,6 +23,7 @@ export function Card({
   variant = "default",
   onClick,
 }: CardProps) {
+  const { themeColors } = useTheme();
   const [isHovered, setIsHovered] = useState(false);
 
   const getVariantStyles = (): React.CSSProperties => {
@@ -34,12 +36,12 @@ export function Card({
       case "outlined":
         return {
           boxShadow: "none",
-          border: `2px solid ${colors.border}`,
+          border: `2px solid ${themeColors.border}`,
         };
       default:
         return {
           boxShadow: isHovered ? shadows.md : shadows.sm,
-          border: `1px solid ${colors.border}`,
+          border: `1px solid ${themeColors.border}`,
         };
     }
   };
@@ -47,7 +49,7 @@ export function Card({
   return (
     <div
       style={{
-        backgroundColor: colors.white,
+        backgroundColor: themeColors.white,
         borderRadius: borderRadius.lg,
         padding: spacing.lg,
         transition: `all ${transitions.normal} ease`,
@@ -74,7 +76,7 @@ export function Card({
           style={{
             paddingBottom: title || actions ? spacing.md : 0,
             marginBottom: title || actions ? spacing.md : 0,
-            borderBottom: title || actions ? `1px solid ${colors.border}` : "none",
+            borderBottom: title || actions ? `1px solid ${themeColors.border}` : "none",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
@@ -86,7 +88,7 @@ export function Card({
                 margin: 0,
                 fontSize: "20px",
                 fontWeight: 600,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
               }}
             >
               {title}

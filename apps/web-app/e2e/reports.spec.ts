@@ -186,7 +186,7 @@ test.describe("Reports Flow", () => {
     await generateButton.click();
 
     // Should show loading indicator
-    await waitForText(page, "Rapor oluşturuluyor", { timeout: 5000 });
+    await waitForText(page, "Rapor oluşturuluyor", 5000);
   });
 
   test("should display report result table after generation", async ({ page }) => {
@@ -224,7 +224,7 @@ test.describe("Reports Flow", () => {
     await page.click('button:has-text("Raporu Görüntüle")');
 
     // Should show empty state message
-    await waitForText(page, "Bu kriterlere uygun bir rapor sonucu bulunamadı", { timeout: 10000 });
+    await waitForText(page, "Bu kriterlere uygun bir rapor sonucu bulunamadı", 10000);
   });
 
   test("should have PDF download button", async ({ page }) => {
@@ -338,7 +338,6 @@ test.describe("Reports Flow", () => {
 
     // Results should be cleared (no table visible immediately)
     // Note: This might be flaky, but we can check that the table is not immediately visible
-    const table = page.locator('table');
     // The table might still be there briefly, but the useEffect should clear it
     // We'll just verify the page doesn't crash
     await expect(page.locator('body')).toBeVisible();
@@ -449,9 +448,6 @@ test.describe("Reports Flow", () => {
 test.describe("Reports RBAC", () => {
   let tenantOwnerUser: Awaited<ReturnType<typeof createTestUserViaAPI>>;
   let tenantOwnerToken: string;
-  let staffUser: Awaited<ReturnType<typeof createTestUserViaAPI>>;
-  let staffToken: string;
-
   test.beforeEach(async () => {
     // Create TenantOwner user
     tenantOwnerUser = await createTestUserViaAPI({
@@ -519,7 +515,7 @@ test.describe("Reports RBAC", () => {
     const deleteButtons = page.locator('text="Sil"');
     
     const editCount = await editButtons.count();
-    const deleteCount = await deleteButtons.count();
+    await deleteButtons.count();
     
     // If reports exist, buttons should be visible for TenantOwner
     if (editCount > 0) {

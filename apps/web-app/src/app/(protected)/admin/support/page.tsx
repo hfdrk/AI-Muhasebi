@@ -7,8 +7,10 @@ import { Card } from "../../../../components/ui/Card";
 import { SkeletonTable } from "../../../../components/ui/Skeleton";
 import { PageTransition } from "../../../../components/ui/PageTransition";
 import { colors, spacing, shadows } from "../../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function AdminSupportPage() {
+  const { themeColors } = useTheme();
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
   const [typeFilter, setTypeFilter] = useState("");
@@ -37,7 +39,7 @@ export default function AdminSupportPage() {
 
   if (error) {
     return (
-      <div style={{ textAlign: "center", padding: spacing.xxl, color: colors.error || "#ef4444" }}>
+      <div style={{ textAlign: "center", padding: spacing.xxl, color: colors.error }}>
         Hata: {error instanceof Error ? error.message : "Bilinmeyen hata"}
       </div>
     );
@@ -60,17 +62,17 @@ export default function AdminSupportPage() {
   if (incidents.length === 0 && !isLoading) {
     return (
       <div>
-        <h1 style={{ marginBottom: spacing.xl, fontSize: "28px", fontWeight: 600, color: colors.text.primary }}>
+        <h1 style={{ marginBottom: spacing.xl, fontSize: "28px", fontWeight: 600, color: themeColors.text.primary }}>
           Destek / Olaylar
         </h1>
         <div
           style={{
-            backgroundColor: colors.white,
+            backgroundColor: themeColors.white,
             padding: spacing.xxl,
             borderRadius: "8px",
             boxShadow: shadows.sm,
             textAlign: "center",
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
           }}
         >
           Gösterilecek olay bulunamadı.
@@ -82,7 +84,7 @@ export default function AdminSupportPage() {
   return (
     <PageTransition>
       <div>
-      <h1 style={{ marginBottom: spacing.xl, fontSize: "28px", fontWeight: 600, color: colors.text.primary }}>
+      <h1 style={{ marginBottom: spacing.xl, fontSize: "28px", fontWeight: 600, color: themeColors.text.primary }}>
         Destek / Olaylar
       </h1>
 
@@ -96,7 +98,7 @@ export default function AdminSupportPage() {
           }}
           style={{
             padding: spacing.md,
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${themeColors.border}`,
             borderRadius: "4px",
           }}
         >
@@ -108,30 +110,30 @@ export default function AdminSupportPage() {
       </div>
 
       {/* Table */}
-      <div style={{ backgroundColor: colors.white, borderRadius: "8px", boxShadow: shadows.sm, overflow: "hidden" }}>
+      <div style={{ backgroundColor: themeColors.white, borderRadius: "8px", boxShadow: shadows.sm, overflow: "hidden" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
-            <tr style={{ backgroundColor: colors.gray[100] }}>
-              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${colors.border}` }}>
+            <tr style={{ backgroundColor: themeColors.gray[100] }}>
+              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
                 Tarih
               </th>
-              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${colors.border}` }}>
+              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
                 Kiracı
               </th>
-              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${colors.border}` }}>
+              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
                 Tür
               </th>
-              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${colors.border}` }}>
+              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
                 Mesaj
               </th>
-              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${colors.border}` }}>
+              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
                 Durum
               </th>
             </tr>
           </thead>
           <tbody>
             {incidents.map((incident) => (
-              <tr key={incident.id} style={{ borderBottom: `1px solid ${colors.border}` }}>
+              <tr key={incident.id} style={{ borderBottom: `1px solid ${themeColors.border}` }}>
                 <td style={{ padding: spacing.md }}>
                   {new Date(incident.createdAt).toLocaleString("tr-TR")}
                 </td>
@@ -145,8 +147,8 @@ export default function AdminSupportPage() {
                       borderRadius: "4px",
                       fontSize: "12px",
                       fontWeight: 500,
-                      backgroundColor: (colors.error || "#ef4444") + "20",
-                      color: colors.error || "#ef4444",
+                      backgroundColor: (colors.error) + "20",
+                      color: colors.error,
                     }}
                   >
                     {incident.status}
@@ -166,7 +168,7 @@ export default function AdminSupportPage() {
             disabled={page === 1}
             style={{
               padding: `${spacing.sm} ${spacing.md}`,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               cursor: page === 1 ? "not-allowed" : "pointer",
               opacity: page === 1 ? 0.5 : 1,
@@ -182,7 +184,7 @@ export default function AdminSupportPage() {
             disabled={page === pagination.totalPages}
             style={{
               padding: `${spacing.sm} ${spacing.md}`,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               cursor: page === pagination.totalPages ? "not-allowed" : "pointer",
               opacity: page === pagination.totalPages ? 0.5 : 1,
@@ -196,8 +198,3 @@ export default function AdminSupportPage() {
     </PageTransition>
   );
 }
-
-
-
-
-

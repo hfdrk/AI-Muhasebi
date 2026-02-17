@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { colors, spacing, borderRadius, typography, shadows } from '../../styles/design-system';
+import { useTheme } from '../../contexts/ThemeContext';
 import { Icon } from './Icon';
 
 interface BadgeProps {
@@ -21,6 +22,8 @@ export function Badge({
   className = '',
   style,
 }: BadgeProps) {
+  const { themeColors } = useTheme();
+
   const getVariantStyles = () => {
     switch (variant) {
       case 'primary':
@@ -55,15 +58,15 @@ export function Badge({
         };
       case 'secondary':
         return {
-          backgroundColor: colors.gray[100],
-          color: colors.gray[700],
-          border: `1px solid ${colors.gray[300]}`,
+          backgroundColor: themeColors.gray[100],
+          color: themeColors.gray[700],
+          border: `1px solid ${themeColors.gray[300]}`,
         };
       case 'outline':
         return {
           backgroundColor: 'transparent',
-          color: colors.text.primary,
-          border: `1px solid ${colors.border}`,
+          color: themeColors.text.primary,
+          border: `1px solid ${themeColors.border}`,
         };
       default:
         return {
@@ -107,7 +110,6 @@ export function Badge({
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: sizeStyles.gap,
         borderRadius: borderRadius.full,
         fontWeight: typography.fontWeight.medium,
         ...variantStyles,

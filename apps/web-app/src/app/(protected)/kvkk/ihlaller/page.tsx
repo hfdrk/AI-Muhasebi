@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { kvkkClient } from "@repo/api-client";
-import Link from "next/link";
 import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
-import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
+import { colors, spacing, borderRadius, typography } from "../../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "../../../../lib/toast";
 
 const SEVERITY_LABELS: Record<string, string> = {
@@ -24,6 +24,7 @@ const SEVERITY_COLORS: Record<string, { bg: string; text: string }> = {
 };
 
 export default function BreachManagementPage() {
+  const { themeColors } = useTheme();
   const [description, setDescription] = useState<string>("");
   const [affectedUsers, setAffectedUsers] = useState<number>(0);
   const [severity, setSeverity] = useState<"low" | "medium" | "high" | "critical">("medium");
@@ -66,7 +67,7 @@ export default function BreachManagementPage() {
       }
       return kvkkClient.recordBreach(description, affectedUsers, severity);
     },
-    onSuccess: (data) => {
+    onSuccess: (_data) => {
       toast.success("Veri ihlali başarıyla kaydedildi!");
       setDescription("");
       setAffectedUsers(0);
@@ -84,7 +85,7 @@ export default function BreachManagementPage() {
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
-        backgroundColor: colors.gray[50],
+        backgroundColor: themeColors.gray[50],
         minHeight: "100vh",
       }}
     >
@@ -103,7 +104,7 @@ export default function BreachManagementPage() {
           style={{
             fontSize: typography.fontSize["3xl"],
             fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
             marginBottom: spacing.sm,
           }}
         >
@@ -112,7 +113,7 @@ export default function BreachManagementPage() {
         <p
           style={{
             fontSize: typography.fontSize.base,
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
             lineHeight: typography.lineHeight.relaxed,
             margin: 0,
           }}
@@ -137,7 +138,7 @@ export default function BreachManagementPage() {
               style={{
                 margin: 0,
                 fontSize: typography.fontSize.sm,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
                 fontWeight: typography.fontWeight.medium,
                 marginBottom: spacing.xs,
               }}
@@ -148,7 +149,7 @@ export default function BreachManagementPage() {
               style={{
                 margin: 0,
                 fontSize: typography.fontSize.sm,
-                color: colors.text.secondary,
+                color: themeColors.text.secondary,
                 lineHeight: typography.lineHeight.relaxed,
               }}
             >
@@ -166,7 +167,7 @@ export default function BreachManagementPage() {
             margin: `0 0 ${spacing.md} 0`,
             fontSize: typography.fontSize.xl,
             fontWeight: typography.fontWeight.semibold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
           }}
         >
           Yeni Veri İhlali Kaydet
@@ -185,7 +186,7 @@ export default function BreachManagementPage() {
                 marginBottom: spacing.xs,
                 fontSize: typography.fontSize.sm,
                 fontWeight: typography.fontWeight.medium,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
               }}
             >
               Açıklama *
@@ -199,10 +200,10 @@ export default function BreachManagementPage() {
                 width: "100%",
                 padding: spacing.sm,
                 borderRadius: borderRadius.md,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
                 fontSize: typography.fontSize.base,
-                backgroundColor: colors.white,
-                color: colors.text.primary,
+                backgroundColor: themeColors.white,
+                color: themeColors.text.primary,
                 fontFamily: typography.fontFamily.sans,
                 resize: "vertical",
               }}
@@ -223,7 +224,7 @@ export default function BreachManagementPage() {
                   marginBottom: spacing.xs,
                   fontSize: typography.fontSize.sm,
                   fontWeight: typography.fontWeight.medium,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                 }}
               >
                 Etkilenen Kullanıcı Sayısı *
@@ -237,10 +238,10 @@ export default function BreachManagementPage() {
                   width: "100%",
                   padding: spacing.sm,
                   borderRadius: borderRadius.md,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   fontSize: typography.fontSize.base,
-                  backgroundColor: colors.white,
-                  color: colors.text.primary,
+                  backgroundColor: themeColors.white,
+                  color: themeColors.text.primary,
                 }}
               />
             </div>
@@ -252,7 +253,7 @@ export default function BreachManagementPage() {
                   marginBottom: spacing.xs,
                   fontSize: typography.fontSize.sm,
                   fontWeight: typography.fontWeight.medium,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                 }}
               >
                 Önem Derecesi *
@@ -268,10 +269,10 @@ export default function BreachManagementPage() {
                   width: "100%",
                   padding: spacing.sm,
                   borderRadius: borderRadius.md,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${themeColors.border}`,
                   fontSize: typography.fontSize.base,
-                  backgroundColor: colors.white,
-                  color: colors.text.primary,
+                  backgroundColor: themeColors.white,
+                  color: themeColors.text.primary,
                 }}
               >
                 <option value="low">Düşük</option>
@@ -325,7 +326,7 @@ export default function BreachManagementPage() {
                 style={{
                   fontSize: typography.fontSize.base,
                   fontWeight: typography.fontWeight.semibold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                 }}
               >
                 {label}
@@ -335,7 +336,7 @@ export default function BreachManagementPage() {
               style={{
                 margin: 0,
                 fontSize: typography.fontSize.xs,
-                color: colors.text.secondary,
+                color: themeColors.text.secondary,
                 lineHeight: typography.lineHeight.relaxed,
               }}
             >
@@ -359,7 +360,7 @@ export default function BreachManagementPage() {
               margin: 0,
               fontSize: typography.fontSize.xl,
               fontWeight: typography.fontWeight.semibold,
-              color: colors.text.primary,
+              color: themeColors.text.primary,
             }}
           >
             İhlal Geçmişi
@@ -370,10 +371,10 @@ export default function BreachManagementPage() {
             style={{
               padding: spacing.sm,
               borderRadius: borderRadius.md,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               fontSize: typography.fontSize.sm,
-              backgroundColor: colors.white,
-              color: colors.text.primary,
+              backgroundColor: themeColors.white,
+              color: themeColors.text.primary,
             }}
           >
             <option value="all">Tüm Şiddetler</option>
@@ -385,11 +386,11 @@ export default function BreachManagementPage() {
         </div>
         {breachesLoading ? (
           <div style={{ padding: spacing.lg, textAlign: "center" }}>
-            <p style={{ color: colors.text.secondary, margin: 0 }}>Yükleniyor...</p>
+            <p style={{ color: themeColors.text.secondary, margin: 0 }}>Yükleniyor...</p>
           </div>
         ) : filteredBreaches.length === 0 ? (
           <div style={{ padding: spacing.lg, textAlign: "center" }}>
-            <p style={{ color: colors.text.secondary, margin: 0 }}>
+            <p style={{ color: themeColors.text.secondary, margin: 0 }}>
               {severityFilter === "all" 
                 ? "Henüz veri ihlali kaydı bulunmuyor."
                 : "Bu şiddet seviyesinde ihlal kaydı bulunmuyor."}
@@ -399,7 +400,7 @@ export default function BreachManagementPage() {
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ backgroundColor: colors.gray[100], borderBottom: `1px solid ${colors.border}` }}>
+                <tr style={{ backgroundColor: themeColors.gray[100], borderBottom: `1px solid ${themeColors.border}` }}>
                   <th style={{ padding: spacing.sm, textAlign: "left", fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium }}>
                     Tespit Tarihi
                   </th>
@@ -426,8 +427,8 @@ export default function BreachManagementPage() {
                   const severityInfo = SEVERITY_COLORS[breach.severity] || SEVERITY_COLORS.medium;
                   
                   return (
-                    <tr key={breach.id || breach.breachId} style={{ borderBottom: `1px solid ${colors.border}` }}>
-                      <td style={{ padding: spacing.sm, color: colors.text.secondary }}>
+                    <tr key={breach.id || breach.breachId} style={{ borderBottom: `1px solid ${themeColors.border}` }}>
+                      <td style={{ padding: spacing.sm, color: themeColors.text.secondary }}>
                         {new Date(breach.detectedAt || breach.recordedAt).toLocaleDateString("tr-TR", {
                           year: "numeric",
                           month: "long",
@@ -450,7 +451,7 @@ export default function BreachManagementPage() {
                           {SEVERITY_LABELS[breach.severity] || breach.severity}
                         </span>
                       </td>
-                      <td style={{ padding: spacing.sm, color: colors.text.secondary }}>
+                      <td style={{ padding: spacing.sm, color: themeColors.text.secondary }}>
                         {breach.affectedUsers}
                       </td>
                       <td style={{ padding: spacing.sm }}>
@@ -460,15 +461,15 @@ export default function BreachManagementPage() {
                               padding: "4px 8px",
                               borderRadius: borderRadius.sm,
                               fontSize: typography.fontSize.xs,
-                              backgroundColor: colors.gray[100],
-                              color: colors.text.secondary,
+                              backgroundColor: themeColors.gray[100],
+                              color: themeColors.text.secondary,
                             }}
                           >
                             {breach.status}
                           </span>
                         )}
                       </td>
-                      <td style={{ padding: spacing.sm, color: colors.text.secondary, maxWidth: "300px" }}>
+                      <td style={{ padding: spacing.sm, color: themeColors.text.secondary, maxWidth: "300px" }}>
                         <div style={{ 
                           overflow: "hidden", 
                           textOverflow: "ellipsis", 

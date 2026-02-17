@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { colors, spacing, borderRadius, shadows, transitions, typography } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "@/lib/toast";
 import Link from "next/link";
 
@@ -42,6 +43,7 @@ function formatDate(date: Date | string): string {
 }
 
 export default function DashboardPage() {
+  const { themeColors } = useTheme();
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
   const errorToastShown = useRef(false);
 
@@ -49,6 +51,8 @@ export default function DashboardPage() {
   const { data: userData } = useQuery({
     queryKey: ["currentUser"],
     queryFn: () => getCurrentUser(),
+    staleTime: 300000, // Consider user data fresh for 5 minutes
+    retry: false,
   });
 
   const currentUser = userData?.data;
@@ -86,6 +90,8 @@ export default function DashboardPage() {
     queryKey: ["onboarding-state"],
     queryFn: () => onboardingClient.getOnboardingState(),
     enabled: !!userId && !onboardingDismissed,
+    staleTime: 300000, // Consider data fresh for 5 minutes
+    retry: false,
   });
 
   const onboardingState = onboardingData?.data;
@@ -115,6 +121,7 @@ export default function DashboardPage() {
     }),
     enabled: !isReadOnly || !!customerCompanyId,
     retry: false, // Don't retry on error to avoid spam
+    staleTime: 60000, // Consider data fresh for 60 seconds
   });
 
   // Fetch recent transactions - filter by customer company if ReadOnly
@@ -127,6 +134,7 @@ export default function DashboardPage() {
     }),
     enabled: !isReadOnly || !!customerCompanyId,
     retry: false,
+    staleTime: 60000, // Consider data fresh for 60 seconds
   });
 
   // Fetch recent customers - only for non-ReadOnly users
@@ -135,6 +143,7 @@ export default function DashboardPage() {
     queryFn: () => listClientCompanies({ page: 1, pageSize: 5, isActive: true }),
     enabled: !isReadOnly,
     retry: false,
+    staleTime: 60000, // Consider data fresh for 60 seconds
   });
 
   // Fetch recent documents - filter by customer company if ReadOnly
@@ -159,6 +168,7 @@ export default function DashboardPage() {
     }),
     enabled: !isReadOnly || !!customerCompanyId,
     retry: false,
+    staleTime: 60000, // Consider data fresh for 60 seconds
   });
 
   const { data: allTransactionsData, error: allTransactionsError } = useQuery({
@@ -177,6 +187,7 @@ export default function DashboardPage() {
     queryFn: () => listClientCompanies({ page: 1, pageSize: 1, isActive: true }),
     enabled: !isReadOnly,
     retry: false,
+    staleTime: 60000, // Consider data fresh for 60 seconds
   });
 
   const { data: allDocumentsData, error: allDocumentsError } = useQuery({
@@ -207,14 +218,23 @@ export default function DashboardPage() {
   // Show error notification once (using ref to prevent multiple toasts)
   useEffect(() => {
     if (hasApiErrors && !isReadOnly && !errorToastShown.current) {
-      console.error("[Dashboard] API Errors detected:", {
-        invoices: invoicesError || allInvoicesError,
-        transactions: transactionsError || allTransactionsError,
-        customers: customersError || allCustomersError,
-        documents: documentsError || allDocumentsError,
-      });
-      // Only show one toast to avoid spam
-      toast.error("Sunucu hatası: Veriler yüklenemedi. Lütfen sayfayı yenileyin veya daha sonra tekrar deneyin.");
+      // Only log in development
+      if (process.env.NODE_ENV === "development") {
+        console.error("[Dashboard] API Errors detected:", {
+          invoices: invoicesError || allInvoicesError,
+          transactions: transactionsError || allTransactionsError,
+          customers: customersError || allCustomersError,
+          documents: documentsError || allDocumentsError,
+        });
+      }
+      // Only show toast for non-429 errors (rate limit errors are expected)
+      const hasNonRateLimitError = [invoicesError, transactionsError, customersError, documentsError,
+        allInvoicesError, allTransactionsError, allCustomersError, allDocumentsError].some(
+        (err: any) => err && err?.status !== 429 && err?.statusCode !== 429
+      );
+      if (hasNonRateLimitError) {
+        toast.error("Sunucu hatası: Veriler yüklenemedi. Lütfen sayfayı yenileyin veya daha sonra tekrar deneyin.");
+      }
       errorToastShown.current = true;
     }
     // Reset when errors clear
@@ -251,15 +271,12 @@ export default function DashboardPage() {
                 fontSize: typography.fontSize["4xl"],
                 fontWeight: typography.fontWeight.bold,
                 marginBottom: spacing.sm,
-                background: colors.gradients.primary,
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
+                color: themeColors.text.primary,
               }}
             >
               Dashboard
             </h1>
-            <p style={{ color: colors.text.secondary, fontSize: typography.fontSize.base }}>
+            <p style={{ color: themeColors.text.secondary, fontSize: typography.fontSize.base }}>
               Genel bakış ve özet bilgiler
             </p>
           </div>
@@ -279,20 +296,20 @@ export default function DashboardPage() {
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div style={{ flex: 1 }}>
-              <h2 style={{ fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.semibold, marginBottom: spacing.sm, color: colors.text.primary }}>
+              <h2 style={{ fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.semibold, marginBottom: spacing.sm, color: themeColors.text.primary }}>
                 {dashboardI18n.onboarding.title}
               </h2>
-              <p style={{ color: colors.text.secondary, marginBottom: spacing.md, fontSize: typography.fontSize.sm }}>
+              <p style={{ color: themeColors.text.secondary, marginBottom: spacing.md, fontSize: typography.fontSize.sm }}>
                 {dashboardI18n.onboarding.description}
               </p>
               <ul style={{ listStyle: "none", padding: 0, marginBottom: spacing.md }}>
-                <li style={{ marginBottom: spacing.sm, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                <li style={{ marginBottom: spacing.sm, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                   ✓ {dashboardI18n.onboarding.checklist.step1}
                 </li>
-                <li style={{ marginBottom: spacing.sm, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                <li style={{ marginBottom: spacing.sm, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                   ✓ {dashboardI18n.onboarding.checklist.step2}
                 </li>
-                <li style={{ marginBottom: spacing.sm, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                <li style={{ marginBottom: spacing.sm, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                   ✓ {dashboardI18n.onboarding.checklist.step3}
                 </li>
               </ul>
@@ -386,7 +403,7 @@ export default function DashboardPage() {
                   border: "none",
                   cursor: "pointer",
                   fontSize: typography.fontSize.sm,
-                  color: colors.text.muted,
+                  color: themeColors.text.muted,
                   borderRadius: borderRadius.sm,
                   transition: `all ${transitions.normal} ease`,
                 }}
@@ -422,7 +439,7 @@ export default function DashboardPage() {
               <h3 style={{ margin: 0, fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: colors.danger, marginBottom: spacing.xs }}>
                 Sunucu Hatası
               </h3>
-              <p style={{ margin: 0, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>
+              <p style={{ margin: 0, color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>
                 Veriler yüklenirken bir hata oluştu. Lütfen sayfayı yenileyin veya daha sonra tekrar deneyin.
               </p>
             </div>
@@ -468,7 +485,7 @@ export default function DashboardPage() {
               <p
                 style={{
                   margin: 0,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                   fontSize: typography.fontSize.sm,
                   fontWeight: typography.fontWeight.medium,
                   marginBottom: spacing.sm,
@@ -534,7 +551,7 @@ export default function DashboardPage() {
               <p
                 style={{
                   margin: 0,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                   fontSize: typography.fontSize.sm,
                   fontWeight: typography.fontWeight.medium,
                   marginBottom: spacing.sm,
@@ -601,7 +618,7 @@ export default function DashboardPage() {
                 <p
                   style={{
                     margin: 0,
-                    color: colors.text.secondary,
+                    color: themeColors.text.secondary,
                     fontSize: typography.fontSize.sm,
                     fontWeight: typography.fontWeight.medium,
                     marginBottom: spacing.sm,
@@ -668,7 +685,7 @@ export default function DashboardPage() {
               <p
                 style={{
                   margin: 0,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                   fontSize: typography.fontSize.sm,
                   fontWeight: typography.fontWeight.medium,
                   marginBottom: spacing.sm,
@@ -741,7 +758,7 @@ export default function DashboardPage() {
         {/* Recent Invoices */}
         <Card>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.lg }}>
-            <h3 style={{ margin: 0, fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: colors.text.primary }}>Son Faturalar</h3>
+            <h3 style={{ margin: 0, fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary }}>Son Faturalar</h3>
             <Link
               href="/faturalar"
               style={{
@@ -776,17 +793,17 @@ export default function DashboardPage() {
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
-                  <tr style={{ borderBottom: `2px solid ${colors.border}` }}>
-                    <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary }}>
+                  <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
+                    <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: themeColors.text.secondary }}>
                       Fatura No
                     </th>
-                    <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary }}>
+                    <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: themeColors.text.secondary }}>
                       Müşteri
                     </th>
-                    <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary }}>
+                    <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: themeColors.text.secondary }}>
                       Tutar
                     </th>
-                    <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary }}>
+                    <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: themeColors.text.secondary }}>
                       Durum
                     </th>
                   </tr>
@@ -798,12 +815,12 @@ export default function DashboardPage() {
                       <tr
                         key={invoice.id}
                         style={{
-                          borderBottom: `1px solid ${colors.border}`,
+                          borderBottom: `1px solid ${themeColors.border}`,
                           cursor: "pointer",
                           transition: `background-color ${transitions.fast} ease`,
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = colors.gray[50];
+                          e.currentTarget.style.backgroundColor = themeColors.gray[50];
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = "transparent";
@@ -812,18 +829,18 @@ export default function DashboardPage() {
                       >
                         <td style={{ padding: spacing.md }}>
                           <div>
-                            <div style={{ fontWeight: typography.fontWeight.medium, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                            <div style={{ fontWeight: typography.fontWeight.medium, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                               {invoice.externalId || "N/A"}
                             </div>
-                            <div style={{ fontSize: typography.fontSize.xs, color: colors.text.secondary, marginTop: spacing.xs }}>
+                            <div style={{ fontSize: typography.fontSize.xs, color: themeColors.text.secondary, marginTop: spacing.xs }}>
                               {TYPE_LABELS[invoice.type] || invoice.type}
                             </div>
                           </div>
                         </td>
-                        <td style={{ padding: spacing.md, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>
+                        <td style={{ padding: spacing.md, color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>
                           {invoice.clientCompanyName || "N/A"}
                         </td>
-                        <td style={{ padding: spacing.md, fontWeight: typography.fontWeight.medium, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                        <td style={{ padding: spacing.md, fontWeight: typography.fontWeight.medium, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                           {formatCurrency(invoice.totalAmount, invoice.currency)}
                         </td>
                         <td style={{ padding: spacing.md }}>
@@ -843,7 +860,7 @@ export default function DashboardPage() {
         {/* Recent Transactions */}
         <Card>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.lg }}>
-            <h3 style={{ margin: 0, fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: colors.text.primary }}>Son İşlemler</h3>
+            <h3 style={{ margin: 0, fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary }}>Son İşlemler</h3>
             <Link
               href="/islemler"
               style={{
@@ -878,14 +895,14 @@ export default function DashboardPage() {
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
-                  <tr style={{ borderBottom: `2px solid ${colors.border}` }}>
-                    <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary }}>
+                  <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
+                    <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: themeColors.text.secondary }}>
                       Referans
                     </th>
-                    <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary }}>
+                    <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: themeColors.text.secondary }}>
                       Açıklama
                     </th>
-                    <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary }}>
+                    <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: themeColors.text.secondary }}>
                       Tarih
                     </th>
                   </tr>
@@ -895,25 +912,25 @@ export default function DashboardPage() {
                     <tr
                       key={transaction.id}
                       style={{
-                        borderBottom: `1px solid ${colors.border}`,
+                        borderBottom: `1px solid ${themeColors.border}`,
                         cursor: "pointer",
                         transition: `background-color ${transitions.fast} ease`,
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = colors.gray[50];
+                        e.currentTarget.style.backgroundColor = themeColors.gray[50];
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = "transparent";
                       }}
                       onClick={() => (window.location.href = `/islemler/${transaction.id}`)}
                     >
-                      <td style={{ padding: spacing.md, fontWeight: typography.fontWeight.medium, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                      <td style={{ padding: spacing.md, fontWeight: typography.fontWeight.medium, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                         {transaction.referenceNo || "N/A"}
                       </td>
-                      <td style={{ padding: spacing.md, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>
+                      <td style={{ padding: spacing.md, color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>
                         {transaction.description || "Açıklama yok"}
                       </td>
-                      <td style={{ padding: spacing.md, color: colors.text.secondary, fontSize: typography.fontSize.xs }}>
+                      <td style={{ padding: spacing.md, color: themeColors.text.secondary, fontSize: typography.fontSize.xs }}>
                         {formatDate(transaction.date)}
                       </td>
                     </tr>
@@ -928,7 +945,7 @@ export default function DashboardPage() {
         {!isReadOnly && (
           <Card>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.lg }}>
-              <h3 style={{ margin: 0, fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: colors.text.primary }}>Son Müşteriler</h3>
+              <h3 style={{ margin: 0, fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary }}>Son Müşteriler</h3>
               <Link
                 href="/musteriler"
                 style={{
@@ -963,14 +980,14 @@ export default function DashboardPage() {
               <div style={{ overflowX: "auto" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
                   <thead>
-                    <tr style={{ borderBottom: `2px solid ${colors.border}` }}>
-                      <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary }}>
+                    <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
+                      <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: themeColors.text.secondary }}>
                         Müşteri Adı
                       </th>
-                      <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary }}>
+                      <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: themeColors.text.secondary }}>
                         Vergi No
                       </th>
-                      <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary }}>
+                      <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: themeColors.text.secondary }}>
                         Durum
                       </th>
                     </tr>
@@ -980,12 +997,12 @@ export default function DashboardPage() {
                       <tr
                         key={customer.id}
                         style={{
-                          borderBottom: `1px solid ${colors.border}`,
+                          borderBottom: `1px solid ${themeColors.border}`,
                           cursor: "pointer",
                           transition: `background-color ${transitions.fast} ease`,
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = colors.gray[50];
+                          e.currentTarget.style.backgroundColor = themeColors.gray[50];
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = "transparent";
@@ -993,14 +1010,14 @@ export default function DashboardPage() {
                         onClick={() => (window.location.href = `/musteriler/${customer.id}`)}
                       >
                         <td style={{ padding: spacing.md }}>
-                          <div style={{ fontWeight: typography.fontWeight.medium, color: colors.text.primary, fontSize: typography.fontSize.sm }}>{customer.name}</div>
+                          <div style={{ fontWeight: typography.fontWeight.medium, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>{customer.name}</div>
                           {customer.contactPersonName && (
-                            <div style={{ fontSize: typography.fontSize.xs, color: colors.text.secondary, marginTop: spacing.xs }}>
+                            <div style={{ fontSize: typography.fontSize.xs, color: themeColors.text.secondary, marginTop: spacing.xs }}>
                               {customer.contactPersonName}
                             </div>
                           )}
                         </td>
-                        <td style={{ padding: spacing.md, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>{customer.taxNumber}</td>
+                        <td style={{ padding: spacing.md, color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>{customer.taxNumber}</td>
                         <td style={{ padding: spacing.md }}>
                           <Badge variant={customer.isActive ? "success" : "secondary"} size="sm">
                             {customer.isActive ? "Aktif" : "Pasif"}
@@ -1018,7 +1035,7 @@ export default function DashboardPage() {
         {/* Recent Documents */}
         <Card>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.lg }}>
-            <h3 style={{ margin: 0, fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: colors.text.primary }}>Son Belgeler</h3>
+            <h3 style={{ margin: 0, fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary }}>Son Belgeler</h3>
             <Link
               href="/belgeler"
               style={{
@@ -1055,14 +1072,14 @@ export default function DashboardPage() {
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
-                  <tr style={{ borderBottom: `2px solid ${colors.border}` }}>
-                    <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary }}>
+                  <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
+                    <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: themeColors.text.secondary }}>
                       Dosya Adı
                     </th>
-                    <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary }}>
+                    <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: themeColors.text.secondary }}>
                       Tür
                     </th>
-                    <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary }}>
+                    <th style={{ padding: spacing.md, textAlign: "left", fontSize: typography.fontSize.xs, fontWeight: typography.fontWeight.semibold, color: themeColors.text.secondary }}>
                       Durum
                     </th>
                   </tr>
@@ -1086,22 +1103,22 @@ export default function DashboardPage() {
                       <tr
                         key={doc.id}
                         style={{
-                          borderBottom: `1px solid ${colors.border}`,
+                          borderBottom: `1px solid ${themeColors.border}`,
                           cursor: "pointer",
                           transition: `background-color ${transitions.fast} ease`,
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = colors.gray[50];
+                          e.currentTarget.style.backgroundColor = themeColors.gray[50];
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = "transparent";
                         }}
                         onClick={() => (window.location.href = `/belgeler/${doc.id}`)}
                       >
-                        <td style={{ padding: spacing.md, fontWeight: typography.fontWeight.medium, color: colors.text.primary, fontSize: typography.fontSize.sm }}>
+                        <td style={{ padding: spacing.md, fontWeight: typography.fontWeight.medium, color: themeColors.text.primary, fontSize: typography.fontSize.sm }}>
                           {doc.originalFileName}
                         </td>
-                        <td style={{ padding: spacing.md, color: colors.text.secondary, fontSize: typography.fontSize.sm }}>
+                        <td style={{ padding: spacing.md, color: themeColors.text.secondary, fontSize: typography.fontSize.sm }}>
                           {doc.type === "INVOICE" ? "Fatura" : doc.type === "BANK_STATEMENT" ? "Banka Ekstresi" : doc.type === "RECEIPT" ? "Fiş" : "Diğer"}
                         </td>
                         <td style={{ padding: spacing.md }}>

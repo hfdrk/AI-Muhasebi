@@ -103,9 +103,50 @@ jobs:
       name: ${{ needs.determine-environment.outputs.environment }}
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Deploy to ${{ needs.determine-environment.outputs.environment }}
-        run: |
-          echo "Deployment to ${{ needs.determine-environment.outputs.environment }} would happen here"
-          echo "This step should be customized based on your deployment target"
-          echo "Examples: Kubernetes, AWS ECS, Railway, Render, etc."
+
+      - name: Deploy via SSH to ${{ needs.determine-environment.outputs.environment }}
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          script: |
+            set -e
+            cd ${{ secrets.DEPLOY_APP_DIR || '/opt/ai-muhasebi' }}
+            echo "==> Pulling latest Docker images..."
+            docker compose pull
+            echo "==> Starting updated containers..."
+            docker compose up -d --remove-orphans
+            echo "==> Waiting 10s for services to start..."
+            sleep 10
+            echo "==> Health check..."
+            curl -sf http://localhost:3800/healthz || exit 1
+            echo "==> Running pending Prisma migrations..."
+            docker compose exec -T backend-api npx prisma migrate deploy
+            echo "==> Pruning old Docker images..."
+            docker image prune -f
+            echo "==> Deployment complete!"
+
+      - name: Post-deploy notification
+        if: always()
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          event-type: deploy-notification
+          client-payload: '{"environment": "${{ needs.determine-environment.outputs.environment }}", "status": "${{ job.status }}", "sha": "${{ github.sha }}", "ref": "${{ github.ref }}", "actor": "${{ github.actor }}"}'
+
+      - name: Rollback on failure
+        if: failure()
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          script: |
+            set -e
+            cd ${{ secrets.DEPLOY_APP_DIR || '/opt/ai-muhasebi' }}
+            echo "==> Deployment failed, rolling back..."
+            docker compose up -d --remove-orphans
+            echo "==> Rollback complete (using previous cached images)"

@@ -202,7 +202,7 @@ export class VATOptimizationService {
         if (!rateValidation.valid) {
           inconsistencies.push({
             invoiceId: invoice.id,
-            invoiceNumber: invoice.invoiceNumber,
+            invoiceNumber: invoice.externalId,
             issueDate: invoice.issueDate,
             issue: rateValidation.message || "Geçersiz KDV oranı",
             severity: "high",
@@ -215,7 +215,7 @@ export class VATOptimizationService {
         if (difference > 0.01) {
           inconsistencies.push({
             invoiceId: invoice.id,
-            invoiceNumber: invoice.invoiceNumber,
+            invoiceNumber: invoice.externalId,
             issueDate: invoice.issueDate,
             issue: `KDV tutarı uyuşmuyor. Beklenen: ${expectedVAT.toFixed(2)}, Gerçek: ${vatAmount.toFixed(2)}`,
             severity: difference > 1 ? "high" : "medium",
@@ -230,7 +230,7 @@ export class VATOptimizationService {
       if (totalDifference > 0.01) {
         inconsistencies.push({
           invoiceId: invoice.id,
-          invoiceNumber: invoice.invoiceNumber,
+          invoiceNumber: invoice.externalId,
           issueDate: invoice.issueDate,
           issue: `Fatura toplam KDV'si satır KDV'leriyle uyuşmuyor. Fark: ${totalDifference.toFixed(2)}`,
           severity: totalDifference > 1 ? "high" : "medium",

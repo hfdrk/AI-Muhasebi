@@ -7,10 +7,12 @@ import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { spacing, colors, borderRadius } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { billing as billingTranslations } from "@repo/i18n";
 import { UpgradePlanModal } from "@/components/upgrade-plan-modal";
 
 export default function BillingPage() {
+  const { themeColors } = useTheme();
   const [subscription, setSubscription] = useState<SubscriptionResponse | null>(null);
   const [usage, setUsage] = useState<UsageResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -21,19 +23,34 @@ export default function BillingPage() {
   const loadData = async () => {
     try {
       setLoading(true);
+      setError(null);
       const [subData, usageData, userData] = await Promise.all([
-        getSubscription(),
-        getUsage(),
+        getSubscription().catch((err) => {
+          // Handle 409 or other billing errors gracefully
+          if (err?.status === 409 || err?.statusCode === 409) {
+            return { data: null }; // Return null data instead of throwing
+          }
+          throw err;
+        }),
+        getUsage().catch((err) => {
+          if (err?.status === 409 || err?.statusCode === 409) {
+            return { data: null };
+          }
+          throw err;
+        }),
         import("@repo/api-client").then((m) => m.getCurrentUser()),
       ]);
 
       setSubscription(subData.data);
       setUsage(usageData.data);
-      
+
       const currentTenant = userData?.data?.tenants?.find((t: any) => t.status === "active");
       setUserRole(currentTenant?.role || null);
     } catch (err: any) {
-      setError(err.message || "Veri yüklenirken bir hata oluştu.");
+      // Only show error if it's not a 409 (conflict - might be expected)
+      if (err?.status !== 409 && err?.statusCode !== 409) {
+        setError(err.message || "Veri yüklenirken bir hata oluştu.");
+      }
     } finally {
       setLoading(false);
     }
@@ -124,7 +141,7 @@ export default function BillingPage() {
       {/* Subscription Section */}
       <div
         style={{
-          backgroundColor: "#fff",
+          backgroundColor: themeColors.white,
           borderRadius: "8px",
           padding: "1.5rem",
           marginBottom: "2rem",
@@ -137,7 +154,7 @@ export default function BillingPage() {
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "1rem" }}>
           <div>
-            <p style={{ color: colors.text.secondary, fontSize: "0.875rem", marginBottom: "0.25rem" }}>
+            <p style={{ color: themeColors.text.secondary, fontSize: "0.875rem", marginBottom: "0.25rem" }}>
               {billingTranslations.subscription.currentPlan}
             </p>
             <p style={{ fontSize: "1.125rem", fontWeight: "500" }}>
@@ -146,7 +163,7 @@ export default function BillingPage() {
           </div>
 
           <div>
-            <p style={{ color: colors.text.secondary, fontSize: "0.875rem", marginBottom: "0.25rem" }}>
+            <p style={{ color: themeColors.text.secondary, fontSize: "0.875rem", marginBottom: "0.25rem" }}>
               {billingTranslations.subscription.status}
             </p>
             <p style={{ fontSize: "1.125rem", fontWeight: "500" }}>
@@ -156,7 +173,7 @@ export default function BillingPage() {
 
           {subscription?.trial_until && (
             <div>
-              <p style={{ color: colors.text.secondary, fontSize: "0.875rem", marginBottom: "0.25rem" }}>
+              <p style={{ color: themeColors.text.secondary, fontSize: "0.875rem", marginBottom: "0.25rem" }}>
                 {billingTranslations.subscription.trialUntil}
               </p>
               <p style={{ fontSize: "1.125rem", fontWeight: "500" }}>
@@ -167,7 +184,7 @@ export default function BillingPage() {
 
           {subscription?.valid_until && (
             <div>
-              <p style={{ color: colors.text.secondary, fontSize: "0.875rem", marginBottom: "0.25rem" }}>
+              <p style={{ color: themeColors.text.secondary, fontSize: "0.875rem", marginBottom: "0.25rem" }}>
                 {billingTranslations.subscription.validUntil}
               </p>
               <p style={{ fontSize: "1.125rem", fontWeight: "500" }}>
@@ -178,8 +195,8 @@ export default function BillingPage() {
         </div>
 
         {(subscription?.plan === "FREE" || subscription?.plan === "PRO") && (
-          <div style={{ marginTop: "1rem", padding: "0.75rem", backgroundColor: colors.gray[100], borderRadius: borderRadius.sm }}>
-            <p style={{ fontSize: "0.875rem", color: colors.text.primary }}>
+          <div style={{ marginTop: "1rem", padding: "0.75rem", backgroundColor: themeColors.gray[100], borderRadius: borderRadius.sm }}>
+            <p style={{ fontSize: "0.875rem", color: themeColors.text.primary }}>
               {billingTranslations.subscription.upgradeHint}
             </p>
           </div>
@@ -192,8 +209,8 @@ export default function BillingPage() {
             style={{
               marginTop: "1rem",
               padding: "0.5rem 1rem",
-              backgroundColor: canUpgrade ? colors.primaryLight : colors.gray[400],
-              color: "#fff",
+              backgroundColor: canUpgrade ? colors.primaryLight : themeColors.gray[400],
+              color: themeColors.white,
               border: "none",
               borderRadius: "4px",
               cursor: canUpgrade ? "pointer" : "not-allowed",
@@ -205,16 +222,16 @@ export default function BillingPage() {
         )}
 
         {!isStaffOrReadOnly && !canUpgrade && userRole === "Accountant" && (
-          <div style={{ marginTop: "1rem", padding: "0.75rem", backgroundColor: "#fef3c7", borderRadius: "4px" }}>
-            <p style={{ fontSize: "0.875rem", color: "#92400e" }}>
+          <div style={{ marginTop: "1rem", padding: "0.75rem", backgroundColor: colors.warningLight, borderRadius: "4px" }}>
+            <p style={{ fontSize: "0.875rem", color: colors.warningDark }}>
               Plan yükseltme işlemi için ofis sahibi yetkisi gereklidir.
             </p>
           </div>
         )}
 
         {isStaffOrReadOnly && (
-          <div style={{ marginTop: "1rem", padding: "0.75rem", backgroundColor: "#fef3c7", borderRadius: "4px" }}>
-            <p style={{ fontSize: "0.875rem", color: "#92400e" }}>
+          <div style={{ marginTop: "1rem", padding: "0.75rem", backgroundColor: colors.warningLight, borderRadius: "4px" }}>
+            <p style={{ fontSize: "0.875rem", color: colors.warningDark }}>
               {billingTranslations.hints.staffReadOnly}
             </p>
           </div>
@@ -224,7 +241,7 @@ export default function BillingPage() {
       {/* Usage Section */}
       <div
         style={{
-          backgroundColor: "#fff",
+          backgroundColor: themeColors.white,
           borderRadius: "8px",
           padding: "1.5rem",
           boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
@@ -235,7 +252,7 @@ export default function BillingPage() {
         </h2>
 
         {!usage ? (
-          <p style={{ color: colors.text.secondary }}>{billingTranslations.usage.noData}</p>
+          <p style={{ color: themeColors.text.secondary }}>{billingTranslations.usage.noData}</p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
             {[
@@ -253,7 +270,7 @@ export default function BillingPage() {
                 <div key={key}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
                     <span style={{ fontWeight: "500" }}>{label}</span>
-                    <span style={{ color: colors.text.secondary, fontSize: "0.875rem" }}>
+                    <span style={{ color: themeColors.text.secondary, fontSize: "0.875rem" }}>
                       {metric.used} / {metric.limit}
                     </span>
                   </div>
@@ -261,7 +278,7 @@ export default function BillingPage() {
                     style={{
                       width: "100%",
                       height: "8px",
-                      backgroundColor: "#e5e7eb",
+                      backgroundColor: themeColors.border,
                       borderRadius: "4px",
                       overflow: "hidden",
                     }}
@@ -275,7 +292,7 @@ export default function BillingPage() {
                       }}
                     />
                   </div>
-                  <div style={{ marginTop: "0.25rem", fontSize: "0.75rem", color: colors.text.secondary }}>
+                  <div style={{ marginTop: "0.25rem", fontSize: "0.75rem", color: themeColors.text.secondary }}>
                     {billingTranslations.usage.remaining}: {metric.remaining}
                   </div>
                 </div>
@@ -288,4 +305,3 @@ export default function BillingPage() {
     </PageTransition>
   );
 }
-

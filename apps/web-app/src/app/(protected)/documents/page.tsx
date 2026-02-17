@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { listDocuments, listClientCompanies } from "@repo/api-client";
-import { documents as documentsI18n, common as commonI18n } from "@repo/i18n";
+import { documents as documentsI18n } from "@repo/i18n";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -14,6 +14,7 @@ import { SkeletonTable } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { colors, spacing } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import Link from "next/link";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -49,6 +50,7 @@ function formatFileSize(bytes: number | bigint): string {
 }
 
 export default function DocumentsPage() {
+  const { themeColors } = useTheme();
   const [documentModalOpen, setDocumentModalOpen] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
@@ -191,7 +193,7 @@ export default function DocumentsPage() {
                   <TableCell>
                     <div>
                       <div style={{ fontWeight: 500 }}>{doc.originalFileName}</div>
-                      <div style={{ fontSize: "12px", color: colors.text.secondary }}>
+                      <div style={{ fontSize: "12px", color: themeColors.text.secondary }}>
                         {doc.mimeType}
                       </div>
                     </div>
@@ -222,7 +224,7 @@ export default function DocumentsPage() {
                             ? colors.info + "20"
                             : doc.status === "FAILED"
                             ? colors.dangerLight
-                            : colors.gray[200],
+                            : themeColors.gray[200],
                         color:
                           doc.status === "PROCESSED"
                             ? colors.successDark
@@ -230,19 +232,19 @@ export default function DocumentsPage() {
                             ? colors.info
                             : doc.status === "FAILED"
                             ? colors.dangerDark
-                            : colors.text.secondary,
+                            : themeColors.text.secondary,
                       }}
                     >
                       {STATUS_LABELS[doc.status] || doc.status}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <div style={{ fontSize: "14px", color: colors.text.secondary }}>
+                    <div style={{ fontSize: "14px", color: themeColors.text.secondary }}>
                       {formatFileSize(doc.fileSizeBytes)}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div style={{ fontSize: "12px", color: colors.text.secondary }}>
+                    <div style={{ fontSize: "12px", color: themeColors.text.secondary }}>
                       {formatDate(doc.createdAt)}
                     </div>
                   </TableCell>
@@ -268,10 +270,10 @@ export default function DocumentsPage() {
                   alignItems: "center",
                   marginTop: spacing.lg,
                   paddingTop: spacing.lg,
-                  borderTop: `1px solid ${colors.border}`,
+                  borderTop: `1px solid ${themeColors.border}`,
                 }}
               >
-                <div style={{ color: colors.text.secondary, fontSize: "14px" }}>
+                <div style={{ color: themeColors.text.secondary, fontSize: "14px" }}>
                   Toplam {pagination.total} belge, Sayfa {pagination.page} / {pagination.totalPages}
                 </div>
                 <div style={{ display: "flex", gap: spacing.sm }}>

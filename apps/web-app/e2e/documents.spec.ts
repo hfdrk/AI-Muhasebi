@@ -1,10 +1,8 @@
 import { test, expect } from "@playwright/test";
 import {
   navigateTo,
-  waitForText,
   createTestUserViaAPI,
   createClientCompanyViaAPI,
-  waitForDocumentStatus,
 } from "./test-utils";
 import * as path from "path";
 import * as fs from "fs";
@@ -106,7 +104,7 @@ test.describe("Document & AI Analysis Flow", () => {
 
   test("should view document details and AI analysis", async ({ page }) => {
     // Create and process a document via API
-    const documentResponse = await fetch("http://localhost:3800/api/v1/documents/upload", {
+    await fetch("http://localhost:3800/api/v1/documents/upload", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${authToken}`,

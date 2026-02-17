@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { securityClient } from "@repo/api-client";
-import Link from "next/link";
 import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
-import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
+import { colors, spacing, borderRadius, typography } from "../../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "../../../../lib/toast";
 
 export default function IPWhitelistPage() {
+  const { themeColors } = useTheme();
   const [ipAddress, setIpAddress] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const queryClient = useQueryClient();
@@ -47,7 +48,7 @@ export default function IPWhitelistPage() {
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
-        backgroundColor: colors.gray[50],
+        backgroundColor: themeColors.gray[50],
         minHeight: "100vh",
       }}
     >
@@ -66,7 +67,7 @@ export default function IPWhitelistPage() {
           style={{
             fontSize: typography.fontSize["3xl"],
             fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
             marginBottom: spacing.sm,
           }}
         >
@@ -75,7 +76,7 @@ export default function IPWhitelistPage() {
         <p
           style={{
             fontSize: typography.fontSize.base,
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
             lineHeight: typography.lineHeight.relaxed,
             margin: 0,
           }}
@@ -104,7 +105,7 @@ export default function IPWhitelistPage() {
                   margin: 0,
                   fontSize: typography.fontSize.base,
                   fontWeight: typography.fontWeight.semibold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                 }}
               >
                 Mevcut IP Adresi: {ipStatus.ipAddress}
@@ -113,7 +114,7 @@ export default function IPWhitelistPage() {
                 style={{
                   margin: `${spacing.xs} 0 0 0`,
                   fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 {ipStatus.isWhitelisted
@@ -132,7 +133,7 @@ export default function IPWhitelistPage() {
             margin: `0 0 ${spacing.md} 0`,
             fontSize: typography.fontSize.xl,
             fontWeight: typography.fontWeight.semibold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
           }}
         >
           IP Adresi Ekle
@@ -151,7 +152,7 @@ export default function IPWhitelistPage() {
                 marginBottom: spacing.xs,
                 fontSize: typography.fontSize.sm,
                 fontWeight: typography.fontWeight.medium,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
               }}
             >
               IP Adresi *
@@ -166,10 +167,10 @@ export default function IPWhitelistPage() {
                 maxWidth: "400px",
                 padding: spacing.sm,
                 borderRadius: borderRadius.md,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
                 fontSize: typography.fontSize.base,
-                backgroundColor: colors.white,
-                color: colors.text.primary,
+                backgroundColor: themeColors.white,
+                color: themeColors.text.primary,
                 fontFamily: "monospace",
               }}
             />
@@ -177,7 +178,7 @@ export default function IPWhitelistPage() {
               style={{
                 margin: `${spacing.xs} 0 0 0`,
                 fontSize: typography.fontSize.xs,
-                color: colors.text.secondary,
+                color: themeColors.text.secondary,
               }}
             >
               IPv4, IPv6 veya CIDR notasyonu (örn: 192.168.1.0/24) desteklenir.
@@ -191,7 +192,7 @@ export default function IPWhitelistPage() {
                 marginBottom: spacing.xs,
                 fontSize: typography.fontSize.sm,
                 fontWeight: typography.fontWeight.medium,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
               }}
             >
               Açıklama (Opsiyonel)
@@ -206,10 +207,10 @@ export default function IPWhitelistPage() {
                 maxWidth: "400px",
                 padding: spacing.sm,
                 borderRadius: borderRadius.md,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
                 fontSize: typography.fontSize.base,
-                backgroundColor: colors.white,
-                color: colors.text.primary,
+                backgroundColor: themeColors.white,
+                color: themeColors.text.primary,
               }}
             />
           </div>
@@ -242,7 +243,7 @@ export default function IPWhitelistPage() {
               style={{
                 margin: 0,
                 fontSize: typography.fontSize.sm,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
                 fontWeight: typography.fontWeight.medium,
                 marginBottom: spacing.xs,
               }}
@@ -253,7 +254,7 @@ export default function IPWhitelistPage() {
               style={{
                 margin: 0,
                 fontSize: typography.fontSize.sm,
-                color: colors.text.secondary,
+                color: themeColors.text.secondary,
                 lineHeight: typography.lineHeight.relaxed,
               }}
             >
@@ -275,4 +276,3 @@ export default function IPWhitelistPage() {
     </div>
   );
 }
-

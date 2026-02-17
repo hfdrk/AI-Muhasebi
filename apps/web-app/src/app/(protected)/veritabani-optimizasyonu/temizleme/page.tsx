@@ -3,17 +3,16 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { dbOptimizationClient } from "@repo/api-client";
-import Link from "next/link";
 import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
-import { Modal } from "../../../../components/ui/Modal";
 import { PageTransition } from "../../../../components/ui/PageTransition";
-import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
+import { colors, spacing, borderRadius, typography } from "../../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "../../../../lib/toast";
 
 export default function VacuumPage() {
+  const { themeColors } = useTheme();
   const [tableNames, setTableNames] = useState<string>("");
-  const [vacuumModal, setVacuumModal] = useState(false);
   const queryClient = useQueryClient();
 
   // Vacuum tables mutation
@@ -48,7 +47,7 @@ export default function VacuumPage() {
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
-        backgroundColor: colors.gray[50],
+        backgroundColor: themeColors.gray[50],
         minHeight: "100vh",
       }}
     >
@@ -67,7 +66,7 @@ export default function VacuumPage() {
           style={{
             fontSize: typography.fontSize["3xl"],
             fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
             marginBottom: spacing.sm,
           }}
         >
@@ -76,7 +75,7 @@ export default function VacuumPage() {
         <p
           style={{
             fontSize: typography.fontSize.base,
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
             lineHeight: typography.lineHeight.relaxed,
             margin: 0,
           }}
@@ -101,7 +100,7 @@ export default function VacuumPage() {
               style={{
                 margin: 0,
                 fontSize: typography.fontSize.sm,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
                 fontWeight: typography.fontWeight.medium,
                 marginBottom: spacing.xs,
               }}
@@ -112,7 +111,7 @@ export default function VacuumPage() {
               style={{
                 margin: 0,
                 fontSize: typography.fontSize.sm,
-                color: colors.text.secondary,
+                color: themeColors.text.secondary,
                 lineHeight: typography.lineHeight.relaxed,
               }}
             >
@@ -130,7 +129,7 @@ export default function VacuumPage() {
             margin: `0 0 ${spacing.md} 0`,
             fontSize: typography.fontSize.xl,
             fontWeight: typography.fontWeight.semibold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
           }}
         >
           Tablo Vakum İşlemi
@@ -149,7 +148,7 @@ export default function VacuumPage() {
                 marginBottom: spacing.xs,
                 fontSize: typography.fontSize.sm,
                 fontWeight: typography.fontWeight.medium,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
               }}
             >
               Tablo İsimleri (Opsiyonel)
@@ -163,10 +162,10 @@ export default function VacuumPage() {
                 width: "100%",
                 padding: spacing.sm,
                 borderRadius: borderRadius.md,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
                 fontSize: typography.fontSize.base,
-                backgroundColor: colors.white,
-                color: colors.text.primary,
+                backgroundColor: themeColors.white,
+                color: themeColors.text.primary,
                 fontFamily: typography.fontFamily.sans,
                 resize: "vertical",
               }}
@@ -175,7 +174,7 @@ export default function VacuumPage() {
               style={{
                 margin: `${spacing.xs} 0 0 0`,
                 fontSize: typography.fontSize.xs,
-                color: colors.text.secondary,
+                color: themeColors.text.secondary,
               }}
             >
               Belirli tabloları temizlemek için tablo isimlerini virgülle ayırarak girin. Boş bırakırsanız tüm
@@ -186,7 +185,7 @@ export default function VacuumPage() {
           <div>
             <Button
               variant="primary"
-              onClick={() => setVacuumModal(true)}
+              onClick={() => vacuumMutation.mutate()}
               loading={vacuumMutation.isPending}
             >
               🧹 Vakum İşlemini Başlat
@@ -211,7 +210,7 @@ export default function VacuumPage() {
               style={{
                 margin: 0,
                 fontSize: typography.fontSize.sm,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
                 fontWeight: typography.fontWeight.medium,
                 marginBottom: spacing.xs,
               }}
@@ -222,7 +221,7 @@ export default function VacuumPage() {
               style={{
                 margin: 0,
                 fontSize: typography.fontSize.sm,
-                color: colors.text.secondary,
+                color: themeColors.text.secondary,
                 lineHeight: typography.lineHeight.relaxed,
               }}
             >

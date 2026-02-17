@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { colors, spacing, borderRadius, typography, transitions } from "@/styles/design-system";
+import { useTheme } from "../../contexts/ThemeContext";
 
 // ==================== Types ====================
 
@@ -50,6 +51,7 @@ export function DataTable<T extends Record<string, unknown>>({
   stickyHeader = false,
   maxHeight,
 }: DataTableProps<T>) {
+  const { themeColors } = useTheme();
   const [currentPage, setCurrentPage] = useState(1);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
@@ -114,7 +116,7 @@ export function DataTable<T extends Record<string, unknown>>({
     width: "100%",
     overflow: "auto",
     borderRadius: borderRadius.lg,
-    border: `1px solid ${colors.border}`,
+    border: `1px solid ${themeColors.border}`,
     maxHeight: maxHeight,
   };
 
@@ -125,7 +127,7 @@ export function DataTable<T extends Record<string, unknown>>({
   };
 
   const theadStyle: React.CSSProperties = {
-    backgroundColor: colors.gray[50],
+    backgroundColor: themeColors.gray[50],
     position: stickyHeader ? "sticky" : undefined,
     top: 0,
     zIndex: 1,
@@ -135,8 +137,8 @@ export function DataTable<T extends Record<string, unknown>>({
     padding: cellPadding,
     textAlign: column.align || "left",
     fontWeight: typography.fontWeight.semibold,
-    color: colors.text.secondary,
-    borderBottom: `2px solid ${colors.border}`,
+    color: themeColors.text.secondary,
+    borderBottom: `2px solid ${themeColors.border}`,
     whiteSpace: "nowrap",
     cursor: sortable && column.sortable !== false ? "pointer" : "default",
     userSelect: "none",
@@ -146,13 +148,13 @@ export function DataTable<T extends Record<string, unknown>>({
   const tdStyle = (column: Column<T>): React.CSSProperties => ({
     padding: cellPadding,
     textAlign: column.align || "left",
-    borderBottom: `1px solid ${colors.gray[100]}`,
-    color: colors.text.primary,
+    borderBottom: `1px solid ${themeColors.gray[100]}`,
+    color: themeColors.text.primary,
     width: column.width,
   });
 
   const trStyle = (index: number): React.CSSProperties => ({
-    backgroundColor: striped && index % 2 === 1 ? colors.gray[50] : colors.white,
+    backgroundColor: striped && index % 2 === 1 ? themeColors.gray[50] : themeColors.white,
     cursor: onRowClick ? "pointer" : "default",
     transition: `background ${transitions.fast} ease`,
   });
@@ -162,10 +164,10 @@ export function DataTable<T extends Record<string, unknown>>({
     alignItems: "center",
     justifyContent: "space-between",
     padding: `${spacing.sm} ${spacing.md}`,
-    borderTop: `1px solid ${colors.border}`,
-    backgroundColor: colors.gray[50],
+    borderTop: `1px solid ${themeColors.border}`,
+    backgroundColor: themeColors.gray[50],
     fontSize: typography.fontSize.sm,
-    color: colors.text.muted,
+    color: themeColors.text.muted,
   };
 
   const pageButtonStyle = (disabled: boolean): React.CSSProperties => ({
@@ -175,9 +177,9 @@ export function DataTable<T extends Record<string, unknown>>({
     width: "32px",
     height: "32px",
     borderRadius: borderRadius.md,
-    border: `1px solid ${colors.border}`,
-    background: disabled ? colors.gray[100] : colors.white,
-    color: disabled ? colors.gray[400] : colors.text.primary,
+    border: `1px solid ${themeColors.border}`,
+    background: disabled ? themeColors.gray[100] : themeColors.white,
+    color: disabled ? colors.gray[400] : themeColors.text.primary,
     cursor: disabled ? "not-allowed" : "pointer",
     transition: `all ${transitions.fast} ease`,
   });
@@ -191,14 +193,14 @@ export function DataTable<T extends Record<string, unknown>>({
             alignItems: "center",
             justifyContent: "center",
             padding: spacing.xxl,
-            color: colors.text.muted,
+            color: themeColors.text.muted,
           }}
         >
           <div
             style={{
               width: "24px",
               height: "24px",
-              border: `3px solid ${colors.gray[200]}`,
+              border: `3px solid ${themeColors.gray[200]}`,
               borderTopColor: colors.primary,
               borderRadius: borderRadius.full,
               animation: "spin 1s linear infinite",
@@ -219,7 +221,7 @@ export function DataTable<T extends Record<string, unknown>>({
             alignItems: "center",
             justifyContent: "center",
             padding: spacing.xxl,
-            color: colors.text.muted,
+            color: themeColors.text.muted,
             fontSize: typography.fontSize.sm,
           }}
         >
@@ -286,7 +288,7 @@ export function DataTable<T extends Record<string, unknown>>({
               onMouseLeave={(e) => {
                 if (hoverable) {
                   e.currentTarget.style.backgroundColor =
-                    striped && rowIndex % 2 === 1 ? colors.gray[50] : colors.white;
+                    striped && rowIndex % 2 === 1 ? themeColors.gray[50] : themeColors.white;
                 }
               }}
             >

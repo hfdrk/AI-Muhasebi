@@ -170,12 +170,10 @@ export class RetryQueueService {
   }
 
   private async retryJob(payload: Record<string, unknown>): Promise<boolean> {
-    console.warn("[RetryQueue] Job retry not yet implemented");
     return false;
   }
 
   private async retrySync(payload: Record<string, unknown>): Promise<boolean> {
-    console.warn("[RetryQueue] Sync retry not yet implemented");
     return false;
   }
 }

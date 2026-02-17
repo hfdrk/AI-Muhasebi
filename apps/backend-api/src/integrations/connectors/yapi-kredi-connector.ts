@@ -223,10 +223,10 @@ export class YapiKrediConnector extends BasePSD2BankConnector {
         return [];
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       return data.balances || [];
-    } catch (error) {
-      logger.error("[YapiKrediConnector] fetchBalances error:", error);
+    } catch (error: unknown) {
+      logger.error("[YapiKrediConnector] fetchBalances error:", { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -259,8 +259,8 @@ export class YapiKrediConnector extends BasePSD2BankConnector {
         bankName: this.bankName,
         bankCode: "00067",
       };
-    } catch (error) {
-      logger.error("[YapiKrediConnector] getAccountDetails error:", error);
+    } catch (error: unknown) {
+      logger.error("[YapiKrediConnector] getAccountDetails error:", { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }
@@ -295,7 +295,7 @@ export class YapiKrediConnector extends BasePSD2BankConnector {
         return [];
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       const transactions: WorldCardTransaction[] = data.transactions || [];
 
       return transactions.map((txn) => ({
@@ -308,8 +308,8 @@ export class YapiKrediConnector extends BasePSD2BankConnector {
         currency: txn.currency || "TRY",
         balanceAfter: null,
       }));
-    } catch (error) {
-      logger.error("[YapiKrediConnector] fetchWorldCardTransactions error:", error);
+    } catch (error: unknown) {
+      logger.error("[YapiKrediConnector] fetchWorldCardTransactions error:", { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -337,10 +337,10 @@ export class YapiKrediConnector extends BasePSD2BankConnector {
         return null;
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       return data.pointsInfo || null;
-    } catch (error) {
-      logger.error("[YapiKrediConnector] fetchWorldPoints error:", error);
+    } catch (error: unknown) {
+      logger.error("[YapiKrediConnector] fetchWorldPoints error:", { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }
@@ -372,7 +372,7 @@ export class YapiKrediConnector extends BasePSD2BankConnector {
       throw new Error(`FAST ödeme başlatılamadı: ${response.status} - ${errorText}`);
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
 
     return {
       paymentId: data.paymentId,
@@ -408,7 +408,7 @@ export class YapiKrediConnector extends BasePSD2BankConnector {
       throw new Error(`Parapara ödeme başlatılamadı: ${response.status} - ${errorText}`);
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
 
     return {
       paymentId: data.paymentId,
@@ -444,10 +444,10 @@ export class YapiKrediConnector extends BasePSD2BankConnector {
         return null;
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       return data.statement || null;
-    } catch (error) {
-      logger.error("[YapiKrediConnector] requestWorldCardStatement error:", error);
+    } catch (error: unknown) {
+      logger.error("[YapiKrediConnector] requestWorldCardStatement error:", { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }

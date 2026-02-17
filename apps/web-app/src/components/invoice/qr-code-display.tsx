@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { QrCode, Download, Copy, Check, Loader2 } from "lucide-react";
 import { colors, spacing, borderRadius, shadows, typography, transitions } from "@/styles/design-system";
+import { useTheme } from "../../contexts/ThemeContext";
 
 // ==================== Types ====================
 
@@ -42,6 +43,7 @@ export function QRCodeDisplay({
   onLoad,
   onError,
 }: QRCodeDisplayProps) {
+  const { themeColors } = useTheme();
   const [qrData, setQrData] = useState<QRCodeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -102,7 +104,9 @@ export function QRCodeDisplay({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      console.error("Kopyalama başarısız");
+      if (process.env.NODE_ENV === "development") {
+        console.error("Kopyalama başarısız");
+      }
     }
   };
 
@@ -130,9 +134,9 @@ export function QRCodeDisplay({
     flexDirection: "column",
     alignItems: "center",
     padding: spacing.lg,
-    backgroundColor: colors.white,
+    backgroundColor: themeColors.white,
     borderRadius: borderRadius.lg,
-    border: `1px solid ${colors.border}`,
+    border: `1px solid ${themeColors.border}`,
   };
 
   const qrContainerStyle: React.CSSProperties = {
@@ -141,7 +145,7 @@ export function QRCodeDisplay({
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.white,
+    backgroundColor: themeColors.white,
     borderRadius: borderRadius.md,
     overflow: "hidden",
   };
@@ -158,9 +162,9 @@ export function QRCodeDisplay({
     gap: spacing.xs,
     padding: `${spacing.xs} ${spacing.sm}`,
     fontSize: typography.fontSize.sm,
-    color: colors.text.secondary,
-    backgroundColor: colors.gray[50],
-    border: `1px solid ${colors.border}`,
+    color: themeColors.text.secondary,
+    backgroundColor: themeColors.gray[50],
+    border: `1px solid ${themeColors.border}`,
     borderRadius: borderRadius.md,
     cursor: "pointer",
     transition: `all ${transitions.fast} ease`,
@@ -168,7 +172,7 @@ export function QRCodeDisplay({
 
   const labelStyle: React.CSSProperties = {
     fontSize: typography.fontSize.xs,
-    color: colors.text.muted,
+    color: themeColors.text.muted,
     marginTop: spacing.sm,
     textAlign: "center",
   };
@@ -263,10 +267,10 @@ export function QRCodeDisplay({
             style={buttonStyle}
             onClick={handleCopy}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = colors.gray[100];
+              e.currentTarget.style.backgroundColor = themeColors.gray[100];
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = colors.gray[50];
+              e.currentTarget.style.backgroundColor = themeColors.gray[50];
             }}
           >
             {copied ? (
@@ -285,10 +289,10 @@ export function QRCodeDisplay({
             style={buttonStyle}
             onClick={handleDownload}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = colors.gray[100];
+              e.currentTarget.style.backgroundColor = themeColors.gray[100];
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = colors.gray[50];
+              e.currentTarget.style.backgroundColor = themeColors.gray[50];
             }}
           >
             <Download size={14} />
@@ -309,6 +313,7 @@ interface InlineQRCodeProps {
 }
 
 export function InlineQRCode({ invoiceId, size = 80, type = "e-fatura" }: InlineQRCodeProps) {
+  const { themeColors } = useTheme();
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -344,7 +349,7 @@ export function InlineQRCode({ invoiceId, size = 80, type = "e-fatura" }: Inline
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: colors.gray[50],
+          backgroundColor: themeColors.gray[50],
           borderRadius: borderRadius.sm,
         }}
       >
@@ -362,11 +367,11 @@ export function InlineQRCode({ invoiceId, size = 80, type = "e-fatura" }: Inline
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: colors.gray[50],
+          backgroundColor: themeColors.gray[50],
           borderRadius: borderRadius.sm,
         }}
       >
-        <QrCode size={size * 0.4} color={colors.gray[300]} />
+        <QrCode size={size * 0.4} color={themeColors.gray[300]} />
       </div>
     );
   }
@@ -378,8 +383,8 @@ export function InlineQRCode({ invoiceId, size = 80, type = "e-fatura" }: Inline
         height: size,
         borderRadius: borderRadius.sm,
         overflow: "hidden",
-        backgroundColor: colors.white,
-        border: `1px solid ${colors.border}`,
+        backgroundColor: themeColors.white,
+        border: `1px solid ${themeColors.border}`,
       }}
       dangerouslySetInnerHTML={{ __html: qrCode }}
     />
@@ -407,6 +412,7 @@ export function PaymentQRModal({
   amount,
   reference,
 }: PaymentQRModalProps) {
+  const { themeColors } = useTheme();
   if (!isOpen) return null;
 
   const overlayStyle: React.CSSProperties = {
@@ -420,7 +426,7 @@ export function PaymentQRModal({
   };
 
   const modalStyle: React.CSSProperties = {
-    backgroundColor: colors.white,
+    backgroundColor: themeColors.white,
     borderRadius: borderRadius.xl,
     padding: spacing.xl,
     maxWidth: "400px",
@@ -438,7 +444,7 @@ export function PaymentQRModal({
   const titleStyle: React.CSSProperties = {
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.semibold,
-    color: colors.text.primary,
+    color: themeColors.text.primary,
     margin: 0,
   };
 
@@ -447,11 +453,11 @@ export function PaymentQRModal({
     border: "none",
     cursor: "pointer",
     padding: spacing.xs,
-    color: colors.text.muted,
+    color: themeColors.text.muted,
   };
 
   const infoStyle: React.CSSProperties = {
-    backgroundColor: colors.gray[50],
+    backgroundColor: themeColors.gray[50],
     borderRadius: borderRadius.md,
     padding: spacing.md,
     marginTop: spacing.md,
@@ -488,24 +494,24 @@ export function PaymentQRModal({
 
         <div style={infoStyle}>
           <div style={infoRowStyle}>
-            <span style={{ color: colors.text.muted }}>Alıcı:</span>
+            <span style={{ color: themeColors.text.muted }}>Alıcı:</span>
             <span style={{ fontWeight: typography.fontWeight.medium }}>{receiverName}</span>
           </div>
           <div style={infoRowStyle}>
-            <span style={{ color: colors.text.muted }}>IBAN:</span>
+            <span style={{ color: themeColors.text.muted }}>IBAN:</span>
             <span style={{ fontFamily: typography.fontFamily.mono, fontSize: typography.fontSize.xs }}>
               {iban}
             </span>
           </div>
           <div style={infoRowStyle}>
-            <span style={{ color: colors.text.muted }}>Tutar:</span>
+            <span style={{ color: themeColors.text.muted }}>Tutar:</span>
             <span style={{ fontWeight: typography.fontWeight.semibold, color: colors.success }}>
               {amount.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}
             </span>
           </div>
           {reference && (
             <div style={infoRowStyle}>
-              <span style={{ color: colors.text.muted }}>Referans:</span>
+              <span style={{ color: themeColors.text.muted }}>Referans:</span>
               <span>{reference}</span>
             </div>
           )}

@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { logout, getCurrentUser } from "@repo/api-client";
 import { useQuery } from "@tanstack/react-query";
 import { colors, spacing, shadows, borderRadius, transitions, typography } from "../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface NavItem {
   href: string;
@@ -14,6 +15,7 @@ interface NavItem {
 }
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
+  const { themeColors } = useTheme();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
@@ -64,13 +66,13 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   }
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", backgroundColor: colors.gray[50] }}>
+    <div style={{ display: "flex", minHeight: "100vh", backgroundColor: themeColors.gray[50] }}>
       {/* Sidebar */}
       <aside
         style={{
           width: sidebarCollapsed ? "80px" : "260px",
-          backgroundColor: colors.white,
-          borderRight: `1px solid ${colors.gray[200]}`,
+          backgroundColor: themeColors.white,
+          borderRight: `1px solid ${themeColors.gray[200]}`,
           display: "flex",
           flexDirection: "column",
           transition: `width ${transitions.normal} ease`,
@@ -81,7 +83,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         <div
           style={{
             padding: spacing.lg,
-            borderBottom: `1px solid ${colors.gray[200]}`,
+            borderBottom: `1px solid ${themeColors.gray[200]}`,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -99,7 +101,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               border: "none",
               cursor: "pointer",
               padding: spacing.xs,
-              color: colors.text.secondary,
+              color: themeColors.text.secondary,
             }}
           >
             {sidebarCollapsed ? "→" : "←"}
@@ -121,7 +123,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                   padding: `${spacing.sm} ${spacing.md}`,
                   marginBottom: spacing.xs,
                   textDecoration: "none",
-                  color: active ? colors.primary : colors.text.secondary,
+                  color: active ? colors.primary : themeColors.text.secondary,
                   backgroundColor: active ? colors.primaryLighter : "transparent",
                   borderRadius: borderRadius.md,
                   fontWeight: active ? typography.fontWeight.semibold : typography.fontWeight.normal,
@@ -140,15 +142,15 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         <div
           style={{
             padding: spacing.md,
-            borderTop: `1px solid ${colors.gray[200]}`,
+            borderTop: `1px solid ${themeColors.gray[200]}`,
           }}
         >
           {!sidebarCollapsed && currentUser && (
             <div style={{ marginBottom: spacing.sm }}>
-              <div style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold, color: colors.text.primary }}>
+              <div style={{ fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold, color: themeColors.text.primary }}>
                 {currentUser.user?.fullName || "Müşteri"}
               </div>
-              <div style={{ fontSize: typography.fontSize.xs, color: colors.text.secondary }}>
+              <div style={{ fontSize: typography.fontSize.xs, color: themeColors.text.secondary }}>
                 {currentUser.user?.email}
               </div>
             </div>
@@ -158,7 +160,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             style={{
               width: "100%",
               padding: `${spacing.sm} ${spacing.md}`,
-              backgroundColor: colors.error,
+              backgroundColor: colors.danger,
               color: colors.white,
               border: "none",
               borderRadius: borderRadius.md,
@@ -177,14 +179,14 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         {/* Top Bar */}
         <header
           style={{
-            backgroundColor: colors.white,
-            borderBottom: `1px solid ${colors.gray[200]}`,
+            backgroundColor: themeColors.white,
+            borderBottom: `1px solid ${themeColors.gray[200]}`,
             padding: `${spacing.md} ${spacing.lg}`,
             boxShadow: shadows.sm,
           }}
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <h2 style={{ fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.bold, color: colors.text.primary }}>
+            <h2 style={{ fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.bold, color: themeColors.text.primary }}>
               Müşteri Portalı
             </h2>
           </div>

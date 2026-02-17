@@ -204,10 +204,10 @@ export class ZiraatBankasiConnector extends BasePSD2BankConnector {
         return [];
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       return data.balances || [];
-    } catch (error) {
-      logger.error("[ZiraatBankasiConnector] fetchBalances error:", error);
+    } catch (error: unknown) {
+      logger.error("[ZiraatBankasiConnector] fetchBalances error:", { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -240,8 +240,8 @@ export class ZiraatBankasiConnector extends BasePSD2BankConnector {
         bankName: this.bankName,
         bankCode: "00010",
       };
-    } catch (error) {
-      logger.error("[ZiraatBankasiConnector] getAccountDetails error:", error);
+    } catch (error: unknown) {
+      logger.error("[ZiraatBankasiConnector] getAccountDetails error:", { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }
@@ -273,10 +273,10 @@ export class ZiraatBankasiConnector extends BasePSD2BankConnector {
         return [];
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       return data.subsidies || [];
-    } catch (error) {
-      logger.error("[ZiraatBankasiConnector] fetchAgriculturalSubsidies error:", error);
+    } catch (error: unknown) {
+      logger.error("[ZiraatBankasiConnector] fetchAgriculturalSubsidies error:", { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }
@@ -308,7 +308,7 @@ export class ZiraatBankasiConnector extends BasePSD2BankConnector {
       throw new Error(`FAST ödeme başlatılamadı: ${response.status} - ${errorText}`);
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
 
     return {
       paymentId: data.paymentId,
@@ -343,7 +343,7 @@ export class ZiraatBankasiConnector extends BasePSD2BankConnector {
       throw new Error(`TR Karekod ödeme başlatılamadı: ${response.status} - ${errorText}`);
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
 
     return {
       paymentId: data.paymentId,

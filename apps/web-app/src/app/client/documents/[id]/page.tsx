@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { getDocument, downloadDocument, getDocumentAIAnalysis } from "@repo/api-client";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
 import { useDocumentRiskScore } from "@/hooks/use-risk";
@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { colors, spacing } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "@/lib/toast";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -45,13 +46,13 @@ function formatFileSize(bytes: number): string {
 }
 
 export default function ClientDocumentDetailPage() {
+  const { themeColors } = useTheme();
   const params = useParams();
-  const router = useRouter();
   const documentId = params.id as string;
   const [activeTab, setActiveTab] = useState<"details" | "ai" | "risk">("details");
   const [downloading, setDownloading] = useState(false);
 
-  const { data: document, isLoading } = useQuery({
+  const { data: documentResult, isLoading } = useQuery({
     queryKey: ["document", documentId],
     queryFn: () => getDocument(documentId),
     enabled: !!documentId,
@@ -60,7 +61,7 @@ export default function ClientDocumentDetailPage() {
   const { data: aiAnalysis, isLoading: aiLoading } = useQuery({
     queryKey: ["document-ai", documentId],
     queryFn: () => getDocumentAIAnalysis(documentId),
-    enabled: !!documentId && !!document?.data && document.data.status === "PROCESSED",
+    enabled: !!documentId && !!documentResult?.data && documentResult.data.status === "PROCESSED",
   });
 
   const { data: riskScoreData, isLoading: riskLoading } = useDocumentRiskScore(documentId);
@@ -71,13 +72,13 @@ export default function ClientDocumentDetailPage() {
     try {
       const blob = await downloadDocument(documentId);
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
+      const a = window.document.createElement("a");
       a.href = url;
-      a.download = documentData.originalFileName || `document-${documentId}`;
-      document.body.appendChild(a);
+      a.download = documentResult?.data?.originalFileName || `document-${documentId}`;
+      window.document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      window.document.body.removeChild(a);
     } catch (error: any) {
       toast.error(`Dosya indirilemedi: ${error.message}`);
     } finally {
@@ -90,7 +91,7 @@ export default function ClientDocumentDetailPage() {
       <div>
         <PageHeader title="Belge Detayı" />
         <Card>
-          <div style={{ padding: spacing.xl, textAlign: "center", color: colors.text.secondary }}>
+          <div style={{ padding: spacing.xl, textAlign: "center", color: themeColors.text.secondary }}>
             Yükleniyor...
           </div>
         </Card>
@@ -98,13 +99,13 @@ export default function ClientDocumentDetailPage() {
     );
   }
 
-  const documentData = document?.data;
+  const documentData = documentResult?.data;
   if (!documentData) {
     return (
       <div>
         <PageHeader title="Belge Detayı" />
         <Card>
-          <div style={{ padding: spacing.xl, textAlign: "center", color: colors.text.secondary }}>
+          <div style={{ padding: spacing.xl, textAlign: "center", color: themeColors.text.secondary }}>
             <div style={{ fontSize: "48px", marginBottom: spacing.md }}>❌</div>
             <div>Belge bulunamadı.</div>
             <Link href="/client/documents" style={{ color: colors.primary, textDecoration: "none", marginTop: spacing.md, display: "inline-block" }}>
@@ -136,7 +137,7 @@ export default function ClientDocumentDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div style={{ borderBottom: `1px solid ${colors.gray[300]}`, marginBottom: spacing.lg }}>
+      <div style={{ borderBottom: `1px solid ${themeColors.gray[300]}`, marginBottom: spacing.lg }}>
         <div style={{ display: "flex", gap: spacing.md }}>
           <button
             onClick={() => setActiveTab("details")}
@@ -146,7 +147,7 @@ export default function ClientDocumentDetailPage() {
               borderBottom: activeTab === "details" ? `2px solid ${colors.primary}` : "2px solid transparent",
               backgroundColor: "transparent",
               cursor: "pointer",
-              color: activeTab === "details" ? colors.primary : colors.text.secondary,
+              color: activeTab === "details" ? colors.primary : themeColors.text.secondary,
               fontWeight: activeTab === "details" ? "semibold" : "normal",
             }}
           >
@@ -162,7 +163,7 @@ export default function ClientDocumentDetailPage() {
                   borderBottom: activeTab === "ai" ? `2px solid ${colors.primary}` : "2px solid transparent",
                   backgroundColor: "transparent",
                   cursor: "pointer",
-                  color: activeTab === "ai" ? colors.primary : colors.text.secondary,
+                  color: activeTab === "ai" ? colors.primary : themeColors.text.secondary,
                   fontWeight: activeTab === "ai" ? "semibold" : "normal",
                 }}
               >
@@ -176,7 +177,7 @@ export default function ClientDocumentDetailPage() {
                   borderBottom: activeTab === "risk" ? `2px solid ${colors.primary}` : "2px solid transparent",
                   backgroundColor: "transparent",
                   cursor: "pointer",
-                  color: activeTab === "risk" ? colors.primary : colors.text.secondary,
+                  color: activeTab === "risk" ? colors.primary : themeColors.text.secondary,
                   fontWeight: activeTab === "risk" ? "semibold" : "normal",
                 }}
               >
@@ -192,13 +193,13 @@ export default function ClientDocumentDetailPage() {
         <Card>
           <div style={{ padding: spacing.lg }}>
             <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: spacing.md, marginBottom: spacing.md }}>
-              <div style={{ color: colors.text.secondary, fontSize: "14px" }}>Dosya Adı:</div>
+              <div style={{ color: themeColors.text.secondary, fontSize: "14px" }}>Dosya Adı:</div>
               <div style={{ fontWeight: "medium" }}>{documentData.originalFileName}</div>
 
-              <div style={{ color: colors.text.secondary, fontSize: "14px" }}>Tip:</div>
+              <div style={{ color: themeColors.text.secondary, fontSize: "14px" }}>Tip:</div>
               <div>{TYPE_LABELS[documentData.type] || documentData.type}</div>
 
-              <div style={{ color: colors.text.secondary, fontSize: "14px" }}>Durum:</div>
+              <div style={{ color: themeColors.text.secondary, fontSize: "14px" }}>Durum:</div>
               <div>
                 <span
                   style={{
@@ -211,7 +212,7 @@ export default function ClientDocumentDetailPage() {
                         ? colors.primary + "20"
                         : documentData.status === "FAILED"
                         ? colors.error + "20"
-                        : colors.gray[200],
+                        : themeColors.gray[200],
                     color:
                       documentData.status === "PROCESSED"
                         ? colors.success
@@ -219,7 +220,7 @@ export default function ClientDocumentDetailPage() {
                         ? colors.primary
                         : documentData.status === "FAILED"
                         ? colors.error
-                        : colors.text.secondary,
+                        : themeColors.text.secondary,
                     fontSize: "12px",
                     fontWeight: "medium",
                   }}
@@ -228,22 +229,22 @@ export default function ClientDocumentDetailPage() {
                 </span>
               </div>
 
-              <div style={{ color: colors.text.secondary, fontSize: "14px" }}>Dosya Boyutu:</div>
+              <div style={{ color: themeColors.text.secondary, fontSize: "14px" }}>Dosya Boyutu:</div>
               <div>{formatFileSize(Number(documentData.fileSizeBytes))}</div>
 
-              <div style={{ color: colors.text.secondary, fontSize: "14px" }}>Yüklenme Tarihi:</div>
+              <div style={{ color: themeColors.text.secondary, fontSize: "14px" }}>Yüklenme Tarihi:</div>
               <div>{formatDate(documentData.createdAt)}</div>
 
               {documentData.processedAt && (
                 <>
-                  <div style={{ color: colors.text.secondary, fontSize: "14px" }}>İşlenme Tarihi:</div>
+                  <div style={{ color: themeColors.text.secondary, fontSize: "14px" }}>İşlenme Tarihi:</div>
                   <div>{formatDate(documentData.processedAt)}</div>
                 </>
               )}
 
               {documentData.processingErrorMessage && (
                 <>
-                  <div style={{ color: colors.text.secondary, fontSize: "14px" }}>Hata:</div>
+                  <div style={{ color: themeColors.text.secondary, fontSize: "14px" }}>Hata:</div>
                   <div style={{ color: colors.error }}>{documentData.processingErrorMessage}</div>
                 </>
               )}
@@ -256,13 +257,13 @@ export default function ClientDocumentDetailPage() {
         <Card>
           <div style={{ padding: spacing.lg }}>
             {aiLoading ? (
-              <div style={{ textAlign: "center", color: colors.text.secondary }}>AI analizi yükleniyor...</div>
+              <div style={{ textAlign: "center", color: themeColors.text.secondary }}>AI analizi yükleniyor...</div>
             ) : aiData ? (
               <div>
                 <h3 style={{ fontSize: "18px", fontWeight: "semibold", marginBottom: spacing.md }}>AI Analiz Sonuçları</h3>
                 <pre
                   style={{
-                    backgroundColor: colors.gray[50],
+                    backgroundColor: themeColors.gray[50],
                     padding: spacing.md,
                     borderRadius: "6px",
                     overflow: "auto",
@@ -274,7 +275,7 @@ export default function ClientDocumentDetailPage() {
                 </pre>
               </div>
             ) : (
-              <div style={{ textAlign: "center", color: colors.text.secondary }}>
+              <div style={{ textAlign: "center", color: themeColors.text.secondary }}>
                 AI analizi henüz mevcut değil.
               </div>
             )}
@@ -286,7 +287,7 @@ export default function ClientDocumentDetailPage() {
         <Card>
           <div style={{ padding: spacing.lg }}>
             {riskLoading ? (
-              <div style={{ textAlign: "center", color: colors.text.secondary }}>Risk skoru yükleniyor...</div>
+              <div style={{ textAlign: "center", color: themeColors.text.secondary }}>Risk skoru yükleniyor...</div>
             ) : riskScore?.riskScore ? (
               <div>
                 <h3 style={{ fontSize: "18px", fontWeight: "semibold", marginBottom: spacing.md }}>Risk Skoru</h3>
@@ -298,27 +299,27 @@ export default function ClientDocumentDetailPage() {
                       riskScore.riskScore.severity === "high"
                         ? colors.error
                         : riskScore.riskScore.severity === "medium"
-                        ? "#FFA500"
+                        ? colors.warning
                         : colors.success,
                     marginBottom: spacing.sm,
                   }}
                 >
                   {Number(riskScore.riskScore.score).toFixed(0)}
                 </div>
-                <div style={{ color: colors.text.secondary, marginBottom: spacing.md }}>
+                <div style={{ color: themeColors.text.secondary, marginBottom: spacing.md }}>
                   Şiddet: {riskScore.riskScore.severity === "high" ? "Yüksek" : riskScore.riskScore.severity === "medium" ? "Orta" : "Düşük"}
                 </div>
-                {riskScore.riskScore.explanation && (
+                {(riskScore.riskScore as any).explanation && (
                   <div style={{ marginTop: spacing.md }}>
                     <div style={{ fontWeight: "medium", marginBottom: spacing.xs }}>Açıklama:</div>
-                    <div style={{ color: colors.text.secondary, lineHeight: "1.6" }}>
-                      {riskScore.riskScore.explanation}
+                    <div style={{ color: themeColors.text.secondary, lineHeight: "1.6" }}>
+                      {(riskScore.riskScore as any).explanation}
                     </div>
                   </div>
                 )}
               </div>
             ) : (
-              <div style={{ textAlign: "center", color: colors.text.secondary }}>
+              <div style={{ textAlign: "center", color: themeColors.text.secondary }}>
                 Risk skoru henüz hesaplanmadı.
               </div>
             )}

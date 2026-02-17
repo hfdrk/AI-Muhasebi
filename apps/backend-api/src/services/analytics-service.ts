@@ -179,9 +179,6 @@ export class AnalyticsService {
           lte: periodEnd,
         },
       },
-      include: {
-        clientCompany: true,
-      },
       orderBy: {
         createdAt: "asc",
       },
@@ -205,9 +202,9 @@ export class AnalyticsService {
       }
 
       const data = periodMap.get(period)!;
-      data.scores.push(Number(history.overallScore));
+      data.scores.push(Number(history.score));
 
-      if (history.overallScore >= 70) {
+      if (Number(history.score) >= 70) {
         data.highRiskCount++;
       }
     }
@@ -335,16 +332,16 @@ export class AnalyticsService {
     let lowRiskCount = 0;
 
     const clientAnalytics = clients.map((client) => {
-      const riskScore = client.riskScores[0]?.overallScore || 0;
+      const riskScore = client.riskScores[0]?.score || 0;
       const revenue = client.invoices.reduce(
         (sum, inv) => sum + Number(inv.totalAmount),
         0
       );
       totalRevenue += revenue;
 
-      if (riskScore >= 70) {
+      if (Number(riskScore) >= 70) {
         highRiskCount++;
-      } else if (riskScore >= 40) {
+      } else if (Number(riskScore) >= 40) {
         mediumRiskCount++;
       } else {
         lowRiskCount++;
@@ -354,7 +351,7 @@ export class AnalyticsService {
         clientCompanyId: client.id,
         clientName: client.name,
         revenue,
-        riskScore,
+        riskScore: Number(riskScore),
         invoiceCount: client.invoices.length,
       };
     });
@@ -662,6 +659,8 @@ export class AnalyticsService {
         portfolio: {
           totalClients: 0,
           activeClients: 0,
+          newClients: 0,
+          churnedClients: 0,
           highRiskClients: 0,
           mediumRiskClients: 0,
           lowRiskClients: 0,

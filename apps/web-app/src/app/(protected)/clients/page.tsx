@@ -7,12 +7,11 @@ import { clients as clientsI18n, common as commonI18n } from "@repo/i18n";
 import { SavedFiltersDropdown } from "../../../components/saved-filters-dropdown";
 // import { useRouter } from "next/navigation"; // Reserved for future use
 import Link from "next/link";
-import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
-import { PageTransition } from "@/components/ui/PageTransition";
-import { colors, spacing, typography, borderRadius } from "@/styles/design-system";
+import { colors } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function ClientsPage() {
+  const { themeColors } = useTheme();
   // const router = useRouter(); // Reserved for future use
   const [search, setSearch] = useState("");
   const [isActiveFilter, setIsActiveFilter] = useState<boolean | undefined>(undefined);
@@ -90,7 +89,7 @@ export default function ClientsPage() {
             style={{
               padding: "8px 16px",
               backgroundColor: colors.primary,
-              color: "white",
+              color: colors.white,
               textDecoration: "none",
               borderRadius: "4px",
             }}
@@ -113,7 +112,7 @@ export default function ClientsPage() {
             style={{
               flex: 1,
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
@@ -127,7 +126,7 @@ export default function ClientsPage() {
             }}
             style={{
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
@@ -157,7 +156,7 @@ export default function ClientsPage() {
                 marginTop: "16px",
                 padding: "8px 16px",
                 backgroundColor: colors.primary,
-                color: "white",
+                color: colors.white,
                 textDecoration: "none",
                 borderRadius: "4px",
               }}
@@ -170,7 +169,7 @@ export default function ClientsPage() {
         <>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr style={{ borderBottom: "2px solid #ddd" }}>
+              <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
                 <th style={{ padding: "12px", textAlign: "left" }}>Şirket Adı</th>
                 <th style={{ padding: "12px", textAlign: "left" }}>Vergi Numarası</th>
                 <th style={{ padding: "12px", textAlign: "left" }}>Sektör</th>
@@ -181,7 +180,7 @@ export default function ClientsPage() {
             </thead>
             <tbody>
               {clients.map((client) => (
-                <tr key={client.id} style={{ borderBottom: "1px solid #eee" }}>
+                <tr key={client.id} style={{ borderBottom: `1px solid ${themeColors.gray[200]}` }}>
                   <td style={{ padding: "12px" }}>
                     <Link
                       href={`/musteriler/${client.id}`}
@@ -222,7 +221,7 @@ export default function ClientsPage() {
                         {commonI18n.buttons.edit}
                       </Link>
                     )}
-                    {isReadOnly && <span style={{ color: "#999" }}>-</span>}
+                    {isReadOnly && <span style={{ color: themeColors.text.muted }}>-</span>}
                   </td>
                 </tr>
               ))}
@@ -236,7 +235,7 @@ export default function ClientsPage() {
                 disabled={page === 1}
                 style={{
                   padding: "8px 16px",
-                  border: "1px solid #ddd",
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "4px",
                   cursor: page === 1 ? "not-allowed" : "pointer",
                   opacity: page === 1 ? 0.5 : 1,
@@ -252,7 +251,7 @@ export default function ClientsPage() {
                 disabled={page === pagination.totalPages}
                 style={{
                   padding: "8px 16px",
-                  border: "1px solid #ddd",
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "4px",
                   cursor: page === pagination.totalPages ? "not-allowed" : "pointer",
                   opacity: page === pagination.totalPages ? 0.5 : 1,

@@ -2,12 +2,12 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { dbOptimizationClient } from "@repo/api-client";
-import Link from "next/link";
 import { Card } from "../../../components/ui/Card";
-import { Button } from "../../../components/ui/Button";
-import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../styles/design-system";
+import { colors, spacing, borderRadius, typography } from "../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function DatabaseOptimizationDashboardPage() {
+  const { themeColors } = useTheme();
   // Fetch connection pool stats
   const { data: poolStatsData } = useQuery({
     queryKey: ["db-connection-pool-stats"],
@@ -22,7 +22,7 @@ export default function DatabaseOptimizationDashboardPage() {
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
-        backgroundColor: colors.gray[50],
+        backgroundColor: themeColors.gray[50],
         minHeight: "100vh",
       }}
     >
@@ -36,7 +36,7 @@ export default function DatabaseOptimizationDashboardPage() {
           style={{
             fontSize: typography.fontSize["3xl"],
             fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
             marginBottom: spacing.sm,
           }}
         >
@@ -45,7 +45,7 @@ export default function DatabaseOptimizationDashboardPage() {
         <p
           style={{
             fontSize: typography.fontSize.base,
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
             lineHeight: typography.lineHeight.relaxed,
             margin: 0,
           }}
@@ -71,7 +71,7 @@ export default function DatabaseOptimizationDashboardPage() {
               style={{
                 margin: 0,
                 fontSize: typography.fontSize.sm,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
                 fontWeight: typography.fontWeight.medium,
                 marginBottom: spacing.xs,
               }}
@@ -82,7 +82,7 @@ export default function DatabaseOptimizationDashboardPage() {
               style={{
                 margin: 0,
                 fontSize: typography.fontSize.sm,
-                color: colors.text.secondary,
+                color: themeColors.text.secondary,
                 lineHeight: typography.lineHeight.relaxed,
               }}
             >
@@ -108,7 +108,7 @@ export default function DatabaseOptimizationDashboardPage() {
                 style={{
                   margin: 0,
                   fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 Aktif Bağlantılar
@@ -118,7 +118,7 @@ export default function DatabaseOptimizationDashboardPage() {
                   margin: `${spacing.xs} 0 0 0`,
                   fontSize: typography.fontSize.xl,
                   fontWeight: typography.fontWeight.bold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                 }}
               >
                 {poolStats.activeConnections}
@@ -129,7 +129,7 @@ export default function DatabaseOptimizationDashboardPage() {
                 style={{
                   margin: 0,
                   fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 Boşta Bağlantılar
@@ -139,7 +139,7 @@ export default function DatabaseOptimizationDashboardPage() {
                   margin: `${spacing.xs} 0 0 0`,
                   fontSize: typography.fontSize.xl,
                   fontWeight: typography.fontWeight.bold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                 }}
               >
                 {poolStats.idleConnections}
@@ -150,7 +150,7 @@ export default function DatabaseOptimizationDashboardPage() {
                 style={{
                   margin: 0,
                   fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 Toplam Bağlantılar
@@ -160,7 +160,7 @@ export default function DatabaseOptimizationDashboardPage() {
                   margin: `${spacing.xs} 0 0 0`,
                   fontSize: typography.fontSize.xl,
                   fontWeight: typography.fontWeight.bold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                 }}
               >
                 {poolStats.totalConnections}
@@ -171,7 +171,7 @@ export default function DatabaseOptimizationDashboardPage() {
                 style={{
                   margin: 0,
                   fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 Maksimum Bağlantılar
@@ -181,7 +181,7 @@ export default function DatabaseOptimizationDashboardPage() {
                   margin: `${spacing.xs} 0 0 0`,
                   fontSize: typography.fontSize.xl,
                   fontWeight: typography.fontWeight.bold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                 }}
               >
                 {poolStats.maxConnections}
@@ -193,14 +193,14 @@ export default function DatabaseOptimizationDashboardPage() {
               marginTop: spacing.md,
               padding: spacing.md,
               borderRadius: borderRadius.md,
-              backgroundColor: colors.gray[50],
+              backgroundColor: themeColors.gray[50],
             }}
           >
             <p
               style={{
                 margin: 0,
                 fontSize: typography.fontSize.sm,
-                color: colors.text.secondary,
+                color: themeColors.text.secondary,
               }}
             >
               Kullanım Oranı:{" "}
@@ -246,7 +246,7 @@ export default function DatabaseOptimizationDashboardPage() {
                   margin: 0,
                   fontSize: typography.fontSize.lg,
                   fontWeight: typography.fontWeight.semibold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                   marginBottom: spacing.xs,
                 }}
               >
@@ -256,7 +256,7 @@ export default function DatabaseOptimizationDashboardPage() {
                 style={{
                   margin: 0,
                   fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 İndeks önerilerini görüntüle ve oluştur
@@ -293,7 +293,7 @@ export default function DatabaseOptimizationDashboardPage() {
                   margin: 0,
                   fontSize: typography.fontSize.lg,
                   fontWeight: typography.fontWeight.semibold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                   marginBottom: spacing.xs,
                 }}
               >
@@ -303,7 +303,7 @@ export default function DatabaseOptimizationDashboardPage() {
                 style={{
                   margin: 0,
                   fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 Tablo boyutlarını analiz et
@@ -340,7 +340,7 @@ export default function DatabaseOptimizationDashboardPage() {
                   margin: 0,
                   fontSize: typography.fontSize.lg,
                   fontWeight: typography.fontWeight.semibold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                   marginBottom: spacing.xs,
                 }}
               >
@@ -350,7 +350,7 @@ export default function DatabaseOptimizationDashboardPage() {
                 style={{
                   margin: 0,
                   fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 Tabloları vakum et ve optimize et

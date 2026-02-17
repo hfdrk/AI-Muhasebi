@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { dbOptimizationClient } from "@repo/api-client";
-import Link from "next/link";
 import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
 import { Modal } from "../../../../components/ui/Modal";
 import { PageTransition } from "../../../../components/ui/PageTransition";
-import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
+import { colors, spacing, borderRadius, typography } from "../../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "../../../../lib/toast";
 
 const IMPACT_COLORS: Record<string, { bg: string; text: string }> = {
@@ -25,6 +25,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function IndexManagementPage() {
+  const { themeColors } = useTheme();
   const queryClient = useQueryClient();
   const [createAllModal, setCreateAllModal] = useState(false);
 
@@ -60,7 +61,7 @@ export default function IndexManagementPage() {
         padding: spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
-        backgroundColor: colors.gray[50],
+        backgroundColor: themeColors.gray[50],
         minHeight: "100vh",
       }}
     >
@@ -79,7 +80,7 @@ export default function IndexManagementPage() {
           style={{
             fontSize: typography.fontSize["3xl"],
             fontWeight: typography.fontWeight.bold,
-            color: colors.text.primary,
+            color: themeColors.text.primary,
             marginBottom: spacing.sm,
           }}
         >
@@ -88,7 +89,7 @@ export default function IndexManagementPage() {
         <p
           style={{
             fontSize: typography.fontSize.base,
-            color: colors.text.secondary,
+            color: themeColors.text.secondary,
             lineHeight: typography.lineHeight.relaxed,
             margin: 0,
           }}
@@ -107,7 +108,7 @@ export default function IndexManagementPage() {
                   margin: 0,
                   fontSize: typography.fontSize.xl,
                   fontWeight: typography.fontWeight.semibold,
-                  color: colors.text.primary,
+                  color: themeColors.text.primary,
                   marginBottom: spacing.xs,
                 }}
               >
@@ -117,7 +118,7 @@ export default function IndexManagementPage() {
                 style={{
                   margin: 0,
                   fontSize: typography.fontSize.sm,
-                  color: colors.text.secondary,
+                  color: themeColors.text.secondary,
                 }}
               >
                 {recommendations.length} önerilen indeks bulundu.
@@ -143,7 +144,7 @@ export default function IndexManagementPage() {
                 display: "inline-block",
                 width: "48px",
                 height: "48px",
-                border: `4px solid ${colors.gray[200]}`,
+                border: `4px solid ${themeColors.gray[200]}`,
                 borderTopColor: colors.primary,
                 borderRadius: "50%",
                 animation: "spin 0.8s linear infinite",
@@ -154,7 +155,7 @@ export default function IndexManagementPage() {
       ) : recommendations.length === 0 ? (
         <Card variant="elevated">
           <div style={{ padding: spacing.xl, textAlign: "center" }}>
-            <p style={{ color: colors.text.secondary, margin: 0 }}>
+            <p style={{ color: themeColors.text.secondary, margin: 0 }}>
               Önerilen indeks bulunmamaktadır.
             </p>
           </div>
@@ -168,8 +169,8 @@ export default function IndexManagementPage() {
                 style={{
                   padding: spacing.md,
                   borderRadius: borderRadius.md,
-                  backgroundColor: colors.gray[50],
-                  border: `1px solid ${colors.border}`,
+                  backgroundColor: themeColors.gray[50],
+                  border: `1px solid ${themeColors.border}`,
                   borderLeft: `4px solid ${IMPACT_COLORS[rec.estimatedImpact].text}`,
                 }}
               >
@@ -187,7 +188,7 @@ export default function IndexManagementPage() {
                         margin: 0,
                         fontSize: typography.fontSize.base,
                         fontWeight: typography.fontWeight.semibold,
-                        color: colors.text.primary,
+                        color: themeColors.text.primary,
                       }}
                     >
                       {rec.table}
@@ -196,7 +197,7 @@ export default function IndexManagementPage() {
                       style={{
                         margin: `${spacing.xs} 0 0 0`,
                         fontSize: typography.fontSize.sm,
-                        color: colors.text.secondary,
+                        color: themeColors.text.secondary,
                       }}
                     >
                       Sütunlar: {rec.columns.join(", ")}
@@ -243,7 +244,7 @@ export default function IndexManagementPage() {
                   style={{
                     margin: `${spacing.sm} 0 0 0`,
                     fontSize: typography.fontSize.sm,
-                    color: colors.text.secondary,
+                    color: themeColors.text.secondary,
                     lineHeight: typography.lineHeight.relaxed,
                   }}
                 >

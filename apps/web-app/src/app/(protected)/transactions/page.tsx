@@ -8,10 +8,12 @@ import { Suspense } from "react";
 import { Card } from "@/components/ui/Card";
 import { SkeletonTable } from "@/components/ui/Skeleton";
 import { PageTransition } from "@/components/ui/PageTransition";
-import { spacing, colors, borderRadius } from "@/styles/design-system";
+import { spacing, colors } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 import Link from "next/link";
 
 function TransactionsPageContent() {
+  const { themeColors } = useTheme();
   const searchParams = useSearchParams();
   const defaultClientId = searchParams.get("clientCompanyId") || undefined;
 
@@ -52,8 +54,8 @@ function TransactionsPageContent() {
           href="/islemler/new"
           style={{
             padding: "8px 16px",
-            backgroundColor: "#0066cc",
-            color: "white",
+            backgroundColor: colors.primary,
+            color: colors.white,
             textDecoration: "none",
             borderRadius: "4px",
           }}
@@ -74,7 +76,7 @@ function TransactionsPageContent() {
             }}
             style={{
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
@@ -91,7 +93,7 @@ function TransactionsPageContent() {
             }}
             style={{
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
@@ -109,7 +111,7 @@ function TransactionsPageContent() {
             placeholder="Referans no ile ara..."
             style={{
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
             }}
@@ -125,7 +127,7 @@ function TransactionsPageContent() {
             }}
             style={{
               padding: "8px 12px",
-              border: "1px solid #ddd",
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               fontSize: "16px",
               minWidth: "200px",
@@ -157,7 +159,7 @@ function TransactionsPageContent() {
               marginTop: "16px",
               padding: "8px 16px",
               backgroundColor: colors.primary,
-              color: "white",
+              color: colors.white,
               textDecoration: "none",
               borderRadius: "4px",
             }}
@@ -169,7 +171,7 @@ function TransactionsPageContent() {
         <>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr style={{ borderBottom: "2px solid #ddd" }}>
+              <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
                 <th style={{ padding: "12px", textAlign: "left" }}>Tarih</th>
                 <th style={{ padding: "12px", textAlign: "left" }}>Referans No</th>
                 <th style={{ padding: "12px", textAlign: "left" }}>Açıklama</th>
@@ -180,7 +182,7 @@ function TransactionsPageContent() {
             </thead>
             <tbody>
               {transactions.map((transaction) => (
-                <tr key={transaction.id} style={{ borderBottom: "1px solid #eee" }}>
+                <tr key={transaction.id} style={{ borderBottom: `1px solid ${themeColors.gray[200]}` }}>
                   <td style={{ padding: "12px" }}>
                     {new Date(transaction.date).toLocaleDateString("tr-TR")}
                   </td>
@@ -230,7 +232,7 @@ function TransactionsPageContent() {
                 disabled={page === 1}
                 style={{
                   padding: "8px 16px",
-                  border: "1px solid #ddd",
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "4px",
                   cursor: page === 1 ? "not-allowed" : "pointer",
                   opacity: page === 1 ? 0.5 : 1,
@@ -246,7 +248,7 @@ function TransactionsPageContent() {
                 disabled={page === pagination.totalPages}
                 style={{
                   padding: "8px 16px",
-                  border: "1px solid #ddd",
+                  border: `1px solid ${themeColors.border}`,
                   borderRadius: "4px",
                   cursor: page === pagination.totalPages ? "not-allowed" : "pointer",
                   opacity: page === pagination.totalPages ? 0.5 : 1,

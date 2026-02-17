@@ -9,7 +9,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { colors, spacing, borderRadius } from "@/styles/design-system";
+import { colors, borderRadius } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const invoiceLineSchema = z.object({
   lineNumber: z.number().int().positive(),
@@ -40,6 +41,7 @@ const invoiceSchema = z.object({
 type InvoiceForm = z.infer<typeof invoiceSchema>;
 
 function NewInvoicePageContent() {
+  const { themeColors } = useTheme();
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
@@ -197,7 +199,7 @@ function NewInvoicePageContent() {
 
       <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
         {error && (
-          <div style={{ padding: "12px", backgroundColor: "#fee", color: "#c33", borderRadius: "4px" }}>
+          <div style={{ padding: "12px", backgroundColor: colors.dangerLight, color: colors.danger, borderRadius: "4px" }}>
             {error}
           </div>
         )}
@@ -213,7 +215,7 @@ function NewInvoicePageContent() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
               }}
@@ -226,7 +228,7 @@ function NewInvoicePageContent() {
               ))}
             </select>
             {errors.clientCompanyId && (
-              <p style={{ color: "#c33", fontSize: "14px", marginTop: "4px" }}>
+              <p style={{ color: colors.danger, fontSize: "14px", marginTop: "4px" }}>
                 {errors.clientCompanyId.message}
               </p>
             )}
@@ -242,7 +244,7 @@ function NewInvoicePageContent() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
               }}
@@ -259,7 +261,7 @@ function NewInvoicePageContent() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
               }}
@@ -280,13 +282,13 @@ function NewInvoicePageContent() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
               }}
             />
             {errors.issueDate && (
-              <p style={{ color: "#c33", fontSize: "14px", marginTop: "4px" }}>{errors.issueDate.message}</p>
+              <p style={{ color: colors.danger, fontSize: "14px", marginTop: "4px" }}>{errors.issueDate.message}</p>
             )}
           </div>
 
@@ -301,7 +303,7 @@ function NewInvoicePageContent() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
               }}
@@ -318,7 +320,7 @@ function NewInvoicePageContent() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
               }}
@@ -339,7 +341,7 @@ function NewInvoicePageContent() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
               }}
@@ -359,7 +361,7 @@ function NewInvoicePageContent() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
               }}
@@ -376,7 +378,7 @@ function NewInvoicePageContent() {
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                border: "1px solid #ddd",
+                border: `1px solid ${themeColors.border}`,
                 borderRadius: "4px",
                 fontSize: "16px",
               }}
@@ -409,7 +411,7 @@ function NewInvoicePageContent() {
               style={{
                 padding: "8px 16px",
                 backgroundColor: colors.success,
-                color: "white",
+                color: colors.white,
                 border: "none",
                 borderRadius: "4px",
                 cursor: "pointer",
@@ -421,7 +423,7 @@ function NewInvoicePageContent() {
 
           <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "16px" }}>
             <thead>
-              <tr style={{ borderBottom: "2px solid #ddd" }}>
+              <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
                 <th style={{ padding: "12px", textAlign: "left" }}>Açıklama</th>
                 <th style={{ padding: "12px", textAlign: "left" }}>Miktar</th>
                 <th style={{ padding: "12px", textAlign: "left" }}>Birim Fiyat</th>
@@ -433,14 +435,14 @@ function NewInvoicePageContent() {
             </thead>
             <tbody>
               {fields.map((field, index) => (
-                <tr key={field.id} style={{ borderBottom: "1px solid #eee" }}>
+                <tr key={field.id} style={{ borderBottom: `1px solid ${themeColors.gray[200]}` }}>
                   <td style={{ padding: "8px" }}>
                     <input
                       {...register(`lines.${index}.description`)}
                       style={{
                         width: "100%",
                         padding: "4px 8px",
-                        border: "1px solid #ddd",
+                        border: `1px solid ${themeColors.border}`,
                         borderRadius: "4px",
                       }}
                     />
@@ -457,7 +459,7 @@ function NewInvoicePageContent() {
                       style={{
                         width: "100px",
                         padding: "4px 8px",
-                        border: "1px solid #ddd",
+                        border: `1px solid ${themeColors.border}`,
                         borderRadius: "4px",
                       }}
                     />
@@ -474,7 +476,7 @@ function NewInvoicePageContent() {
                       style={{
                         width: "120px",
                         padding: "4px 8px",
-                        border: "1px solid #ddd",
+                        border: `1px solid ${themeColors.border}`,
                         borderRadius: "4px",
                       }}
                     />
@@ -492,7 +494,7 @@ function NewInvoicePageContent() {
                       style={{
                         width: "120px",
                         padding: "4px 8px",
-                        border: "1px solid #ddd",
+                        border: `1px solid ${themeColors.border}`,
                         borderRadius: "4px",
                       }}
                     />
@@ -507,7 +509,7 @@ function NewInvoicePageContent() {
                       style={{
                         width: "100px",
                         padding: "4px 8px",
-                        border: "1px solid #ddd",
+                        border: `1px solid ${themeColors.border}`,
                         borderRadius: "4px",
                       }}
                     >
@@ -527,9 +529,9 @@ function NewInvoicePageContent() {
                       style={{
                         width: "120px",
                         padding: "4px 8px",
-                        border: "1px solid #ddd",
+                        border: `1px solid ${themeColors.border}`,
                         borderRadius: "4px",
-                        backgroundColor: colors.gray[100],
+                        backgroundColor: themeColors.gray[100],
                       }}
                     />
                   </td>
@@ -560,11 +562,11 @@ function NewInvoicePageContent() {
           </table>
 
           {errors.lines && (
-            <p style={{ color: "#c33", fontSize: "14px", marginBottom: "16px" }}>{errors.lines.message}</p>
+            <p style={{ color: colors.danger, fontSize: "14px", marginBottom: "16px" }}>{errors.lines.message}</p>
           )}
         </div>
 
-        <div style={{ display: "flex", justifyContent: "space-between", padding: "16px", backgroundColor: colors.gray[100], borderRadius: borderRadius.sm }}>
+        <div style={{ display: "flex", justifyContent: "space-between", padding: "16px", backgroundColor: themeColors.gray[100], borderRadius: borderRadius.sm }}>
           <div>
             <strong>Toplam Tutar:</strong>{" "}
             {watch("totalAmount")?.toLocaleString("tr-TR", {
@@ -588,8 +590,8 @@ function NewInvoicePageContent() {
             href="/faturalar"
             style={{
               padding: "8px 16px",
-              backgroundColor: colors.gray[100],
-              border: "1px solid #ddd",
+              backgroundColor: themeColors.gray[100],
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               textDecoration: "none",
               color: "inherit",
@@ -603,7 +605,7 @@ function NewInvoicePageContent() {
             style={{
               padding: "8px 16px",
               backgroundColor: colors.primary,
-              color: "white",
+              color: colors.white,
               border: "none",
               borderRadius: "4px",
               cursor: isSubmitting ? "not-allowed" : "pointer",

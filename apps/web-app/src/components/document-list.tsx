@@ -5,6 +5,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listDocuments, deleteDocument, downloadDocument, type DocumentWithRiskFlags } from "@repo/api-client";
 import { documents as documentsI18n, common as commonI18n } from "@repo/i18n";
 import Link from "next/link";
+import { colors, spacing, borderRadius, typography } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const TYPE_LABELS: Record<string, string> = {
   INVOICE: "Fatura",
@@ -28,6 +30,7 @@ interface DocumentListProps {
 }
 
 export function DocumentList({ clientCompanyId, onUploadClick, canUpload = true, canDelete = true }: DocumentListProps) {
+  const { themeColors } = useTheme();
   const queryClient = useQueryClient();
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -88,19 +91,26 @@ export function DocumentList({ clientCompanyId, onUploadClick, canUpload = true,
   const documents = (data?.data.data || []) as DocumentWithRiskFlags[];
   const pagination = data?.data || { total: 0, page: 1, pageSize: 20, totalPages: 1 };
 
+  const filterSelectStyle = {
+    padding: `${spacing.sm} ${spacing.md}`,
+    border: `1px solid ${themeColors.border}`,
+    borderRadius: borderRadius.sm,
+    fontSize: typography.fontSize.base,
+  };
+
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.lg }}>
         <h2>Belgeler</h2>
         {canUpload && onUploadClick && (
           <button
             onClick={onUploadClick}
             style={{
-              padding: "8px 16px",
-              backgroundColor: "#0066cc",
-              color: "white",
+              padding: `${spacing.sm} ${spacing.md}`,
+              backgroundColor: colors.primary,
+              color: colors.white,
               border: "none",
-              borderRadius: "4px",
+              borderRadius: borderRadius.sm,
               cursor: "pointer",
             }}
           >
@@ -109,21 +119,16 @@ export function DocumentList({ clientCompanyId, onUploadClick, canUpload = true,
         )}
       </div>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", marginBottom: "24px" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: spacing.md, marginBottom: spacing.lg }}>
         <div>
-          <label style={{ display: "block", marginBottom: "4px", fontSize: "14px" }}>Belge Türü</label>
+          <label style={{ display: "block", marginBottom: spacing.xs, fontSize: typography.fontSize.sm }}>Belge Türü</label>
           <select
             value={typeFilter}
             onChange={(e) => {
               setTypeFilter(e.target.value);
               setPage(1);
             }}
-            style={{
-              padding: "8px 12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "16px",
-            }}
+            style={filterSelectStyle}
           >
             <option value="all">Tümü</option>
             <option value="INVOICE">Fatura</option>
@@ -133,19 +138,14 @@ export function DocumentList({ clientCompanyId, onUploadClick, canUpload = true,
           </select>
         </div>
         <div>
-          <label style={{ display: "block", marginBottom: "4px", fontSize: "14px" }}>Durum</label>
+          <label style={{ display: "block", marginBottom: spacing.xs, fontSize: typography.fontSize.sm }}>Durum</label>
           <select
             value={statusFilter}
             onChange={(e) => {
               setStatusFilter(e.target.value);
               setPage(1);
             }}
-            style={{
-              padding: "8px 12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "16px",
-            }}
+            style={filterSelectStyle}
           >
             <option value="all">Tümü</option>
             <option value="UPLOADED">Yüklendi</option>
@@ -155,7 +155,7 @@ export function DocumentList({ clientCompanyId, onUploadClick, canUpload = true,
           </select>
         </div>
         <div>
-          <label style={{ display: "block", marginBottom: "4px", fontSize: "14px" }}>Başlangıç Tarihi</label>
+          <label style={{ display: "block", marginBottom: spacing.xs, fontSize: typography.fontSize.sm }}>Başlangıç Tarihi</label>
           <input
             type="date"
             value={dateFrom}
@@ -163,16 +163,11 @@ export function DocumentList({ clientCompanyId, onUploadClick, canUpload = true,
               setDateFrom(e.target.value);
               setPage(1);
             }}
-            style={{
-              padding: "8px 12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "16px",
-            }}
+            style={filterSelectStyle}
           />
         </div>
         <div>
-          <label style={{ display: "block", marginBottom: "4px", fontSize: "14px" }}>Bitiş Tarihi</label>
+          <label style={{ display: "block", marginBottom: spacing.xs, fontSize: typography.fontSize.sm }}>Bitiş Tarihi</label>
           <input
             type="date"
             value={dateTo}
@@ -180,28 +175,18 @@ export function DocumentList({ clientCompanyId, onUploadClick, canUpload = true,
               setDateTo(e.target.value);
               setPage(1);
             }}
-            style={{
-              padding: "8px 12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "16px",
-            }}
+            style={filterSelectStyle}
           />
         </div>
         <div>
-          <label style={{ display: "block", marginBottom: "4px", fontSize: "14px" }}>Risk Durumu</label>
+          <label style={{ display: "block", marginBottom: spacing.xs, fontSize: typography.fontSize.sm }}>Risk Durumu</label>
           <select
             value={riskFilter}
             onChange={(e) => {
               setRiskFilter(e.target.value);
               setPage(1);
             }}
-            style={{
-              padding: "8px 12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "16px",
-            }}
+            style={filterSelectStyle}
           >
             <option value="all">Tümü</option>
             <option value="no-risk">Risk Yok</option>
@@ -220,12 +205,12 @@ export function DocumentList({ clientCompanyId, onUploadClick, canUpload = true,
               onClick={onUploadClick}
               style={{
                 display: "inline-block",
-                marginTop: "16px",
-                padding: "8px 16px",
-                backgroundColor: "#0066cc",
-                color: "white",
+                marginTop: spacing.md,
+                padding: `${spacing.sm} ${spacing.md}`,
+                backgroundColor: colors.primary,
+                color: colors.white,
                 border: "none",
-                borderRadius: "4px",
+                borderRadius: borderRadius.sm,
                 cursor: "pointer",
               }}
             >
@@ -237,13 +222,13 @@ export function DocumentList({ clientCompanyId, onUploadClick, canUpload = true,
         <>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr style={{ borderBottom: "2px solid #ddd" }}>
-                <th style={{ padding: "12px", textAlign: "left" }}>Dosya Adı</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>Belge Türü</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>Durum</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>Yükleme Tarihi</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>İşlenme Tarihi</th>
-                <th style={{ padding: "12px", textAlign: "left" }}>İşlemler</th>
+              <tr style={{ borderBottom: `2px solid ${themeColors.border}` }}>
+                <th style={{ padding: spacing.md, textAlign: "left" }}>Dosya Adı</th>
+                <th style={{ padding: spacing.md, textAlign: "left" }}>Belge Türü</th>
+                <th style={{ padding: spacing.md, textAlign: "left" }}>Durum</th>
+                <th style={{ padding: spacing.md, textAlign: "left" }}>Yükleme Tarihi</th>
+                <th style={{ padding: spacing.md, textAlign: "left" }}>İşlenme Tarihi</th>
+                <th style={{ padding: spacing.md, textAlign: "left" }}>İşlemler</th>
               </tr>
             </thead>
             <tbody>
@@ -258,39 +243,39 @@ export function DocumentList({ clientCompanyId, onUploadClick, canUpload = true,
                   return true;
                 })
                 .map((document) => (
-                <tr key={document.id} style={{ borderBottom: "1px solid #eee" }}>
-                  <td style={{ padding: "12px" }}>
+                <tr key={document.id} style={{ borderBottom: `1px solid ${themeColors.gray[200]}` }}>
+                  <td style={{ padding: spacing.md }}>
                     <Link
                       href={`/belgeler/${document.id}`}
-                      style={{ color: "#0066cc", textDecoration: "none" }}
+                      style={{ color: colors.primary, textDecoration: "none" }}
                     >
                       {document.originalFileName}
                     </Link>
                   </td>
-                  <td style={{ padding: "12px" }}>{TYPE_LABELS[document.type] || document.type}</td>
-                  <td style={{ padding: "12px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <td style={{ padding: spacing.md }}>{TYPE_LABELS[document.type] || document.type}</td>
+                  <td style={{ padding: spacing.md }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: spacing.sm }}>
                       <span
                         style={{
-                          padding: "4px 8px",
-                          borderRadius: "4px",
+                          padding: `${spacing.xs} ${spacing.sm}`,
+                          borderRadius: borderRadius.sm,
                           backgroundColor:
                             document.status === "PROCESSED"
-                              ? "#d4edda"
+                              ? themeColors.successLight
                               : document.status === "FAILED"
-                              ? "#f8d7da"
+                              ? themeColors.dangerLight
                               : document.status === "PROCESSING"
-                              ? "#fff3cd"
-                              : "#e2e3e5",
+                              ? themeColors.warningLight
+                              : themeColors.gray[200],
                           color:
                             document.status === "PROCESSED"
-                              ? "#155724"
+                              ? themeColors.successDark
                               : document.status === "FAILED"
-                              ? "#721c24"
+                              ? themeColors.dangerDark
                               : document.status === "PROCESSING"
-                              ? "#856404"
-                              : "#383d41",
-                          fontSize: "12px",
+                              ? themeColors.warningDark
+                              : themeColors.text.secondary,
+                          fontSize: typography.fontSize.xs,
                         }}
                       >
                         {STATUS_LABELS[document.status] || document.status}
@@ -303,11 +288,11 @@ export function DocumentList({ clientCompanyId, onUploadClick, canUpload = true,
                               : `Bu belge AI tarafından analiz edilmiş ve ${document.riskFlagCount} adet risk göstergesi tespit edilmiştir.`
                           }
                           style={{
-                            padding: "4px 8px",
-                            borderRadius: "4px",
-                            backgroundColor: (document.riskFlagCount || 0) === 0 ? "#d4edda" : "#f8d7da",
-                            color: (document.riskFlagCount || 0) === 0 ? "#155724" : "#721c24",
-                            fontSize: "12px",
+                            padding: `${spacing.xs} ${spacing.sm}`,
+                            borderRadius: borderRadius.sm,
+                            backgroundColor: (document.riskFlagCount || 0) === 0 ? themeColors.successLight : themeColors.dangerLight,
+                            color: (document.riskFlagCount || 0) === 0 ? themeColors.successDark : themeColors.dangerDark,
+                            fontSize: typography.fontSize.xs,
                             cursor: "help",
                           }}
                         >
@@ -316,21 +301,21 @@ export function DocumentList({ clientCompanyId, onUploadClick, canUpload = true,
                       )}
                     </div>
                   </td>
-                  <td style={{ padding: "12px" }}>
+                  <td style={{ padding: spacing.md }}>
                     {new Date(document.createdAt).toLocaleDateString("tr-TR")}
                   </td>
-                  <td style={{ padding: "12px" }}>
+                  <td style={{ padding: spacing.md }}>
                     {document.processedAt ? new Date(document.processedAt).toLocaleDateString("tr-TR") : "-"}
                   </td>
-                  <td style={{ padding: "12px" }}>
-                    <div style={{ display: "flex", gap: "8px" }}>
+                  <td style={{ padding: spacing.md }}>
+                    <div style={{ display: "flex", gap: spacing.sm }}>
                       <Link
                         href={`/belgeler/${document.id}`}
                         style={{
-                          padding: "4px 8px",
-                          color: "#0066cc",
+                          padding: `${spacing.xs} ${spacing.sm}`,
+                          color: colors.primary,
                           textDecoration: "none",
-                          fontSize: "14px",
+                          fontSize: typography.fontSize.sm,
                         }}
                       >
                         Görüntüle
@@ -339,12 +324,12 @@ export function DocumentList({ clientCompanyId, onUploadClick, canUpload = true,
                         onClick={() => downloadMutation.mutate(document.id)}
                         disabled={downloadMutation.isPending}
                         style={{
-                          padding: "4px 8px",
-                          color: "#0066cc",
-                          border: "1px solid #0066cc",
-                          borderRadius: "4px",
+                          padding: `${spacing.xs} ${spacing.sm}`,
+                          color: colors.primary,
+                          border: `1px solid ${colors.primary}`,
+                          borderRadius: borderRadius.sm,
                           cursor: downloadMutation.isPending ? "not-allowed" : "pointer",
-                          fontSize: "14px",
+                          fontSize: typography.fontSize.sm,
                           backgroundColor: "transparent",
                         }}
                       >
@@ -355,12 +340,12 @@ export function DocumentList({ clientCompanyId, onUploadClick, canUpload = true,
                           onClick={() => handleDelete(document.id)}
                           disabled={deleteMutation.isPending}
                           style={{
-                            padding: "4px 8px",
-                            color: "#dc3545",
-                            border: "1px solid #dc3545",
-                            borderRadius: "4px",
+                            padding: `${spacing.xs} ${spacing.sm}`,
+                            color: colors.danger,
+                            border: `1px solid ${colors.danger}`,
+                            borderRadius: borderRadius.sm,
                             cursor: deleteMutation.isPending ? "not-allowed" : "pointer",
-                            fontSize: "14px",
+                            fontSize: typography.fontSize.sm,
                             backgroundColor: "transparent",
                           }}
                         >
@@ -375,30 +360,30 @@ export function DocumentList({ clientCompanyId, onUploadClick, canUpload = true,
           </table>
 
           {pagination.totalPages > 1 && (
-            <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginTop: "24px" }}>
+            <div style={{ display: "flex", justifyContent: "center", gap: spacing.sm, marginTop: spacing.lg }}>
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
                 style={{
-                  padding: "8px 16px",
-                  border: "1px solid #ddd",
-                  borderRadius: "4px",
+                  padding: `${spacing.sm} ${spacing.md}`,
+                  border: `1px solid ${themeColors.border}`,
+                  borderRadius: borderRadius.sm,
                   cursor: page === 1 ? "not-allowed" : "pointer",
                   opacity: page === 1 ? 0.5 : 1,
                 }}
               >
                 Önceki
               </button>
-              <span style={{ padding: "8px 16px", display: "flex", alignItems: "center" }}>
+              <span style={{ padding: `${spacing.sm} ${spacing.md}`, display: "flex", alignItems: "center" }}>
                 Sayfa {pagination.page} / {pagination.totalPages}
               </span>
               <button
                 onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
                 disabled={page === pagination.totalPages}
                 style={{
-                  padding: "8px 16px",
-                  border: "1px solid #ddd",
-                  borderRadius: "4px",
+                  padding: `${spacing.sm} ${spacing.md}`,
+                  border: `1px solid ${themeColors.border}`,
+                  borderRadius: borderRadius.sm,
                   cursor: page === pagination.totalPages ? "not-allowed" : "pointer",
                   opacity: page === pagination.totalPages ? 0.5 : 1,
                 }}
@@ -412,4 +397,3 @@ export function DocumentList({ clientCompanyId, onUploadClick, canUpload = true,
     </div>
   );
 }
-

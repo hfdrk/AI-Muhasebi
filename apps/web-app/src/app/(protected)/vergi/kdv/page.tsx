@@ -3,12 +3,14 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { taxClient, listClientCompanies } from "@repo/api-client";
-import Link from "next/link";
 import { Card } from "../../../../components/ui/Card";
 import { Button } from "../../../../components/ui/Button";
-import { colors, spacing, borderRadius, shadows, typography, transitions } from "../../../../styles/design-system";
+import { colors, spacing, borderRadius, typography } from "../../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
+import { toast } from "@/lib/toast";
 
 export default function VATOptimizationPage() {
+  const { themeColors } = useTheme();
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<string>(
     new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split("T")[0]
@@ -92,7 +94,7 @@ export default function VATOptimizationPage() {
         padding: isMobile ? spacing.md : spacing.xxl,
         maxWidth: "1600px",
         margin: "0 auto",
-        backgroundColor: colors.gray[50],
+        backgroundColor: themeColors.gray[50],
         minHeight: "100vh",
         boxSizing: "border-box",
       }}
@@ -121,7 +123,7 @@ export default function VATOptimizationPage() {
             style={{
               fontSize: isMobile ? typography.fontSize.xl : typography.fontSize["3xl"],
               fontWeight: typography.fontWeight.bold,
-              color: colors.text.primary,
+              color: themeColors.text.primary,
               marginBottom: spacing.sm,
             }}
           >
@@ -130,7 +132,7 @@ export default function VATOptimizationPage() {
           <p
             style={{
               fontSize: typography.fontSize.base,
-              color: colors.text.secondary,
+              color: themeColors.text.secondary,
               lineHeight: typography.lineHeight.relaxed,
               margin: 0,
             }}
@@ -158,7 +160,7 @@ export default function VATOptimizationPage() {
                 marginBottom: spacing.xs,
                 fontSize: typography.fontSize.sm,
                 fontWeight: typography.fontWeight.medium,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
               }}
             >
               Müşteri
@@ -170,10 +172,10 @@ export default function VATOptimizationPage() {
                 width: "100%",
                 padding: spacing.sm,
                 borderRadius: borderRadius.md,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
                 fontSize: typography.fontSize.base,
-                backgroundColor: colors.white,
-                color: colors.text.primary,
+                backgroundColor: themeColors.white,
+                color: themeColors.text.primary,
               }}
             >
               <option value="">Müşteri seçin...</option>
@@ -192,7 +194,7 @@ export default function VATOptimizationPage() {
                 marginBottom: spacing.xs,
                 fontSize: typography.fontSize.sm,
                 fontWeight: typography.fontWeight.medium,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
               }}
             >
               Başlangıç Tarihi
@@ -205,10 +207,10 @@ export default function VATOptimizationPage() {
                 width: "100%",
                 padding: spacing.sm,
                 borderRadius: borderRadius.md,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
                 fontSize: typography.fontSize.base,
-                backgroundColor: colors.white,
-                color: colors.text.primary,
+                backgroundColor: themeColors.white,
+                color: themeColors.text.primary,
               }}
             />
           </div>
@@ -220,7 +222,7 @@ export default function VATOptimizationPage() {
                 marginBottom: spacing.xs,
                 fontSize: typography.fontSize.sm,
                 fontWeight: typography.fontWeight.medium,
-                color: colors.text.primary,
+                color: themeColors.text.primary,
               }}
             >
               Bitiş Tarihi
@@ -233,10 +235,10 @@ export default function VATOptimizationPage() {
                 width: "100%",
                 padding: spacing.sm,
                 borderRadius: borderRadius.md,
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${themeColors.border}`,
                 fontSize: typography.fontSize.base,
-                backgroundColor: colors.white,
-                color: colors.text.primary,
+                backgroundColor: themeColors.white,
+                color: themeColors.text.primary,
               }}
             />
           </div>
@@ -254,7 +256,7 @@ export default function VATOptimizationPage() {
                     display: "inline-block",
                     width: "48px",
                     height: "48px",
-                    border: `4px solid ${colors.gray[200]}`,
+                    border: `4px solid ${themeColors.gray[200]}`,
                     borderTopColor: colors.primary,
                     borderRadius: "50%",
                     animation: "spin 0.8s linear infinite",
@@ -279,7 +281,7 @@ export default function VATOptimizationPage() {
                     style={{
                       margin: 0,
                       fontSize: typography.fontSize.sm,
-                      color: colors.text.secondary,
+                      color: themeColors.text.secondary,
                       marginBottom: spacing.xs,
                     }}
                   >
@@ -290,7 +292,7 @@ export default function VATOptimizationPage() {
                       margin: 0,
                       fontSize: typography.fontSize["2xl"],
                       fontWeight: typography.fontWeight.bold,
-                      color: colors.text.primary,
+                      color: themeColors.text.primary,
                     }}
                   >
                     {(vatAnalysis.totalVAT ?? 0).toLocaleString("tr-TR", {
@@ -308,7 +310,7 @@ export default function VATOptimizationPage() {
                     style={{
                       margin: 0,
                       fontSize: typography.fontSize.sm,
-                      color: colors.text.secondary,
+                      color: themeColors.text.secondary,
                       marginBottom: spacing.xs,
                     }}
                   >
@@ -337,7 +339,7 @@ export default function VATOptimizationPage() {
                     style={{
                       margin: 0,
                       fontSize: typography.fontSize.sm,
-                      color: colors.text.secondary,
+                      color: themeColors.text.secondary,
                       marginBottom: spacing.xs,
                     }}
                   >
@@ -366,7 +368,7 @@ export default function VATOptimizationPage() {
                     style={{
                       margin: 0,
                       fontSize: typography.fontSize.sm,
-                      color: colors.text.secondary,
+                      color: themeColors.text.secondary,
                       marginBottom: spacing.xs,
                     }}
                   >
@@ -405,7 +407,7 @@ export default function VATOptimizationPage() {
                     display: "inline-block",
                     width: "32px",
                     height: "32px",
-                    border: `3px solid ${colors.gray[200]}`,
+                    border: `3px solid ${themeColors.gray[200]}`,
                     borderTopColor: colors.primary,
                     borderRadius: "50%",
                     animation: "spin 0.8s linear infinite",
@@ -414,7 +416,7 @@ export default function VATOptimizationPage() {
               </div>
             ) : inconsistencies.length === 0 ? (
               <div style={{ padding: spacing.lg, textAlign: "center" }}>
-                <p style={{ color: colors.text.secondary, margin: 0 }}>
+                <p style={{ color: themeColors.text.secondary, margin: 0 }}>
                   KDV tutarsızlığı bulunmamaktadır. ✅
                 </p>
               </div>
@@ -426,8 +428,8 @@ export default function VATOptimizationPage() {
                     style={{
                       padding: spacing.md,
                       borderRadius: borderRadius.md,
-                      backgroundColor: colors.gray[50],
-                      border: `1px solid ${colors.border}`,
+                      backgroundColor: themeColors.gray[50],
+                      border: `1px solid ${themeColors.border}`,
                       borderLeft: `4px solid ${getSeverityColor(inc.severity)}`,
                     }}
                   >
@@ -443,7 +445,7 @@ export default function VATOptimizationPage() {
                         style={{
                           fontSize: typography.fontSize.sm,
                           fontWeight: typography.fontWeight.semibold,
-                          color: colors.text.primary,
+                          color: themeColors.text.primary,
                           textTransform: "uppercase",
                         }}
                       >
@@ -470,7 +472,7 @@ export default function VATOptimizationPage() {
                       style={{
                         margin: 0,
                         fontSize: typography.fontSize.sm,
-                        color: colors.text.secondary,
+                        color: themeColors.text.secondary,
                       }}
                     >
                       {inc.description}
@@ -499,7 +501,7 @@ export default function VATOptimizationPage() {
       {!selectedClientId && (
         <Card variant="elevated">
           <div style={{ padding: spacing.xl, textAlign: "center" }}>
-            <p style={{ color: colors.text.secondary, margin: 0 }}>
+            <p style={{ color: themeColors.text.secondary, margin: 0 }}>
               Lütfen analiz için bir müşteri seçin.
             </p>
           </div>

@@ -7,8 +7,10 @@ import { Card } from "../../../../components/ui/Card";
 import { SkeletonTable } from "../../../../components/ui/Skeleton";
 import { PageTransition } from "../../../../components/ui/PageTransition";
 import { colors, spacing, shadows } from "../../../../styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function AdminUsersPage() {
+  const { themeColors } = useTheme();
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
   const [emailFilter, setEmailFilter] = useState("");
@@ -41,7 +43,7 @@ export default function AdminUsersPage() {
 
   if (error) {
     return (
-      <div style={{ textAlign: "center", padding: spacing.xxl, color: colors.error || "#ef4444" }}>
+      <div style={{ textAlign: "center", padding: spacing.xxl, color: colors.error }}>
         Hata: {error instanceof Error ? error.message : "Bilinmeyen hata"}
       </div>
     );
@@ -53,7 +55,7 @@ export default function AdminUsersPage() {
   return (
     <PageTransition>
       <div>
-      <h1 style={{ marginBottom: spacing.xl, fontSize: "28px", fontWeight: 600, color: colors.text.primary }}>
+      <h1 style={{ marginBottom: spacing.xl, fontSize: "28px", fontWeight: 600, color: themeColors.text.primary }}>
         Kullanıcılar
       </h1>
 
@@ -69,7 +71,7 @@ export default function AdminUsersPage() {
           }}
           style={{
             padding: spacing.md,
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${themeColors.border}`,
             borderRadius: "4px",
             flex: 1,
             maxWidth: "300px",
@@ -85,7 +87,7 @@ export default function AdminUsersPage() {
           }}
           style={{
             padding: spacing.md,
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${themeColors.border}`,
             borderRadius: "4px",
             flex: 1,
             maxWidth: "300px",
@@ -101,7 +103,7 @@ export default function AdminUsersPage() {
           }}
           style={{
             padding: spacing.md,
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${themeColors.border}`,
             borderRadius: "4px",
             flex: 1,
             maxWidth: "300px",
@@ -110,30 +112,30 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Table */}
-      <div style={{ backgroundColor: colors.white, borderRadius: "8px", boxShadow: shadows.sm, overflow: "hidden" }}>
+      <div style={{ backgroundColor: themeColors.white, borderRadius: "8px", boxShadow: shadows.sm, overflow: "hidden" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
-            <tr style={{ backgroundColor: colors.gray[100] }}>
-              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${colors.border}` }}>
+            <tr style={{ backgroundColor: themeColors.gray[100] }}>
+              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
                 Ad Soyad
               </th>
-              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${colors.border}` }}>
+              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
                 E-posta
               </th>
-              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${colors.border}` }}>
+              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
                 Kiracılar
               </th>
-              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${colors.border}` }}>
+              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
                 Roller
               </th>
-              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${colors.border}` }}>
+              <th style={{ padding: spacing.md, textAlign: "left", borderBottom: `1px solid ${themeColors.border}` }}>
                 Son Giriş Zamanı
               </th>
             </tr>
           </thead>
           <tbody>
             {users.map((user) => (
-              <tr key={user.id} style={{ borderBottom: `1px solid ${colors.border}` }}>
+              <tr key={user.id} style={{ borderBottom: `1px solid ${themeColors.border}` }}>
                 <td style={{ padding: spacing.md }}>{user.name}</td>
                 <td style={{ padding: spacing.md }}>{user.email}</td>
                 <td style={{ padding: spacing.md }}>
@@ -145,13 +147,13 @@ export default function AdminUsersPage() {
                   <div style={{ display: "flex", flexDirection: "column", gap: spacing.xs }}>
                     {user.platformRoles.length > 0 && (
                       <div>
-                        <span style={{ fontSize: "12px", color: colors.text.secondary }}>Platform: </span>
+                        <span style={{ fontSize: "12px", color: themeColors.text.secondary }}>Platform: </span>
                         {user.platformRoles.join(", ")}
                       </div>
                     )}
                     {user.tenantMemberships.length > 0 && (
                       <div>
-                        <span style={{ fontSize: "12px", color: colors.text.secondary }}>Kiracı: </span>
+                        <span style={{ fontSize: "12px", color: themeColors.text.secondary }}>Kiracı: </span>
                         {user.tenantMemberships.map((m) => m.role).join(", ")}
                       </div>
                     )}
@@ -174,7 +176,7 @@ export default function AdminUsersPage() {
             disabled={page === 1}
             style={{
               padding: `${spacing.sm} ${spacing.md}`,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               cursor: page === 1 ? "not-allowed" : "pointer",
               opacity: page === 1 ? 0.5 : 1,
@@ -190,7 +192,7 @@ export default function AdminUsersPage() {
             disabled={page === pagination.totalPages}
             style={{
               padding: `${spacing.sm} ${spacing.md}`,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${themeColors.border}`,
               borderRadius: "4px",
               cursor: page === pagination.totalPages ? "not-allowed" : "pointer",
               opacity: page === pagination.totalPages ? 0.5 : 1,
@@ -204,8 +206,3 @@ export default function AdminUsersPage() {
     </PageTransition>
   );
 }
-
-
-
-
-

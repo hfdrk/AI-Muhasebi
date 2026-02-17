@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { emailLogClient, type EmailLog, type EmailAnalytics } from "@repo/api-client";
+import { emailLogClient, type EmailLog } from "@repo/api-client";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { SkeletonTable } from "@/components/ui/Skeleton";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { colors, spacing } from "@/styles/design-system";
+import { useTheme } from "@/contexts/ThemeContext";
 
 function formatDate(date: Date | string | null): string {
   if (!date) return "-";
@@ -22,7 +23,7 @@ function formatDate(date: Date | string | null): string {
   }).format(d);
 }
 
-function getStatusColor(status: string): string {
+function getStatusColor(status: string, fallbackColor: string): string {
   switch (status) {
     case "delivered":
       return colors.success;
@@ -33,7 +34,7 @@ function getStatusColor(status: string): string {
     case "failed":
       return colors.error;
     default:
-      return colors.text.secondary;
+      return fallbackColor;
   }
 }
 
@@ -53,6 +54,7 @@ function getStatusLabel(status: string): string {
 }
 
 export default function EmailLogsPage() {
+  const { themeColors } = useTheme();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
@@ -70,7 +72,7 @@ export default function EmailLogsPage() {
     gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   });
 
-  const { data: analyticsData, isLoading: analyticsLoading } = useQuery({
+  const { data: analyticsData } = useQuery({
     queryKey: ["email-analytics", dateFrom, dateTo],
     queryFn: () =>
       emailLogClient.getEmailAnalytics({
@@ -81,7 +83,7 @@ export default function EmailLogsPage() {
     gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   });
 
-  const logs = logsData?.data?.data || [];
+  const logs = logsData?.data || [];
   const analytics = analyticsData?.data;
 
   return (
@@ -94,13 +96,13 @@ export default function EmailLogsPage() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: spacing.md, marginBottom: spacing.lg }}>
           <Card>
             <div style={{ padding: spacing.md }}>
-              <div style={{ fontSize: "14px", color: colors.text.secondary, marginBottom: spacing.xs }}>Toplam</div>
-              <div style={{ fontSize: "24px", fontWeight: "bold", color: colors.text.primary }}>{analytics.total}</div>
+              <div style={{ fontSize: "14px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>Toplam</div>
+              <div style={{ fontSize: "24px", fontWeight: "bold", color: themeColors.text.primary }}>{analytics.total}</div>
             </div>
           </Card>
           <Card>
             <div style={{ padding: spacing.md }}>
-              <div style={{ fontSize: "14px", color: colors.text.secondary, marginBottom: spacing.xs }}>Teslim Oranı</div>
+              <div style={{ fontSize: "14px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>Teslim Oranı</div>
               <div style={{ fontSize: "24px", fontWeight: "bold", color: colors.success }}>
                 {analytics.deliveryRate.toFixed(1)}%
               </div>
@@ -108,7 +110,7 @@ export default function EmailLogsPage() {
           </Card>
           <Card>
             <div style={{ padding: spacing.md }}>
-              <div style={{ fontSize: "14px", color: colors.text.secondary, marginBottom: spacing.xs }}>Geri Dönme Oranı</div>
+              <div style={{ fontSize: "14px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>Geri Dönme Oranı</div>
               <div style={{ fontSize: "24px", fontWeight: "bold", color: colors.error }}>
                 {analytics.bounceRate.toFixed(1)}%
               </div>
@@ -116,7 +118,7 @@ export default function EmailLogsPage() {
           </Card>
           <Card>
             <div style={{ padding: spacing.md }}>
-              <div style={{ fontSize: "14px", color: colors.text.secondary, marginBottom: spacing.xs }}>Açılma Oranı</div>
+              <div style={{ fontSize: "14px", color: themeColors.text.secondary, marginBottom: spacing.xs }}>Açılma Oranı</div>
               <div style={{ fontSize: "24px", fontWeight: "bold", color: colors.primary }}>
                 {analytics.openRate.toFixed(1)}%
               </div>
@@ -129,7 +131,7 @@ export default function EmailLogsPage() {
       <Card style={{ marginBottom: spacing.lg }}>
         <div style={{ padding: spacing.md, display: "flex", gap: spacing.md, alignItems: "flex-end", flexWrap: "wrap" }}>
           <div style={{ flex: 1, minWidth: "200px" }}>
-            <label style={{ display: "block", marginBottom: spacing.xs, fontSize: "14px", color: colors.text.secondary }}>
+            <label style={{ display: "block", marginBottom: spacing.xs, fontSize: "14px", color: themeColors.text.secondary }}>
               Durum
             </label>
             <select
@@ -138,7 +140,7 @@ export default function EmailLogsPage() {
               style={{
                 width: "100%",
                 padding: spacing.sm,
-                border: `1px solid ${colors.gray[300]}`,
+                border: `1px solid ${themeColors.gray[300]}`,
                 borderRadius: "6px",
                 fontSize: "14px",
               }}
@@ -151,7 +153,7 @@ export default function EmailLogsPage() {
             </select>
           </div>
           <div style={{ flex: 1, minWidth: "150px" }}>
-            <label style={{ display: "block", marginBottom: spacing.xs, fontSize: "14px", color: colors.text.secondary }}>
+            <label style={{ display: "block", marginBottom: spacing.xs, fontSize: "14px", color: themeColors.text.secondary }}>
               Başlangıç Tarihi
             </label>
             <input
@@ -161,14 +163,14 @@ export default function EmailLogsPage() {
               style={{
                 width: "100%",
                 padding: spacing.sm,
-                border: `1px solid ${colors.gray[300]}`,
+                border: `1px solid ${themeColors.gray[300]}`,
                 borderRadius: "6px",
                 fontSize: "14px",
               }}
             />
           </div>
           <div style={{ flex: 1, minWidth: "150px" }}>
-            <label style={{ display: "block", marginBottom: spacing.xs, fontSize: "14px", color: colors.text.secondary }}>
+            <label style={{ display: "block", marginBottom: spacing.xs, fontSize: "14px", color: themeColors.text.secondary }}>
               Bitiş Tarihi
             </label>
             <input
@@ -178,7 +180,7 @@ export default function EmailLogsPage() {
               style={{
                 width: "100%",
                 padding: spacing.sm,
-                border: `1px solid ${colors.gray[300]}`,
+                border: `1px solid ${themeColors.gray[300]}`,
                 borderRadius: "6px",
                 fontSize: "14px",
               }}
@@ -206,7 +208,7 @@ export default function EmailLogsPage() {
             </Button>
           </div>
         ) : logs.length === 0 ? (
-          <div style={{ padding: spacing.xl, textAlign: "center", color: colors.text.secondary }}>
+          <div style={{ padding: spacing.xl, textAlign: "center", color: themeColors.text.secondary }}>
             <div style={{ fontSize: "48px", marginBottom: spacing.md }}>📧</div>
             <div>Henüz e-posta logu bulunmuyor.</div>
           </div>
@@ -214,7 +216,7 @@ export default function EmailLogsPage() {
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ borderBottom: `1px solid ${colors.gray[300]}` }}>
+                <tr style={{ borderBottom: `1px solid ${themeColors.gray[300]}` }}>
                   <th style={{ padding: spacing.md, textAlign: "left", fontSize: "14px", fontWeight: "semibold" }}>
                     Tarih
                   </th>
@@ -234,7 +236,7 @@ export default function EmailLogsPage() {
               </thead>
               <tbody>
                 {logs.map((log: EmailLog) => (
-                  <tr key={log.id} style={{ borderBottom: `1px solid ${colors.gray[200]}` }}>
+                  <tr key={log.id} style={{ borderBottom: `1px solid ${themeColors.gray[200]}` }}>
                     <td style={{ padding: spacing.md, fontSize: "14px" }}>{formatDate(log.createdAt)}</td>
                     <td style={{ padding: spacing.md, fontSize: "14px" }}>{log.to.join(", ")}</td>
                     <td style={{ padding: spacing.md, fontSize: "14px" }}>{log.subject}</td>
@@ -243,8 +245,8 @@ export default function EmailLogsPage() {
                         style={{
                           padding: `${spacing.xs} ${spacing.sm}`,
                           borderRadius: "4px",
-                          backgroundColor: getStatusColor(log.status) + "20",
-                          color: getStatusColor(log.status),
+                          backgroundColor: getStatusColor(log.status, themeColors.text.secondary) + "20",
+                          color: getStatusColor(log.status, themeColors.text.secondary),
                           fontSize: "12px",
                           fontWeight: "medium",
                         }}
@@ -252,7 +254,7 @@ export default function EmailLogsPage() {
                         {getStatusLabel(log.status)}
                       </span>
                     </td>
-                    <td style={{ padding: spacing.md, fontSize: "14px", color: colors.text.secondary }}>
+                    <td style={{ padding: spacing.md, fontSize: "14px", color: themeColors.text.secondary }}>
                       {log.error || "-"}
                     </td>
                   </tr>
@@ -266,5 +268,3 @@ export default function EmailLogsPage() {
     </PageTransition>
   );
 }
-
-

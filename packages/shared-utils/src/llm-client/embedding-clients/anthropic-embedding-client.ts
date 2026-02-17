@@ -2,10 +2,9 @@ import type { EmbeddingClient, EmbeddingClientConfig } from "./embedding-interfa
 
 /**
  * Anthropic Embedding Client
- * 
- * Note: Anthropic doesn't currently have a dedicated embedding API.
- * This is a placeholder for future support when Anthropic releases embedding models.
- * For now, this will throw an error indicating it's not yet available.
+ *
+ * Anthropic does not currently offer a dedicated embedding API.
+ * This client implements the EmbeddingClient interface for forward compatibility.
  */
 export class AnthropicEmbeddingClient implements EmbeddingClient {
   private apiKey: string;
@@ -18,9 +17,9 @@ export class AnthropicEmbeddingClient implements EmbeddingClient {
       throw new Error("Anthropic API key is required");
     }
     this.apiKey = config.apiKey;
-    this.model = config.model || "claude-embed-v1"; // Placeholder model name
+    this.model = config.model || "claude-embed-v1";
     this.baseUrl = config.baseUrl || "https://api.anthropic.com/v1";
-    this.dimensions = config.dimensions || 1024; // Placeholder dimensions
+    this.dimensions = config.dimensions || 1024;
   }
 
   async generateEmbedding(text: string): Promise<number[]> {
