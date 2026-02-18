@@ -13,7 +13,7 @@ export function ImpersonationBanner() {
 
   useEffect(() => {
     // Check for impersonation token
-    const impersonationToken = localStorage.getItem("impersonationToken");
+    const impersonationToken = sessionStorage.getItem("impersonationToken");
     if (impersonationToken) {
       // Decode token to get user info (basic check)
       try {
@@ -23,7 +23,7 @@ export function ImpersonationBanner() {
         // For now, just show banner if token exists
       } catch (e) {
         // Invalid token, clear it
-        localStorage.removeItem("impersonationToken");
+        sessionStorage.removeItem("impersonationToken");
       }
     }
   }, []);
@@ -39,7 +39,7 @@ export function ImpersonationBanner() {
         console.error("Failed to stop impersonation:", error);
       }
       // Still clear token and reload
-      localStorage.removeItem("impersonationToken");
+      sessionStorage.removeItem("impersonationToken");
       window.location.reload();
     }
   };

@@ -55,8 +55,8 @@ export interface AccountLockoutStatus {
 }
 
 export class SecurityService {
-  private readonly MAX_FAILED_ATTEMPTS = 5;
-  private readonly LOCKOUT_DURATION_MINUTES = 30;
+  private readonly MAX_FAILED_ATTEMPTS = parseInt(process.env.SECURITY_MAX_FAILED_ATTEMPTS || "5", 10);
+  private readonly LOCKOUT_DURATION_MINUTES = parseInt(process.env.SECURITY_LOCKOUT_DURATION_MINUTES || "30", 10);
   private readonly DEFAULT_PASSWORD_POLICY: PasswordPolicy = {
     minLength: 8,
     requireUppercase: true,

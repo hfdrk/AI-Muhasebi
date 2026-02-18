@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { TenantSwitcher } from "../../components/tenant-switcher";
 import { NotificationBell } from "../../components/notification-bell";
 import { GlobalSearch } from "../../components/global-search";
@@ -14,6 +14,10 @@ import { Icon } from "../../components/ui/Icon";
 import { BottomNavigation } from "../../components/mobile/bottom-navigation";
 import { useTheme } from "../../contexts/ThemeContext";
 import { getAccessToken } from "@/lib/auth";
+
+// Idle session timeout (15 minutes of inactivity → auto-logout)
+const IDLE_TIMEOUT_MS = 15 * 60 * 1000;
+const IDLE_WARNING_MS = 13 * 60 * 1000; // Show warning 2 min before logout
 
 interface NavItem {
   href: string;
@@ -281,14 +285,44 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const [showIdleWarning, setShowIdleWarning] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const { isDark, toggleTheme } = useTheme();
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const warningTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Idle session timeout — auto-logout after 15 min of inactivity
+  const resetIdleTimer = useCallback(() => {
+    setShowIdleWarning(false);
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
+
+    warningTimerRef.current = setTimeout(() => {
+      setShowIdleWarning(true);
+    }, IDLE_WARNING_MS);
+
+    idleTimerRef.current = setTimeout(async () => {
+      try { await logout(); } catch {}
+      router.push("/auth/login?reason=idle");
+    }, IDLE_TIMEOUT_MS);
+  }, [router]);
+
+  useEffect(() => {
+    const events = ["mousedown", "keydown", "scroll", "touchstart"];
+    events.forEach((e) => window.addEventListener(e, resetIdleTimer, { passive: true }));
+    resetIdleTimer();
+    return () => {
+      events.forEach((e) => window.removeEventListener(e, resetIdleTimer));
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
+    };
+  }, [resetIdleTimer]);
 
   // Responsive breakpoints
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
-  
+
   useEffect(() => {
     const checkScreenSize = () => {
       const width = window.innerWidth;
@@ -299,7 +333,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
         setSidebarCollapsed(true);
       }
     };
-    
+
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
     return () => window.removeEventListener('resize', checkScreenSize);
@@ -1111,6 +1145,41 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
             )}
           </div>
         </header>
+
+        {/* Idle Session Warning */}
+        {showIdleWarning && (
+          <div
+            style={{
+              backgroundColor: colors.warning,
+              color: colors.white,
+              padding: `${spacing.sm} ${spacing.lg}`,
+              textAlign: "center",
+              fontSize: typography.fontSize.sm,
+              fontWeight: typography.fontWeight.medium,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: spacing.md,
+            }}
+          >
+            <span>Oturumunuz 2 dakika içinde sona erecek. Devam etmek için herhangi bir yere tıklayın.</span>
+            <button
+              onClick={resetIdleTimer}
+              style={{
+                backgroundColor: "rgba(255,255,255,0.2)",
+                color: colors.white,
+                border: "1px solid rgba(255,255,255,0.3)",
+                padding: `${spacing.xs} ${spacing.md}`,
+                borderRadius: borderRadius.md,
+                cursor: "pointer",
+                fontWeight: typography.fontWeight.semibold,
+                fontSize: typography.fontSize.sm,
+              }}
+            >
+              Oturumu Uzat
+            </button>
+          </div>
+        )}
 
         {/* Main Content with smooth transitions */}
         <main

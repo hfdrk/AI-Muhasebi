@@ -1,6 +1,40 @@
 import { prisma } from "../lib/prisma";
 import { logger } from "@repo/shared-utils";
 
+// Whitelist of allowed table and column names to prevent SQL injection
+const ALLOWED_TABLES = new Set([
+  "invoices", "transactions", "documents", "risk_alerts",
+  "client_companies", "users", "tenants", "user_tenant_memberships",
+  "transaction_lines", "ledger_accounts", "notifications",
+  "audit_logs", "integration_configs", "tasks", "contracts",
+]);
+
+const ALLOWED_COLUMNS = new Set([
+  "id", "tenant_id", "client_company_id", "date", "issue_date", "type",
+  "status", "created_at", "updated_at", "severity", "external_id",
+  "name", "email", "counterparty_tax_number", "user_id",
+]);
+
+const ALLOWED_INDEX_TYPES = new Set(["btree", "gin", "gist", "hash"]);
+
+function isValidIdentifier(name: string): boolean {
+  return /^[a-z_][a-z0-9_]*$/.test(name);
+}
+
+function validateTableName(table: string): void {
+  if (!ALLOWED_TABLES.has(table) || !isValidIdentifier(table)) {
+    throw new Error(`Invalid table name: ${table}`);
+  }
+}
+
+function validateColumnNames(columns: string[]): void {
+  for (const col of columns) {
+    if (!ALLOWED_COLUMNS.has(col) || !isValidIdentifier(col)) {
+      throw new Error(`Invalid column name: ${col}`);
+    }
+  }
+}
+
 /**
  * Database Optimization Service
  * 
@@ -160,32 +194,36 @@ export class DatabaseOptimizationService {
 
     for (const rec of recommendations) {
       try {
+        // Validate all identifiers against whitelist to prevent SQL injection
+        validateTableName(rec.table);
+        validateColumnNames(rec.columns);
+        if (!ALLOWED_INDEX_TYPES.has(rec.type)) {
+          throw new Error(`Invalid index type: ${rec.type}`);
+        }
+
         const indexName = `idx_${rec.table}_${rec.columns.join("_")}`;
+        if (!isValidIdentifier(indexName)) {
+          throw new Error(`Invalid index name generated: ${indexName}`);
+        }
+
         const columns = rec.columns.join(", ");
-        
-        // Check if index exists
-        const checkQuery = `
+
+        // Check if index exists (parameterized query)
+        const exists = await prisma.$queryRaw<Array<{ exists: boolean }>>`
           SELECT EXISTS (
-            SELECT 1 FROM pg_indexes 
-            WHERE indexname = $1
+            SELECT 1 FROM pg_indexes
+            WHERE indexname = ${indexName}
           ) as exists;
         `;
-        
-        const exists = await prisma.$queryRawUnsafe(checkQuery, indexName);
-        const indexExists = (exists as Array<{ exists: boolean }>)[0]?.exists;
+        const indexExists = exists[0]?.exists;
 
         if (indexExists) {
           results.skipped++;
           continue;
         }
 
-        // Create index
-        const createIndexQuery = `
-          CREATE INDEX ${indexName} 
-          ON ${rec.table} (${columns})
-          USING ${rec.type};
-        `;
-
+        // Create index — identifiers are whitelisted above, safe to interpolate
+        const createIndexQuery = `CREATE INDEX ${indexName} ON ${rec.table} (${columns}) USING ${rec.type};`;
         await prisma.$executeRawUnsafe(createIndexQuery);
         results.created++;
         logger.info(`Index created: ${indexName}`);
@@ -297,9 +335,10 @@ export class DatabaseOptimizationService {
 
     try {
       if (tableNames && tableNames.length > 0) {
-        // Vacuum specific tables
+        // Vacuum specific tables — validate names against whitelist
         for (const table of tableNames) {
           try {
+            validateTableName(table);
             await prisma.$executeRawUnsafe(`VACUUM ANALYZE ${table};`);
             results.vacuumed.push(table);
           } catch (error: any) {

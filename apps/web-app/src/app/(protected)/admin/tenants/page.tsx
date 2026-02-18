@@ -31,9 +31,10 @@ export default function AdminTenantsPage() {
         targetUserEmail: userEmail,
       });
 
-      // Store impersonation token and reload
+      // Store impersonation token in sessionStorage (not localStorage)
+      // sessionStorage is tab-scoped and cleared when the tab closes, reducing XSS risk
       if (response.data.impersonationToken) {
-        localStorage.setItem("impersonationToken", response.data.impersonationToken);
+        sessionStorage.setItem("impersonationToken", response.data.impersonationToken);
         toast.success("İmpersonasyon başlatıldı. Yönlendiriliyorsunuz...");
         // Redirect to dashboard with impersonation context
         window.location.href = "/dashboard";

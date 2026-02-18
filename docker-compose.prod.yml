@@ -102,8 +102,11 @@ services:
       RAG_ENABLED: "true"
       RAG_TOP_K: 5
       RAG_MIN_SIMILARITY: 0.7
-    ports:
-      - "3800:3800"
+    # In production, do NOT expose ports directly — Nginx handles external traffic
+    # ports:
+    #   - "3800:3800"
+    expose:
+      - "3800"
     depends_on:
       postgres:
         condition: service_healthy
@@ -122,6 +125,14 @@ services:
     read_only: true
     tmpfs:
       - /tmp:size=100M
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
     networks:
       - ai-muhasebi-network
     restart: unless-stopped
@@ -134,8 +145,11 @@ services:
       NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
       API_PROXY_TARGET: http://backend-api:3800/api/:path*
       PORT: 3001
-    ports:
-      - "3010:3001"
+    # In production, Nginx proxies traffic — no direct port exposure
+    # ports:
+    #   - "3010:3001"
+    expose:
+      - "3001"
     depends_on:
       backend-api:
         condition: service_healthy
@@ -151,6 +165,14 @@ services:
     tmpfs:
       - /tmp:size=100M
       - /app/.next/cache:size=200M
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
     networks:
       - ai-muhasebi-network
     restart: unless-stopped
@@ -196,6 +218,14 @@ services:
     read_only: true
     tmpfs:
       - /tmp:size=100M
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 768M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
     networks:
       - ai-muhasebi-network
     restart: unless-stopped

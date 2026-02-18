@@ -241,8 +241,9 @@ const authLimiter = rateLimit({
     return `${req.ip}-${email}`;
   },
   skip: (req) => {
-    // Only rate-limit sensitive auth actions, not refresh/logout
-    return req.path === "/refresh" || req.path === "/logout";
+    // Only skip rate-limiting for logout (low-risk)
+    // /refresh is still rate-limited to prevent token brute-force
+    return req.path === "/logout";
   },
 });
 

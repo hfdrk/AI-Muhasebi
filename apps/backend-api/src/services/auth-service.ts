@@ -153,7 +153,7 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
-        hashedPassword: user.hashedPassword,
+        hashedPassword: "", // Never expose password hash outside auth layer
         fullName: user.fullName,
         locale: user.locale,
         isActive: user.isActive,
@@ -263,7 +263,7 @@ export class AuthService {
       user: {
         id: result.user.id,
         email: result.user.email,
-        hashedPassword: result.user.hashedPassword,
+        hashedPassword: "", // Never expose password hash outside auth layer
         fullName: result.user.fullName,
         locale: result.user.locale,
         isActive: result.user.isActive,
@@ -452,7 +452,7 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
-        hashedPassword: user.hashedPassword,
+        hashedPassword: "", // Never expose password hash outside auth layer
         fullName: user.fullName,
         locale: user.locale,
         isActive: user.isActive,
