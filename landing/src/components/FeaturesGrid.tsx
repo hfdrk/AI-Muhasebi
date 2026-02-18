@@ -4,15 +4,15 @@ import { COLORS, FEATURES } from "@/lib/constants";
 import { useScrollAnimation } from "@/lib/animations";
 import {
   Brain, FileCheck, Shield, Building2, Landmark, Lock,
-  BarChart3, MessageSquare, Search, GitCompareArrows,
-  ClipboardCheck, Calendar, Users,
+  BarChart3, TrendingUp, FileText, GitCompareArrows,
+  ClipboardCheck, PieChart, ScanLine, Users, Calendar,
 } from "lucide-react";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const iconMap: Record<string, any> = {
   Brain, FileCheck, Shield, Building2, Landmark, Lock,
-  BarChart3, MessageSquare, Search, GitCompareArrows,
-  ClipboardCheck, Calendar, Users,
+  BarChart3, TrendingUp, FileText, GitCompareArrows,
+  ClipboardCheck, PieChart, ScanLine, Users, Calendar,
 };
 
 export default function FeaturesGrid() {
@@ -64,7 +64,7 @@ export default function FeaturesGrid() {
               lineHeight: 1.6,
             }}
           >
-            13 temel modülü ile mali müşavirlik ofislerinizi tam dijital
+            15 temel modülü ile mali müşavirlik ofislerinizi tam dijital
             dönüşüme taşıyın.
           </p>
         </div>

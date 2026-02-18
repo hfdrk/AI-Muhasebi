@@ -2,7 +2,7 @@
 
 import { COLORS } from "@/lib/constants";
 import { useScrollAnimation } from "@/lib/animations";
-import { ShieldCheck, FileCheck2, Building2, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, FileCheck2, Building2, TrendingUp, CheckCircle2 } from "lucide-react";
 
 const showcases = [
   {
@@ -46,6 +46,20 @@ const showcases = [
     ],
     icon: Building2,
     gradient: `linear-gradient(135deg, ${COLORS.accent}12 0%, ${COLORS.primary}06 100%)`,
+  },
+  {
+    overline: "FİNANSAL ARAÇLAR",
+    title: "Nakit Akışından Beyanname'ye Her Şey Tek Yerde",
+    description:
+      "Nakit akış tahmini, çek/senet takibi, döviz kurları, Ba-Bs formları ve beyanname hazırlama gibi tüm finansal araçları entegre bir şekilde kullanın. Ödeme hatırlatma ve tekrar eden faturalar ile operasyonları otomatikleştirin.",
+    bullets: [
+      "Nakit akış tahmini ve çek/senet vade takibi",
+      "15+ para biriminde güncel döviz kurları",
+      "Ba-Bs form oluşturma ve beyanname hazırlama",
+      "Otomatik ödeme hatırlatma ve tekrar eden faturalar",
+    ],
+    icon: TrendingUp,
+    gradient: `linear-gradient(135deg, ${COLORS.primary}12 0%, ${COLORS.accent}10 100%)`,
   },
 ];
 

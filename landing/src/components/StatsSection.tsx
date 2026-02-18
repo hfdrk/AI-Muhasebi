@@ -8,7 +8,7 @@ function StatItem({
   isVisible,
   delay,
 }: {
-  stat: (typeof STATS)[0];
+  stat: { value: number; label: string; suffix?: string; prefix?: string };
   isVisible: boolean;
   delay: number;
 }) {

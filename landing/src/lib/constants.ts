@@ -35,55 +35,55 @@ export const FEATURES = [
     icon: "Brain" as const,
     title: "Yapay Zeka Muhasebe Asistanı",
     description:
-      "Mali sorularınıza anında cevap veren, faturalarınızı analiz eden ve öneriler sunan AI destekli asistan.",
+      "Mali sorularınıza anında cevap veren, faturalarınızı analiz eden AI asistan. RAG belge arama ve doğal dilde Türkçe sohbet.",
   },
   {
     icon: "FileCheck" as const,
     title: "GİB E-Fatura / E-Defter / E-Arşiv",
     description:
-      "GİB mevzuatına tam uyumlu elektronik fatura, defter ve arşiv işlemleri. VKN doğrulama ve KDV kontrolü dahil.",
+      "GİB mevzuatına tam uyumlu elektronik fatura, defter ve arşiv işlemleri. VKN doğrulama, KDV kontrolü ve UBL 2.1 formatı.",
   },
   {
     icon: "Shield" as const,
-    title: "MASAK STR İzleme & Denetim",
+    title: "MASAK STR & Kırmızı Bayrak Kontrolü",
     description:
-      "Şüpheli işlem bildirimi (STR), eşik değeri takibi, smurfing tespiti ve otomatik uyarı sistemi.",
+      "STR bildirimi, 12 kırmızı bayrak kontrolü (RF-001–RF-012), eşik takibi, smurfing tespiti ve KURGAN izleme.",
   },
   {
     icon: "Building2" as const,
-    title: "Çoklu Firma Yönetimi",
+    title: "Mali Müşavir Çoklu Firma Yönetimi",
     description:
-      "Yüzlerce müşterinizi tek panelden yönetin. Firma bazlı raporlama, risk skorlama ve toplu işlem desteği.",
+      "SMMM/YMM lisans takibi, TÜRMOB kaydı, sigorta yönetimi. Yüzlerce firmayı tek panelden yönetin.",
   },
   {
     icon: "Landmark" as const,
-    title: "7 Banka Entegrasyonu (PSD2)",
+    title: "7 Banka + 3 Muhasebe Yazılımı",
     description:
-      "Ziraat, Garanti, İş Bankası, Yapı Kredi, Vakıfbank, QNB, Akbank ile otomatik hesap senkronizasyonu.",
+      "Ziraat, Garanti, İş Bankası, Yapı Kredi, Vakıfbank, QNB, Akbank (PSD2) ve ETA, Logo, Mikro entegrasyonu.",
   },
   {
     icon: "Lock" as const,
-    title: "KVKK Uyumluluğu",
+    title: "KVKK Tam Uyumluluk Modülü",
     description:
-      "Kişisel veri envanterleri, erişim talepleri, silme işlemleri ve ihlal yönetimi. Tam KVKK denetim izleri.",
+      "Onay yönetimi, veri erişim/silme talepleri, ihlal bildirimi, denetim kayıtları. 2FA ve IP kısıtlaması ile güvenlik.",
   },
   {
     icon: "BarChart3" as const,
     title: "ML Tabanlı Risk Skorlama",
     description:
-      "Isolation Forest anomali tespiti, Benford Yasası analizi, dairesel işlem ve naylon fatura kontrolü.",
+      "Isolation Forest anomali tespiti, Benford Yasası, dairesel işlem, naylon fatura ve sektörel benchmark kontrolü.",
   },
   {
-    icon: "MessageSquare" as const,
-    title: "AI Sohbet Asistanı",
+    icon: "TrendingUp" as const,
+    title: "Nakit Akış & Finansal Araçlar",
     description:
-      "Finansal sorularınıza Türkçe doğal dilde cevap veren, mevzuat bilen akıllı sohbet robotu.",
+      "Nakit akış tahmini, çek/senet takibi, döviz kurları (15+ para birimi), ödeme hatırlatma ve tekrar eden faturalar.",
   },
   {
-    icon: "Search" as const,
-    title: "RAG Semantik Belge Arama",
+    icon: "FileText" as const,
+    title: "Ba-Bs Formları & Beyanname",
     description:
-      "Yüklenen belgeleri yapay zeka ile anlamlandıran ve ilişkili sonuçlara ulaşan akıllı arama motoru.",
+      "Ba-Bs form oluşturma, beyanname hazırlama, vergi hesaplama ve GİB gönderim iş akışı.",
   },
   {
     icon: "GitCompareArrows" as const,
@@ -95,27 +95,39 @@ export const FEATURES = [
     icon: "ClipboardCheck" as const,
     title: "GİB Denetim Ön Kontrolü",
     description:
-      "10 farklı GİB denetim tetikleyicisini önceden kontrol edin. Denetim riskinizi skorlayın.",
+      "10 farklı GİB denetim tetikleyicisini (AT-001–AT-010) önceden kontrol edin. Denetim riskinizi skorlayın.",
   },
   {
-    icon: "Calendar" as const,
-    title: "Zamanlanmış Raporlar & Vergi Takvimi",
+    icon: "PieChart" as const,
+    title: "Analitik & Tahminleme",
     description:
-      "Beyanname takvimi, otomatik rapor oluşturma, vergi süreci hatırlatıcıları ve zamanlanmış gönderim.",
+      "Finansal trendler, risk trendleri, portföy analizi, gelir/gider tahmini ve zamanlanmış raporlar.",
+  },
+  {
+    icon: "ScanLine" as const,
+    title: "OCR & Belge Yapay Zekası",
+    description:
+      "Tesseract, AWS Textract ve Google Vision ile belge tarama. Otomatik alan çıkarma ve sınıflandırma.",
   },
   {
     icon: "Users" as const,
-    title: "Müşteri Portalı",
+    title: "Müşteri Portalı & Mesajlaşma",
     description:
-      "Müşterilerinize özel güvenli portal. Belge paylaşımı, fatura görüntülemesi ve işlem takibi.",
+      "Müşterilerinize özel güvenli portal, belge paylaşımı, fatura görüntülemesi. Dahili mesajlaşma ve görev takibi.",
+  },
+  {
+    icon: "Calendar" as const,
+    title: "Vergi Yönetimi & TMS Uyumu",
+    description:
+      "KDV optimizasyonu, TMS uyumlu mali tablo hazırlama, vergi takvimi hatırlatıcıları ve beyanname takibi.",
   },
 ];
 
 export const STATS = [
-  { value: 7, label: "Banka Entegrasyonu" },
-  { value: 13, suffix: "+", label: "Temel Modül" },
-  { value: 10, label: "GİB Denetim Kontrolü" },
-  { value: 99.9, prefix: "%", label: "Çalışma Süresi" },
+  { value: 10, label: "Entegrasyon (7 Banka + 3 Yazılım)" },
+  { value: 25, suffix: "+", label: "Platform Modülü" },
+  { value: 12, label: "MASAK Kırmızı Bayrak Kontrolü" },
+  { value: 10, label: "GİB Denetim Ön Kontrolü" },
 ];
 
 export const STEPS = [
@@ -151,6 +163,9 @@ export const PRICING_PLANS = [
       "1 firma yönetimi",
       "E-Fatura gönderim/alım",
       "Temel risk analizi",
+      "Ba-Bs form oluşturma",
+      "OCR belge tarama",
+      "Döviz kuru takibi",
       "5 GB belge depolama",
       "Email destek",
     ],
@@ -164,11 +179,14 @@ export const PRICING_PLANS = [
     features: [
       "50 firma yönetimi",
       "GİB E-Fatura / E-Defter / E-Arşiv",
-      "MASAK STR izleme",
-      "7 banka entegrasyonu",
-      "ML risk skorlama",
-      "AI sohbet asistanı",
-      "RAG belge arama",
+      "MASAK STR & kırmızı bayrak izleme",
+      "7 banka + 3 muhasebe yazılımı",
+      "ML risk skorlama & anomali tespiti",
+      "AI asistan & RAG belge arama",
+      "Nakit akış tahmini & çek/senet takibi",
+      "Beyanname hazırlama & vergi hesaplama",
+      "Ödeme hatırlatma & tekrar eden faturalar",
+      "Analitik & finansal trendler",
       "50 GB belge depolama",
       "Öncelikli destek",
     ],
@@ -180,13 +198,15 @@ export const PRICING_PLANS = [
     price: "Özel Fiyat",
     subtitle: "Büyük ölçekli ofisler ve holdingler için",
     features: [
-      "Sınırsız firma",
-      "Çapraz firma eşleştirme",
-      "GİB denetim ön kontrolü",
-      "Sektörel benchmark",
-      "KVKK tam uyumluluk",
-      "Müşteri portalı",
-      "Zamanlanmış raporlar",
+      "Sınırsız firma yönetimi",
+      "Çapraz firma eşleştirme & naylon fatura tespiti",
+      "GİB denetim ön kontrolü (AT-001–AT-010)",
+      "Sektörel benchmark (NACE kodlu)",
+      "KVKK tam uyumluluk modülü",
+      "KURGAN izleme sistemi",
+      "Müşteri portalı & mesajlaşma",
+      "Mali müşavir çoklu firma paneli",
+      "Zamanlanmış raporlar & tahminleme",
       "Özel entegrasyon desteği",
       "7/24 öncelikli destek",
     ],

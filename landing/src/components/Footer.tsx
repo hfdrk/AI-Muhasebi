@@ -151,7 +151,7 @@ export default function Footer() {
           }}
         >
           <p style={{ fontSize: "13px", color: COLORS.gray[500] }}>
-            &copy; 2025 AI Muhasebi. Tüm hakları saklıdır.
+            &copy; 2026 AI Muhasebi. Tüm hakları saklıdır.
           </p>
           <p style={{ fontSize: "13px", color: COLORS.gray[500] }}>
             Türkiye&apos;de tasarlanmış ve geliştirilmiştir.
