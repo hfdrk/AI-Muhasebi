@@ -52,9 +52,13 @@ export async function tenantMiddleware(
 
     // Set tenant context for PostgreSQL Row-Level Security
     // This ensures RLS policies can filter rows by tenant_id
-    // Uses Prisma.sql tagged template to prevent SQL injection
+    // Note: SET LOCAL doesn't support parameterized queries ($1), so we
+    // strictly validate the UUID format before interpolating
     try {
-      await prisma.$executeRaw`SET LOCAL app.tenant_id = ${tenantId}`;
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (uuidRegex.test(tenantId)) {
+        await prisma.$executeRawUnsafe(`SET LOCAL app.tenant_id = '${tenantId}'`);
+      }
     } catch {
       // RLS context setting is a safety net — don't block the request if it fails
     }
