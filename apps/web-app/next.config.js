@@ -104,7 +104,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https:",
-              "connect-src 'self' " + (process.env.API_PROXY_TARGET || "http://localhost:3800"),
+              "connect-src 'self' " + (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3800") + " ws: wss:",
               "frame-ancestors 'none'",
             ].join("; "),
           },
