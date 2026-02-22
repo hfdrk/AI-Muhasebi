@@ -100,6 +100,9 @@ RUN chmod +x /app/docker-entrypoint.sh
 # Change ownership to non-root user
 RUN chown -R nodejs:nodejs /app
 
+# Run as non-root user
+USER nodejs
+
 EXPOSE 3800
 
 # Health check

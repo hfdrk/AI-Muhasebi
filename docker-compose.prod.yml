@@ -292,6 +292,33 @@ services:
       - ai-muhasebi-network
     restart: unless-stopped
 
+  db-backup:
+    image: pgvector/pgvector:pg15
+    container_name: ai-muhasebi-db-backup
+    entrypoint: >
+      bash -c "
+        echo 'DB backup service started. Running daily backups...';
+        while true; do
+          echo \"[backup] $$(date -Iseconds) Running pg_dump...\";
+          pg_dump postgresql://$${POSTGRES_USER}:$${POSTGRES_PASSWORD}@postgres:5432/$${POSTGRES_DB} --no-owner --no-privileges --clean --if-exists --format=custom --compress=9 --file=/backups/ai_muhasebi_$$(date +%Y%m%d_%H%M%S).dump 2>&1 && echo '[backup] Success' || echo '[backup] Failed';
+          find /backups -name 'ai_muhasebi_*.dump' -mtime +30 -delete 2>/dev/null;
+          echo '[backup] Next backup in 24h. Sleeping...';
+          sleep 86400;
+        done
+      "
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ai_muhasebi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-ai_muhasebi}
+    volumes:
+      - db_backups:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ai-muhasebi-network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
     driver: local
@@ -300,6 +327,8 @@ volumes:
   minio_data:
     driver: local
   backend_storage:
+    driver: local
+  db_backups:
     driver: local
 
 networks:

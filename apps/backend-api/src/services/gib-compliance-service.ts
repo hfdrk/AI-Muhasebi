@@ -12,6 +12,7 @@
 
 import { logger } from "@repo/shared-utils";
 import crypto from "crypto";
+import { prisma } from "../lib/prisma";
 
 // =============================================================================
 // CONSTANTS
@@ -606,7 +607,7 @@ export class GibComplianceService {
 
     // Fallback: check local client company database for the VKN
     try {
-      const { prisma } = require("../lib/prisma");
+      // prisma imported at top of file
       const company = await prisma.clientCompany.findFirst({
         where: { taxNumber: vkn },
         select: { name: true, createdAt: true },

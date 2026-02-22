@@ -18,5 +18,4 @@ else
 fi
 
 echo "Starting backend API server..."
-exec gosu nodejs node dist/server.js
-
+exec node dist/server.js

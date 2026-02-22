@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { prisma } from "../lib/prisma";
 import { ETAConnector } from "../integrations/connectors/eta-connector";
 import { NotFoundError, ValidationError } from "@repo/shared-utils";
@@ -485,7 +486,7 @@ export class EFaturaService {
    * @returns QR code verification URL
    */
   private generateQRCode(externalId: string, invoice: EFaturaInvoice): string {
-    const crypto = require("crypto");
+    // crypto imported at top of file
 
     const issueDate = invoice.issueDate.toISOString().split("T")[0];
     const totalAmount = invoice.totalAmount.toFixed(2);
