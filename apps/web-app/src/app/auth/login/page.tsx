@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import { login } from "@repo/api-client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { colors, spacing, borderRadius, shadows, transitions, typography } from "@/styles/design-system";
@@ -23,6 +23,8 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get("returnTo");
   const { themeColors } = useTheme();
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -68,15 +70,11 @@ export default function LoginPage() {
             role === "ReadOnly" || role === "READ_ONLY" || role.toLowerCase() === "readonly"
           );
           
-          if (isReadOnly) {
-            if (process.env.NODE_ENV === "development") {
-              console.log("[Login] Redirecting ReadOnly user to client dashboard");
-            }
+          if (returnTo && !isReadOnly) {
+            router.push(returnTo);
+          } else if (isReadOnly) {
             router.push("/client/dashboard");
           } else {
-            if (process.env.NODE_ENV === "development") {
-              console.log("[Login] Redirecting non-ReadOnly user to accountant dashboard");
-            }
             router.push("/anasayfa");
           }
         } else {

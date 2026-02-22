@@ -334,7 +334,6 @@ const server = app.listen(PORT, () => {
   try {
     const { websocketService } = require("./services/websocket-service");
     websocketService.initialize(server);
-    logger.info("WebSocket server initialized");
   } catch (error) {
     logger.warn("WebSocket server initialization skipped:", error);
   }

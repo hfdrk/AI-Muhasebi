@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { getTenantDetail, updateTenantStatus } from "@repo/api-client";
@@ -11,9 +11,9 @@ import { colors, spacing, shadows } from "../../../../../styles/design-system";
 import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "../../../../../lib/toast";
 
-export default function AdminTenantDetailPage({ params }: { params: Promise<{ tenantId: string }> }) {
+export default function AdminTenantDetailPage({ params }: { params: { tenantId: string } }) {
   const { themeColors } = useTheme();
-  const { tenantId } = use(params);
+  const { tenantId } = params;
   const router = useRouter();
   const [statusModal, setStatusModal] = useState<{ open: boolean; newStatus: "ACTIVE" | "SUSPENDED" | null }>({ open: false, newStatus: null });
 
